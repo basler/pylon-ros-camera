@@ -1,7 +1,11 @@
 #include "pylon_camera/PylonCameraInterface.h"
 
-#include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+#include "std_msgs/Int32.h"
+#include "sensor_msgs/Image.h"
+
 
 using namespace Pylon;
 using namespace std;
@@ -11,14 +15,21 @@ PylonCameraInterface::PylonCameraInterface(){
     camera = NULL;
 }
 
-PylonCameraInterface::~PylonCameraInterface(){
-    cerr << "Closing camera";
-    if (camera)
+void PylonCameraInterface::close(){
+
+    if (camera){
+        cout << "Closing camera" << endl;
         camera->Close();
+    }
+}
+
+PylonCameraInterface::~PylonCameraInterface(){
+    close();
 }
 
 
 bool PylonCameraInterface::openCamera(){
+
 
     // The exit code of the sample application.
     int exitCode = 0;
@@ -50,6 +61,12 @@ bool PylonCameraInterface::openCamera(){
         camera = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
         // camera->MaxNumBuffer = 5;
 
+        camera->Open();
+
+        if (camera->IsOpen()){
+            cerr << "@@@@@@@@@@@@@@@ camer is p" << endl;
+        }
+
         // Print the model name of the camera.
         cout << "Using device " << camera->GetDeviceInfo().GetModelName() << endl;
 
@@ -62,20 +79,25 @@ bool PylonCameraInterface::openCamera(){
         exitCode = 1;
     }
 
+
+    ros::NodeHandle n;
+    pub_img = n.advertise<sensor_msgs::Image>("pylon",100);
+    camera->StartGrabbing();// 100 );
+
     return true;
 }
 
-void PylonCameraInterface::testRun(){
+void PylonCameraInterface::startGrabLoop(){}
 
 
-    camera->StartGrabbing( 100 );
+
+bool PylonCameraInterface::sendNextImage(){
 
     // This smart pointer will receive the grab result data.
-    CGrabResultPtr ptrGrabResult;
 
     // Camera.StopGrabbing() is called automatically by the RetrieveResult() method
     // when c_countOfImagesToGrab images have been retrieved.
-    while ( camera->IsGrabbing())
+    if ( camera->IsGrabbing())
     {
         // Wait for an image and then retrieve it. A timeout of 5000 ms is used.
         camera->RetrieveResult( 5000, ptrGrabResult, TimeoutHandling_ThrowException);
@@ -84,20 +106,31 @@ void PylonCameraInterface::testRun(){
         if (ptrGrabResult->GrabSucceeded())
         {
             // Access the image data.
-            cout << "SizeX: " << ptrGrabResult->GetWidth() << endl;
-            cout << "SizeY: " << ptrGrabResult->GetHeight() << endl;
-            const uint8_t *pImageBuffer = (uint8_t *) ptrGrabResult->GetBuffer();
-            cout << "Gray value of first pixel: " << (uint32_t) pImageBuffer[0] << endl << endl;
+            int w = ptrGrabResult->GetWidth();
+            int h = ptrGrabResult->GetHeight();
 
-            cv::Mat img(ptrGrabResult->GetHeight(),ptrGrabResult->GetWidth(),CV_8UC1);
+            // cout << "SizeX: " << ptrGrabResult->GetWidth() << endl;
+            // cout << "SizeY: " << ptrGrabResult->GetHeight() << endl;
+            // const uint8_t *pImageBuffer = (uint8_t *) ptrGrabResult->GetBuffer();
+            // cout << "Gray value of first pixel: " << (uint32_t) pImageBuffer[0] << endl << endl;
 
-            memcpy(img.data,(uint8_t *) ptrGrabResult->GetBuffer(),
-                   ptrGrabResult->GetHeight()*ptrGrabResult->GetWidth() );
+            if (img.cols != w || img.rows != h || img.type() != CV_8UC1){
+                cerr << "New image size: " << w << " " << h << endl;
+                img = cv::Mat(h,w,CV_8UC1);
+            }
 
-            cv::imwrite("/opt/tmp/gig.jpg",img);
+            memcpy(img.data,(uint8_t *) ptrGrabResult->GetBuffer(),w*h*sizeof(uchar) );
 
+            //  cout << "frame: " << ptrGrabResult->GetFrameNumber() << endl;
+            //  cv::imwrite("/opt/tmp/gig.jpg",img);
 
+            cv_bridge::CvImage out_msg;
+            out_msg.header.stamp   = ros::Time::now();
+            out_msg.header.frame_id   = "pylon_frame";
+            out_msg.encoding = sensor_msgs::image_encodings::MONO8;
+            out_msg.image    = img;
 
+            pub_img.publish(out_msg.toImageMsg());
 
 
 #ifdef PYLON_WIN_BUILD
@@ -109,69 +142,10 @@ void PylonCameraInterface::testRun(){
         {
             cout << "Error: " << ptrGrabResult->GetErrorCode() << " " << ptrGrabResult->GetErrorDescription();
         }
+
+        return true;
+
     }
 
-
-
-    //        // Print the model name of the camera->
-
-
-    //        // The parameter MaxNumBuffer can be used to control the count of buffers
-    //        // allocated for grabbing. The default value of this parameter is 10.
-    //        camera->MaxNumBuffer = 5;
-
-    //        // Start the grabbing of c_countOfImagesToGrab images.
-    //        // The camera device is parameterized with a default configuration which
-    //        // sets up free-running continuous acquisition.
-
-
-    //        camera->StartGrabbing( 100);
-
-    //        // This smart pointer will receive the grab result data.
-    //        CGrabResultPtr ptrGrabResult;
-
-    //        // camera->StopGrabbing() is called automatically by the RetrieveResult() method
-    //        // when c_countOfImagesToGrab images have been retrieved.
-    //        while ( camera->IsGrabbing())
-    //        {
-    //            // Wait for an image and then retrieve it. A timeout of 5000 ms is used.
-    //            camera->RetrieveResult( 5000, ptrGrabResult, TimeoutHandling_ThrowException);
-
-    //            // Image grabbed successfully?
-    //            if (ptrGrabResult->GrabSucceeded())
-    //            {
-    //                // Access the image data.
-    //                cout << "SizeX: " << ptrGrabResult->GetWidth() << endl;
-    //                cout << "SizeY: " << ptrGrabResult->GetHeight() << endl;
-    //                const uint8_t *pImageBuffer = (uint8_t *) ptrGrabResult->GetBuffer();
-    //                cout << "Gray value of first pixel: " << (uint32_t) pImageBuffer[0] << endl << endl;
-
-    //                std_msgs::Int32 msg;
-    //                msg.data = (uint32_t) pImageBuffer[0];
-    //                pub->publish(msg);
-    //                ros::spinOnce();
-
-    //#ifdef PYLON_WIN_BUILD
-    //                // Display the grabbed image.
-    //                Pylon::DisplayImage(1, ptrGrabResult);
-    //#endif
-    //            }
-    //            else
-    //            {
-    //                cout << "Error: " << ptrGrabResult->GetErrorCode() << " " << ptrGrabResult->GetErrorDescription();
-    //            }
-    //        }
-    //    }
-    //    catch (GenICam::GenericException &e)
-    //    {
-    //        // Error handling.
-    //        cerr << "An exception occurred." << endl
-    //             << e.GetDescription() << endl;
-    //    }
-
-    // Comment the following two lines to disable waiting on exit.
-    // cerr << endl << "Press Enter to exit." << endl;
-    // while( cin.get() != '\n');
-
-    //return exitCode;
+    return false;
 }

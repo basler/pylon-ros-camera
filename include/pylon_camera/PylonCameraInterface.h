@@ -2,7 +2,9 @@
 #define PYLONCAMERAINTERFACE_H
 
 #include <ros/ros.h>
-#include "std_msgs/Int32.h"
+
+#include <opencv2/core/core.hpp>
+
 
 #include <pylon/PylonIncludes.h>
 #ifdef PYLON_WIN_BUILD
@@ -20,15 +22,24 @@ public:
 
     ~PylonCameraInterface();
 
-    void testRun();
+    void startGrabLoop();
 
     bool openCamera();
 
-    ros::Publisher *pub;
+    ros::Publisher pub_img;
+
+
+    void close();
+
+    bool sendNextImage();
+
 
 private:
     Pylon::CBaslerGigEInstantCamera *camera;
     Pylon::PylonAutoInitTerm autoInitTerm;
+    Pylon::CGrabResultPtr ptrGrabResult;
+
+    cv::Mat img;
 };
 
 

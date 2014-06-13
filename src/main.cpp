@@ -1,39 +1,35 @@
 
 #include <iostream>
 
+#include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#include <csignal>
+
 #include "pylon_camera/PylonCameraInterface.h"
 #include <ros/ros.h>
 
 using namespace std;
 
 
-int main(int argc, char **argv) {
+PylonCameraInterface pylon_cam;
 
+int main(int argc, char **argv) {
 
     ros::init(argc, argv, "pylon_node");
     ros::NodeHandle n;
 
-    ros::Publisher pub_img = n.advertise<std_msgs::Int32>("pylon",100);
-
-    PylonCameraInterface pylon_cam;
-
-    if (!pylon_cam.openCamera())
+    if (!pylon_cam.openCamera()){
         return 42;
+    }
 
-    pylon_cam.pub = &pub_img;
+    ros::Rate r(100);
+    while(ros::ok()){
+        pylon_cam.sendNextImage();
+        r.sleep();
+    }
 
-
-
-
-
-
-    pylon_cam.testRun();
-//    ros::Rate r(10);
-
-    // ros::spin();
-
-
+    // pylon interface is closed during Deconstructor
     return 0;
-
-
 }
