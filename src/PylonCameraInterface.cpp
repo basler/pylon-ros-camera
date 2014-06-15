@@ -42,7 +42,6 @@ bool PylonCameraInterface::openCamera(){
 
         TlInfoList_t tl_list;
         CTlFactory::GetInstance().EnumerateTls(tl_list);
-        cout << "tl size " << tl_list.size() << endl;
 
         Pylon::DeviceInfoList_t lstDevices;
         Pylon::CTlFactory::GetInstance().EnumerateDevices(lstDevices);
@@ -64,11 +63,12 @@ bool PylonCameraInterface::openCamera(){
         camera->Open();
 
         if (camera->IsOpen()){
-            cerr << "@@@@@@@@@@@@@@@ camer is p" << endl;
+            cerr << "Camera " << camera->GetDeviceInfo().GetModelName() << " was opened" << endl;
+        }else{
+            cerr << "Could not open camera!";
+            return false;
         }
 
-        // Print the model name of the camera.
-        cout << "Using device " << camera->GetDeviceInfo().GetModelName() << endl;
 
     }
     catch (GenICam::GenericException &e)
@@ -82,16 +82,16 @@ bool PylonCameraInterface::openCamera(){
 
     ros::NodeHandle n;
     pub_img = n.advertise<sensor_msgs::Image>("pylon",100);
-    camera->StartGrabbing();// 100 );
-
+    camera->StartGrabbing();
     return true;
 }
-
-void PylonCameraInterface::startGrabLoop(){}
 
 
 
 bool PylonCameraInterface::sendNextImage(){
+
+
+    fflush(stdout);
 
     // This smart pointer will receive the grab result data.
 
@@ -124,23 +124,23 @@ bool PylonCameraInterface::sendNextImage(){
             //  cout << "frame: " << ptrGrabResult->GetFrameNumber() << endl;
             //  cv::imwrite("/opt/tmp/gig.jpg",img);
 
+
+            /// TODO: copy directly to out_msg
+
             cv_bridge::CvImage out_msg;
-            out_msg.header.stamp   = ros::Time::now();
+            out_msg.header.stamp   = ros::Time::now(); // ptrGrabResult->GetTimeStamp()
             out_msg.header.frame_id   = "pylon_frame";
             out_msg.encoding = sensor_msgs::image_encodings::MONO8;
             out_msg.image    = img;
 
             pub_img.publish(out_msg.toImageMsg());
 
+//            cout << "Pylon time " << ptrGrabResult->GetTimeStamp() << endl;
+//            cout << "ROS Time " << ros::Time::now() << endl;
+//            fflush(stdout);
 
-#ifdef PYLON_WIN_BUILD
-            // Display the grabbed image.
-            Pylon::DisplayImage(1, ptrGrabResult);
-#endif
-        }
-        else
-        {
-            cout << "Error: " << ptrGrabResult->GetErrorCode() << " " << ptrGrabResult->GetErrorDescription();
+        } else {
+            cout << "Pylon Camera: Error: " << ptrGrabResult->GetErrorCode() << " " << ptrGrabResult->GetErrorDescription() << endl;
         }
 
         return true;

@@ -13,6 +13,7 @@ find_package(catkin REQUIRED
   std_msgs
   cv_bridge
   image_transport
+  sqlconnection
 )
 
 

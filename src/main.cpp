@@ -1,14 +1,8 @@
 
-#include <iostream>
-
-#include <signal.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-#include <csignal>
-
 #include "pylon_camera/PylonCameraInterface.h"
+
 #include <ros/ros.h>
+#include <iostream>
 
 using namespace std;
 
@@ -24,12 +18,14 @@ int main(int argc, char **argv) {
         return 42;
     }
 
-    ros::Rate r(100);
+    int max_frame_rate = 30;
+
+    ros::Rate r(max_frame_rate);
     while(ros::ok()){
         pylon_cam.sendNextImage();
         r.sleep();
     }
 
-    // pylon interface is closed during Deconstructor
+    // pylon interface is closed during deconstructor
     return 0;
 }
