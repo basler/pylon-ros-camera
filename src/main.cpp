@@ -20,6 +20,7 @@ int main(int argc, char **argv) {
 
     int max_frame_rate = 30;
 
+
     ros::Rate r(max_frame_rate);
     while(ros::ok()){
         pylon_cam.sendNextImage();
