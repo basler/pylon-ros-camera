@@ -6,7 +6,7 @@
 #include <pylon/PylonIncludes.h>
 #include <pylon/gige/BaslerGigEInstantCamera.h>
 #include <pylon/gige/PylonGigEIncludes.h>
-
+#include <sqlconnection/db_connection.h>
 
 class PylonCameraInterface
 {
@@ -28,6 +28,8 @@ private:
     Pylon::CBaslerGigEInstantCamera *camera;
     Pylon::PylonAutoInitTerm autoInitTerm;
     Pylon::CGrabResultPtr ptrGrabResult;
+
+    DB_connection db;
 
     cv::Mat img;
 };

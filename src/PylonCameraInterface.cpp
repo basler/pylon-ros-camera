@@ -5,7 +5,7 @@
 #include <sensor_msgs/image_encodings.h>
 #include "std_msgs/Int32.h"
 #include "sensor_msgs/Image.h"
-
+#include <sqlconnection/retainvariables.h>
 
 using namespace Pylon;
 using namespace std;
@@ -13,6 +13,7 @@ using namespace std;
 
 PylonCameraInterface::PylonCameraInterface(){
     camera = NULL;
+    db.connect("Maru1");
 }
 
 void PylonCameraInterface::close(){
@@ -134,6 +135,18 @@ bool PylonCameraInterface::sendNextImage(){
             out_msg.image    = img;
 
             pub_img.publish(out_msg.toImageMsg());
+
+
+            DbVarSet vset("machine_state",&db);
+            vset.constraints.push_back(DB_Variable("id",0)); // only one row in this table
+            vset.variables.push_back(DB_Variable("last_box_cam_time",int64_t(out_msg.header.stamp.toNSec())));
+            if (!vset.writeToDB()){
+                qDebug() << "Could not write";
+            //ROS_ERROR("Ensenso: Could not write timestamp to machine_state-table");
+            }else{
+                // qDebug() << "Wrote to DB";
+            }
+
 
 //            cout << "Pylon time " << ptrGrabResult->GetTimeStamp() << endl;
 //            cout << "ROS Time " << ros::Time::now() << endl;
