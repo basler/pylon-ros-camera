@@ -3,10 +3,9 @@
 
 #include <ros/ros.h>
 #include <opencv2/core/core.hpp>
-#include <pylon/PylonIncludes.h>
 #include <pylon/gige/BaslerGigEInstantCamera.h>
-#include <pylon/gige/PylonGigEIncludes.h>
 #include <sqlconnection/db_connection.h>
+
 
 class PylonCameraInterface
 {
@@ -26,7 +25,9 @@ public:
 
 private:
 
-//    Pylon::CBaslerGigECamera *camera;
+    //    Pylon::CBaslerGigECamera *camera;
+
+
 
     Pylon::CBaslerGigEInstantCamera *camera;
     Pylon::PylonAutoInitTerm autoInitTerm;

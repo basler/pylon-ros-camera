@@ -1,5 +1,9 @@
 #include "pylon_camera/PylonCameraInterface.h"
 
+
+#include <pylon/gige/PylonGigEIncludes.h>
+#include <pylon/PylonIncludes.h>
+
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
@@ -9,7 +13,8 @@
 
 using namespace Pylon;
 using namespace std;
-
+using namespace GenApi;
+using namespace Basler_GigECameraParams;
 
 PylonCameraInterface::PylonCameraInterface(){
     camera = NULL;
@@ -59,10 +64,13 @@ bool PylonCameraInterface::openCamera(){
             return false;
         }
 
+
+
         camera = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
         // camera->MaxNumBuffer = 5;
 
         camera->Open();
+
 
         if (camera->IsOpen()){
             cerr << "Camera " << camera->GetDeviceInfo().GetModelName() << " was opened" << endl;
@@ -71,8 +79,11 @@ bool PylonCameraInterface::openCamera(){
             return false;
         }
 
+        camera->TriggerSelector.SetValue(TriggerSelector_FrameStart);
+        camera->TriggerMode.SetValue(TriggerMode_On);
+        camera->TriggerSource.SetValue(TriggerSource_Software);
 
-        qDebug() << "Activating continuous exposure";
+        // qDebug() << "Activating continuous exposure";
         camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
 
         // qDebug() << "Requesting 30 hz";
@@ -101,97 +112,89 @@ bool PylonCameraInterface::sendNextImage(){
 
     fflush(stdout);
 
-//    camera->CBaslerGigEInstantCamera::
-
-//    Pylon::CBaslerGigECamera::TriggerSoftware ts;
-
-//    GenApi::ICommand
-
-
-
-
-
     // This smart pointer will receive the grab result data.
 
-    // Camera.StopGrabbing() is called automatically by the RetrieveResult() method
-    // when c_countOfImagesToGrab images have been retrieved.
-    if ( camera->IsGrabbing())
-    {
-        // Wait for an image and then retrieve it. A timeout of 5000 ms is used.
+    //if ( camera->IsGrabbing())
+
+    // TODO: make sure that camera has finished reading last img (e.g. mutex)
+    cv_bridge::CvImage out_msg;
+    camera->ExecuteSoftwareTrigger();
+    out_msg.header.stamp = ros::Time::now();
+
+    // Wait for an image and then retrieve it. A timeout of 5000 ms is used.
+    try{
         camera->RetrieveResult( 5000, ptrGrabResult, TimeoutHandling_ThrowException);
-
-        // Image grabbed successfully?
-        if (ptrGrabResult->GrabSucceeded())
-        {
-            // Access the image data.
-            int w = ptrGrabResult->GetWidth();
-            int h = ptrGrabResult->GetHeight();
-
-            // cout << "SizeX: " << ptrGrabResult->GetWidth() << endl;
-            // cout << "SizeY: " << ptrGrabResult->GetHeight() << endl;
-            // const uint8_t *pImageBuffer = (uint8_t *) ptrGrabResult->GetBuffer();
-            // cout << "Gray value of first pixel: " << (uint32_t) pImageBuffer[0] << endl << endl;
-
-            if (img.cols != w || img.rows != h || img.type() != CV_8UC1){
-                cerr << "New image size: " << w << " " << h << endl;
-                img = cv::Mat(h,w,CV_8UC1);
-            }
-
-            memcpy(img.data,(uint8_t *) ptrGrabResult->GetBuffer(),w*h*sizeof(uchar) );
-
-            //  cout << "frame: " << ptrGrabResult->GetFrameNumber() << endl;
-            //  cv::imwrite("/opt/tmp/gig.jpg",img);
-
-
-            /// TODO: copy directly to out_msg
-
-            cv_bridge::CvImage out_msg;
-            ros::Duration capture_duration(0.25); // 30 fps
-            ros::Time n = ros::Time::now();
-            qDebug() << "ros::now " << n.toNSec();
-            off << n.toNSec() << " " << ptrGrabResult->GetTimeStamp() << endl;
-            double d = camera->AcquisitionFrameRateAbs.GetValue();
-            qDebug() << "Framerate"  << d;
-
-            double read = camera->ReadoutTimeAbs.GetValue();
-            qDebug() << "read"  << read/1000.0;
-
-            double exposure = camera->ExposureTimeAbs.GetValue();
-            qDebug() << "exposure"  << exposure;
-
-            //qDebug() << "pylon stamp" << ptrGrabResult->GetTimeStamp();
-
-            out_msg.header.stamp   = n-capture_duration; // ptrGrabResult->GetTimeStamp()
-            qDebug() << "stamp " << out_msg.header.stamp.toNSec();
-            out_msg.header.frame_id   = "pylon_frame";
-            out_msg.encoding = sensor_msgs::image_encodings::MONO8;
-            out_msg.image    = img;
-
-            pub_img.publish(out_msg.toImageMsg());
-
-
-            DbVarSet vset("machine_state",&db);
-            vset.constraints.push_back(DB_Variable("id",0)); // only one row in this table
-            vset.variables.push_back(DB_Variable("last_box_cam_time",int64_t(out_msg.header.stamp.toNSec())));
-            if (!vset.writeToDB()){
-                qDebug() << "Could not write";
-            //ROS_ERROR("Ensenso: Could not write timestamp to machine_state-table");
-            }else{
-                // qDebug() << "Wrote to DB";
-            }
-
-
-//            cout << "Pylon time " << ptrGrabResult->GetTimeStamp() << endl;
-//            cout << "ROS Time " << ros::Time::now() << endl;
-//            fflush(stdout);
-
-        } else {
-            cout << "Pylon Camera: Error: " << ptrGrabResult->GetErrorCode() << " " << ptrGrabResult->GetErrorDescription() << endl;
-        }
-
-        return true;
-
+    }catch (GenICam::TimeoutException & e){
+        ROS_ERROR("Timeout in Pylon-Camera");
+        return false;
     }
 
-    return false;
+    // Image grabbed successfully?
+    if (ptrGrabResult->GrabSucceeded())
+    {
+        // Access the image data.
+        int w = ptrGrabResult->GetWidth();
+        int h = ptrGrabResult->GetHeight();
+
+        // cout << "SizeX: " << ptrGrabResult->GetWidth() << endl;
+        // cout << "SizeY: " << ptrGrabResult->GetHeight() << endl;
+        // const uint8_t *pImageBuffer = (uint8_t *) ptrGrabResult->GetBuffer();
+        // cout << "Gray value of first pixel: " << (uint32_t) pImageBuffer[0] << endl << endl;
+
+        if (img.cols != w || img.rows != h || img.type() != CV_8UC1){
+            cerr << "New image size: " << w << " " << h << endl;
+            img = cv::Mat(h,w,CV_8UC1);
+        }
+
+        memcpy(img.data,(uint8_t *) ptrGrabResult->GetBuffer(),w*h*sizeof(uchar) );
+
+        //  cout << "frame: " << ptrGrabResult->GetFrameNumber() << endl;
+        //  cv::imwrite("/opt/tmp/gig.jpg",img);
+
+
+        /// TODO: copy directly to out_msg
+
+
+        //            ros::Duration capture_duration(0.25); // 30 fps
+        //            ros::Time n = ros::Time::now();
+        //            qDebug() << "ros::now " << n.toNSec();
+        //            off << n.toNSec() << " " << ptrGrabResult->GetTimeStamp() << endl;
+        //            double d = camera->AcquisitionFrameRateAbs.GetValue();
+        //            qDebug() << "Framerate"  << d;
+
+        //            double read = camera->ReadoutTimeAbs.GetValue();
+        //            qDebug() << "read"  << read/1000.0;
+
+        //            double exposure = camera->ExposureTimeAbs.GetValue();
+        //            qDebug() << "exposure"  << exposure;
+
+        out_msg.header.frame_id   = "pylon_frame";
+        out_msg.encoding = sensor_msgs::image_encodings::MONO8;
+        out_msg.image    = img;
+
+        pub_img.publish(out_msg.toImageMsg());
+
+
+        DbVarSet vset("machine_state",&db);
+        vset.constraints.push_back(DB_Variable("id",0)); // only one row in this table
+        vset.variables.push_back(DB_Variable("last_box_cam_time",int64_t(out_msg.header.stamp.toNSec())));
+        if (!vset.writeToDB()){
+            qDebug() << "Could not write";
+            //ROS_ERROR("Ensenso: Could not write timestamp to machine_state-table");
+        }else{
+            // qDebug() << "Wrote to DB";
+        }
+
+
+        //            cout << "Pylon time " << ptrGrabResult->GetTimeStamp() << endl;
+        //            cout << "ROS Time " << ros::Time::now() << endl;
+        //            fflush(stdout);
+
+    } else {
+        cout << "Pylon Camera: Error: " << ptrGrabResult->GetErrorCode() << " " << ptrGrabResult->GetErrorDescription() << endl;
+    }
+
+    return true;
+
+
 }
