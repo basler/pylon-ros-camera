@@ -1,4 +1,4 @@
 <launch>
-  <node name="pylon_camera" pkg="pylon_camera" type="pylon_camera_node" respawn="true" output="screen">
+  <node name="pylon_camera" pkg="pylon_camera" type="pylon_camera_node" respawn="true">
   </node>
 </launch>

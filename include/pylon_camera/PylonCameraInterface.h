@@ -25,11 +25,16 @@ public:
 
 
 private:
+
+//    Pylon::CBaslerGigECamera *camera;
+
     Pylon::CBaslerGigEInstantCamera *camera;
     Pylon::PylonAutoInitTerm autoInitTerm;
     Pylon::CGrabResultPtr ptrGrabResult;
 
     DB_connection db;
+
+    std::ofstream off;
 
     cv::Mat img;
 };

@@ -14,6 +14,7 @@ using namespace std;
 PylonCameraInterface::PylonCameraInterface(){
     camera = NULL;
     db.connect("Maru1");
+    off.open("/opt/tmp/cam_time.txt");
 }
 
 void PylonCameraInterface::close(){
@@ -71,6 +72,12 @@ bool PylonCameraInterface::openCamera(){
         }
 
 
+        qDebug() << "Activating continuous exposure";
+        camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
+
+        // qDebug() << "Requesting 30 hz";
+        // camera->AcquisitionFrameRateAbs.SetValue(30);
+
     }
     catch (GenICam::GenericException &e)
     {
@@ -93,6 +100,16 @@ bool PylonCameraInterface::sendNextImage(){
 
 
     fflush(stdout);
+
+//    camera->CBaslerGigEInstantCamera::
+
+//    Pylon::CBaslerGigECamera::TriggerSoftware ts;
+
+//    GenApi::ICommand
+
+
+
+
 
     // This smart pointer will receive the grab result data.
 
@@ -129,7 +146,23 @@ bool PylonCameraInterface::sendNextImage(){
             /// TODO: copy directly to out_msg
 
             cv_bridge::CvImage out_msg;
-            out_msg.header.stamp   = ros::Time::now(); // ptrGrabResult->GetTimeStamp()
+            ros::Duration capture_duration(0.25); // 30 fps
+            ros::Time n = ros::Time::now();
+            qDebug() << "ros::now " << n.toNSec();
+            off << n.toNSec() << " " << ptrGrabResult->GetTimeStamp() << endl;
+            double d = camera->AcquisitionFrameRateAbs.GetValue();
+            qDebug() << "Framerate"  << d;
+
+            double read = camera->ReadoutTimeAbs.GetValue();
+            qDebug() << "read"  << read/1000.0;
+
+            double exposure = camera->ExposureTimeAbs.GetValue();
+            qDebug() << "exposure"  << exposure;
+
+            //qDebug() << "pylon stamp" << ptrGrabResult->GetTimeStamp();
+
+            out_msg.header.stamp   = n-capture_duration; // ptrGrabResult->GetTimeStamp()
+            qDebug() << "stamp " << out_msg.header.stamp.toNSec();
             out_msg.header.frame_id   = "pylon_frame";
             out_msg.encoding = sensor_msgs::image_encodings::MONO8;
             out_msg.image    = img;
