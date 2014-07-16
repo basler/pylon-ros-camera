@@ -5,7 +5,7 @@
 #include <opencv2/core/core.hpp>
 #include <pylon/gige/BaslerGigEInstantCamera.h>
 #include <sqlconnection/db_connection.h>
-
+#include <sensor_msgs/CameraInfo.h>
 
 class PylonCameraInterface
 {
@@ -16,7 +16,7 @@ public:
 
     bool openCamera();
 
-    ros::Publisher pub_img;
+    ros::Publisher pub_img, pub_img_undist, pub_cam_info;
 
     void close();
 
@@ -25,8 +25,8 @@ public:
 
 private:
 
-    //    Pylon::CBaslerGigECamera *camera;
-
+    cv::Mat dist, camm;
+    sensor_msgs::CameraInfo cam_info;
 
 
     Pylon::CBaslerGigEInstantCamera *camera;

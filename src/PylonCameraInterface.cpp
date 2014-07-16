@@ -3,13 +3,18 @@
 
 #include <pylon/gige/PylonGigEIncludes.h>
 #include <pylon/PylonIncludes.h>
-
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
-#include <sensor_msgs/image_encodings.h>
-#include "std_msgs/Int32.h"
-#include "sensor_msgs/Image.h"
+
 #include <sqlconnection/retainvariables.h>
+#include <med_recog/ccam_stream.h>
+
+#include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/CameraInfo.h>
+#include <sensor_msgs/Image.h>
+
+//#include <std_msgs/Int32.h>
+
 
 using namespace Pylon;
 using namespace std;
@@ -99,8 +104,41 @@ bool PylonCameraInterface::openCamera(){
     }
 
 
+    // get cam info from db
+    CalibRetainSet crs; crs.db_con = &db;
+
+    ///
+    int rows,cols, dev_id;
+    assert(crs.readCalib(10, dist, camm,cols,rows, dev_id)); // TODO: parameter
+    cam_info.width = cols; cam_info.height = rows;
+    assert(dist.rows == 5);
+    cam_info.distortion_model = "plumb_bob";
+    for (uint i=0; i<5; ++i){  cam_info.D.push_back(dist.at<double>(0,i)); }
+
+    int pos = 0;
+    for (uint i=0; i<3; ++i){
+        for (uint j=0; j<3; ++j){
+            cam_info.K[pos++] = camm.at<double>(i,j);
+        }
+    }
+
+    pos = 0;
+    for (uint i=0; i<3; ++i){
+        for (uint j=0; j<3; ++j){
+            cam_info.P[pos++] = camm.at<double>(i,j);
+        }
+        cam_info.P[pos++] = 0;
+    }
+
+    cam_info.header.frame_id = "GripperCam";
+
+
+
     ros::NodeHandle n;
-    pub_img = n.advertise<sensor_msgs::Image>("pylon",100);
+    pub_img = n.advertise<sensor_msgs::Image>("/pylon",100);
+    pub_img_undist = n.advertise<sensor_msgs::Image>("/pylon/image_rect",100);
+    pub_cam_info = n.advertise<sensor_msgs::CameraInfo>("/pylon/camera_info",100);
+
     camera->StartGrabbing();
     return true;
 }
@@ -168,11 +206,26 @@ bool PylonCameraInterface::sendNextImage(){
         //            double exposure = camera->ExposureTimeAbs.GetValue();
         //            qDebug() << "exposure"  << exposure;
 
-        out_msg.header.frame_id   = "pylon_frame";
+
+        // send distorted image
+        out_msg.header.frame_id = cam_info.header.frame_id;
         out_msg.encoding = sensor_msgs::image_encodings::MONO8;
         out_msg.image    = img;
-
         pub_img.publish(out_msg.toImageMsg());
+
+
+        // send undistorted image
+        cv::Mat undistorted;
+        cv::undistort(img,undistorted,camm,dist);
+        out_msg.image    = undistorted;
+        pub_img_undist.publish(out_msg.toImageMsg());
+
+
+
+        // send cam_info with current stamp
+        cam_info.header.stamp = out_msg.header.stamp;
+        pub_cam_info.publish(cam_info);
+
 
 
         DbVarSet vset("machine_state",&db);
@@ -185,10 +238,6 @@ bool PylonCameraInterface::sendNextImage(){
             // qDebug() << "Wrote to DB";
         }
 
-
-        //            cout << "Pylon time " << ptrGrabResult->GetTimeStamp() << endl;
-        //            cout << "ROS Time " << ros::Time::now() << endl;
-        //            fflush(stdout);
 
     } else {
         cout << "Pylon Camera: Error: " << ptrGrabResult->GetErrorCode() << " " << ptrGrabResult->GetErrorDescription() << endl;
