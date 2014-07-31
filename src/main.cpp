@@ -7,12 +7,14 @@
 using namespace std;
 
 
-PylonCameraInterface pylon_cam;
+
 
 int main(int argc, char **argv) {
 
     ros::init(argc, argv, "pylon_node");
     ros::NodeHandle n;
+
+    PylonCameraInterface pylon_cam;
 
     if (!pylon_cam.openCamera()){
         return 42;

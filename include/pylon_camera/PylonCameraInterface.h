@@ -33,7 +33,7 @@ private:
     Pylon::PylonAutoInitTerm autoInitTerm;
     Pylon::CGrabResultPtr ptrGrabResult;
 
-    DB_connection db;
+    DB_connection *db;
 
     std::ofstream off;
 

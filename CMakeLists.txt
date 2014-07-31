@@ -23,14 +23,13 @@ find_package(OpenCV REQUIRED)
 
 include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    )
+)
 
 
 rosbuild_prepare_qt4(QtCore QtGui QtSql)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
 
 
 ###################################
@@ -89,7 +88,7 @@ file( GLOB_RECURSE SRC_FILES
 # )
 
 
-MESSAGE(STATUS "FILES ${HEADERS}")
+#MESSAGE(STATUS "FILES ${HEADERS}")
 ## Declare a cpp executable
 add_executable(pylon_camera_node src/main.cpp ${SRC_FILES})
 
@@ -97,11 +96,19 @@ add_executable(pylon_camera_node src/main.cpp ${SRC_FILES})
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(pylon_camera_node pylon_camera_generate_messages_cpp)
 
+rosbuild_prepare_qt4(QtCore QtGui QtSql)
+
+
+MESSAGE(STATUS "${catkin_LIBRARIES} ${catkin_LIBRARIES}")
+
+
 ## Specify libraries to link a library or executable target against
 target_link_libraries(pylon_camera_node
    ${catkin_LIBRARIES}
    ${OpenCV_LIBS}
    pylonbase GCBase_gcc40_v2_3 pylongigesupp
+   lmfit
+   #${QT_LIBRARIES}
  )
 
 

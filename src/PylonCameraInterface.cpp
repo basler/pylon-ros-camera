@@ -13,8 +13,6 @@
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/Image.h>
 
-//#include <std_msgs/Int32.h>
-
 
 using namespace Pylon;
 using namespace std;
@@ -23,7 +21,8 @@ using namespace Basler_GigECameraParams;
 
 PylonCameraInterface::PylonCameraInterface(){
     camera = NULL;
-    db.connect("Maru1");
+    db = new DB_connection();
+    //db.connect("Maru1");
     off.open("/opt/tmp/cam_time.txt");
 }
 
@@ -38,7 +37,6 @@ void PylonCameraInterface::close(){
 PylonCameraInterface::~PylonCameraInterface(){
     close();
 }
-
 
 bool PylonCameraInterface::openCamera(){
 
@@ -105,11 +103,11 @@ bool PylonCameraInterface::openCamera(){
 
 
     // get cam info from db
-    CalibRetainSet crs; crs.db_con = &db;
+    CalibRetainSet crs; crs.db_con = db;
 
     ///
     int rows,cols, dev_id;
-    assert(crs.readCalib(10, dist, camm,cols,rows, dev_id)); // TODO: parameter
+    assert(crs.readCalib(10, dist, camm,cols,rows, dev_id));
     cam_info.width = cols; cam_info.height = rows;
     assert(dist.rows == 5);
     cam_info.distortion_model = "plumb_bob";
@@ -133,17 +131,14 @@ bool PylonCameraInterface::openCamera(){
     cam_info.header.frame_id = "GripperCam";
 
 
-
     ros::NodeHandle n;
-    pub_img = n.advertise<sensor_msgs::Image>("/pylon",100);
+    pub_img = n.advertise<sensor_msgs::Image>("/pylon/image_raw",100);
     pub_img_undist = n.advertise<sensor_msgs::Image>("/pylon/image_rect",100);
     pub_cam_info = n.advertise<sensor_msgs::CameraInfo>("/pylon/camera_info",100);
 
     camera->StartGrabbing();
     return true;
 }
-
-
 
 bool PylonCameraInterface::sendNextImage(){
 
@@ -228,7 +223,7 @@ bool PylonCameraInterface::sendNextImage(){
 
 
 
-        DbVarSet vset("machine_state",&db);
+        DbVarSet vset("machine_state",db);
         vset.constraints.push_back(DB_Variable("id",0)); // only one row in this table
         vset.variables.push_back(DB_Variable("last_box_cam_time",int64_t(out_msg.header.stamp.toNSec())));
         if (!vset.writeToDB()){
