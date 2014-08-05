@@ -116,6 +116,9 @@ target_link_libraries(pylon_camera_node
 
 install(TARGETS pylon_camera_node RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
+
 
 #############
 ## Install ##
