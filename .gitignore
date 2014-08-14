@@ -1,1 +1,3 @@
 *.user
+*.*~
+CATKIN_IGNORE
