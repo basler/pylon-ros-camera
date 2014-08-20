@@ -14,7 +14,6 @@ find_package(catkin REQUIRED
   cv_bridge
   image_transport
   sqlconnection
-  med_recog
 )
 
 
@@ -106,9 +105,8 @@ MESSAGE(STATUS "${catkin_LIBRARIES} ${catkin_LIBRARIES}")
 target_link_libraries(pylon_camera_node
    ${catkin_LIBRARIES}
    ${OpenCV_LIBS}
-   pylonbase GCBase_gcc40_v2_3 pylongigesupp
-   lmfit
-   #${QT_LIBRARIES}
+   GenApi_gcc40_v2_3   GCBase_gcc40_v2_3   pylonbase pylongigesupp
+
  )
 
 

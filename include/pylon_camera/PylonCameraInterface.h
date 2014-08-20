@@ -14,7 +14,7 @@ public:
 
     ~PylonCameraInterface();
 
-    bool openCamera();
+    bool openCamera(const std::string &camera_identifier, const std::string &camera_frame);
 
     ros::Publisher pub_img, pub_img_undist, pub_cam_info;
 
