@@ -171,7 +171,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
         camera->TriggerSource.SetValue(TriggerSource_Software);
 
         // qDebug() << "Activating continuous exposure";
-#if 0        
+#if 1        
 	camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
 	cout << "Using continuois exposure estimation" << endl;
 #else

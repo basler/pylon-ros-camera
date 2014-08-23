@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
         
         
     n.param<std::string>("camera_identifier", camera_identifier, "*");
-    n.param<std::string>("camera_frame", camera_frame, "GripperCam");
+    n.param<std::string>("camera_frame", camera_frame, "reference_camera_base");
                
     PylonCameraInterface pylon_cam;
 
