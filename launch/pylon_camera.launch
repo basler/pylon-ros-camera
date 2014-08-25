@@ -1,4 +1,5 @@
 <launch>
   <node name="pylon_camera" pkg="pylon_camera" type="pylon_camera_node" respawn="true">
+  <param name="camera_frame" value="reference_camera_base" type="string" />
   </node>
 </launch>
