@@ -83,8 +83,8 @@ PylonCameraInterface::PylonCameraInterface():
 {
     camera = NULL;
     db = new DB_connection();
-    //db.connect("Maru1");
-    off.open("/opt/tmp/cam_time.txt");
+    // db.connect("Maru1");
+    // off.open("/opt/tmp/cam_time.txt");
 }
 
 void PylonCameraInterface::close(){
@@ -173,12 +173,13 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
         // qDebug() << "Activating continuous exposure";
 #if 1        
 	camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
-	cout << "Using continuois exposure estimation" << endl;
+	cout << "Using continuous exposure estimation" << endl;
 #else
         camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
         camera->ExposureTimeAbs.SetValue(12000);
 	cout << "Setting exposure to " << camera->ExposureTimeAbs.GetValue() << endl;
 #endif
+
         // qDebug() << "Requesting 30 hz";
         // camera->AcquisitionFrameRateAbs.SetValue(30);
 
