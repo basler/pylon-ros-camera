@@ -10,10 +10,15 @@ int main(int argc, char **argv) {
 
     ros::init(argc, argv, "pylon_node");
     ros::NodeHandle n;
-
+    std::string  camera_identifier, camera_frame;
+        
+        
+    n.param<std::string>("camera_identifier", camera_identifier, "*");
+    n.param<std::string>("camera_frame", camera_frame, "GripperCam");
+               
     PylonCameraInterface pylon_cam;
 
-    if (!pylon_cam.openCamera()){
+    if (!pylon_cam.openCamera(camera_identifier, camera_frame)){
         return 42;
     }
 
