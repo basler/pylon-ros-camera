@@ -14,6 +14,7 @@ find_package(catkin REQUIRED
   cv_bridge
   image_transport
   sqlconnection
+tf
 )
 
 
