@@ -87,8 +87,9 @@ bool PylonCameraInterface::openCamera(){
         camera->TriggerSource.SetValue(TriggerSource_Software);
 
         // qDebug() << "Activating continuous exposure";
-        camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
-
+        // camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
+        camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
+        camera->ExposureTimeAbs.SetValue(5000);
         // qDebug() << "Requesting 30 hz";
         // camera->AcquisitionFrameRateAbs.SetValue(30);
 
@@ -128,7 +129,7 @@ bool PylonCameraInterface::openCamera(){
         cam_info.P[pos++] = 0;
     }
 
-    cam_info.header.frame_id = "GripperCam";
+    cam_info.header.frame_id = "reference_camera_base";
 
 
     ros::NodeHandle n;
