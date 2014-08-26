@@ -20,13 +20,13 @@ using namespace Basler_GigECameraParams;
 
 struct CalibRetainSet : public DbVarSet {
 
-  CalibRetainSet(){}
+    CalibRetainSet(){}
 
-  CalibRetainSet(DB_connection *db){
-    this->db_con = db;
-  }
+    CalibRetainSet(DB_connection *db){
+        this->db_con = db;
+    }
 
-  bool readCalib(int cam_id, cv::Mat &dist_coeffs, cv::Mat &cam_matrix, int& cols, int& rows, int& dev_id);
+    bool readCalib(int cam_id, cv::Mat &dist_coeffs, cv::Mat &cam_matrix, int& cols, int& rows, int& dev_id);
 };
 
 
@@ -79,7 +79,7 @@ bool CalibRetainSet::readCalib(int camId, cv::Mat &dist_coeffs, cv::Mat &cam_mat
 
 
 PylonCameraInterface::PylonCameraInterface():
-   cam_info()
+    cam_info()
 {
     camera = NULL;
     db = new DB_connection();
@@ -99,7 +99,7 @@ PylonCameraInterface::~PylonCameraInterface(){
     close();
 }
 
-bool PylonCameraInterface::openCamera(const std::string &camera_identifier, const std::string &camera_frame)
+bool PylonCameraInterface::openCamera(const std::string &camera_identifier, const std::string &camera_frame, int exposure_mu_s)
 {
     // The exit code of the sample application.
     int exitCode = 0;
@@ -137,17 +137,17 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
                 ROS_INFO("cam: '%s'", it->GetFullName().c_str());
                 if (camera_identifier == it->GetFullName().c_str())
                 {
-                   camera = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
-                   found = true;
-                   break;
+                    camera = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
+                    found = true;
+                    break;
                 }
             }
             if (!found)
             {
-               ROS_ERROR("did not find the specified camera");
-               return false;
+                ROS_ERROR("did not find the specified camera");
+                return false;
             }
-                
+
         }
         else
         {
@@ -171,14 +171,15 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
         camera->TriggerSource.SetValue(TriggerSource_Software);
 
         // qDebug() << "Activating continuous exposure";
-#if 1        
-	camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
-	cout << "Using continuous exposure estimation" << endl;
-#else
-        camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
-        camera->ExposureTimeAbs.SetValue(12000);
-	cout << "Setting exposure to " << camera->ExposureTimeAbs.GetValue() << endl;
-#endif
+
+        if (exposure_mu_s > 0){
+            camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
+            camera->ExposureTimeAbs.SetValue(exposure_mu_s);
+            cout << "Setting exposure to " << camera->ExposureTimeAbs.GetValue() << " mu s" << endl;
+        }else{
+            camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
+            cout << "Using continuous exposure estimation" << endl;
+        }
 
         // qDebug() << "Requesting 30 hz";
         // camera->AcquisitionFrameRateAbs.SetValue(30);
@@ -209,9 +210,9 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     cam_info.D.resize(5);
     ROS_INFO("dist rows %d and cols %d", dist.rows, dist.cols);
     for (uint i=0; i<5; ++i)
-    {  
+    {
         double d = dist.at<double>(0,i);
-        cam_info.D[i] = d; 
+        cam_info.D[i] = d;
     }
 
     int pos = 0;

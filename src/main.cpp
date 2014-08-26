@@ -17,17 +17,17 @@ int main(int argc, char **argv) {
     std::string  camera_identifier, camera_frame;
         
     std::string check_frame;
+    int exposure_mu_s;
 	  
     n.param<std::string>("camera_identifier", camera_identifier, "*");
     n.param<std::string>("camera_frame", camera_frame, "reference_camera_base");
     n.param<std::string>("check_frame", check_frame, "insertion_y_visual");
-    
-          
+    n.param<int>("pylon_exposure_mu_s", exposure_mu_s, -1);
+
     tf::TransformListener listener(n,ros::Duration(2.0));
-	
     PylonCameraInterface pylon_cam;
 
-    if (!pylon_cam.openCamera(camera_identifier, camera_frame)){
+    if (!pylon_cam.openCamera(camera_identifier, camera_frame,exposure_mu_s)){
         return 42;
     }
 
