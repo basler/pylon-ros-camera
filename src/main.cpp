@@ -19,13 +19,19 @@ int main(int argc, char **argv) {
     std::string check_frame;
     int exposure_mu_s;
 	  
-    n.param<std::string>("camera_identifier", camera_identifier, "*");
+    PylonCameraInterface pylon_cam;
+
+
+    pylon_cam.nh = &n;
+
+    pylon_cam.nh->param<std::string>("camera_identifier", camera_identifier, "*");
     n.param<std::string>("camera_frame", camera_frame, "reference_camera_base");
     n.param<std::string>("check_frame", check_frame, "insertion_y_visual");
     n.param<int>("pylon_exposure_mu_s", exposure_mu_s, -1);
 
     tf::TransformListener listener(n,ros::Duration(2.0));
-    PylonCameraInterface pylon_cam;
+    
+    
 
     // ROS_INFO("exposure %i",exposure_mu_s);
 
@@ -48,7 +54,7 @@ int main(int argc, char **argv) {
     /// does not work since listener does not forget frames...
     //         if ((listener.allFramesAsString().find(camera_frame) == std::string::npos)){
 
-     r.sleep();
+     //r.sleep();
       
    }
 

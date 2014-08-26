@@ -164,10 +164,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             return false;
         }
 
-        camera->TriggerSelector.SetValue(TriggerSelector_FrameStart);
-        camera->TriggerMode.SetValue(TriggerMode_On);
-        camera->TriggerSource.SetValue(TriggerSource_Software);
-
+/*
         if (exposure_mu_s > 0){
             camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
             camera->ExposureTimeAbs.SetValue(exposure_mu_s);
@@ -176,9 +173,14 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
             ROS_INFO("Using continuous exposure estimation");
         }
-
-
+*/
         // camera->AcquisitionFrameRateAbs.SetValue(30);
+
+
+        // camera->TriggerSelector.SetValue(TriggerSelector_FrameStart);
+        // camera->TriggerMode.SetValue(TriggerMode_On);
+        // camera->TriggerSource.SetValue(TriggerSource_Software);
+
 
     }
     catch (GenICam::GenericException &e)
@@ -241,7 +243,21 @@ bool PylonCameraInterface::sendNextImage(){
 
     fflush(stdout);
 
-    // This smart pointer will receive the grab result data.
+    static int cnt =0;
+    if (cnt++%10 == 0){
+        int exposure_mu_s;        
+        nh->param<int>("pylon_exposure_mu_s", exposure_mu_s, -1);
+        if (exposure_mu_s > 0){
+            camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
+            camera->ExposureTimeAbs.SetValue(exposure_mu_s);
+            // ROS_INFO("Setting exposure to %i mu s",(int) camera->ExposureTimeAbs.GetValue());
+        }else{
+            camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
+            // ROS_INFO("Using continuous exposure estimation");
+        }
+    }
+
+    // This smart pointer will receive the grab result data
 
     //if ( camera->IsGrabbing())
 

@@ -22,7 +22,7 @@ public:
 
     bool sendNextImage();
 
-
+    ros::NodeHandle *nh;
 private:
 
     cv::Mat dist, camm;
@@ -34,6 +34,7 @@ private:
     Pylon::CGrabResultPtr ptrGrabResult;
 
     DB_connection *db;
+    
 
     cv::Mat img;
 };
