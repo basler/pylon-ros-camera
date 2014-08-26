@@ -59,7 +59,7 @@ bool CalibRetainSet::readCalib(int camId, cv::Mat &dist_coeffs, cv::Mat &cam_mat
     rows = getVariable("rows")->asInt();
     dev_id = getVariable("SensorId")->asInt();
     
-    ROS_INFO("read: %s", getVariable("data")->asString().toAscii().constData());
+    // ROS_INFO("read: %s", getVariable("data")->asString().toAscii().constData());
 
     cv::FileStorage fs(getVariable("data")->asString().toAscii().constData(),cv::FileStorage::READ + cv::FileStorage::MEMORY);
 
@@ -83,14 +83,12 @@ PylonCameraInterface::PylonCameraInterface():
 {
     camera = NULL;
     db = new DB_connection();
-    // db.connect("Maru1");
-    // off.open("/opt/tmp/cam_time.txt");
 }
 
 void PylonCameraInterface::close(){
 
     if (camera){
-        cout << "Closing camera" << endl;
+        ROS_INFO("Closing camera");
         camera->Close();
     }
 }
@@ -118,12 +116,12 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
 
 
         if (tl_list.size() == 0){
-            cerr << "No transport layer, check environment variables!";
+            ROS_ERROR("No transport layer, check environment variables!");
             return false;
         }
 
         if (lstDevices.size() == 0){
-            cerr << "No Camera detected";
+            ROS_ERROR("No Camera detected");
             return false;
         }
 
@@ -151,18 +149,18 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
         }
         else
         {
-            ROS_INFO("using first decive");
+            ROS_INFO("using first device");
             camera = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
         }
-        // camera->MaxNumBuffer = 5;
+
 
         camera->Open();
 
 
         if (camera->IsOpen()){
-            cerr << "Camera " << camera->GetDeviceInfo().GetModelName() << " was opened" << endl;
+            ROS_INFO("Camera %s was opened",camera->GetDeviceInfo().GetModelName().c_str());
         }else{
-            cerr << "Could not open camera!";
+            ROS_WARN("Could not open camera!");
             return false;
         }
 
@@ -170,26 +168,23 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
         camera->TriggerMode.SetValue(TriggerMode_On);
         camera->TriggerSource.SetValue(TriggerSource_Software);
 
-        // qDebug() << "Activating continuous exposure";
-
         if (exposure_mu_s > 0){
             camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
             camera->ExposureTimeAbs.SetValue(exposure_mu_s);
-            cout << "Setting exposure to " << camera->ExposureTimeAbs.GetValue() << " mu s" << endl;
+            ROS_INFO("Setting exposure to %i mu s",(int) camera->ExposureTimeAbs.GetValue());
         }else{
             camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
-            cout << "Using continuous exposure estimation" << endl;
+            ROS_INFO("Using continuous exposure estimation");
         }
 
-        // qDebug() << "Requesting 30 hz";
+
         // camera->AcquisitionFrameRateAbs.SetValue(30);
 
     }
     catch (GenICam::GenericException &e)
     {
         // Error handling.
-        cerr << "An exception occurred." << endl
-             << e.GetDescription() << endl;
+        ROS_ERROR("An exception occurred: %s",e.GetDescription());
         exitCode = 1;
     }
 
@@ -197,7 +192,6 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     // get cam info from db
     CalibRetainSet crs; crs.db_con = db;
 
-    ///
     int rows,cols, dev_id;
     if (!crs.readCalib(10, dist, camm,cols,rows, dev_id))
     {
@@ -208,7 +202,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     cam_info.width = cols; cam_info.height = rows;
     cam_info.distortion_model = "plumb_bob";
     cam_info.D.resize(5);
-    ROS_INFO("dist rows %d and cols %d", dist.rows, dist.cols);
+    
     for (uint i=0; i<5; ++i)
     {
         double d = dist.at<double>(0,i);
@@ -277,7 +271,6 @@ bool PylonCameraInterface::sendNextImage(){
         // cout << "Gray value of first pixel: " << (uint32_t) pImageBuffer[0] << endl << endl;
 
         if (img.cols != w || img.rows != h || img.type() != CV_8UC1){
-            cerr << "New image size: " << w << " " << h << endl;
             img = cv::Mat(h,w,CV_8UC1);
         }
 
@@ -329,15 +322,14 @@ bool PylonCameraInterface::sendNextImage(){
         vset.constraints.push_back(DB_Variable("id",0)); // only one row in this table
         vset.variables.push_back(DB_Variable("last_box_cam_time",int64_t(out_msg.header.stamp.toNSec())));
         if (!vset.writeToDB()){
-            qDebug() << "Could not write";
-            //ROS_ERROR("Ensenso: Could not write timestamp to machine_state-table");
+            ROS_ERROR("Ensenso: Could not write timestamp to machine_state-table");
         }else{
             // qDebug() << "Wrote to DB";
         }
 
 
     } else {
-        cout << "Pylon Camera: Error: " << ptrGrabResult->GetErrorCode() << " " << ptrGrabResult->GetErrorDescription() << endl;
+        ROS_ERROR("Pylon Camera: Error: %i  %s", (int)ptrGrabResult->GetErrorCode(), ptrGrabResult->GetErrorDescription().c_str());
     }
 
     return true;

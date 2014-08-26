@@ -35,8 +35,6 @@ private:
 
     DB_connection *db;
 
-    std::ofstream off;
-
     cv::Mat img;
 };
 

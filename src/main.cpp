@@ -27,6 +27,8 @@ int main(int argc, char **argv) {
     tf::TransformListener listener(n,ros::Duration(2.0));
     PylonCameraInterface pylon_cam;
 
+    // ROS_INFO("exposure %i",exposure_mu_s);
+
     if (!pylon_cam.openCamera(camera_identifier, camera_frame,exposure_mu_s)){
         return 42;
     }
