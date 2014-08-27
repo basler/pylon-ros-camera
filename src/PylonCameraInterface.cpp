@@ -247,6 +247,7 @@ bool PylonCameraInterface::sendNextImage(){
     if (cnt++%10 == 0){
         int exposure_mu_s;        
         nh->param<int>("pylon_exposure_mu_s", exposure_mu_s, -1);
+
         if (exposure_mu_s > 0){
             camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
             camera->ExposureTimeAbs.SetValue(exposure_mu_s);

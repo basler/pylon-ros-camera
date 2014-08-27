@@ -2,7 +2,7 @@
   <param name="camera_frame" value="reference_camera_base" type="string" />
   
 <!-- set exposure to -1 (or delete parameter to activate auto exposure -->
-  <param name="pylon_exposure_mu_s" value="-1" type="int" />
+  <param name="pylon_exposure_mu_s" value="500" type="int" />
 
 
   <node name="pylon_camera" pkg="pylon_camera" type="pylon_camera_node" output="screen">
