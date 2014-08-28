@@ -97,7 +97,7 @@ PylonCameraInterface::~PylonCameraInterface(){
     close();
 }
 
-bool PylonCameraInterface::openCamera(const std::string &camera_identifier, const std::string &camera_frame, int exposure_mu_s)
+bool PylonCameraInterface::openCamera(const std::string &camera_identifier, const std::string &camera_frame,int camera_id, int exposure_mu_s)
 {
     // The exit code of the sample application.
     int exitCode = 0;
@@ -195,7 +195,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     CalibRetainSet crs; crs.db_con = db;
 
     int rows,cols, dev_id;
-    if (!crs.readCalib(10, dist, camm,cols,rows, dev_id))
+    if (!crs.readCalib(camera_id, dist, camm,cols,rows, dev_id))
     {
         ROS_ERROR("Error reading calibration");
         return false;
