@@ -14,7 +14,7 @@ find_package(catkin REQUIRED
   cv_bridge
   image_transport
   sqlconnection
-tf
+  tf
 )
 
 
@@ -92,6 +92,7 @@ file( GLOB_RECURSE SRC_FILES
 ## Declare a cpp executable
 add_executable(pylon_camera_node src/main.cpp ${SRC_FILES})
 
+
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(pylon_camera_node pylon_camera_generate_messages_cpp)
@@ -105,8 +106,10 @@ MESSAGE(STATUS "${catkin_LIBRARIES} ${catkin_LIBRARIES}")
 ## Specify libraries to link a library or executable target against
 target_link_libraries(pylon_camera_node
    ${catkin_LIBRARIES}
+   #sqlconnection
    ${OpenCV_LIBS}
-   GenApi_gcc40_v2_3   GCBase_gcc40_v2_3   pylonbase pylongigesupp
+   ${QT_LIBRARIES}
+    GenApi_gcc40_v2_3   GCBase_gcc40_v2_3   pylonbase pylongigesupp
 
  )
 

@@ -6,6 +6,7 @@
 #include <pylon/gige/BaslerGigEInstantCamera.h>
 #include <sqlconnection/db_connection.h>
 #include <sensor_msgs/CameraInfo.h>
+#include <cv_bridge/cv_bridge.h>
 
 class PylonCameraInterface
 {
@@ -25,6 +26,11 @@ public:
     ros::NodeHandle *nh;
 private:
 
+
+    cv_bridge::CvImage orig_msg;
+    cv_bridge::CvImage undist_msg;
+
+
     cv::Mat dist, camm;
     sensor_msgs::CameraInfo cam_info;
 
@@ -35,8 +41,6 @@ private:
 
     DB_connection *db;
     
-
-    cv::Mat img;
 };
 
 

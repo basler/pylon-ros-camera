@@ -4,16 +4,17 @@
 #include <pylon/gige/PylonGigEIncludes.h>
 #include <pylon/PylonIncludes.h>
 #include <opencv2/highgui/highgui.hpp>
-#include <cv_bridge/cv_bridge.h>
+
 
 #include <sqlconnection/retainvariables.h>
 
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/Image.h>
-
+#include <opencv/cv.h>
 
 using namespace Pylon;
+using namespace cv;
 using namespace std;
 using namespace GenApi;
 using namespace Basler_GigECameraParams;
@@ -125,6 +126,8 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             return false;
         }
 
+        ROS_INFO("Number of devices: %i", int(lstDevices.size()));
+
         if (lstDevices.size() > 0 && camera_identifier != "*")
         {
             bool found = false;
@@ -164,7 +167,13 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             return false;
         }
 
-/*
+
+        /// starts a grab thread!
+        //        camera->StartGrabbing();
+
+
+
+        /*
         if (exposure_mu_s > 0){
             camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
             camera->ExposureTimeAbs.SetValue(exposure_mu_s);
@@ -228,24 +237,39 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
 
     cam_info.header.frame_id = camera_frame;
 
+    orig_msg.header.frame_id = cam_info.header.frame_id;
+    orig_msg.encoding = sensor_msgs::image_encodings::MONO8;
+
+    undist_msg.header.frame_id = cam_info.header.frame_id;
+    undist_msg.encoding = sensor_msgs::image_encodings::MONO8;
+
+
 
     ros::NodeHandle n;
-    pub_img = n.advertise<sensor_msgs::Image>("/pylon/image_raw",100);
-    pub_img_undist = n.advertise<sensor_msgs::Image>("/pylon/image_rect",100);
-    pub_cam_info = n.advertise<sensor_msgs::CameraInfo>("/pylon/camera_info",100);
+    pub_img = n.advertise<sensor_msgs::Image>("image_raw",100);
+    pub_img_undist = n.advertise<sensor_msgs::Image>("image_rect",100);
+    pub_cam_info = n.advertise<sensor_msgs::CameraInfo>("camera_info",100);
 
-    camera->StartGrabbing();
+
     return true;
 }
 
 bool PylonCameraInterface::sendNextImage(){
 
 
+    bool send_original = pub_img.getNumSubscribers() > 0;
+    bool send_undist = pub_img_undist.getNumSubscribers() > 0;
+
+    if (! (send_original || send_undist))
+        return true;
+
+    camera->StartGrabbing(1);
+
     fflush(stdout);
 
     static int cnt =0;
     if (cnt++%10 == 0){
-        int exposure_mu_s;        
+        int exposure_mu_s;
         nh->param<int>("pylon_exposure_mu_s", exposure_mu_s, -1);
 
         if (exposure_mu_s > 0){
@@ -258,22 +282,27 @@ bool PylonCameraInterface::sendNextImage(){
         }
     }
 
-    // This smart pointer will receive the grab result data
-
-    //if ( camera->IsGrabbing())
 
     // TODO: make sure that camera has finished reading last img (e.g. mutex)
-    cv_bridge::CvImage out_msg;
+
     camera->ExecuteSoftwareTrigger();
-    out_msg.header.stamp = ros::Time::now();
+
+
+
+    orig_msg.header.stamp = ros::Time::now();
+    undist_msg.header.stamp = ros::Time::now();
 
     // Wait for an image and then retrieve it. A timeout of 5000 ms is used.
     try{
+        // camera->GrabOne(1000, ptrGrabResult,TimeoutHandling_ThrowException);
         camera->RetrieveResult( 5000, ptrGrabResult, TimeoutHandling_ThrowException);
     }catch (GenICam::TimeoutException & e){
         ROS_ERROR("Timeout in Pylon-Camera");
         return false;
     }
+
+
+    //    return false;
 
     // Image grabbed successfully?
     if (ptrGrabResult->GrabSucceeded())
@@ -287,66 +316,64 @@ bool PylonCameraInterface::sendNextImage(){
         // const uint8_t *pImageBuffer = (uint8_t *) ptrGrabResult->GetBuffer();
         // cout << "Gray value of first pixel: " << (uint32_t) pImageBuffer[0] << endl << endl;
 
-        if (img.cols != w || img.rows != h || img.type() != CV_8UC1){
-            img = cv::Mat(h,w,CV_8UC1);
+        if (orig_msg.image.cols != w || orig_msg.image.rows != h || orig_msg.image.type() != CV_8UC1){
+            orig_msg.image = cv::Mat(h,w,CV_8UC1);
         }
 
-        memcpy(img.data,(uint8_t *) ptrGrabResult->GetBuffer(),w*h*sizeof(uchar) );
-
-        //  cout << "frame: " << ptrGrabResult->GetFrameNumber() << endl;
-        //  cv::imwrite("/opt/tmp/gig.jpg",img);
-
-
-        /// TODO: copy directly to out_msg
-
-
-        //            ros::Duration capture_duration(0.25); // 30 fps
-        //            ros::Time n = ros::Time::now();
-        //            qDebug() << "ros::now " << n.toNSec();
-        //            off << n.toNSec() << " " << ptrGrabResult->GetTimeStamp() << endl;
-        //            double d = camera->AcquisitionFrameRateAbs.GetValue();
-        //            qDebug() << "Framerate"  << d;
-
-        //            double read = camera->ReadoutTimeAbs.GetValue();
-        //            qDebug() << "read"  << read/1000.0;
-
-        //            double exposure = camera->ExposureTimeAbs.GetValue();
-        //            qDebug() << "exposure"  << exposure;
-
+        memcpy(orig_msg.image.data,(uint8_t *) ptrGrabResult->GetBuffer(),w*h*sizeof(uchar) );
 
         // send distorted image
-        out_msg.header.frame_id = cam_info.header.frame_id;
-        out_msg.encoding = sensor_msgs::image_encodings::MONO8;
-        out_msg.image    = img;
-        pub_img.publish(out_msg.toImageMsg());
+        if (send_original){
+            pub_img.publish(orig_msg.toImageMsg());
+        }
 
 
-        // send undistorted image
-        cv::Mat undistorted;
-        cv::undistort(img,undistorted,camm,dist);
-        out_msg.image    = undistorted;
-        pub_img_undist.publish(out_msg.toImageMsg());
+        if ( send_undist ){
+
+            //            ros::Time s = ros::Time::now();
+
+            // send undistorted image
+            cv::undistort(orig_msg.image,undist_msg.image,camm,dist);
+            pub_img_undist.publish(undist_msg.toImageMsg());
 
 
+            //            Mat map1,map2;
+            //            Mat newCamMatrix;
+            //            cv::initUndistortRectifyMap(camm,dist,Mat(),newCamMatrix, cv::Size(img.cols,img.rows), CV_32FC1, map1,map2);
+
+            //            cout << "old matrix" << endl << camm << endl;
+            //            cout << "new matrix" << endl << newCamMatrix << endl;
+
+
+            //            Mat undis2;
+
+            //            cv::remap(img,undis2,map1,map2,cv::INTER_CUBIC);
+
+            ////            cv::imwrite("/opt/tmp/undis1.png", undistorted);
+            ////            cv::imwrite("/opt/tmp/undis2.png", undis2);
+
+
+            //            ros::Duration d = ros::Time::now()-s;
+            //            ROS_INFO("undis %f ms",d.toNSec()/1000.0/1000.0);
+        }
 
         // send cam_info with current stamp
-        cam_info.header.stamp = out_msg.header.stamp;
+        cam_info.header.stamp = orig_msg.header.stamp;
         pub_cam_info.publish(cam_info);
 
 
-
-        DbVarSet vset("machine_state",db);
-        vset.constraints.push_back(DB_Variable("id",0)); // only one row in this table
-        vset.variables.push_back(DB_Variable("last_box_cam_time",int64_t(out_msg.header.stamp.toNSec())));
-        if (!vset.writeToDB()){
-            ROS_ERROR("Ensenso: Could not write timestamp to machine_state-table");
-        }else{
-            // qDebug() << "Wrote to DB";
-        }
+        //        DbVarSet vset("machine_state",db);
+        //        vset.constraints.push_back(DB_Variable("id",0)); // only one row in this table
+        //        vset.variables.push_back(DB_Variable("last_box_cam_time",int64_t(out_msg.header.stamp.toNSec())));
+        //        if (!vset.writeToDB()){
+        //            ROS_ERROR("Ensenso: Could not write timestamp to machine_state-table");
+        //        }else{
+        //            // qDebug() << "Wrote to DB";
+        //        }
 
 
     } else {
-        ROS_ERROR("Pylon Camera: Error: %i  %s", (int)ptrGrabResult->GetErrorCode(), ptrGrabResult->GetErrorDescription().c_str());
+        // ROS_WARN("Pylon Camera: ERROR: %i  %s", (int)ptrGrabResult->GetErrorCode(), ptrGrabResult->GetErrorDescription().c_str());
     }
 
     return true;

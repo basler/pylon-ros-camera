@@ -52,6 +52,7 @@ int main(int argc, char **argv) {
         pylon_cam.sendNextImage();
         ros::spinOnce();
 
+        // ROS_INFO("SLEEP");
         /// print warning if given camera frame is not in the tf-tree
         //    if ( ! listener.canTransform(camera_frame,check_frame,ros::Time::now()-ros::Duration(0.5)) ) {
         //        ROS_INFO("No trafo between %s and %s, is static_publisher running?",camera_frame.c_str(),check_frame.c_str());
