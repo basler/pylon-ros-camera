@@ -101,15 +101,15 @@ rosbuild_prepare_qt4(QtCore QtGui QtSql)
 
 
 MESSAGE(STATUS "${catkin_LIBRARIES} ${catkin_LIBRARIES}")
+MESSAGE(STATUS "${catkin_LIBRARIES} ${catkin_LIBRARIES}")
 
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(pylon_camera_node
    ${catkin_LIBRARIES}
-   #sqlconnection
    ${OpenCV_LIBS}
    ${QT_LIBRARIES}
-    GenApi_gcc40_v2_3   GCBase_gcc40_v2_3   pylonbase pylongigesupp
+   GenApi_gcc40_v2_3   GCBase_gcc40_v2_3   pylonbase pylongigesupp
 
  )
 

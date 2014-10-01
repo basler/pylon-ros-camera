@@ -34,10 +34,6 @@ int main(int argc, char **argv) {
 
     //    tf::TransformListener listener(n,ros::Duration(2.0));
     
-    
-
-    // ROS_INFO("exposure %i",exposure_mu_s);
-
 
     ROS_INFO("Opening camera on frame %s with id %i and exposure %i", camera_frame.c_str(), camID, exposure_mu_s);
 
