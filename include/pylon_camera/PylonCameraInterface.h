@@ -13,11 +13,8 @@
 #include <pylon/usb/BaslerUsbInstantCamera.h>
 
 
-
-#define WITH_QT_DB
-
 #ifdef WITH_QT_DB
-#include <sqlconnection/db_connection.h>
+	#include <sqlconnection/db_connection.h>
 #endif
 
 
@@ -40,20 +37,14 @@ public:
     ros::NodeHandle *nh;
     std::string intrinsic_file_path;
     bool calibration_loaded;
-private:
 
+private:
 
     cv_bridge::CvImage orig_msg;
     cv_bridge::CvImage undist_msg;
 
-
     cv::Mat dist, camm;
     sensor_msgs::CameraInfo cam_info;
-
-    Pylon::CInstantCamera *camera;
-    //   Pylon::CBaslerGigEInstantCamera *camera_gige;
-   // Pylon::CBaslerUsbInstantCamera *camera_usb;
-
 
     Pylon::CInstantCamera *camera;
     Pylon::CBaslerGigEInstantCamera *gige_camera;

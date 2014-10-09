@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(pylon_camera)
 
-
 SET(CMAKE_BUILD_TYPE Debug)
+
+add_definitions(-DWITH_QT_DB)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -13,10 +14,11 @@ find_package(catkin REQUIRED
   std_msgs
   cv_bridge
   image_transport
-  #sqlconnection
-  #tf
 )
 
+if(DEFINED WITH_QT_DB)
+  find_package(catkin REQUIRED sqlconnection)
+endif(DEFINED WITH_QT_DB)
 
 find_package(OpenCV REQUIRED)
 
@@ -25,12 +27,12 @@ include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
-
-#rosbuild_prepare_qt4(QtCore QtGui QtSql)
+if(DEFINED WITH_QT_DB)
+  rosbuild_prepare_qt4(QtCore QtGui QtSql)
+endif(DEFINED WITH_QT_DB)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
 
 ###################################
 ## catkin specific configuration ##
@@ -67,7 +69,6 @@ link_directories(
   $ENV{PYLON_ROOT}/genicam/bin/Linux64_x64/GenApi/Generic
 )
 
-
 MESSAGE(STATUS "+++ PYLON: $ENV{PYLON_ROOT}/lib64" )
 
 
@@ -87,21 +88,15 @@ file( GLOB_RECURSE SRC_FILES
 #   src/${PROJECT_NAME}/pylon_camera.cpp
 # )
 
-
 #MESSAGE(STATUS "FILES ${HEADERS}")
 ## Declare a cpp executable
 add_executable(pylon_camera_node src/main.cpp ${SRC_FILES})
-
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(pylon_camera_node pylon_camera_generate_messages_cpp)
 
-#rosbuild_prepare_qt4(QtCore QtGui QtSql)
-
-
 MESSAGE(STATUS "${catkin_LIBRARIES} ${catkin_LIBRARIES}")
-
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(pylon_camera_node
@@ -110,17 +105,12 @@ target_link_libraries(pylon_camera_node
    ${OpenCV_LIBS}
    ${QT_LIBRARIES}
     GenApi_gcc40_v2_3   GCBase_gcc40_v2_3   pylonbase pylongigesupp
-
  )
-
-
-
 
 install(TARGETS pylon_camera_node RUNTIME DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
-
 
 #############
 ## Install ##
