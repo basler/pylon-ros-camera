@@ -13,7 +13,7 @@ find_package(catkin REQUIRED
   std_msgs
   cv_bridge
   image_transport
-  #sqlconnection
+  sqlconnection
   #tf
 )
 
@@ -26,7 +26,7 @@ include_directories(
 )
 
 
-#rosbuild_prepare_qt4(QtCore QtGui QtSql)
+rosbuild_prepare_qt4(QtCore QtGui QtSql)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -97,7 +97,7 @@ add_executable(pylon_camera_node src/main.cpp ${SRC_FILES})
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(pylon_camera_node pylon_camera_generate_messages_cpp)
 
-#rosbuild_prepare_qt4(QtCore QtGui QtSql)
+rosbuild_prepare_qt4(QtCore QtGui QtSql)
 
 
 MESSAGE(STATUS "${catkin_LIBRARIES} ${catkin_LIBRARIES}")

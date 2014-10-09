@@ -28,16 +28,20 @@ int main(int argc, char **argv) {
 
     int camID;
 
-    pylon_cam.nh->param<std::string>("camera_identifier", camera_identifier, "*");
+//    pylon_cam.nh->param<std::string>("camera_identifier", camera_identifier, "2676:ba02:4:4");//"*");
+    pylon_cam.nh->param<std::string>("camera_identifier", camera_identifier, "Basler acA1300-60gm#00305316D41B#192.168.112.4:3956");
+
+
     n.param<std::string>("camera_frame", camera_frame, "reference_camera_base");
     n.param<std::string>("check_frame", check_frame, "insertion_y_visual");
     n.param<int>("pylon_exposure_mu_s", exposure_mu_s, -1);
-    n.param<int>("intrinsic_cam_id", camID, 22);
+    n.param<int>("intrinsic_cam_id", camID, -1); // 22
 
     n.param<std::string>("intrinsic_param_file_path", intrinsic_param_file_path, "intrinsic_cam_data.yaml");
 
     //    tf::TransformListener listener(n,ros::Duration(2.0));
-    
+    n.param<std::string>("intrinsic_param_file_path",pylon_cam.intrinsic_file_path,"/opt/MaruData/calibs/usb_foo.yaml");
+
 
     ROS_INFO("Opening camera on frame %s with id %i and exposure %i", camera_frame.c_str(), camID, exposure_mu_s);
 
