@@ -16,6 +16,8 @@ using namespace std;
 using namespace GenApi;
 
 #ifdef WITH_QT_DB
+
+
 #include <sqlconnection/retainvariables.h>
 
 struct CalibRetainSet : public DbVarSet {
@@ -79,9 +81,11 @@ PylonCameraInterface::PylonCameraInterface():
 {
     camera = NULL;
 
+
 #ifdef WITH_QT_DB
     db = new DB_connection();
 #endif
+
 
 }
 
@@ -138,7 +142,6 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
                 if (camera_identifier == it->GetFullName().c_str())
                 {
                     camera = new Pylon::CInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
-
 
                     if (camera->IsGigE()){
                         camera->Close();
@@ -202,8 +205,6 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     }
 
     camera->RegisterConfiguration( new CSoftwareTriggerConfiguration, RegistrationMode_ReplaceAll, Cleanup_Delete);
-
-
 
 
     calibration_loaded = false;
