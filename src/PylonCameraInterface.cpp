@@ -1,12 +1,11 @@
 #include "pylon_camera/PylonCameraInterface.h"
 
-
 #include <pylon/gige/PylonGigEIncludes.h>
+
+
 #include <pylon/PylonIncludes.h>
 #include <opencv2/highgui/highgui.hpp>
 
-
-#include <sqlconnection/retainvariables.h>
 
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/CameraInfo.h>
@@ -17,7 +16,9 @@ using namespace Pylon;
 using namespace cv;
 using namespace std;
 using namespace GenApi;
-using namespace Basler_GigECameraParams;
+
+#ifdef WITH_QT_DB
+#include <sqlconnection/retainvariables.h>
 
 struct CalibRetainSet : public DbVarSet {
 
@@ -50,16 +51,13 @@ bool CalibRetainSet::readCalib(int camId, cv::Mat &dist_coeffs, cv::Mat &cam_mat
         return false;
     }
 
-    // qDebug() << "Reading calib";
-    //qDebug() << "getRead new" << getReadCommand();
-
     if (!readFromDB())
         return false;
 
     cols = getVariable(std::string("cols"))->asInt();
     rows = getVariable("rows")->asInt();
     dev_id = getVariable("SensorId")->asInt();
-    
+
     // ROS_INFO("read: %s", getVariable("data")->asString().toAscii().constData());
 
     cv::FileStorage fs(getVariable("data")->asString().toAscii().constData(),cv::FileStorage::READ + cv::FileStorage::MEMORY);
@@ -72,18 +70,18 @@ bool CalibRetainSet::readCalib(int camId, cv::Mat &dist_coeffs, cv::Mat &cam_mat
 
     fs.release();
 
-    //qDebug() << "got instrinc";
-
     return true;
 
 }
-
+#endif
 
 PylonCameraInterface::PylonCameraInterface():
     cam_info()
 {
     camera = NULL;
+#ifdef WITH_QT_DB
     db = new DB_connection();
+#endif
 }
 
 void PylonCameraInterface::close(){
@@ -138,7 +136,22 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
                 ROS_INFO("cam: '%s'", it->GetFullName().c_str());
                 if (camera_identifier == it->GetFullName().c_str())
                 {
-                    camera = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
+                    //                    camera = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
+                    camera = new Pylon::CInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
+
+
+                    if (camera->IsGigE()){
+                        camera->Close();
+                        delete camera;
+                        camera = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
+                    }
+
+                    if (camera->IsUsb()){
+                        camera->Close();
+                        delete camera;
+                        camera = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
+                    }
+
                     found = true;
                     break;
                 }
@@ -153,7 +166,8 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
         else
         {
             ROS_INFO("using first device");
-            camera = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
+            camera = new Pylon::CInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
+            //            camera = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
         }
 
 
@@ -172,17 +186,6 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
         //        camera->StartGrabbing();
 
 
-
-        /*
-        if (exposure_mu_s > 0){
-            camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
-            camera->ExposureTimeAbs.SetValue(exposure_mu_s);
-            ROS_INFO("Setting exposure to %i mu s",(int) camera->ExposureTimeAbs.GetValue());
-        }else{
-            camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
-            ROS_INFO("Using continuous exposure estimation");
-        }
-*/
         // camera->AcquisitionFrameRateAbs.SetValue(30);
 
 
@@ -199,41 +202,80 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
         exitCode = 1;
     }
 
+    camera->RegisterConfiguration( new CSoftwareTriggerConfiguration, RegistrationMode_ReplaceAll, Cleanup_Delete);
 
-    // get cam info from db
-    CalibRetainSet crs; crs.db_con = db;
 
-    int rows,cols, dev_id;
-    if (!crs.readCalib(camera_id, dist, camm,cols,rows, dev_id))
-    {
-        ROS_ERROR("Error reading calibration");
-        return false;
+
+    calibration_loaded = false;
+
+    int rows,cols;
+
+#ifdef WITH_QT_DB
+    if (camera_id > 0){
+
+        // get cam info from db
+        CalibRetainSet crs; crs.db_con = db;
+
+        int dev_id;
+        calibration_loaded = crs.readCalib(camera_id, dist, camm,cols,rows, dev_id);
+        if (!calibration_loaded)
+        {
+            ROS_ERROR("Could not read calibration for cam_id %i from db", camera_id);
+            // return false;
+        }
     }
-    
+#endif
+
+    /// try to read from file:
+    if (!calibration_loaded){
+        cv::FileStorage fs(intrinsic_file_path,cv::FileStorage::READ);
+
+        if (!fs.isOpened()){
+            ROS_ERROR("Could not load calib from file %s", intrinsic_file_path.c_str());
+        }
+
+
+        fs["distortion"] >> dist;
+        fs["cam_matrix"] >> camm;
+        fs["cols"] >> cols;
+        fs["rows"] >> rows;
+
+        calibration_loaded = true;
+        ROS_INFO("Calibration was read from %s",intrinsic_file_path.c_str());
+        fs.release();
+    }
+
+
+
     cam_info.width = cols; cam_info.height = rows;
     cam_info.distortion_model = "plumb_bob";
     cam_info.D.resize(5);
-    
-    for (uint i=0; i<5; ++i)
-    {
-        double d = dist.at<double>(0,i);
-        cam_info.D[i] = d;
-    }
 
-    int pos = 0;
-    for (uint i=0; i<3; ++i){
-        for (uint j=0; j<3; ++j){
-            cam_info.K[pos++] = camm.at<double>(i,j);
+    if (calibration_loaded){
+
+
+        for (uint i=0; i<5; ++i)
+        {
+            double d = dist.at<double>(0,i);
+            cam_info.D[i] = d;
+        }
+
+        int pos = 0;
+        for (uint i=0; i<3; ++i){
+            for (uint j=0; j<3; ++j){
+                cam_info.K[pos++] = camm.at<double>(i,j);
+            }
+        }
+
+        pos = 0;
+        for (uint i=0; i<3; ++i){
+            for (uint j=0; j<3; ++j){
+                cam_info.P[pos++] = camm.at<double>(i,j);
+            }
+            cam_info.P[pos++] = 0;
         }
     }
 
-    pos = 0;
-    for (uint i=0; i<3; ++i){
-        for (uint j=0; j<3; ++j){
-            cam_info.P[pos++] = camm.at<double>(i,j);
-        }
-        cam_info.P[pos++] = 0;
-    }
 
     cam_info.header.frame_id = camera_frame;
 
@@ -249,7 +291,6 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     pub_img = n.advertise<sensor_msgs::Image>("image_raw",100);
     pub_img_undist = n.advertise<sensor_msgs::Image>("image_rect",100);
     pub_cam_info = n.advertise<sensor_msgs::CameraInfo>("camera_info",100);
-
 
     return true;
 }
@@ -272,13 +313,25 @@ bool PylonCameraInterface::sendNextImage(){
         int exposure_mu_s;
         nh->param<int>("pylon_exposure_mu_s", exposure_mu_s, -1);
 
+        assert(camera->IsUsb() || camera->IsGigE());
+
         if (exposure_mu_s > 0){
-            camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
-            camera->ExposureTimeAbs.SetValue(exposure_mu_s);
-            // ROS_INFO("Setting exposure to %i mu s",(int) camera->ExposureTimeAbs.GetValue());
+
+            if (camera->IsUsb()){
+                ((Pylon::CBaslerUsbInstantCamera*)(camera))->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+                ((Pylon::CBaslerUsbInstantCamera*)(camera))->ExposureTime.SetValue(exposure_mu_s);
+            }else{
+                ((Pylon::CBaslerGigEInstantCamera*)(camera))->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
+                ((Pylon::CBaslerGigEInstantCamera*)(camera))->ExposureTimeAbs.SetValue(exposure_mu_s);
+            }
+
         }else{
-            camera->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
-            // ROS_INFO("Using continuous exposure estimation");
+
+            if (camera->IsUsb()){
+                ((Pylon::CBaslerUsbInstantCamera*)(camera))->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Continuous);
+            }else{
+                ((Pylon::CBaslerGigEInstantCamera*)(camera))->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
+            }
         }
     }
 
@@ -300,9 +353,6 @@ bool PylonCameraInterface::sendNextImage(){
         ROS_ERROR("Timeout in Pylon-Camera");
         return false;
     }
-
-
-    //    return false;
 
     // Image grabbed successfully?
     if (ptrGrabResult->GrabSucceeded())
@@ -330,31 +380,36 @@ bool PylonCameraInterface::sendNextImage(){
 
         if ( send_undist ){
 
-            //            ros::Time s = ros::Time::now();
+            if (!calibration_loaded){
+                ROS_ERROR("Undistored image was requested, but no intrinsic calibration was loaded");
+            }else{
 
-            // send undistorted image
-            cv::undistort(orig_msg.image,undist_msg.image,camm,dist);
-            pub_img_undist.publish(undist_msg.toImageMsg());
+                //            ros::Time s = ros::Time::now();
 
-
-            //            Mat map1,map2;
-            //            Mat newCamMatrix;
-            //            cv::initUndistortRectifyMap(camm,dist,Mat(),newCamMatrix, cv::Size(img.cols,img.rows), CV_32FC1, map1,map2);
-
-            //            cout << "old matrix" << endl << camm << endl;
-            //            cout << "new matrix" << endl << newCamMatrix << endl;
+                // send undistorted image
+                cv::undistort(orig_msg.image,undist_msg.image,camm,dist);
+                pub_img_undist.publish(undist_msg.toImageMsg());
 
 
-            //            Mat undis2;
+                //            Mat map1,map2;
+                //            Mat newCamMatrix;
+                //            cv::initUndistortRectifyMap(camm,dist,Mat(),newCamMatrix, cv::Size(img.cols,img.rows), CV_32FC1, map1,map2);
 
-            //            cv::remap(img,undis2,map1,map2,cv::INTER_CUBIC);
-
-            ////            cv::imwrite("/opt/tmp/undis1.png", undistorted);
-            ////            cv::imwrite("/opt/tmp/undis2.png", undis2);
+                //            cout << "old matrix" << endl << camm << endl;
+                //            cout << "new matrix" << endl << newCamMatrix << endl;
 
 
-            //            ros::Duration d = ros::Time::now()-s;
-            //            ROS_INFO("undis %f ms",d.toNSec()/1000.0/1000.0);
+                //            Mat undis2;
+
+                //            cv::remap(img,undis2,map1,map2,cv::INTER_CUBIC);
+
+                ////            cv::imwrite("/opt/tmp/undis1.png", undistorted);
+                ////            cv::imwrite("/opt/tmp/undis2.png", undis2);
+
+
+                //            ros::Duration d = ros::Time::now()-s;
+                //            ROS_INFO("undis %f ms",d.toNSec()/1000.0/1000.0);
+            }
         }
 
         // send cam_info with current stamp
