@@ -16,6 +16,8 @@ int main(int argc, char **argv) {
     ros::NodeHandle n;
     std::string  camera_identifier, camera_frame;
 
+    std::string intrinsic_param_file_path;
+
     std::string check_frame;
     int exposure_mu_s;
 
@@ -31,6 +33,8 @@ int main(int argc, char **argv) {
     n.param<std::string>("check_frame", check_frame, "insertion_y_visual");
     n.param<int>("pylon_exposure_mu_s", exposure_mu_s, -1);
     n.param<int>("intrinsic_cam_id", camID, 22);
+
+    n.param<std::string>("intrinsic_param_file_path", intrinsic_param_file_path, "intrinsic_cam_data.yaml");
 
     //    tf::TransformListener listener(n,ros::Duration(2.0));
     
