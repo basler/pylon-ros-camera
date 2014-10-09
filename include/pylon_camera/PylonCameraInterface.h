@@ -3,8 +3,12 @@
 
 #include <ros/ros.h>
 #include <opencv2/core/core.hpp>
-#include <pylon/gige/BaslerGigEInstantCamera.h>
-#include <sqlconnection/db_connection.h>
+
+#include <pylon/PylonIncludes.h>
+#include <pylon/InstantCamera.h>
+
+//#include <pylon/gige/BaslerGigEInstantCamera.h>
+//#include <sqlconnection/db_connection.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <cv_bridge/cv_bridge.h>
 
@@ -34,12 +38,15 @@ private:
     cv::Mat dist, camm;
     sensor_msgs::CameraInfo cam_info;
 
+    Pylon::CInstantCamera *camera;
+    //   Pylon::CBaslerGigEInstantCamera *camera_gige;
+   // Pylon::CBaslerUsbInstantCamera *camera_usb;
 
-    Pylon::CBaslerGigEInstantCamera *camera;
+
     Pylon::PylonAutoInitTerm autoInitTerm;
     Pylon::CGrabResultPtr ptrGrabResult;
 
-    DB_connection *db;
+//    DB_connection *db;
     
 };
 
