@@ -4,13 +4,23 @@
 #include <ros/ros.h>
 #include <opencv2/core/core.hpp>
 
-#include <pylon/PylonIncludes.h>
-#include <pylon/InstantCamera.h>
-
-//#include <pylon/gige/BaslerGigEInstantCamera.h>
-//#include <sqlconnection/db_connection.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <cv_bridge/cv_bridge.h>
+
+#include <pylon/PylonIncludes.h>
+#include <pylon/InstantCamera.h>
+#include <pylon/gige/BaslerGigEInstantCamera.h>
+#include <pylon/usb/BaslerUsbInstantCamera.h>
+
+
+
+#define WITH_QT_DB
+
+#ifdef WITH_QT_DB
+#include <sqlconnection/db_connection.h>
+#endif
+
+
 
 class PylonCameraInterface
 {
@@ -28,6 +38,8 @@ public:
     bool sendNextImage();
 
     ros::NodeHandle *nh;
+    std::string intrinsic_file_path;
+    bool calibration_loaded;
 private:
 
 
@@ -43,11 +55,17 @@ private:
    // Pylon::CBaslerUsbInstantCamera *camera_usb;
 
 
+    Pylon::CInstantCamera *camera;
+    Pylon::CBaslerGigEInstantCamera *gige_camera;
+    Pylon::CBaslerUsbInstantCamera *usb_camera;
+
     Pylon::PylonAutoInitTerm autoInitTerm;
     Pylon::CGrabResultPtr ptrGrabResult;
 
-//    DB_connection *db;
-    
+#ifdef WITH_QT_DB
+    DB_connection *db;
+#endif
+
 };
 
 
