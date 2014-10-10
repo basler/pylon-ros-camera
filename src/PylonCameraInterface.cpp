@@ -152,7 +152,10 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
                     if (camera->IsUsb()){
                         camera->Close();
                         delete camera;
+
                         camera = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
+
+
                     }
 
                     found = true;
@@ -183,6 +186,15 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             return false;
         }
 
+        if (camera->IsUsb()){
+            Pylon::CBaslerUsbInstantCamera* usb = ((Pylon::CBaslerUsbInstantCamera*)(camera));
+            assert(usb);
+
+            usb->TriggerSelector.SetValue(Basler_UsbCameraParams::TriggerSelector_FrameStart);
+            usb->TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
+            usb->TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_On);
+            //TriggerSourceEnums e = camera.TriggerSource.GetValue();
+        }
 
         /// starts a grab thread!
         //        camera->StartGrabbing();
@@ -305,11 +317,19 @@ bool PylonCameraInterface::sendNextImage(){
     if (! (send_original || send_undist))
         return true;
 
+    //ROS_INFO("requesting image");
+
+    if (camera->IsUsb()){
+        int expo =  ((Pylon::CBaslerUsbInstantCamera*)(camera))->ExposureTime.GetValue();
+        ROS_INFO("exp is %i", expo);
+    }
+
+
     camera->StartGrabbing(1);
 
     fflush(stdout);
 
-    static int cnt =0;
+    static int cnt = 0;
     if (cnt++%10 == 0){
         int exposure_mu_s;
         nh->param<int>("pylon_exposure_mu_s", exposure_mu_s, -1);
@@ -320,8 +340,11 @@ bool PylonCameraInterface::sendNextImage(){
         if (exposure_mu_s > 0){
 
             if (camera->IsUsb()){
-                ((Pylon::CBaslerUsbInstantCamera*)(camera))->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
-                ((Pylon::CBaslerUsbInstantCamera*)(camera))->ExposureTime.SetValue(exposure_mu_s);
+
+                Pylon::CBaslerUsbInstantCamera* usb = ((Pylon::CBaslerUsbInstantCamera*)(camera));
+
+                usb->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+                usb->ExposureTime.SetValue(exposure_mu_s);
             }else{
                 ((Pylon::CBaslerGigEInstantCamera*)(camera))->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
                 ((Pylon::CBaslerGigEInstantCamera*)(camera))->ExposureTimeAbs.SetValue(exposure_mu_s);
@@ -348,10 +371,10 @@ bool PylonCameraInterface::sendNextImage(){
     orig_msg.header.stamp = ros::Time::now();
     undist_msg.header.stamp = ros::Time::now();
 
-    // Wait for an image and then retrieve it. A timeout of 5000 ms is used.
+    // Wait for an image and then retrieve it. A timeout of 1000 ms is used.
     try{
-        // camera->GrabOne(1000, ptrGrabResult,TimeoutHandling_ThrowException);
-        camera->RetrieveResult( 5000, ptrGrabResult, TimeoutHandling_ThrowException);
+        //         camera->GrabOne(1000, ptrGrabResult,TimeoutHandling_ThrowException);
+        camera->RetrieveResult( 1000, ptrGrabResult, TimeoutHandling_ThrowException);
     }catch (GenICam::TimeoutException & e){
         ROS_ERROR("Timeout in Pylon-Camera");
         return false;
@@ -433,6 +456,9 @@ bool PylonCameraInterface::sendNextImage(){
     } else {
         // ROS_WARN("Pylon Camera: ERROR: %i  %s", (int)ptrGrabResult->GetErrorCode(), ptrGrabResult->GetErrorDescription().c_str());
     }
+
+
+    //ROS_INFO("image was snd");
 
     return true;
 
