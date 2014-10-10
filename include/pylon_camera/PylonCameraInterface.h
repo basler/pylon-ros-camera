@@ -47,7 +47,13 @@ private:
     cv::Mat dist, camm;
     sensor_msgs::CameraInfo cam_info;
 
-    Pylon::CInstantCamera *camera;
+    Pylon::CBaslerGigEInstantCamera *camera_gige;
+    Pylon::CBaslerUsbInstantCamera *camera_usb;
+    Pylon::CInstantCamera *camera(){
+        return (is_usb?(Pylon::CInstantCamera*)camera_usb:(Pylon::CInstantCamera*)camera_gige);
+    }
+
+    bool is_usb;
 
 
     Pylon::PylonAutoInitTerm autoInitTerm;

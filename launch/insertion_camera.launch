@@ -11,7 +11,7 @@
   <param name="intrinsic_cam_id" value="22" type="int" />  <!-- id to find intrinsic calib in DB -->
 
 
-  <node name="pylon_camera" pkg="pylon_camera" type="pylon_camera_node" output="screen" respawn="true" >
+  <node name="pylon_camera" pkg="pylon_camera" type="pylon_camera_node" output="screen" respawn="true" respawn_delay="30">
 
   </node>
 
