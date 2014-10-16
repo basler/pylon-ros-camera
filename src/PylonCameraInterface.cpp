@@ -107,6 +107,8 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
 	// Automagically call PylonInitialize and PylonTerminate to ensure the pylon runtime system
 	// is initialized during the lifetime of this object.
 
+    current_exposure = exposure_mu_s;
+
 	try{
 
 
@@ -311,12 +313,15 @@ bool PylonCameraInterface::sendNextImage(){
 
 	fflush(stdout);
 
-	static int cnt =0;
-	if (cnt++%10 == 0){
-		int exposure_mu_s;
+   // static int cnt =0;
+   // if (cnt++%10 == 0){
+    {
+        int exposure_mu_s;
 		nh->param<int>("pylon_exposure_mu_s", exposure_mu_s, -1);
 
-		if (exposure_mu_s > 0){
+        if (exposure_mu_s > 0 && exposure_mu_s != current_exposure){
+
+            current_exposure = exposure_mu_s;
 
 			if (is_usb){
 				camera_usb->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);

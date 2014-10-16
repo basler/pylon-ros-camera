@@ -55,6 +55,8 @@ private:
 
     bool is_usb;
 
+    int current_exposure;
+
 
     Pylon::PylonAutoInitTerm autoInitTerm;
     Pylon::CGrabResultPtr ptrGrabResult;
