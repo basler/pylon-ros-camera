@@ -7,7 +7,7 @@
 
 #include <sensor_msgs/CameraInfo.h>
 #include <cv_bridge/cv_bridge.h>
-
+#include <std_msgs/Int32.h>
 #include <pylon/PylonIncludes.h>
 #include <pylon/InstantCamera.h>
 #include <pylon/gige/BaslerGigEInstantCamera.h>
@@ -15,7 +15,7 @@
 
 
 #ifdef WITH_QT_DB
-	#include <sqlconnection/db_connection.h>
+#include <sqlconnection/db_connection.h>
 #endif
 
 
@@ -55,8 +55,11 @@ private:
 
     bool is_usb;
 
-    int current_exposure;
 
+
+    ros::Subscriber sub_exp_calib;
+    void calib_exposure_cb(const std_msgs::Int32ConstPtr &msg);
+    void set_exposure(int exposure_mu_s);
 
     Pylon::PylonAutoInitTerm autoInitTerm;
     Pylon::CGrabResultPtr ptrGrabResult;
@@ -64,6 +67,17 @@ private:
 #ifdef WITH_QT_DB
     DB_connection *db;
 #endif
+
+
+    int current_exposure;
+    /// calibration parameters
+    bool calibrating_exposure;
+    int goal_brightness;
+    float calib_exposure;
+    float left_exp;
+    float right_exp;
+    int calib_threshold;
+
 
 
 };
