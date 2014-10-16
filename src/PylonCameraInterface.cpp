@@ -329,58 +329,23 @@ void PylonCameraInterface::set_exposure(int exposure_mu_s){
 }
 
 void PylonCameraInterface::calib_exposure_cb(const std_msgs::Int32ConstPtr &msg){
-    ROS_INFO("Calibrating exposure");
+ 
 
     calibrating_exposure = true;
-
     goal_brightness = msg->data;
 
-    qDebug() << " goal brightness: " << goal_brightness;
+
+    ROS_INFO("Calibrating exposure with goal %i", goal_brightness);
 
     if (goal_brightness < 0 || goal_brightness > 255){
         qDebug() << "Invalid goal brightness: " << goal_brightness;
         return;
     }
 
-    //    int threshold = 5;
-    //    int max_imgs = 50;
-    //    int img_cnt = 0;
-
-    calib_threshold = 5;
+    calib_threshold = 2;
     left_exp = 100;
     right_exp = 60000;
     calib_exposure = (left_exp+right_exp)/2;
-
-
-    //    while (true && ros::ok()){
-
-    //        qDebug() <<  left  << current << right;
-
-    //        float c_br = get_mean_brightness(current);
-
-    //        if (c_br > goal_brightness){
-    //            right = current;
-    //        }else{
-    //            left = current;
-    //        }
-
-    //        qDebug() << "exposure " << current << " mean " << c_br;
-
-    //        if (abs(c_br - goal_brightness) < threshold){
-    //            qDebug() << "Found new exposure as" << current;
-    //            return;
-    //        }
-
-
-    //        current = (left+right)/2;
-
-
-    //        if (img_cnt > max_imgs){
-    //            // qDebug() << "Did not find optimum after" << max_imgs << "images";
-    //            break;
-    //        }
-
-    //    }
 }
 
 
@@ -404,7 +369,7 @@ bool PylonCameraInterface::sendNextImage(){
 
 
     if (calibrating_exposure){
-        set_exposure(calibrating_exposure);
+        set_exposure(calib_exposure);
     }else{
         int exposure_mu_s;
         nh->param<int>("pylon_exposure_mu_s", exposure_mu_s, -1);
@@ -503,18 +468,20 @@ bool PylonCameraInterface::sendNextImage(){
     if (calibrating_exposure){
         float c_br = getMeanInCenter(orig_msg.image);
 
-        ROS_INFO("new brightness %f for exposure %i", c_br, calibrating_exposure);
+        // ROS_INFO("new brightness %f for exposure %f", c_br, calib_exposure);
 
+       
         if (abs(c_br - goal_brightness) < calib_threshold ){
-            ROS_INFO("Found new exposure as %i",calibrating_exposure);
+            ROS_INFO("Found new exposure as %f",calib_exposure);
             current_exposure = calibrating_exposure;
             calibrating_exposure = false;
+            nh->setParam("pylon_exposure_mu_s",current_exposure);
         }
 
         if (c_br > goal_brightness){
-            left_exp = calib_exposure;
-        }else{
             right_exp = calib_exposure;
+        }else{
+            left_exp = calib_exposure;
         }
 
 
