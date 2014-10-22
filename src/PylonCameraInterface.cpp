@@ -311,12 +311,17 @@ void PylonCameraInterface::set_exposure(int exposure_mu_s){
 
             current_exposure = exposure_mu_s;
 
-            if (is_usb){
-                camera_usb->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
-                camera_usb->ExposureTime.SetValue(exposure_mu_s);
-            }else{
-                camera_gige->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
-                camera_gige->ExposureTimeAbs.SetValue(exposure_mu_s);
+
+            try {
+                if (is_usb){
+                    camera_usb->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+                    camera_usb->ExposureTime.SetValue(exposure_mu_s);
+                }else{
+                    camera_gige->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
+                    camera_gige->ExposureTimeAbs.SetValue(exposure_mu_s);
+                }
+            } catch (GenICam::OutOfRangeException e) {
+                ROS_ERROR("Exposure valie of %i is out of range: MSG: %s", exposure_mu_s,e.what());
             }
         }
     }else{
@@ -329,7 +334,7 @@ void PylonCameraInterface::set_exposure(int exposure_mu_s){
 }
 
 void PylonCameraInterface::calib_exposure_cb(const std_msgs::Int32ConstPtr &msg){
- 
+
 
     calibrating_exposure = true;
     goal_brightness = msg->data;
@@ -386,10 +391,10 @@ bool PylonCameraInterface::sendNextImage(){
     orig_msg.header.stamp = ros::Time::now();
     undist_msg.header.stamp = ros::Time::now();
 
-    // Wait for an image and then retrieve it. A timeout of 1000 ms is used.
+    // Wait for an image and then retrieve it. A timeout of 5000 ms is used.
     try{
-        //         camera->GrabOne(1000, ptrGrabResult,TimeoutHandling_ThrowException);
-        camera()->RetrieveResult( 1000, ptrGrabResult, TimeoutHandling_ThrowException);
+        // camera->GrabOne(1000, ptrGrabResult,TimeoutHandling_ThrowException);
+        camera()->RetrieveResult( 5000, ptrGrabResult, TimeoutHandling_ThrowException);
     }catch (GenICam::TimeoutException & e){
         ROS_ERROR("Timeout in Pylon-Camera");
         return false;
@@ -470,7 +475,7 @@ bool PylonCameraInterface::sendNextImage(){
 
         // ROS_INFO("new brightness %f for exposure %f", c_br, calib_exposure);
 
-       
+
         if (abs(c_br - goal_brightness) < calib_threshold ){
             ROS_INFO("Found new exposure as %f",calib_exposure);
             current_exposure = calibrating_exposure;
