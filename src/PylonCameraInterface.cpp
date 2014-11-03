@@ -78,11 +78,13 @@ bool CalibRetainSet::readCalib(int camId, cv::Mat &dist_coeffs, cv::Mat &cam_mat
 
 PylonCameraInterface::PylonCameraInterface():
     cam_info()
-   ,exposure_as_(nh,"calib_exposure",false)
+   ,nh("~")
+   ,exposure_as_(nh,"calib_exposure_action",boost::bind(&PylonCameraInterface::exposure_cb, this,_1), false)
 {
 
-    exposure_as_.registerGoalCallback(boost::bind(&PylonCameraInterface::exposure_cb, this,_1));
+  //  exposure_as_.registerGoalCallback();
     exposure_as_.start();
+    ROS_INFO("Starting exposure service");
 
 #ifdef WITH_QT_DB
     db = new DB_connection();
@@ -113,7 +115,8 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     // is initialized during the lifetime of this object.
 
     current_exposure = exposure_mu_s;
-
+    calibration_loaded = false;
+    calibrating_exposure = false;
 
 
     try{
@@ -217,7 +220,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     camera()->RegisterConfiguration( new CSoftwareTriggerConfiguration, RegistrationMode_ReplaceAll, Cleanup_Delete);
 
 
-    calibration_loaded = false;
+
 
     int rows,cols;
 
@@ -298,15 +301,13 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     undist_msg.encoding = sensor_msgs::image_encodings::MONO8;
 
 
-
-    ros::NodeHandle n;
-    pub_img = n.advertise<sensor_msgs::Image>("image_raw",100);
-    pub_img_undist = n.advertise<sensor_msgs::Image>("image_rect",100);
-    pub_cam_info = n.advertise<sensor_msgs::CameraInfo>("camera_info",100);
-    sub_exp_calib = n.subscribe("calib_exposure",1,&PylonCameraInterface::calib_exposure_cb,this);
+    pub_img = nh.advertise<sensor_msgs::Image>("image_raw",100);
+    pub_img_undist = nh.advertise<sensor_msgs::Image>("image_rect",100);
+    pub_cam_info = nh.advertise<sensor_msgs::CameraInfo>("camera_info",100);
+    sub_exp_calib = nh.subscribe("calib_exposure",1,&PylonCameraInterface::calib_exposure_cb,this);
 
 
-    calibrating_exposure = false;
+
 
     return true;
 }
@@ -314,11 +315,12 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
 
 void PylonCameraInterface::set_exposure(int exposure_mu_s){
     if (exposure_mu_s > 0 ){
-        if (exposure_mu_s != current_exposure){
+        if (exposure_mu_s != current_exposure || calibrating_exposure){
 
             current_exposure = exposure_mu_s;
 
 
+            ROS_INFO("Updating exposure to %i",exposure_mu_s);
             try {
                 if (is_usb){
                     camera_usb->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
@@ -328,7 +330,7 @@ void PylonCameraInterface::set_exposure(int exposure_mu_s){
                     camera_gige->ExposureTimeAbs.SetValue(exposure_mu_s);
                 }
             } catch (GenICam::OutOfRangeException e) {
-                ROS_ERROR("Exposure valie of %i is out of range: MSG: %s", exposure_mu_s,e.what());
+                ROS_ERROR("Exposure value of %i is out of range: MSG: %s", exposure_mu_s,e.what());
             }
         }
     }else{
@@ -354,9 +356,9 @@ void PylonCameraInterface::calib_exposure_cb(const std_msgs::Int32ConstPtr &msg)
         return;
     }
 
-    calib_threshold = 2;
+    calib_threshold = 5;
     left_exp = 100;
-    right_exp = 60000;
+    right_exp = 320000;
     calib_exposure = (left_exp+right_exp)/2;
 }
 
