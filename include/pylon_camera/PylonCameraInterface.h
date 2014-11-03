@@ -12,12 +12,15 @@
 #include <pylon/InstantCamera.h>
 #include <pylon/gige/BaslerGigEInstantCamera.h>
 #include <pylon/usb/BaslerUsbInstantCamera.h>
+#include <maru_msgs/calib_exposureAction.h>
+#include <actionlib/server/action_server.h>
 
 
 #ifdef WITH_QT_DB
 #include <sqlconnection/db_connection.h>
 #endif
 
+typedef actionlib::ActionServer<maru_msgs::calib_exposureAction> ExposureServer;
 
 
 class PylonCameraInterface
@@ -40,6 +43,9 @@ public:
     bool calibration_loaded;
 
 private:
+
+    ExposureServer  exposure_as_;
+    void exposure_cb(const ExposureServer::GoalHandle handle);
 
     cv_bridge::CvImage orig_msg;
     cv_bridge::CvImage undist_msg;
