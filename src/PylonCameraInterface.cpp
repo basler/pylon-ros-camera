@@ -78,11 +78,11 @@ bool CalibRetainSet::readCalib(int camId, cv::Mat &dist_coeffs, cv::Mat &cam_mat
 
 PylonCameraInterface::PylonCameraInterface():
     cam_info()
-   ,nh("~")
-   ,exposure_as_(nh,"calib_exposure_action",boost::bind(&PylonCameraInterface::exposure_cb, this,_1), false)
+  ,nh("~")
+  ,exposure_as_(nh,"calib_exposure_action",boost::bind(&PylonCameraInterface::exposure_cb, this,_1), false)
 {
 
-  //  exposure_as_.registerGoalCallback();
+    //  exposure_as_.registerGoalCallback();
     exposure_as_.start();
     ROS_INFO("Starting exposure service");
 
@@ -94,7 +94,41 @@ PylonCameraInterface::PylonCameraInterface():
 
 void PylonCameraInterface::exposure_cb(const ExposureServer::GoalHandle handle){
     ROS_INFO("Got Exposre callback");
+    current_exp_handle = handle;
+    current_exp_handle.setAccepted();
+
+    calibrating_exposure = true;
+    goal_brightness = handle.getGoal()->goal_exposure;
+    calib_threshold = handle.getGoal()->accuracy;
+
+    ROS_INFO("Calibrating exposure with goal %i", goal_brightness);
+
+    left_exp = 100;
+
+    int right_e;
+    nh.param<int>("max_search_exp",right_e, 100000);
+    right_exp = right_e;
+    max_exposure = right_exp;
+    calib_exposure = (left_exp+right_exp)/2;
 }
+
+void PylonCameraInterface::calib_exposure_cb(const std_msgs::Int32ConstPtr &msg){
+
+
+    calibrating_exposure = true;
+    goal_brightness = msg->data;
+
+    if (goal_brightness < 0 || goal_brightness > 255){
+        qDebug() << "Invalid goal brightness: " << goal_brightness;
+        return;
+    }
+
+    calib_threshold = 5;
+    left_exp = 100;
+    right_exp = 320000;
+    calib_exposure = (left_exp+right_exp)/2;
+}
+
 
 void PylonCameraInterface::close(){
 
@@ -206,8 +240,6 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
 
         /// starts a grab thread!
         //        camera->StartGrabbing();
-
-
 
     }
     catch (GenICam::GenericException &e)
@@ -342,25 +374,7 @@ void PylonCameraInterface::set_exposure(int exposure_mu_s){
     }
 }
 
-void PylonCameraInterface::calib_exposure_cb(const std_msgs::Int32ConstPtr &msg){
 
-
-    calibrating_exposure = true;
-    goal_brightness = msg->data;
-
-
-    ROS_INFO("Calibrating exposure with goal %i", goal_brightness);
-
-    if (goal_brightness < 0 || goal_brightness > 255){
-        qDebug() << "Invalid goal brightness: " << goal_brightness;
-        return;
-    }
-
-    calib_threshold = 5;
-    left_exp = 100;
-    right_exp = 320000;
-    calib_exposure = (left_exp+right_exp)/2;
-}
 
 
 float getMeanInCenter(const cv::Mat& img){
@@ -485,13 +499,35 @@ bool PylonCameraInterface::sendNextImage(){
         // ROS_INFO("new brightness %f for exposure %f", c_br, calib_exposure);
 
 
+        exp_feedback.exposure_mu_s = calib_exposure;
+        current_exp_handle.publishFeedback(exp_feedback);
+
+
         if (abs(c_br - goal_brightness) < calib_threshold ){
             ROS_INFO("Found new exposure as %f",calib_exposure);
             current_exposure = calib_exposure;
             calibrating_exposure = false;
             ROS_INFO("Setting exp param to %i", current_exposure);
             nh.setParam("pylon_exposure_mu_s",current_exposure);
+
+            ExposureServer::Result res;
+            res.success = true;
+            res.exposure_mu_s = current_exposure;
+            res.no_images = false;
+            current_exp_handle.setSucceeded(res);
         }
+
+        // search has converged
+        if (abs(right_exp-left_exp) < 100){
+            // increase searchrange
+
+            left_exp = 100;
+            right_exp = 2*max_exposure;
+            nh.setParam("pylon_exposure_mu_s",int(right_exp));
+            ROS_WARN("Increasing maximal exposure to %i",int(right_exp));
+            calib_exposure = (left_exp+right_exp)/2;
+        }
+
 
         if (c_br > goal_brightness){
             right_exp = calib_exposure;

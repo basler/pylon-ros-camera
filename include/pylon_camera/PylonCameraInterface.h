@@ -46,6 +46,9 @@ private:
 
     ExposureServer exposure_as_;
     void exposure_cb(const ExposureServer::GoalHandle handle);
+    ExposureServer::GoalHandle current_exp_handle;
+    ExposureServer::Feedback exp_feedback;
+    int max_exposure;
 
     cv_bridge::CvImage orig_msg;
     cv_bridge::CvImage undist_msg;
