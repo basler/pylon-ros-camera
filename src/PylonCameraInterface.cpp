@@ -496,7 +496,7 @@ bool PylonCameraInterface::sendNextImage(){
     if (calibrating_exposure){
         float c_br = getMeanInCenter(orig_msg.image);
 
-        // ROS_INFO("new brightness %f for exposure %f", c_br, calib_exposure);
+        ROS_INFO("new brightness %f for exposure %f", c_br, calib_exposure);
 
 
         exp_feedback.exposure_mu_s = calib_exposure;
@@ -509,6 +509,7 @@ bool PylonCameraInterface::sendNextImage(){
             calibrating_exposure = false;
             ROS_INFO("Setting exp param to %i", current_exposure);
             nh.setParam("pylon_exposure_mu_s",current_exposure);
+            nh.setParam("max_search_exp",int(2*current_exposure));
 
             ExposureServer::Result res;
             res.success = true;
@@ -520,11 +521,11 @@ bool PylonCameraInterface::sendNextImage(){
         // search has converged
         if (abs(right_exp-left_exp) < 100){
             // increase searchrange
-
             left_exp = 100;
-            right_exp = 2*max_exposure;
-            nh.setParam("pylon_exposure_mu_s",int(right_exp));
-            ROS_WARN("Increasing maximal exposure to %i",int(right_exp));
+            max_exposure = 2*max_exposure;
+            right_exp = max_exposure;
+            nh.setParam("max_search_exp",int(right_exp));
+            ROS_WARN("Increasing maximal exposure to %i (was %i)",int(right_exp), max_exposure);
             calib_exposure = (left_exp+right_exp)/2;
         }
 
