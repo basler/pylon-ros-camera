@@ -38,13 +38,13 @@ public:
 
     bool sendNextImage();
 
-    ros::NodeHandle *nh;
+    ros::NodeHandle nh;
     std::string intrinsic_file_path;
     bool calibration_loaded;
 
 private:
 
-    ExposureServer  exposure_as_;
+    ExposureServer exposure_as_;
     void exposure_cb(const ExposureServer::GoalHandle handle);
 
     cv_bridge::CvImage orig_msg;

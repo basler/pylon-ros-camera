@@ -77,8 +77,8 @@ bool CalibRetainSet::readCalib(int camId, cv::Mat &dist_coeffs, cv::Mat &cam_mat
 
 
 PylonCameraInterface::PylonCameraInterface():
-    cam_info(),
-    exposure_as_(*nh,"calib_exposure",false)
+    cam_info()
+   ,exposure_as_(nh,"calib_exposure",false)
 {
 
     exposure_as_.registerGoalCallback(boost::bind(&PylonCameraInterface::exposure_cb, this,_1));
@@ -384,7 +384,7 @@ bool PylonCameraInterface::sendNextImage(){
         set_exposure(calib_exposure);
     }else{
         int exposure_mu_s;
-        nh->param<int>("pylon_exposure_mu_s", exposure_mu_s, -1);
+        nh.param<int>("pylon_exposure_mu_s", exposure_mu_s, -1);
         set_exposure(exposure_mu_s); // noop if no change in exposure
     }
 
@@ -488,7 +488,7 @@ bool PylonCameraInterface::sendNextImage(){
             current_exposure = calib_exposure;
             calibrating_exposure = false;
             ROS_INFO("Setting exp param to %i", current_exposure);
-            nh->setParam("pylon_exposure_mu_s",current_exposure);
+            nh.setParam("pylon_exposure_mu_s",current_exposure);
         }
 
         if (c_br > goal_brightness){
