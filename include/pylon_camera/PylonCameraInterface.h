@@ -66,8 +66,8 @@ private:
 
 
 
-    ros::Subscriber sub_exp_calib;
-    void calib_exposure_cb(const std_msgs::Int32ConstPtr &msg);
+    // ros::Subscriber sub_exp_calib;
+    // void calib_exposure_cb(const std_msgs::Int32ConstPtr &msg);
     void set_exposure(int exposure_mu_s);
 
     Pylon::PylonAutoInitTerm autoInitTerm;

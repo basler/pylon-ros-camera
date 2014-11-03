@@ -111,7 +111,7 @@ void PylonCameraInterface::exposure_cb(const ExposureServer::GoalHandle handle){
     max_exposure = right_exp;
     calib_exposure = (left_exp+right_exp)/2;
 }
-
+/*
 void PylonCameraInterface::calib_exposure_cb(const std_msgs::Int32ConstPtr &msg){
 
 
@@ -128,7 +128,7 @@ void PylonCameraInterface::calib_exposure_cb(const std_msgs::Int32ConstPtr &msg)
     right_exp = 320000;
     calib_exposure = (left_exp+right_exp)/2;
 }
-
+*/
 
 void PylonCameraInterface::close(){
 
@@ -336,7 +336,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     pub_img = nh.advertise<sensor_msgs::Image>("image_raw",100);
     pub_img_undist = nh.advertise<sensor_msgs::Image>("image_rect",100);
     pub_cam_info = nh.advertise<sensor_msgs::CameraInfo>("camera_info",100);
-    sub_exp_calib = nh.subscribe("calib_exposure",1,&PylonCameraInterface::calib_exposure_cb,this);
+   // sub_exp_calib = nh.subscribe("calib_exposure",1,&PylonCameraInterface::calib_exposure_cb,this);
 
 
 
