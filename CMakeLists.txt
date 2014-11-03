@@ -11,37 +11,27 @@ if (USE_SQL_DB)
     MESSAGE(STATUS "+++ WITH QT SQL")
   add_definitions(-DWITH_QT_DB)
   #find_package(catkin REQUIRED sqlconnection)
-
-endif (USE_SQL_DB)
-
-
-
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
-find_package(catkin REQUIRED
-  roscpp
-  sensor_msgs
-  std_msgs
-  cv_bridge
-  image_transport
-
-)
-
-
-
-if (USE_SQL_DB)
-find_package(catkin REQUIRED sqlconnection)
-rosbuild_prepare_qt4(QtCore QtGui QtSql)
 endif (USE_SQL_DB)
 
 
 find_package(OpenCV REQUIRED)
 
 
-include_directories(
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
-)
+
+
+if (USE_SQL_DB)
+ find_package(catkin REQUIRED sqlconnection actionlib)
+ rosbuild_prepare_qt4(QtCore QtGui QtSql)
+else (USE_SQL_DB)
+ find_package(catkin REQUIRED actionlib)
+endif (USE_SQL_DB)
+
+
+
+
+
+
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
 
 
@@ -84,7 +74,7 @@ link_directories(
   $ENV{PYLON_ROOT}/genicam/bin/Linux64_x64/GenApi/Generic
 )
 
-MESSAGE(STATUS "+++ PYLON: $ENV{PYLON_ROOT}/lib64" )
+# MESSAGE(STATUS "+++ PYLON: $ENV{PYLON_ROOT}/lib64" )
 
 
 file( GLOB_RECURSE HEADERS
@@ -112,8 +102,8 @@ add_executable(pylon_camera_node src/main.cpp ${SRC_FILES})
 # add_dependencies(pylon_camera_node pylon_camera_generate_messages_cpp)
 
 
-MESSAGE(STATUS "${catkin_LIBRARIES} ${catkin_LIBRARIES}")
-MESSAGE(STATUS "${catkin_LIBRARIES} ${catkin_LIBRARIES}")
+MESSAGE(STATUS "SECOND catkin_LIBRARIES: ${catkin_LIBRARIES}")
+
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(pylon_camera_node

@@ -77,14 +77,21 @@ bool CalibRetainSet::readCalib(int camId, cv::Mat &dist_coeffs, cv::Mat &cam_mat
 
 
 PylonCameraInterface::PylonCameraInterface():
-    cam_info()
+    cam_info(),
+    exposure_as_(*nh,"calib_exposure",false)
 {
 
+    exposure_as_.registerGoalCallback(boost::bind(&PylonCameraInterface::exposure_cb, this,_1));
+    exposure_as_.start();
 
 #ifdef WITH_QT_DB
     db = new DB_connection();
 #endif
 
+}
+
+void PylonCameraInterface::exposure_cb(const ExposureServer::GoalHandle handle){
+    ROS_INFO("Got Exposre callback");
 }
 
 void PylonCameraInterface::close(){
@@ -478,8 +485,9 @@ bool PylonCameraInterface::sendNextImage(){
 
         if (abs(c_br - goal_brightness) < calib_threshold ){
             ROS_INFO("Found new exposure as %f",calib_exposure);
-            current_exposure = calibrating_exposure;
+            current_exposure = calib_exposure;
             calibrating_exposure = false;
+            ROS_INFO("Setting exp param to %i", current_exposure);
             nh->setParam("pylon_exposure_mu_s",current_exposure);
         }
 
