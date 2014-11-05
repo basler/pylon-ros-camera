@@ -495,7 +495,12 @@ bool PylonCameraInterface::sendNextImage(){
     if (calibrating_exposure){
         float c_br = getMeanInCenter(orig_msg.image);
 
+<<<<<<< HEAD
         // ROS_INFO("new brightness %f for exposure %f", c_br, calib_exposure);
+=======
+//        ROS_INFO("new brightness %f for exposure %f", c_br, calib_exposure);
+
+>>>>>>> 25016310e4420d1d4961cf22edfa7baa9521d8d0
 
         exp_feedback.exposure_mu_s = calib_exposure;
         current_exp_handle.publishFeedback(exp_feedback);
