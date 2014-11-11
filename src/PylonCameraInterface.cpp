@@ -93,7 +93,7 @@ PylonCameraInterface::PylonCameraInterface():
 }
 
 void PylonCameraInterface::exposure_cb(const ExposureServer::GoalHandle handle){
-    ROS_INFO("Got Exposre callback");
+
     current_exp_handle = handle;
     current_exp_handle.setAccepted();
 
@@ -502,7 +502,7 @@ bool PylonCameraInterface::sendNextImage(){
         current_exp_handle.publishFeedback(exp_feedback);
 
 
-        if (abs(c_br - goal_brightness) < calib_threshold ){
+        if (fabs(c_br - goal_brightness) < calib_threshold ){
             ROS_INFO("Found new exposure as %f",calib_exposure);
             current_exposure = calib_exposure;
             calibrating_exposure = false;
@@ -518,10 +518,10 @@ bool PylonCameraInterface::sendNextImage(){
         }
 
         // search has converged
-        if (abs(right_exp-left_exp) < 100){
+        if (fabs(right_exp-left_exp) < 100){
             // increase searchrange
             left_exp = 100;
-            max_exposure = 2*max_exposure;
+            max_exposure = std::max(915000,2*max_exposure);
             right_exp = max_exposure;
             nh.setParam("max_search_exp",int(right_exp));
             // ROS_WARN("Increasing maximal exposure to %i (was %i)",int(right_exp), max_exposure);
