@@ -384,15 +384,19 @@ float getMeanInCenter(const cv::Mat& img){
 bool PylonCameraInterface::sendNextImage(){
 
 
-    bool send_original = pub_img.getNumSubscribers() > 0;
-    bool send_undist = pub_img_undist.getNumSubscribers() > 0;
+    static bool send_original = false;
+    static bool send_undist = false;
+    static int img_counter = 0;
+
+    if (img_counter++%10 == 0){
+        send_original = pub_img.getNumSubscribers() > 0;
+        send_undist = pub_img_undist.getNumSubscribers() > 0;
+    }
 
     if (! (send_original || send_undist || calibrating_exposure)){
         return true;
     }
 
-
-    fflush(stdout);
 
 
     if (calibrating_exposure){

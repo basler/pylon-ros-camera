@@ -102,8 +102,6 @@ add_executable(pylon_camera_node src/main.cpp ${SRC_FILES})
 # add_dependencies(pylon_camera_node pylon_camera_generate_messages_cpp)
 
 
-MESSAGE(STATUS "SECOND catkin_LIBRARIES: ${catkin_LIBRARIES}")
-
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(pylon_camera_node

@@ -43,7 +43,6 @@
   <build_depend>cv_bridge</build_depend>
   <build_depend>image_transport</build_depend>
   <build_depend>sqlconnection</build_depend>
-  <build_depend>tf</build_depend>
   <build_depend>actionlib</build_depend>
 
 
@@ -55,7 +54,6 @@
   <run_depend>cv_bridge</run_depend>
   <run_depend>image_transport</run_depend>
   <run_depend>sqlconnection</run_depend>
-  <run_depend>tf</run_depend>
   <run_depend>actionlib</run_depend>
 
   <!--run_depend>med_recog</run_depend-->

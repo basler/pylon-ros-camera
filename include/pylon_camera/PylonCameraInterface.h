@@ -12,7 +12,6 @@
 #include <pylon/InstantCamera.h>
 #include <pylon/gige/BaslerGigEInstantCamera.h>
 #include <pylon/usb/BaslerUsbInstantCamera.h>
-#include <maru_msgs/calib_exposureAction.h>
 #include <actionlib/server/action_server.h>
 
 
@@ -20,6 +19,7 @@
 #include <sqlconnection/db_connection.h>
 #endif
 
+#include <maru_msgs/calib_exposureAction.h>
 typedef actionlib::ActionServer<maru_msgs::calib_exposureAction> ExposureServer;
 
 
