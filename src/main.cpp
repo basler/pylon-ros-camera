@@ -31,9 +31,10 @@ int main(int argc, char **argv) {
     n.param<std::string>("camera_frame", camera_frame, "reference_camera_base");
     n.param<std::string>("check_frame", check_frame, "insertion_y_visual");
     n.param<int>("pylon_exposure_mu_s", exposure_mu_s, 2000);
-    n.param<int>("intrinsic_cam_id", camID, -1); // 22
+    n.param<int>("intrinsic_cam_id", camID, -1);
 
-    n.param<std::string>("intrinsic_param_file_path",pylon_cam.intrinsic_file_path,"/opt/MaruData/calibs/usb_foo.yaml");
+
+    n.param<std::string>("intrinsic_param_file_path",pylon_cam.intrinsic_file_path,"NOT_A_VALID_PATH");
 
 
     ROS_INFO("Opening camera on frame %s with id %i and exposure %i", camera_frame.c_str(), camID, exposure_mu_s);
