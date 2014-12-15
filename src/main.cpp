@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 
     pylon_cam.nh.param<std::string>("camera_identifier", camera_identifier,"Basler acA1300-60gm#00305316D41B#192.168.112.4:3956");//"x""2676:ba02:4:4");
 //    pylon_cam.nh->param<std::string>("camera_identifier", camera_identifier, "Basler acA1300-60gm#00305316D41B#192.168.112.4:3956");
-//      camera_identifier = "2676:ba02:4:4";
+//    camera_identifier = "2676:ba02:4:4";
 //    camera_identifier = "Basler acA1300-60gm#00305316D41B#192.168.112.4:3956";
 //    camera_identifier = "*";
     n.param<std::string>("camera_frame", camera_frame, "reference_camera_base");
