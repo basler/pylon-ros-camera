@@ -43,7 +43,7 @@ bool CalibRetainSet::readCalib(int camId, cv::Mat &dist_coeffs, cv::Mat &cam_mat
 
     variables.push_back(DB_Variable("cols",int()));
     variables.push_back(DB_Variable("rows",int()));
-    variables.push_back(DB_Variable("SensorId",int()));
+    // variables.push_back(DB_Variable("SensorId",int()));
     variables.push_back(DB_Variable("data",QString()));
 
     if (!doesRowExist()){
@@ -56,7 +56,7 @@ bool CalibRetainSet::readCalib(int camId, cv::Mat &dist_coeffs, cv::Mat &cam_mat
 
     cols = getVariable(std::string("cols"))->asInt();
     rows = getVariable("rows")->asInt();
-    dev_id = getVariable("SensorId")->asInt();
+    // dev_id = getVariable("SensorId")->asInt();
 
     // ROS_INFO("read: %s", getVariable("data")->asString().toAscii().constData());
 
