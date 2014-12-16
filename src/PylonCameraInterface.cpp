@@ -151,7 +151,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     current_exposure = exposure_mu_s;
     calibration_loaded = false;
     calibrating_exposure = false;
-
+    cam_name = camera_identifier;
 
     try{
 
@@ -180,9 +180,15 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             bool found = false;
             ROS_INFO("enumerating %ld cams, searching for '%s'", lstDevices.size(), camera_identifier.c_str());
             DeviceInfoList_t::const_iterator it;
+
             for ( it = lstDevices.begin(); it != lstDevices.end(); ++it )
             {
                 ROS_INFO("cam: '%s'", it->GetFullName().c_str());
+            }
+
+            for ( it = lstDevices.begin(); it != lstDevices.end(); ++it )
+            {
+                // ROS_INFO("cam: '%s'", it->GetFullName().c_str());
                 if (camera_identifier == it->GetFullName().c_str())
                 {
 
@@ -193,6 +199,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
 
                     if (is_usb){
                         camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
+
                     }else{
                         camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
                     }
@@ -220,13 +227,12 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             ROS_INFO("reopening device");
             if (is_usb){
                 camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
+                has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto);
             }else{
+                has_auto_exposure = GenApi::IsAvailable(camera_gige->ExposureAuto);
                 camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
             }
         }
-
-
-        camera()->Open();
 
 
         if (camera()->IsOpen()){
@@ -236,12 +242,8 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             return false;
         }
 
-
-
-        /// starts a grab thread!
-        //        camera->StartGrabbing();
-
     }
+
     catch (GenICam::GenericException &e)
     {
         // Error handling.
@@ -250,9 +252,6 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     }
 
     camera()->RegisterConfiguration( new CSoftwareTriggerConfiguration, RegistrationMode_ReplaceAll, Cleanup_Delete);
-
-
-
 
     int rows,cols;
 
@@ -281,8 +280,18 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
         }else{
             fs["distortion"] >> dist;
             fs["cam_matrix"] >> camm;
-            fs["cols"] >> cols;
-            fs["rows"] >> rows;
+
+            cols = rows = -1;
+
+            // fs["cols"] >> cols;
+            // fs["rows"] >> rows;
+
+            fs["width"] >> cols;
+            fs["height"] >> rows;
+
+            if (cols < 0){
+                ROS_WARN("no 'width' entry in %s", intrinsic_file_path.c_str());
+            }
 
             calibration_loaded = true;
             ROS_INFO("Calibration was read from %s",intrinsic_file_path.c_str());
@@ -336,9 +345,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     pub_img = nh.advertise<sensor_msgs::Image>("image_raw",100);
     pub_img_undist = nh.advertise<sensor_msgs::Image>("image_rect",100);
     pub_cam_info = nh.advertise<sensor_msgs::CameraInfo>("camera_info",100);
-   // sub_exp_calib = nh.subscribe("calib_exposure",1,&PylonCameraInterface::calib_exposure_cb,this);
-
-
+    // sub_exp_calib = nh.subscribe("calib_exposure",1,&PylonCameraInterface::calib_exposure_cb,this);
 
 
     return true;
@@ -354,10 +361,10 @@ void PylonCameraInterface::set_exposure(int exposure_mu_s){
             // ROS_INFO("Updating exposure to %i",exposure_mu_s);
             try {
                 if (is_usb){
-                    camera_usb->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+                    if (has_auto_exposure) camera_usb->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
                     camera_usb->ExposureTime.SetValue(exposure_mu_s);
                 }else{
-                    camera_gige->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
+                    if (has_auto_exposure) camera_gige->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
                     camera_gige->ExposureTimeAbs.SetValue(exposure_mu_s);
                 }
             } catch (GenICam::OutOfRangeException e) {
@@ -365,15 +372,18 @@ void PylonCameraInterface::set_exposure(int exposure_mu_s){
             }
         }
     }else{
-        if (is_usb){
-            camera_usb->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Continuous);
+
+        if (has_auto_exposure){
+            if (is_usb){
+                camera_usb->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Continuous);
+            }else{
+                camera_gige->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
+            }
         }else{
-            camera_gige->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Continuous);
+            // ROS_INFO("No Auto Exposure");
         }
     }
 }
-
-
 
 
 float getMeanInCenter(const cv::Mat& img){
@@ -410,7 +420,9 @@ bool PylonCameraInterface::sendNextImage(){
 
     // TODO: make sure that camera has finished reading last img (e.g. mutex)
 
-    camera()->StartGrabbing(1);
+    if (!camera()->IsGrabbing()){
+        camera()->StartGrabbing(1);
+    }
     camera()->ExecuteSoftwareTrigger();
 
 
@@ -511,7 +523,7 @@ bool PylonCameraInterface::sendNextImage(){
             // ROS_INFO("Setting exp param to %i", current_exposure);
             nh.setParam("pylon_exposure_mu_s",current_exposure);
 
-           // int new_max = min(50000,int(2*current_exposure));
+            // int new_max = min(50000,int(2*current_exposure));
 
             nh.setParam("max_search_exp",int(2*current_exposure));
 

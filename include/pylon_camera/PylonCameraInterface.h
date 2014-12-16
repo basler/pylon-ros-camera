@@ -44,6 +44,10 @@ public:
 
 private:
 
+    bool has_auto_exposure;
+
+    std::string cam_name;
+
     ExposureServer exposure_as_;
     void exposure_cb(const ExposureServer::GoalHandle handle);
     ExposureServer::GoalHandle current_exp_handle;
@@ -86,8 +90,6 @@ private:
     float left_exp;
     float right_exp;
     int calib_threshold;
-
-
 
 };
 
