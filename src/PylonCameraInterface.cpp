@@ -234,6 +234,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             }
         }
 
+        camera()->Open();
 
         if (camera()->IsOpen()){
             ROS_INFO("Camera %s was opened",camera()->GetDeviceInfo().GetModelName().c_str());
