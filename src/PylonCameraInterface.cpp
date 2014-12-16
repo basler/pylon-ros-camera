@@ -226,11 +226,11 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
 
             ROS_INFO("reopening device");
             if (is_usb){
-                has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto);
                 camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
+                has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto);
             }else{
-                has_auto_exposure = GenApi::IsAvailable(camera_gige->ExposureAuto);
                 camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
+                has_auto_exposure = GenApi::IsAvailable(camera_gige->ExposureAuto);
             }
 
             if (!has_auto_exposure){
