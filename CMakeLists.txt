@@ -23,7 +23,14 @@ if (USE_SQL_DB)
  find_package(catkin REQUIRED sqlconnection actionlib)
  rosbuild_prepare_qt4(QtCore QtGui QtSql)
 else (USE_SQL_DB)
- find_package(catkin REQUIRED actionlib)
+ find_package(catkin REQUIRED 
+ roscpp
+ sensor_msgs
+ std_msgs
+ actionlib 
+ cv_bridge
+ image_transport
+)
 endif (USE_SQL_DB)
 
 
