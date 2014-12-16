@@ -151,7 +151,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     current_exposure = exposure_mu_s;
     calibration_loaded = false;
     calibrating_exposure = false;
-    cam_name = camera_identifier;
+
 
     try{
 
@@ -226,17 +226,23 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
 
             ROS_INFO("reopening device");
             if (is_usb){
-                camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
                 has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto);
+                camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
             }else{
                 has_auto_exposure = GenApi::IsAvailable(camera_gige->ExposureAuto);
                 camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
             }
+
+            if (!has_auto_exposure){
+                ROS_INFO("Camera %s has NO auto exposure",camera()->GetDeviceInfo().GetModelName().c_str() );
+            }
+
         }
 
+        cam_name = camera()->GetDeviceInfo().GetModelName();
 
         if (camera()->IsOpen()){
-            ROS_INFO("Camera %s was opened",camera()->GetDeviceInfo().GetModelName().c_str());
+            ROS_INFO("Camera %s was opened",cam_name.c_str());
         }else{
             ROS_WARN("Could not open camera!");
             return false;
