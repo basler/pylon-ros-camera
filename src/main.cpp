@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
     n.param<int>("intrinsic_cam_id", camID, -1); // 22
 
 //    n.param<std::string>("intrinsic_param_file_path",pylon_cam.intrinsic_file_path,"../../../src/pylon_camera/calib/cam14_gige_1280_1024_calib.yml");
-    n.param<std::string>("intrinsic_param_file_path",pylon_cam.intrinsic_file_path,"/home/md/catkin_ws/src/pylon_camera/calib/cam15_usb_f6mm_2014-12-08.yml");
+    n.param<std::string>("intrinsic_param_file_path",pylon_cam.intrinsic_file_path,"/home/md/catkin_ws/src/pylon_camera/calib/cam16_f6mm_2014-12-16.yml");
 //../../../src/pylon_camera/calib/cam15_usb_2592_1944_calib.yml");
 
     ROS_INFO("Opening camera on frame %s with id %i and exposure %i", camera_frame.c_str(), camID, exposure_mu_s);
