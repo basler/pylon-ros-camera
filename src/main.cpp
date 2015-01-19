@@ -25,6 +25,7 @@ int main(int argc, char **argv) {
     n.param<std::string>("check_frame", check_frame, "insertion_y_visual");
     n.param<int>("pylon_exposure_mu_s", exposure_mu_s, 2000);
     n.param<int>("intrinsic_cam_id", camID, -1); // 22
+    n.param<bool>("write_exp_to_db", pylon_cam.write_exp_to_db, false); 
 
     n.param<std::string>("intrinsic_param_file_path",pylon_cam.intrinsic_file_path,"NOT_A_VALID_PATH");
     // n.param<std::string>("intrinsic_param_file_path",pylon_cam.intrinsic_file_path,"/home/md/catkin_ws/src/pylon_camera/calib/cam16_f6mm_2014-12-16.yml");

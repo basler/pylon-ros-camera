@@ -42,6 +42,7 @@ public:
     ros::NodeHandle nh;
     std::string intrinsic_file_path;
     bool calibration_loaded;
+    bool write_exp_to_db;
 
 private:
 
