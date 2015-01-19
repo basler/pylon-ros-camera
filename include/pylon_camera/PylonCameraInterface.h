@@ -19,9 +19,10 @@
 #include <sqlconnection/db_connection.h>
 #endif
 
+//#include <gripper_msgs/calib_exposureAction.h>
+//typedef actionlib::ActionServer<gripper_msgs::calib_exposureAction> ExposureServer;
 #include <maru_msgs/calib_exposureAction.h>
 typedef actionlib::ActionServer<maru_msgs::calib_exposureAction> ExposureServer;
-
 
 class PylonCameraInterface
 {
@@ -41,6 +42,7 @@ public:
     ros::NodeHandle nh;
     std::string intrinsic_file_path;
     bool calibration_loaded;
+    bool write_exp_to_db;
 
 private:
 

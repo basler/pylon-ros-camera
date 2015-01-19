@@ -6,8 +6,8 @@
       <param name="camera_frame" value="reference_camera_base" type="string" />
       
     <!-- set exposure to -1 (or delete parameter to activate auto exposure -->
-      <param name="pylon_exposure_mu_s" value="22000" type="int" />
-      <param name="camera_identifier" value="2676:ba02:4:4" type="string" />
+      <param name="pylon_exposure_mu_s" value="10000" type="int" />
+      <param name="camera_identifier" value="x" type="string" />
       <param name="camera_frame" value="laser_base" type="string" /> <!-- frame to which the camera is attached -->
       <param name="intrinsic_cam_id" value="101" type="int" />  <!-- id to find intrinsic calib in DB -->
 

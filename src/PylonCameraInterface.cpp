@@ -85,6 +85,7 @@ PylonCameraInterface::PylonCameraInterface():
     //  exposure_as_.registerGoalCallback();
     exposure_as_.start();
     ROS_INFO("Starting exposure service");
+    write_exp_to_db = false;
 
 #ifdef WITH_QT_DB
     db = new DB_connection();
@@ -111,6 +112,7 @@ void PylonCameraInterface::exposure_cb(const ExposureServer::GoalHandle handle){
     max_exposure = right_exp;
     calib_exposure = (left_exp+right_exp)/2;
 }
+
 /*
 void PylonCameraInterface::calib_exposure_cb(const std_msgs::Int32ConstPtr &msg){
 
@@ -226,8 +228,8 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
 
             ROS_INFO("reopening device");
             if (is_usb){
-                has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto);
                 camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
+                has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto);
             }else{
                 has_auto_exposure = GenApi::IsAvailable(camera_gige->ExposureAuto);
                 camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
@@ -306,8 +308,6 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             fs.release();
         }
     }
-
-
 
     cam_info.width = cols; cam_info.height = rows;
     cam_info.distortion_model = "plumb_bob";
@@ -521,6 +521,14 @@ bool PylonCameraInterface::sendNextImage(){
 
         // ROS_INFO("new brightness %f for exposure %f", c_br, calib_exposure);
 
+        if (write_exp_to_db){
+            DB_connection con;
+            char cmd[200];
+            sprintf(cmd,"insert into crane_exposure (exposure, brightness) values (%i,%i)", int(calib_exposure),int(c_br));
+            con.execCmd(cmd);
+        }
+
+
         exp_feedback.exposure_mu_s = calib_exposure;
         current_exp_handle.publishFeedback(exp_feedback);
 
@@ -570,3 +578,4 @@ bool PylonCameraInterface::sendNextImage(){
 
 
 }
+

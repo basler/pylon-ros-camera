@@ -9,6 +9,7 @@
       <param name="camera_identifier" value="Basler acA1300-60gm#00305316D41B#192.168.112.4:3956" type="string" />
       <param name="camera_frame" value="crane_camera" type="string" /> <!-- frame to which the camera is attached -->
       <param name="intrinsic_cam_id" value="31" type="int" />  <!-- id to find intrinsic calib in DB -->
+      <param name="write_exp_to_db" value="true" type="bool" />
     </node>
 </launch>
 
