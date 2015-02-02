@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
 
     int camID;
 
-    pylon_cam.nh.param<std::string>("camera_identifier", camera_identifier,"Basler acA1300-60gm#00305316D41B#192.168.112.4:3956");
+    pylon_cam.nh.param<std::string>("camera_identifier", camera_identifier,"SET_CAMERA_IDENTIFIER_IN_LAUNCH_FILE");
     // pylon_cam.nh.param<std::string>("camera_identifier", camera_identifier,"x");
 
     n.param<std::string>("camera_frame", camera_frame, "reference_camera_base");
