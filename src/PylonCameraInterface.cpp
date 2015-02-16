@@ -72,7 +72,7 @@ bool CalibRetainSet::readCalib(int camId, cv::Mat &dist_coeffs, cv::Mat &cam_mat
 #endif
 
 PylonCameraInterface::PylonCameraInterface() :
-		cam_info(), nh("~"), exposure_as_(nh, "calib_exposure_action", boost::bind(&PylonCameraInterface::exposure_cb, this, _1), false) {
+		cam_info(), nh("~"), exposure_as_(nh, "calib_exposure_action", boost::bind(&PylonCameraInterface::exposure_cb, this, _1), false), intrinsic_file_path("") {
 
 	//  exposure_as_.registerGoalCallback();
 	exposure_as_.start();

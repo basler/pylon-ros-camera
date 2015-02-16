@@ -24,6 +24,7 @@ if (USE_SQL_DB)
  rosbuild_prepare_qt4(QtCore QtGui QtSql)
 else (USE_SQL_DB)
  find_package(catkin REQUIRED 
+ book_gripper_msgs
  roscpp
  sensor_msgs
  std_msgs
