@@ -18,16 +18,16 @@ int main(int argc, char **argv) {
 
     int camID;
 
-//    pylon_cam.nh.param<std::string>("camera_identifier", camera_identifier,"Basler acA1300-60gm#00305316D41B#192.168.112.4:3956");
-     pylon_cam.nh.param<std::string>("camera_identifier", camera_identifier,"x");
+    pylon_cam.nh.param<std::string>("camera_identifier", camera_identifier,"SET_CAMERA_IDENTIFIER_IN_LAUNCH_FILE");
 
     n.param<std::string>("camera_frame", camera_frame, "");
     n.param<std::string>("check_frame", check_frame, "insertion_y_visual");
     n.param<int>("pylon_exposure_mu_s", exposure_mu_s, 2000);
     n.param<int>("intrinsic_cam_id", camID, -1); // 22
+    n.param<bool>("write_exp_to_db", pylon_cam.write_exp_to_db, false); 
 
     n.param<std::string>("intrinsic_param_file_path",pylon_cam.intrinsic_file_path,"NOT_A_VALID_PATH");
-//    n.param<std::string>("intrinsic_param_file_path",pylon_cam.intrinsic_file_path,"xxxxxx/home/md/catkin_ws/src/pylon_camera/calib/cam15_f6mm_2014-12-18.yml");
+//    n.param<std::string>("intrinsic_param_file_path",pylon_cam.intrincdssic_file_path,"xxxxxx/home/md/catkin_ws/src/pylon_camera/calib/cam15_f6mm_2014-12-18.yml");
 
     ROS_INFO("Opening camera on frame %s with id %i and exposure %i", camera_frame.c_str(), camID, exposure_mu_s);
 

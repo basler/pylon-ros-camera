@@ -14,15 +14,15 @@
 #include <pylon/usb/BaslerUsbInstantCamera.h>
 #include <actionlib/server/action_server.h>
 
-
+// Dirty Hack, Same action in maru_msgs and book_gripper_msgs
 #ifdef WITH_QT_DB
-#include <sqlconnection/db_connection.h>
+	#include <sqlconnection/db_connection.h>
+	#include <maru_msgs/calib_exposureAction.h>
+	typedef actionlib::ActionServer<maru_msgs::calib_exposureAction> ExposureServer;
+#else
+	#include <book_gripper_msgs/calib_exposureAction.h>
+	typedef actionlib::ActionServer<book_gripper_msgs::calib_exposureAction> ExposureServer;
 #endif
-
-#include <book_gripper_msgs/calib_exposureAction.h>
-typedef actionlib::ActionServer<book_gripper_msgs::calib_exposureAction> ExposureServer;
-//#include <maru_msgs/calib_exposureAction.h>
-//typedef actionlib::ActionServer<maru_msgs::calib_exposureAction> ExposureServer;
 
 class PylonCameraInterface
 {
@@ -42,6 +42,7 @@ public:
     ros::NodeHandle nh;
     std::string intrinsic_file_path;
     bool calibration_loaded;
+    bool write_exp_to_db;
 
 private:
 
