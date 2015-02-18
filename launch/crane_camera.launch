@@ -2,8 +2,6 @@
 
 
   <node name="crane" pkg="pylon_camera" type="pylon_camera_node" output="screen" respawn="true" respawn_delay="5" > 
-      <param name="camera_frame" value="reference_camera_base" type="string" />
-      
     <!-- set exposure to -1 (or delete parameter to activate auto exposure -->
       <param name="pylon_exposure_mu_s" value="3000" type="int" />
       <param name="camera_identifier" value="Basler acA1300-60gm#00305316D41B#192.168.112.4:3956" type="string" />
