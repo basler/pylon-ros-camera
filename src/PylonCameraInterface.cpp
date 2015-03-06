@@ -145,6 +145,18 @@ PylonCameraInterface::~PylonCameraInterface(){
     close();
 }
 
+bool hasEnding (std::string const &fullString, std::string const &ending) 
+{
+    if (fullString.length() >= ending.length()) 
+    {
+          return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    }
+    else 
+    {
+         return false;
+    }
+}
+
 bool PylonCameraInterface::openCamera(const std::string &camera_identifier, const std::string &camera_frame,int camera_id, int exposure_mu_s)
 {
 
@@ -192,7 +204,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             for ( it = lstDevices.begin(); it != lstDevices.end(); ++it )
             {
                 // ROS_INFO("cam: '%s'", it->GetFullName().c_str());
-                if (camera_identifier == it->GetFullName().c_str())
+                if (camera_identifier == it->GetFullName().c_str() || hasEnding(it->GetFullName().c_str(), camera_identifier))
                 {
 
                     Pylon::CInstantCamera *cam = new Pylon::CInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
@@ -200,10 +212,12 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
                     cam->Close();
                     delete cam;
 
-                    if (is_usb){
+                    if (is_usb)
+                    {
                         camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
-
-                    }else{
+                    }
+                    else
+                    {
                         camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
                     }
 
