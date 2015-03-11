@@ -135,10 +135,10 @@ void PylonCameraInterface::calib_exposure_cb(const std_msgs::Int32ConstPtr &msg)
 
 void PylonCameraInterface::close(){
 
-    //    if (camera()){
-    //        ROS_INFO("Closing camera");
-    //        camera()->Close();
-    //    }
+       if (camera()){
+           ROS_INFO("Closing camera");
+           camera()->Close();
+       }
 }
 
 PylonCameraInterface::~PylonCameraInterface(){

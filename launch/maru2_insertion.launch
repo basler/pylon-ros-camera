@@ -4,14 +4,14 @@
 
 
 
-  <node name="pylon_camera" pkg="pylon_camera" type="pylon_camera_node" output="screen" respawn="true" >
+  <node name="maru2_insertion_camera" pkg="pylon_camera" type="pylon_camera_node" output="screen" respawn="true" >
   <param name="camera_frame" value="reference_camera_base" type="string" />
   
 <!-- set exposure to -1 (or delete parameter to activate auto exposure -->
   <param name="pylon_exposure_mu_s" value="750" type="int" />
-  <param name="camera_identifier" value="Basler acA1300-60gm#0030531785F2#192.168.111.30:3956" type="string" />
+  <param name="camera_identifier" value="Basler acA1300-60gm#00305318FDCF#192.168.111.3:3956" type="string" />
   <param name="camera_frame" value="reference_camera_base" type="string" /> <!-- frame to which the camera is attached -->
-  <param name="intrinsic_cam_id" value="14" type="int" />  <!-- id to find intrinsic calib in DB -->
+  <param name="intrinsic_cam_id" value="23" type="int" />  <!-- id to find intrinsic calib in DB -->
 
   </node>
 
