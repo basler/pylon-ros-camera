@@ -64,6 +64,15 @@ bool CalibRetainSet::readCalib(int camId, cv::Mat &dist_coeffs, cv::Mat &cam_mat
 
     fs["distortion"] >> dist_coeffs;
     fs["cam_matrix"] >> cam_matrix;
+    
+    std::string comment = "";
+    fs["comment"] >> comment;
+
+    if (comment.size() > 0){
+      ROS_INFO("Found comment for intrinsic calibration: %s", comment.c_str());
+    }else{
+      ROS_INFO("Intrinsic calibration has no comment");
+    }
 
     assert(cam_matrix.cols == 3 && cam_matrix.rows == 3);
     assert(!dist_coeffs.empty());
