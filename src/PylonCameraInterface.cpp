@@ -18,6 +18,13 @@ using namespace GenApi;
 #ifdef WITH_QT_DB
 
 
+/**
+camera.ShutterMode.SetValue(ShutterMode_GlobalResetRelease);
+ShutterModeEnums e = camera.ShutterMode.GetValue();
+
+
+  */
+
 #include <sqlconnection/retainvariables.h>
 
 struct CalibRetainSet : public DbVarSet {
@@ -79,7 +86,8 @@ bool CalibRetainSet::readCalib(int camId, cv::Mat &dist_coeffs, cv::Mat &cam_mat
 PylonCameraInterface::PylonCameraInterface():
     cam_info()
   ,nh("~")
-  ,exposure_as_(nh,"calib_exposure_action",boost::bind(&PylonCameraInterface::exposure_cb, this,_1), false)
+  ,exposure_as_(nh,"calib_exposure_action",boost::bind(&PylonCameraInterface::exposure_native_cb, this,_1), false)
+  // ,exposure_as_(nh,"calib_exposure_action",boost::bind(&PylonCameraInterface::exposure_cb, this,_1), false)
 {
 
     //  exposure_as_.registerGoalCallback();
@@ -93,11 +101,48 @@ PylonCameraInterface::PylonCameraInterface():
 
 }
 
-void PylonCameraInterface::exposure_cb(const ExposureServer::GoalHandle handle){
-
+void PylonCameraInterface::exposure_native_cb(const ExposureServer::GoalHandle handle){
     current_exp_handle = handle;
     current_exp_handle.setAccepted();
+    calibrating_exposure = false; // only used for manual exposure search
+    goal_brightness = handle.getGoal()->goal_exposure;
 
+    if (!has_auto_exposure){
+        ROS_WARN("Auto exposure requested for camera that does not natively support Auto Exposure, using seach method");
+        startExposureSearch(handle);
+        return;
+    }
+
+
+    try {
+        if (is_usb){
+
+            camera_usb->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+            camera_usb->AutoTargetBrightness.SetValue(goal_brightness);
+
+
+//            camera_usb->ExposureAuto.SetValue(ExposureAuto_Off);
+//            ExposureAutoEnums e = camera.ExposureAuto.GetValue();
+
+            // camera_usb->AutoTargetValue.SetValue(10);
+
+        }else{
+            assert(false);
+            //            if (has_auto_exposure) camera_gige->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
+            //            camera_gige->ExposureTimeAbs.SetValue(exposure_mu_s);
+            //            camera_gige->AutoTargetValue.SetValue(10);
+        }
+    } catch (...) {
+        ROS_ERROR("Exception");
+    }
+
+
+
+
+}
+
+
+void PylonCameraInterface::startExposureSearch(const ExposureServer::GoalHandle handle){
     calibrating_exposure = true;
     goal_brightness = handle.getGoal()->goal_exposure;
     calib_threshold = handle.getGoal()->accuracy;
@@ -113,24 +158,13 @@ void PylonCameraInterface::exposure_cb(const ExposureServer::GoalHandle handle){
     calib_exposure = (left_exp+right_exp)/2;
 }
 
-/*
-void PylonCameraInterface::calib_exposure_cb(const std_msgs::Int32ConstPtr &msg){
-
-
-    calibrating_exposure = true;
-    goal_brightness = msg->data;
-
-    if (goal_brightness < 0 || goal_brightness > 255){
-        qDebug() << "Invalid goal brightness: " << goal_brightness;
-        return;
-    }
-
-    calib_threshold = 5;
-    left_exp = 100;
-    right_exp = 320000;
-    calib_exposure = (left_exp+right_exp)/2;
+void PylonCameraInterface::exposure_cb(const ExposureServer::GoalHandle handle){
+    current_exp_handle = handle;
+    current_exp_handle.setAccepted();
+    startExposureSearch(handle);
 }
-*/
+
+
 
 void PylonCameraInterface::close(){
 
@@ -230,6 +264,10 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             if (is_usb){
                 camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
                 has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto);
+
+
+
+
             }else{
                 has_auto_exposure = GenApi::IsAvailable(camera_gige->ExposureAuto);
                 camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
@@ -243,6 +281,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
 
         cam_name = camera()->GetDeviceInfo().GetModelName();
         camera()->Open();
+
 
 
         if (camera()->IsOpen()){
@@ -371,9 +410,15 @@ void PylonCameraInterface::set_exposure(int exposure_mu_s){
                 if (is_usb){
                     if (has_auto_exposure) camera_usb->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
                     camera_usb->ExposureTime.SetValue(exposure_mu_s);
+
+                    camera_usb->AutoTargetBrightness.SetValue
+                            (10);
+                    // camera_usb->AutoTargetValue.SetValue(10);
+
                 }else{
                     if (has_auto_exposure) camera_gige->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
                     camera_gige->ExposureTimeAbs.SetValue(exposure_mu_s);
+                    camera_gige->AutoTargetValue.SetValue(10);
                 }
             } catch (GenICam::OutOfRangeException e) {
                 ROS_ERROR("Exposure value of %i is out of range: MSG: %s", exposure_mu_s,e.what());

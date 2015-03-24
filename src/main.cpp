@@ -4,6 +4,15 @@
 #include <iostream>
 
 using namespace std;
+/**
+
+ExposureAuto_Once
+
+AutoExposureTimeAbsLowerLimit
+*/
+
+
+
 
 int main(int argc, char **argv) {
 

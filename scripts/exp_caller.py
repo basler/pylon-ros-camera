@@ -8,9 +8,8 @@ import maru_msgs.msg
 from math import pi
 
 
-def exposure_client(exp):
-    #name = '/pylon/calib_exposure_action'
-    name = '/crane/calib_exposure_action'
+def exposure_client(exp,camera_name):
+    name = camera_name+'/calib_exposure_action'
     client_exp = actionlib.SimpleActionClient(name, maru_msgs.msg.calib_exposureAction)
     client_exp.wait_for_server()
     goal = maru_msgs.msg.calib_exposureGoal()
@@ -26,7 +25,7 @@ if __name__ == '__main__':
   
   try:
       rospy.init_node('exp_caller')
-      result = exposure_client(int(sys.argv[1]))
+      result = exposure_client(int(sys.argv[1]),"/crane")
       # print result
       # print "Result:", ', '.join([str(n) for n in result.sequence])
   except rospy.ROSInterruptException:

@@ -46,12 +46,18 @@ public:
 
 private:
 
+    void startExposureSearch(const ExposureServer::GoalHandle handle);
+
     bool has_auto_exposure;
 
     std::string cam_name;
 
     ExposureServer exposure_as_;
     void exposure_cb(const ExposureServer::GoalHandle handle);
+
+    void exposure_native_cb(const ExposureServer::GoalHandle handle);
+
+
     ExposureServer::GoalHandle current_exp_handle;
     ExposureServer::Feedback exp_feedback;
     int max_exposure;
