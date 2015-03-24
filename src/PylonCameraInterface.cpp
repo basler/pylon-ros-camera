@@ -132,9 +132,9 @@ void PylonCameraInterface::exposure_native_cb(const ExposureServer::GoalHandle h
     try {
         if (is_usb){
 
-//            ROS_WARN("Native Exposure not yet implemented for USB, using old method");
-//            startExposureSearch(handle);
-//            return;
+            ROS_WARN("Native Exposure not yet implemented for USB, using old method");
+            startExposureSearch(handle);
+            return;
 
             //            camera_usb->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
 //            camera_usb->AutoTargetBrightness.SetValue(goal_brightness);
@@ -314,7 +314,14 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             ROS_INFO("reopening device");
             if (is_usb){
                 camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
-                has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto);
+                // has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto);
+
+
+
+                camera_usb->TriggerSelector.SetValue(Basler_UsbCameraParams::TriggerSelector_FrameStart);
+                camera_usb->TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_On);
+                camera_usb->TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
+
 
             }else{
                 camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
@@ -351,7 +358,13 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
         return false;
     }
 
+
+
+
+
     camera()->RegisterConfiguration( new CSoftwareTriggerConfiguration, RegistrationMode_ReplaceAll, Cleanup_Delete);
+
+
 
     int rows,cols;
 
@@ -607,6 +620,8 @@ bool PylonCameraInterface::sendNextImage(){
 
     if (!camera()->IsGrabbing()){
         camera()->StartGrabbing(1);
+    }else{
+        ROS_WARN("CAMERA IS NOT GRABBING");
     }
     camera()->ExecuteSoftwareTrigger();
 
@@ -614,12 +629,11 @@ bool PylonCameraInterface::sendNextImage(){
     orig_msg.header.stamp = ros::Time::now();
     undist_msg.header.stamp = ros::Time::now();
 
-    // Wait for an image and then retrieve it. A timeout of 5000 ms is used.
+    // Wait for an image and then retrieve it.
     try{
         // camera->GrabOne(1000, ptrGrabResult,TimeoutHandling_ThrowException);
-        camera()->RetrieveResult( 5000, ptrGrabResult, TimeoutHandling_ThrowException);
+        camera()->RetrieveResult( 10000, ptrGrabResult, TimeoutHandling_ThrowException);
     }catch (GenICam::TimeoutException & e){
-        ROS_ERROR("Timeout in Pylon-Camera");
         cout << "timeout" << endl;
         return false;
     }
