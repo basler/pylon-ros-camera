@@ -137,7 +137,7 @@ void PylonCameraInterface::exposure_native_cb(const ExposureServer::GoalHandle h
             return;
 
             //            camera_usb->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
-//            camera_usb->AutoTargetBrightness.SetValue(goal_brightness);
+            //            camera_usb->AutoTargetBrightness.SetValue(goal_brightness);
 
 
             //            camera_usb->ExposureAuto.SetValue(ExposureAuto_Off);
@@ -181,13 +181,15 @@ void PylonCameraInterface::startExposureSearch(const ExposureServer::GoalHandle 
     goal_brightness = handle.getGoal()->goal_exposure;
     calib_threshold = handle.getGoal()->accuracy;
 
-    ROS_INFO("Calibrating exposure with goal %i", goal_brightness);
+    int a,b;
+    nh.param<int>("min_search_exp",a, 50);
+    nh.param<int>("max_search_exp",b, 100000);
 
-    left_exp = 50;
+    left_exp = a;
+    right_exp = b;
 
-    int right_e;
-    nh.param<int>("max_search_exp",right_e, 100000);
-    right_exp = right_e;
+    ROS_DEBUG("Starting search for goal %i with exposure limits %.0f %.0f", goal_brightness, left_exp, right_exp);
+
     max_exposure = right_exp;
     calib_exposure = (left_exp+right_exp)/2;
 }
@@ -255,7 +257,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             return false;
         }
 
-        ROS_INFO("Number of devices: %i", int(lstDevices.size()));
+        // ROS_INFO("Number of devices: %i", int(lstDevices.size()));
 
         if (lstDevices.size() > 0 && camera_identifier != "x")
         {
@@ -282,9 +284,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
                     if (is_usb)
                     {
                         camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
-                    }
-                    else
-                    {
+                    }else{
                         camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
                     }
 
@@ -305,42 +305,53 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             ROS_INFO("Opening first device");
             Pylon::CInstantCamera *cam = new Pylon::CInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
 
+            /// TODO: What happens if there is no camera?
+
             is_usb = cam->IsUsb();
             cam->Close();
             delete cam;
-
-            has_auto_exposure = true;
-
             ROS_INFO("reopening device");
             if (is_usb){
                 camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
-                // has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto);
-
-
-
-                camera_usb->TriggerSelector.SetValue(Basler_UsbCameraParams::TriggerSelector_FrameStart);
-                camera_usb->TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_On);
-                camera_usb->TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
-
-
             }else{
                 camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
-                // has_auto_exposure =  GenApi::IsAvailable(camera_gige->ExposureAuto);
-            }
-
-
-            if (!has_auto_exposure){
-                ROS_INFO("Camera %s has NO auto exposure",camera()->GetDeviceInfo().GetModelName().c_str() );
-            }else{
-                ROS_INFO("WE have auto exposure");
             }
 
         }
 
+
+        /// HACK
+        has_auto_exposure = true;
+
+        if (is_usb){
+            camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
+            // has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto);
+
+            camera_usb->TriggerSelector.SetValue(Basler_UsbCameraParams::TriggerSelector_FrameStart);
+            camera_usb->TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_On);
+            camera_usb->TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
+
+
+        }else{
+            camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
+            //            has_auto_exposure =  GenApi::IsAvailable(camera_gige->ExposureAuto);
+            // has_auto_exposure =  GenApi::IsAvailable(Basler_GigECameraParams::expos);
+
+            // Basler_UsbCameraParams::ExposureAuto_Off
+        }
+
+
+        //        if ( ! has_auto_exposure){
+        //            ROS_INFO("Camera %s has NO auto exposure",camera()->GetDeviceInfo().GetModelName().c_str() );
+        //        }else{
+        //            ROS_INFO("WE have auto exposure");
+        //        }
+
+
+
+
         cam_name = camera()->GetDeviceInfo().GetModelName();
         camera()->Open();
-
-
 
         if (camera()->IsOpen()){
             ROS_INFO("Camera %s was opened",cam_name.c_str());
@@ -477,12 +488,18 @@ void PylonCameraInterface::set_exposure(int exposure_mu_s){
                     camera_usb->ExposureTime.SetValue(exposure_mu_s);
 
                 }else{
-                    if (has_auto_exposure) camera_gige->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
+                    //ROS_INFO("SEtting exposure to %i", exposure_mu_s);
+                    // if (has_auto_exposure)
+                    camera_gige->ExposureAuto.SetValue(Basler_GigECamera::ExposureAuto_Off);
                     camera_gige->ExposureTimeAbs.SetValue(exposure_mu_s);
                 }
             } catch (GenICam::OutOfRangeException e) {
                 ROS_ERROR("Exposure value of %i is out of range: MSG: %s", exposure_mu_s,e.what());
+            }    catch (GenICam::GenericException &e)
+            {
+                ROS_ERROR("Setting Exp: An exception occurred: %s",e.GetDescription());
             }
+
         }
     }else{
 
@@ -632,7 +649,7 @@ bool PylonCameraInterface::sendNextImage(){
     // Wait for an image and then retrieve it.
     try{
         // camera->GrabOne(1000, ptrGrabResult,TimeoutHandling_ThrowException);
-        camera()->RetrieveResult( 10000, ptrGrabResult, TimeoutHandling_ThrowException);
+        camera()->RetrieveResult( 2000, ptrGrabResult, TimeoutHandling_ThrowException);
     }catch (GenICam::TimeoutException & e){
         cout << "timeout" << endl;
         return false;
@@ -740,7 +757,7 @@ bool PylonCameraInterface::sendNextImage(){
         current_exp_handle.publishFeedback(exp_feedback);
 
 
-        //        ROS_INFO("Brightness   current: %f, goal: %i", c_br, goal_brightness);
+        // ROS_INFO("Brightness   current: %.0f, goal: %i", c_br, goal_brightness);
         if (fabs(c_br - goal_brightness) < calib_threshold ){
             //            ROS_INFO("Found new exposure as %f",calib_exposure);
             current_exposure = calib_exposure;
@@ -759,15 +776,22 @@ bool PylonCameraInterface::sendNextImage(){
             current_exp_handle.setSucceeded(res);
         }
 
-        // search has converged
-        if (fabs(right_exp-left_exp) < 100){
-            // increase searchrange
-            left_exp = 100;
-            max_exposure = std::min(915000,2*max_exposure);
-            right_exp = max_exposure;
-            nh.setParam("max_search_exp",int(right_exp));
-            // ROS_WARN("Increasing maximal exposure to %i (was %i)",int(right_exp), max_exposure);
-            calib_exposure = (left_exp+right_exp)/2;
+        /// search has converged and we fail
+        if (fabs(right_exp-left_exp) < 20){
+            ROS_WARN("Exposure search failed");
+            ExposureServer::Result res;
+            res.success = false;
+            res.exposure_mu_s = current_exposure;
+            res.no_images = false;
+            current_exp_handle.setSucceeded(res);
+            calibrating_exposure = false;
+            //            // increase searchrange
+            //            left_exp = 100;
+            //            max_exposure = max_exposure; //std::min(915000,2*max_exposure);
+            //            right_exp = max_exposure;
+            //            nh.setParam("max_search_exp",int(right_exp));
+            //            // ROS_WARN("Increasing maximal exposure to %i (was %i)",int(right_exp), max_exposure);
+            //            calib_exposure = (left_exp+right_exp)/2;
         }
 
 
