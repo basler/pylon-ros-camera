@@ -731,8 +731,10 @@ bool PylonCameraInterface::sendNextImage(){
 
         }
     } else {
-
-        ROS_WARN("Pylon Camera: ERROR: %i  %s", (int)ptrGrabResult->GetErrorCode(), ptrGrabResult->GetErrorDescription().c_str());
+        // http://www.baslerweb.com/media/documents/AW00100301000%20Pylon%20for%20Linux%20Readme_.pdf
+        // -> timeout bei uebertragung
+        // [/pylon  WARN 1427286521.560736516]: Pylon Camera: ERROR: -520093676  GX status 0xe1000014
+        // ROS_WARN("Pylon Camera: GRAB[[]] ERROR: %i  %s", (int)ptrGrabResult->GetErrorCode(), ptrGrabResult->GetErrorDescription().c_str());
         return false;
     }
 
