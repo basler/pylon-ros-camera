@@ -275,7 +275,7 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
                 // ROS_INFO("cam: '%s'", it->GetFullName().c_str());
                 if (camera_identifier == it->GetFullName().c_str() || hasEnding(it->GetFullName().c_str(), camera_identifier))
                 {
-
+                    ROS_INFO("Found fitting name: %s", it->GetFullName().c_str());
                     Pylon::CInstantCamera *cam = new Pylon::CInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
                     is_usb = cam->IsUsb();
                     cam->Close();
@@ -288,8 +288,14 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
                         camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
                     }
 
+                    if (found){
+                        ROS_ERROR("Camera identifier is not unique!");
+                        found = false;
+                        break;
+                    }
+
                     found = true;
-                    break;
+//                    break;
                 }
             }
 
