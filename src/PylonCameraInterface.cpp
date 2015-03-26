@@ -276,16 +276,19 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
                 if (camera_identifier == it->GetFullName().c_str() || hasEnding(it->GetFullName().c_str(), camera_identifier))
                 {
                     ROS_INFO("Found fitting name: %s", it->GetFullName().c_str());
-                    Pylon::CInstantCamera *cam = new Pylon::CInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
+                    Pylon::CInstantCamera *cam = new Pylon::CInstantCamera(CTlFactory::GetInstance().CreateDevice(*it));
                     is_usb = cam->IsUsb();
                     cam->Close();
                     delete cam;
 
                     if (is_usb)
                     {
-                        camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
-                    }else{
-                        camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice(*it));
+                        camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateDevice(*it));
+                    }else
+                    {
+                        
+                        camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateDevice(*it));
+                        ROS_INFO("Opened: %s", camera_gige->GetDeviceInfo().GetFullName().c_str());
                     }
 
                     if (found){
@@ -329,7 +332,8 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
         /// HACK
         has_auto_exposure = true;
 
-        if (is_usb){
+        if (is_usb && camera_usb == NULL)
+        {
             camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
             // has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto);
 
@@ -338,7 +342,9 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             camera_usb->TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
 
 
-        }else{
+        }
+        else if (camera_gige == NULL)
+        {
             camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
             //            has_auto_exposure =  GenApi::IsAvailable(camera_gige->ExposureAuto);
             // has_auto_exposure =  GenApi::IsAvailable(Basler_GigECameraParams::expos);
