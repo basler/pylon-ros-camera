@@ -328,13 +328,11 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
 
         }
 
-
         /// HACK
         has_auto_exposure = true;
 
-        if (is_usb && camera_usb == NULL)
+        if (is_usb)
         {
-            camera_usb = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
             // has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto);
 
             camera_usb->TriggerSelector.SetValue(Basler_UsbCameraParams::TriggerSelector_FrameStart);
@@ -343,9 +341,9 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
 
 
         }
-        else if (camera_gige == NULL)
+        else
         {
-            camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
+            // camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
             //            has_auto_exposure =  GenApi::IsAvailable(camera_gige->ExposureAuto);
             // has_auto_exposure =  GenApi::IsAvailable(Basler_GigECameraParams::expos);
 
@@ -534,7 +532,6 @@ float getMeanInCenter(const cv::Mat& img){
 }
 
 
-
 void PylonCameraInterface::handleEndOfNativeExposure(){
 
     //            ros::Time time_out = ros::Time::now() + ros::Duration(3.0);
@@ -605,9 +602,6 @@ void PylonCameraInterface::handleEndOfNativeExposure(){
 
 
 }
-
-
-
 
 
 bool PylonCameraInterface::sendNextImage(){
