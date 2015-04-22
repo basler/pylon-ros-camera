@@ -381,8 +381,6 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
 
 
 
-
-
     camera()->RegisterConfiguration( new CSoftwareTriggerConfiguration, RegistrationMode_ReplaceAll, Cleanup_Delete);
 
 
@@ -786,7 +784,7 @@ bool PylonCameraInterface::sendNextImage(){
 
         /// search has converged and we fail
         if (fabs(right_exp-left_exp) < 20){
-            ROS_WARN("Exposure search failed");
+            ROS_WARN("Exposure search failed, target was %i (Err %i) but we only reached %i", goal_brightness, calib_threshold, current_exposure);
             ExposureServer::Result res;
             res.success = false;
             res.exposure_mu_s = current_exposure;
