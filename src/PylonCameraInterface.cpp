@@ -784,7 +784,7 @@ bool PylonCameraInterface::sendNextImage(){
 
         /// search has converged and we fail
         if (fabs(right_exp-left_exp) < 20){
-            ROS_WARN("Exposure search failed, target was %i (Err %i) but we only reached %i", goal_brightness, calib_threshold, current_exposure);
+            ROS_WARN("Exposure search failed, target was %i (Err %i) but we only reached %.0f", goal_brightness, calib_threshold, c_br);
             ExposureServer::Result res;
             res.success = false;
             res.exposure_mu_s = current_exposure;
