@@ -126,6 +126,7 @@ void PylonCameraInterface::exposure_native_cb(const ExposureServer::GoalHandle h
 
 
 
+    ROS_DEBUG("New exposure task, goal brightness: %i", goal_brightness);
 
     exp_once_timeout = ros::Time::now() + ros::Duration(15.0); // 15 sec timeout
 
@@ -275,6 +276,11 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
                 // ROS_INFO("cam: '%s'", it->GetFullName().c_str());
                 if (camera_identifier == it->GetFullName().c_str() || hasEnding(it->GetFullName().c_str(), camera_identifier))
                 {
+                    if (found){
+                        ROS_ERROR("Camera identifier is not unique!");
+                        //delete camera_usb;
+                        continue;
+                    }
                     ROS_INFO("Found fitting name: %s", it->GetFullName().c_str());
                     Pylon::CInstantCamera *cam = new Pylon::CInstantCamera(CTlFactory::GetInstance().CreateDevice(*it));
                     is_usb = cam->IsUsb();
@@ -291,11 +297,11 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
                         ROS_INFO("Opened: %s", camera_gige->GetDeviceInfo().GetFullName().c_str());
                     }
 
-                    if (found){
+                    /*if (found){
                         ROS_ERROR("Camera identifier is not unique!");
                         found = false;
                         break;
-                    }
+                    }*/
 
                     found = true;
 //                    break;
@@ -334,10 +340,14 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
         if (is_usb)
         {
             // has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto);
-
+            ROS_INFO("usb");
+             
             camera_usb->TriggerSelector.SetValue(Basler_UsbCameraParams::TriggerSelector_FrameStart);
-            camera_usb->TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_On);
-            camera_usb->TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
+            ROS_INFO("usb frame start");
+            camera_usb->TriggerMode = Basler_UsbCameraParams::TriggerMode_On;
+            ROS_INFO("usb trigger");
+            camera_usb->TriggerSource = Basler_UsbCameraParams::TriggerSource_Line1;
+            ROS_INFO("usb source");
 
 
         }
