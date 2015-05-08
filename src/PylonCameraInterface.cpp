@@ -97,6 +97,8 @@ PylonCameraInterface::PylonCameraInterface():
   ,nh("~")
   ,exposure_once_running(false)
   ,exposure_as_(nh,"calib_exposure_action",boost::bind(&PylonCameraInterface::exposure_native_cb, this,_1), false)
+  ,camera_gige(NULL)
+  ,camera_usb(NULL)
   //  ,exposure_as_(nh,"calib_exposure_action",boost::bind(&PylonCameraInterface::exposure_cb, this,_1), false)
 {
     exposure_as_.start();
