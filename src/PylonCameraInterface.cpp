@@ -336,51 +336,21 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
 
         }
 
-        /// HACK
-        has_auto_exposure = true;
+		cam_name = camera()->GetDeviceInfo().GetModelName();
+		camera()->Open();
 
-        if (is_usb)
-        {
-            // has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto);
-            ROS_INFO("usb");
-             
-            camera_usb->TriggerSelector.SetValue(Basler_UsbCameraParams::TriggerSelector_FrameStart);
-            ROS_INFO("usb frame start");
-            camera_usb->TriggerMode = Basler_UsbCameraParams::TriggerMode_On;
-            ROS_INFO("usb trigger");
-            camera_usb->TriggerSource = Basler_UsbCameraParams::TriggerSource_Line1;
-            ROS_INFO("usb source");
+		if (camera()->IsOpen()) {
+			ROS_INFO("Camera %s was opened", cam_name.c_str());
+		} else {
+			ROS_WARN("Could not open camera!");
+			return false;
+		}
 
+		is_usb?has_auto_exposure = GenApi::IsAvailable(camera_usb->ExposureAuto):has_auto_exposure = GenApi::IsAvailable(camera_gige->ExposureAuto);
 
-        }
-        else
-        {
-            // camera_gige = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
-            //            has_auto_exposure =  GenApi::IsAvailable(camera_gige->ExposureAuto);
-            // has_auto_exposure =  GenApi::IsAvailable(Basler_GigECameraParams::expos);
-
-            // Basler_UsbCameraParams::ExposureAuto_Off
-        }
-
-
-        //        if ( ! has_auto_exposure){
-        //            ROS_INFO("Camera %s has NO auto exposure",camera()->GetDeviceInfo().GetModelName().c_str() );
-        //        }else{
-        //            ROS_INFO("WE have auto exposure");
-        //        }
-
-
-
-
-        cam_name = camera()->GetDeviceInfo().GetModelName();
-        camera()->Open();
-
-        if (camera()->IsOpen()){
-            ROS_INFO("Camera %s was opened",cam_name.c_str());
-        }else{
-            ROS_WARN("Could not open camera!");
-            return false;
-        }
+		if (!has_auto_exposure) {
+			ROS_INFO("Camera %s has NO auto exposure", camera()->GetDeviceInfo().GetModelName().c_str());
+		}
 
     }
 

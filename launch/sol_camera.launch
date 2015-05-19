@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
- <node pkg="pylon_camera" name="sol_camera" type="pylon_camera_node"> <!--  respawn="true" respawn_delay="30" -->
-  <param name="intrinsic_param_file_path" value="/home/md/catkin_ws/src/pylon_camera/calib/cam15_f6mm_2014-12-18.yml" type="string" />
+ <node pkg="pylon_camera" name="sol_test_camera" type="pylon_camera_node"> <!--  respawn="true" respawn_delay="30" -->
+  <param name="intrinsic_param_file_path" value="/home/md/catkin_ws/src/book_gripper_top_repo/pylon_camera/calib/cam15_f6mm_2014-12-18.yml" type="string" />
   <param name="camera_frame" value="sol_camera" type="string" /> <!-- frame to which the camera is attached -->
   <param name="pylon_exposure_mu_s" value="2000" type="int" />
   <param name="camera_identifier" value="x" type="string" /> <!-- use first cam found in the list -->
