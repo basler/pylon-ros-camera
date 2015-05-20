@@ -79,7 +79,8 @@ private:
 
     bool is_usb;
 
-
+    void setupRectifyingMap();
+    cv::Mat rect_map_x, rect_map_y;
 
     // ros::Subscriber sub_exp_calib;
     // void calib_exposure_cb(const std_msgs::Int32ConstPtr &msg);

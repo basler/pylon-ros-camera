@@ -460,10 +460,17 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     // sub_exp_calib = nh.subscribe("calib_exposure",1,&PylonCameraInterface::calib_exposure_cb,this);
 
 
+    // md 20.05.125:
+    // setup rectifying map to speed up undistortion
+    setupRectifyingMap();
+
     return true;
 }
 
-
+void PylonCameraInterface::setupRectifyingMap(){
+	Mat I = Mat_<double>::eye(3, 3);
+	cv::initUndistortRectifyMap(camm, dist, I, cv::Mat(), Size(cam_info.width, cam_info.height), CV_32FC1, rect_map_x, rect_map_y);
+}
 void PylonCameraInterface::set_exposure(int exposure_mu_s){
 
     if (exposure_mu_s > 0 ){
@@ -525,11 +532,6 @@ void PylonCameraInterface::handleEndOfNativeExposure(){
     exp_feedback.exposure_mu_s = current_exposure;
     current_exp_handle.publishFeedback(exp_feedback);
 
-
-
-
-
-
     /// camera goes from Once to Off after goal brightness was found
 
     bool succeeded = false;
@@ -579,8 +581,6 @@ void PylonCameraInterface::handleEndOfNativeExposure(){
 
         ROS_WARN("Native exp timed out");
     }
-
-
 }
 
 
@@ -683,10 +683,13 @@ bool PylonCameraInterface::sendNextImage(){
                     ROS_ERROR("Undistored image was requested, but no intrinsic calibration was loaded");
                 }else{
 
-                    //            ros::Time s = ros::Time::now();
+                    // md 20.05.15
+                    // cv::undistort generates for each img 'n_rows' times the map for rectifiyng the row (cv::initUndistortRectifyMap())
+                    // faster: cv::initUndistortRectifyMap() only once, and then cv::remap() for each img
 
-                    // send undistorted image
-                    cv::undistort(orig_msg.image,undist_msg.image,camm,dist);
+                    // cv::undistort(orig_msg.image,undist_msg.image,camm,dist);
+                	cv::remap(orig_msg.image, undist_msg.image, rect_map_x, rect_map_y, INTER_LINEAR, BORDER_CONSTANT);
+
                     pub_img_undist.publish(undist_msg.toImageMsg());
 
 
