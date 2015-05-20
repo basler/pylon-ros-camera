@@ -469,7 +469,10 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
 
 void PylonCameraInterface::setupRectifyingMap(){
 	Mat I = Mat_<double>::eye(3, 3);
-	cv::initUndistortRectifyMap(camm, dist, I, cv::Mat(), Size(cam_info.width, cam_info.height), CV_32FC1, rect_map_x, rect_map_y);
+	// md 20.05.15
+	// newCameraMatrix (4th param of initUndistortRectifyMap) should be the cameraMatrix
+	// if not -> shift in the undistorted img
+	cv::initUndistortRectifyMap(camm, dist, I, camm, Size(cam_info.width, cam_info.height), CV_32FC1, rect_map_x, rect_map_y);
 }
 void PylonCameraInterface::set_exposure(int exposure_mu_s){
 
