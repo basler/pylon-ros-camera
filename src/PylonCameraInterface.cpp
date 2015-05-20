@@ -440,6 +440,11 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
             }
             cam_info.P[pos++] = 0;
         }
+
+        // md 20.05.125:
+        // setup rectifying map to speed up undistortion
+        setupRectifyingMap();
+
     }else{
         ROS_WARN("RUNNING PYLON NODE WITHOUT INTRINSIC CALIBRATION!");
     }
@@ -458,11 +463,6 @@ bool PylonCameraInterface::openCamera(const std::string &camera_identifier, cons
     pub_img_undist = nh.advertise<sensor_msgs::Image>("image_rect",100);
     pub_cam_info = nh.advertise<sensor_msgs::CameraInfo>("camera_info",100);
     // sub_exp_calib = nh.subscribe("calib_exposure",1,&PylonCameraInterface::calib_exposure_cb,this);
-
-
-    // md 20.05.125:
-    // setup rectifying map to speed up undistortion
-    setupRectifyingMap();
 
     return true;
 }
