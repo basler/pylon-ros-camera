@@ -3,64 +3,37 @@ project(pylon_camera)
 
 SET(CMAKE_BUILD_TYPE Debug)
 
+option(PYLON_CAMERA_WITH_RECTIFICATION "Build Pylon Camera with rectification functionality (needs OpenCV)" OFF)
+option(PYLON_CAMERA_WITH_HDR "Build Pylon Camera with HDR functionality (needs OpenCV)" OFF)
 
-option(USE_SQL_DB "Use QT Sql connection" ON)
+if (PYLON_CAMERA_WITH_RECTIFICATION)
+	MESSAGE(STATUS "+++ With RECTIFICATION")
+else (PYLON_CAMERA_WITH_RECTIFICATION)
+	MESSAGE(STATUS "--- WITHOUT RECTIFICATION")
+endif (PYLON_CAMERA_WITH_RECTIFICATION)
 
+if (PYLON_CAMERA_WITH_HDR)
+	MESSAGE(STATUS "+++ With HDR")
+else (PYLON_CAMERA_WITH_HDR)
+	MESSAGE(STATUS "--- WITHOUT HDR")	
+endif (PYLON_CAMERA_WITH_HDR)
 
-if (USE_SQL_DB)
-    MESSAGE(STATUS "+++ WITH QT SQL")
-  add_definitions(-DWITH_QT_DB)
-  #find_package(catkin REQUIRED sqlconnection)
-endif (USE_SQL_DB)
-
-
-find_package(OpenCV REQUIRED)
-
-
-
-
-if (USE_SQL_DB)
- find_package(catkin REQUIRED sqlconnection actionlib)
- rosbuild_prepare_qt4(QtCore QtGui QtSql)
-else (USE_SQL_DB)
- find_package(catkin REQUIRED 
- book_gripper_msgs
- roscpp
- sensor_msgs
- std_msgs
- actionlib 
- cv_bridge
- image_transport
-)
-endif (USE_SQL_DB)
-
-
-
-
-
+if (PYLON_CAMERA_WITH_RECTIFICATION OR PYLON_CAMERA_WITH_HDR)
+	MESSAGE(STATUS "+++ Building with OpenCV support")
+	option(WITH_OPENCV "Using OpenCV" ON)
+	add_definitions(-DWITH_OPENCV)
+	# OpenCV is not a catkin pkg
+	find_package(OpenCV REQUIRED)
+	find_package(catkin REQUIRED COMPONENTS roscpp image_transport camera_info_manager cv_bridge)
+else (PYLON_CAMERA_WITH_RECTIFICATION OR PYLON_CAMERA_WITH_HDR)
+	MESSAGE(STATUS "--- -> Building WITHOUT OpenCV support")
+	option(WITH_OPENCV "Using OpenCV" OFF)
+	find_package(catkin REQUIRED COMPONENTS roscpp image_transport camera_info_manager)
+endif (PYLON_CAMERA_WITH_RECTIFICATION OR PYLON_CAMERA_WITH_HDR)
 
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
-
-
-
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-
-###################################
-## catkin specific configuration ##
-###################################
-## The catkin_package macro generates cmake config files for your package
-## Declare things to be passed to dependent projects
-## INCLUDE_DIRS: uncomment this if you package contains header files
-## LIBRARIES: libraries you create in this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES pylon_camera
-#  CATKIN_DEPENDS roscpp sensor_msgs std_msgs
-#  DEPENDS system_lib
 )
 
 ###########
@@ -68,8 +41,6 @@ catkin_package(
 ###########
 
 ## Specify additional locations of header files
-## Your package locations should be listed before other locations
-# include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
   $ENV{PYLON_ROOT}/include
@@ -82,28 +53,32 @@ link_directories(
   $ENV{PYLON_ROOT}/genicam/bin/Linux64_x64/GenApi/Generic
 )
 
-# MESSAGE(STATUS "+++ PYLON: $ENV{PYLON_ROOT}/lib64" )
+###################################
+#### Declare a cpp executable #####
+###################################
 
+if (WITH_OPENCV)
+	file(GLOB_RECURSE ${PROJECT_NAME}_FILES
+	    src/*.cpp
+	)
+	MESSAGE(STATUS "FILES " ${${PROJECT_NAME}_FILES})
+	add_executable(pylon_camera_node src/pylon_camera_node.cpp ${${PROJECT_NAME}_FILES})
+else (WITH_OPENCV)
+	add_executable(pylon_camera_node 
+		src/pylon_camera_node.cpp
+    	src/pylon_camera_parameter.cpp
+    	src/pylon_interface.cpp
+    	src/pylon_single_exposure_interface.cpp
+	)
+endif (WITH_OPENCV)
 
-file( GLOB_RECURSE HEADERS
-    include/pylon_camera/*.h
-    include/pylon_camera/*.hpp
+add_executable(write_magazino_id_to_camera magazinoID_2_cam/write_magazino_id_to_camera.cpp)
+target_link_libraries(write_magazino_id_to_camera 
+					  GenApi_gcc40_v2_3
+					  GCBase_gcc40_v2_3
+					  pylonbase
+					  pylongigesupp
 )
-
-file( GLOB_RECURSE SRC_FILES
-    src/*.cpp
-     ${HEADERS} # add headers so that QT shows them in project view
-)
-
-
-## Declare a cpp library
-# add_library(pylon_camera
-#   src/${PROJECT_NAME}/pylon_camera.cpp
-# )
-
-#MESSAGE(STATUS "FILES ${HEADERS}")
-## Declare a cpp executable
-add_executable(pylon_camera_node src/main.cpp ${SRC_FILES})
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
@@ -112,69 +87,101 @@ add_executable(pylon_camera_node src/main.cpp ${SRC_FILES})
 
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(pylon_camera_node
-   ${catkin_LIBRARIES}
-   ${OpenCV_LIBS}
-   ${QT_LIBRARIES}
-   GenApi_gcc40_v2_3   GCBase_gcc40_v2_3   pylonbase pylongigesupp
+target_link_libraries(pylon_camera_node 
+					  ${catkin_LIBRARIES}
+					  #${OpenCV_LIBS}
+					  GenApi_gcc40_v2_3
+					  GCBase_gcc40_v2_3
+					  pylonbase
+					  pylongigesupp
+)
 
- )
+if(WITH_OPENCV)
+	target_link_libraries(pylon_camera_node 
+						  ${OpenCV_LIBS}
+	)
+endif(WITH_OPENCV)	
 
-install(TARGETS pylon_camera_node RUNTIME DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(TARGETS pylon_camera_node write_magazino_id_to_camera RUNTIME DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 
 #############
-## Install ##
-#############
-
-# all install targets should use catkin DESTINATION variables
-# See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
-
-## Mark executable scripts (Python etc.) for installation
-## in contrast to setup.py, you can choose the destination
-# install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-
-## Mark executables and/or libraries for installation
-# install(TARGETS pylon_camera pylon_camera_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-
-## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
-# )
-
-## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
-
-#############
 ## Testing ##
 #############
-
-## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_pylon_camera.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
-
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)
- 
 
 add_test( ${PROJECT_NAME}_smoke_test           bash -c "(sleep 4 && sleep `rand -M 4` && rosnode kill ${PROJECT_NAME} ) & rosrun ${PROJECT_NAME} pylon_camera_node  __name:=${PROJECT_NAME}")
 
 set_tests_properties(${PROJECT_NAME}_smoke_test        PROPERTIES TIMEOUT 10)
 
+
+
+#option(USE_SQL_DB "Use QT Sql connection" ON)
+#if (USE_SQL_DB)
+#    MESSAGE(STATUS "+++ WITH QT SQL")
+#  add_definitions(-DWITH_QT_DB)
+#  #find_package(catkin REQUIRED sqlconnection)
+#endif (USE_SQL_DB)
+
+
+#if (USE_SQL_DB)
+# find_package(catkin REQUIRED sqlconnection actionlib)
+# rosbuild_prepare_qt4(QtCore QtGui QtSql)
+#else (USE_SQL_DB)
+# find_package(catkin REQUIRED 
+# book_gripper_msgs
+# roscpp
+# sensor_msgs
+# std_msgs
+# actionlib 
+# cv_bridge
+# image_transport
+#)
+#endif (USE_SQL_DB)
+
+
+
+
+
+#file(GLOB_RECURSE HEADERS
+#    include/pylon_camera/*.h
+#    include/pylon_camera/*.hpp
+#)
+
+#file(GLOB_RECURSE ${PROJECT_NAME}_COMMON_HEADERS
+#    include/pylon_camera/pylon_camera_parameter.h
+#    include/pylon_camera/pylon_interface.h
+#    include/pylon_camera/pylon_raw_interface.h
+#)
+#file(GENERATE OUTPUT ${PROJECT_NAME}_WITHCV_HEADERS
+#    include/pylon_camera/image_rectifier.h
+#    include/pylon_camera/pylon_hdr_interface.h
+#)
+#file(GLOB_RECURSE ${PROJECT_NAME}_COMMON_SRCS
+#    include/pylon_camera/pylon_camera_parameter.cpp
+#    include/pylon_camera/pylon_interface.cpp
+#    include/pylon_camera/pylon_raw_interface.cpp
+#)
+#file(GLOB_RECURSE ${PROJECT_NAME}_WITHCV_SRCS
+#    include/pylon_camera/image_rectifier.cpp
+#    include/pylon_camera/pylon_hdr_interface.cpp
+#)
+#MESSAGE(STATUS "WITHCV_HEADERS " ${${PROJECT_NAME}_WITHCV_HEADERS})
+#if (WITH_OPENCV)
+#	file(GLOB_RECURSE ${PROJECT_NAME}_FILES
+#		${${PROJECT_NAME}_COMMON_SRCS}
+#		${${PROJECT_NAME}_WITHCV_SRCS}
+#		# add headers so that QT shows them in project view:
+#		${${PROJECT_NAME}_COMMON_HEADERS} 
+#		${${PROJECT_NAME}_WITHCV_HEADERS}
+#	)
+#elseif (WITH_OPENCV)
+#	file(GLOB_RECURSE ${PROJECT_NAME}_FILES
+#		${${PROJECT_NAME}_COMMON_SRCS}
+#		# add headers so that QT shows them in project view:
+#		${${PROJECT_NAME}_COMMON_HEADERS} 
+#	)
+#endif (WITH_OPENCV) 
+
+#MESSAGE(STATUS "FILES ${PROJECT_NAME}_FILES")
