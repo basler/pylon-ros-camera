@@ -24,11 +24,11 @@ if (PYLON_CAMERA_WITH_RECTIFICATION OR PYLON_CAMERA_WITH_HDR)
 	add_definitions(-DWITH_OPENCV)
 	# OpenCV is not a catkin pkg
 	find_package(OpenCV REQUIRED)
-	find_package(catkin REQUIRED COMPONENTS roscpp image_transport camera_info_manager cv_bridge)
+	find_package(catkin REQUIRED COMPONENTS roscpp image_transport pylon_camera_msgs cv_bridge)
 else (PYLON_CAMERA_WITH_RECTIFICATION OR PYLON_CAMERA_WITH_HDR)
 	MESSAGE(STATUS "--- -> Building WITHOUT OpenCV support")
 	option(WITH_OPENCV "Using OpenCV" OFF)
-	find_package(catkin REQUIRED COMPONENTS roscpp image_transport camera_info_manager)
+	find_package(catkin REQUIRED COMPONENTS roscpp image_transport pylon_camera_msgs)
 endif (PYLON_CAMERA_WITH_RECTIFICATION OR PYLON_CAMERA_WITH_HDR)
 
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/include" )

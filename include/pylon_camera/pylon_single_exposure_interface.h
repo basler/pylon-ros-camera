@@ -22,6 +22,8 @@ public:
 	int setupCameraConfiguration(const PylonCameraParameter &params);
 
 private:
+	template<typename T>
+	T setExposureTime(T exposure_time);
 };
 } /* namespace pylon_camera */
 

@@ -23,6 +23,11 @@ public:
     double desired_frame_rate_;
     double target_exposure_;
     bool use_hdr_;
+    int param_update_frequency_;
+	double exposure_;
+	bool use_brightness_;
+	int brightness_;
+	bool use_trigger_service_;
 };
 
 } /* namespace pylon_camera */

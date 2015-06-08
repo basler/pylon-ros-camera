@@ -48,16 +48,28 @@ public:
     virtual std::string img_encoding();
     virtual int img_pixel_depth();
     virtual float max_possible_framerate();
+    virtual bool has_auto_exposure();
+
+
+    virtual int setExposure(double exposure);
+//    virtual int updateRuntimeParameter(const PylonCameraParameter &params);
 protected:
     int img_rows_, img_cols_;
-    Basler_UsbCameraParams::PixelFormatEnums img_encoding_;
-    Basler_UsbCameraParams::PixelSizeEnums img_pixel_depth_;
+
+    Basler_GigECameraParams::PixelFormatEnums gige_img_encoding_;
+    Basler_GigECameraParams::PixelSizeEnums gige_img_pixel_depth_;
+    Basler_UsbCameraParams::PixelFormatEnums usb_img_encoding_;
+    Basler_UsbCameraParams::PixelSizeEnums usb_img_pixel_depth_;
+
     float max_framerate_;
+    bool has_auto_exposure_;
 
 	PYLON_CAM_TYPE cam_type_;
 	std::string pylonCamTypeToString(const PYLON_CAM_TYPE type);
 	int	 findDesiredCam(const PylonCameraParameter &params);
 	PYLON_CAM_TYPE detectPylonCamType(const CInstantCamera* cam);
+//	int setAutoExposure(const PylonCameraParameter &params);
+
 
 	// This smart pointer will receive the grab result data.
 	CGrabResultPtr ptr_grab_result_;
@@ -65,6 +77,8 @@ protected:
 	CBaslerGigEInstantCamera* gige_cam_;
 	CBaslerUsbInstantCamera* usb_cam_;
 	CBaslerUsbInstantCamera* dart_cam_;
+
+	double last_exposure_val_;
 };
 
 } /* namespace pylon_camera */
