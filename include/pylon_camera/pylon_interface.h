@@ -34,14 +34,6 @@ public:
 	virtual ~PylonInterface();
 
 	int initialize(const PylonCameraParameter &params);
-	virtual int setupCameraConfiguration(const PylonCameraParameter &params) = 0;
-	virtual const uint8_t* grab(const PylonCameraParameter &params) = 0;
-
-    // Con-/ De-structor automagically calls PylonInitialize and PylonTerminate to ensure the pylon runtime system
-    // is initialized during the lifetime of this object.
-    Pylon::PylonAutoInitTerm auto_init_term_;
-
-    CInstantCamera* c_instant_cam_;
 
     virtual int img_rows();
     virtual int img_cols();
@@ -49,27 +41,40 @@ public:
     virtual int img_pixel_depth();
     virtual float max_possible_framerate();
     virtual bool has_auto_exposure();
-
+    virtual bool is_cam_removed();
+    virtual double last_exposure_val();
+    virtual int last_brightness_val();
 
     virtual int setExposure(double exposure);
+    virtual int setBrightness(int brightness);
+	int setupCameraConfiguration(const PylonCameraParameter &params);
+	const uint8_t* grab(const PylonCameraParameter &params);
+
+	virtual int initSequencer(const PylonCameraParameter &params);
+
+    // Con-/ De-structor automagically calls PylonInitialize and PylonTerminate to ensure the pylon runtime system
+    // is initialized during the lifetime of this object.
+    Pylon::PylonAutoInitTerm auto_init_term_;
+
+    CInstantCamera* c_instant_cam_; // base camera class
+
 //    virtual int updateRuntimeParameter(const PylonCameraParameter &params);
 protected:
-    int img_rows_, img_cols_;
+	std::string pylonCamTypeToString(const PYLON_CAM_TYPE type);
+	int	 findDesiredCam(const PylonCameraParameter &params);
+	PYLON_CAM_TYPE detectPylonCamType(const CInstantCamera* cam);
 
     Basler_GigECameraParams::PixelFormatEnums gige_img_encoding_;
     Basler_GigECameraParams::PixelSizeEnums gige_img_pixel_depth_;
     Basler_UsbCameraParams::PixelFormatEnums usb_img_encoding_;
     Basler_UsbCameraParams::PixelSizeEnums usb_img_pixel_depth_;
 
+    int img_rows_, img_cols_;
+	int height_aoi_, width_aoi_, offset_height_aoi_, offset_width_aoi_;
     float max_framerate_;
     bool has_auto_exposure_;
 
 	PYLON_CAM_TYPE cam_type_;
-	std::string pylonCamTypeToString(const PYLON_CAM_TYPE type);
-	int	 findDesiredCam(const PylonCameraParameter &params);
-	PYLON_CAM_TYPE detectPylonCamType(const CInstantCamera* cam);
-//	int setAutoExposure(const PylonCameraParameter &params);
-
 
 	// This smart pointer will receive the grab result data.
 	CGrabResultPtr ptr_grab_result_;
@@ -79,6 +84,8 @@ protected:
 	CBaslerUsbInstantCamera* dart_cam_;
 
 	double last_exposure_val_;
+	int last_brightness_val_;
+	bool is_cam_removed_;
 };
 
 } /* namespace pylon_camera */

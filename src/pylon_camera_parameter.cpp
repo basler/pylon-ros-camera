@@ -14,12 +14,13 @@ PylonCameraParameter::PylonCameraParameter() :
 		camera_frame_("camera_base"),
 		desired_frame_rate_(-1.0),
 		target_exposure_(3000),
-		use_hdr_(false),
+		use_sequencer_(false),
 		param_update_frequency_(50),
 		exposure_(2000.0),
 		use_brightness_(false),
 		brightness_(128),
-		use_trigger_service_(false)
+		use_trigger_service_(false),
+		intrinsic_yaml_file_("")
 {
 	// TODO Auto-generated constructor stub
 }

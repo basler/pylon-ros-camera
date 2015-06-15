@@ -3,33 +3,19 @@ project(pylon_camera)
 
 SET(CMAKE_BUILD_TYPE Debug)
 
-option(PYLON_CAMERA_WITH_RECTIFICATION "Build Pylon Camera with rectification functionality (needs OpenCV)" OFF)
-option(PYLON_CAMERA_WITH_HDR "Build Pylon Camera with HDR functionality (needs OpenCV)" OFF)
+option(WITH_OPENCV "Build Pylon Camera with rectification functionality (needs OpenCV)" ON)
+#option(PYLON_CAMERA_WITH_SEQUENCER "Build Pylon Camera with Sequencer functionality (needs OpenCV)" OFF)
 
-if (PYLON_CAMERA_WITH_RECTIFICATION)
-	MESSAGE(STATUS "+++ With RECTIFICATION")
-else (PYLON_CAMERA_WITH_RECTIFICATION)
-	MESSAGE(STATUS "--- WITHOUT RECTIFICATION")
-endif (PYLON_CAMERA_WITH_RECTIFICATION)
-
-if (PYLON_CAMERA_WITH_HDR)
-	MESSAGE(STATUS "+++ With HDR")
-else (PYLON_CAMERA_WITH_HDR)
-	MESSAGE(STATUS "--- WITHOUT HDR")	
-endif (PYLON_CAMERA_WITH_HDR)
-
-if (PYLON_CAMERA_WITH_RECTIFICATION OR PYLON_CAMERA_WITH_HDR)
+if (WITH_OPENCV)
 	MESSAGE(STATUS "+++ Building with OpenCV support")
-	option(WITH_OPENCV "Using OpenCV" ON)
 	add_definitions(-DWITH_OPENCV)
 	# OpenCV is not a catkin pkg
 	find_package(OpenCV REQUIRED)
-	find_package(catkin REQUIRED COMPONENTS roscpp image_transport pylon_camera_msgs cv_bridge)
-else (PYLON_CAMERA_WITH_RECTIFICATION OR PYLON_CAMERA_WITH_HDR)
-	MESSAGE(STATUS "--- -> Building WITHOUT OpenCV support")
-	option(WITH_OPENCV "Using OpenCV" OFF)
-	find_package(catkin REQUIRED COMPONENTS roscpp image_transport pylon_camera_msgs)
-endif (PYLON_CAMERA_WITH_RECTIFICATION OR PYLON_CAMERA_WITH_HDR)
+else ()
+	MESSAGE(STATUS "--- Building WITHOUT OpenCV support")
+endif ()
+
+find_package(catkin REQUIRED COMPONENTS roscpp image_transport pylon_camera_msgs)
 
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
@@ -46,6 +32,12 @@ include_directories(
   $ENV{PYLON_ROOT}/include
   $ENV{PYLON_ROOT}/genicam/library/CPP/include
 )
+if (WITH_OPENCV)
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
+)
+endif (WITH_OPENCV)
 
 link_directories(
   $ENV{PYLON_ROOT}/lib64
@@ -65,10 +57,10 @@ if (WITH_OPENCV)
 	add_executable(pylon_camera_node src/pylon_camera_node.cpp ${${PROJECT_NAME}_FILES})
 else (WITH_OPENCV)
 	add_executable(pylon_camera_node 
+		src/main.cpp
 		src/pylon_camera_node.cpp
     	src/pylon_camera_parameter.cpp
     	src/pylon_interface.cpp
-    	src/pylon_single_exposure_interface.cpp
 	)
 endif (WITH_OPENCV)
 
@@ -185,3 +177,32 @@ set_tests_properties(${PROJECT_NAME}_smoke_test        PROPERTIES TIMEOUT 10)
 #endif (WITH_OPENCV) 
 
 #MESSAGE(STATUS "FILES ${PROJECT_NAME}_FILES")
+
+#+++++++++++++++++++++++++++++++++++
+#if (PYLON_CAMERA_WITH_RECTIFICATION)
+#	MESSAGE(STATUS "+++ With RECTIFICATION")
+#else (PYLON_CAMERA_WITH_RECTIFICATION)
+#	MESSAGE(STATUS "--- WITHOUT RECTIFICATION")
+#endif (PYLON_CAMERA_WITH_RECTIFICATION)
+#
+#if (PYLON_CAMERA_WITH_SEQUENCER)
+#	MESSAGE(STATUS "+++ With SEQUENCER")
+#else (PYLON_CAMERA_WITH_SEQUENCER)
+#	MESSAGE(STATUS "--- WITHOUT SEQUENCER")	
+#endif (PYLON_CAMERA_WITH_SEQUENCER)
+#
+#if (PYLON_CAMERA_WITH_RECTIFICATION OR PYLON_CAMERA_WITH_SEQUENCER)
+#	MESSAGE(STATUS "+++ Building with OpenCV support")
+#	option(WITH_OPENCV "Using OpenCV" ON)
+#	add_definitions(-DWITH_OPENCV)
+#	# OpenCV is not a catkin pkg
+#	find_package(OpenCV REQUIRED)
+#	if(OpenCV_VERSION VERSION_LESS "3.0")
+#		MESSAGE(STATUS "+++ OpenCV Version less then 3.0")
+#	else()
+#		MESSAGE(STATUS "+++ OpenCV Version greater 3.0")
+#	endif()
+#else (PYLON_CAMERA_WITH_RECTIFICATION OR PYLON_CAMERA_WITH_SEQUENCER)
+#	MESSAGE(STATUS "--- -> Building WITHOUT OpenCV support")
+#	option(WITH_OPENCV "Using OpenCV" OFF)
+#endif (PYLON_CAMERA_WITH_RECTIFICATION OR PYLON_CAMERA_WITH_SEQUENCER)

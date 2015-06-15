@@ -1,71 +1,100 @@
-#include "pylon_camera/PylonCameraInterface.h"
+/*
+ * main.cpp
+ *
+ * main function of the pylon_node
+ *
+ *  Created on: May 10, 2015
+ *      Author: md
+ */
 
 #include <ros/ros.h>
-#include <iostream>
+#include <pylon_camera/pylon_camera_node.h>
+#include <pylon_camera/pylon_camera_parameter.h>
 
-using namespace std;
-/**
+#ifdef WITH_OPENCV
+	#include <pylon_camera/pylon_camera_opencv_node.h>
+#endif
 
-ExposureAuto_Once
-
-AutoExposureTimeAbsLowerLimit
-*/
-
-
-
+using namespace pylon_camera;
 
 int main(int argc, char **argv) {
 
-    ros::init(argc, argv, "pylon_node");
-    ros::NodeHandle n("~");
-    std::string  camera_identifier, camera_frame;
+	ros::init(argc, argv, "pylon_camera_node");
 
-    std::string check_frame;
-    int exposure_mu_s;
+#ifdef WITH_OPENCV
+	ROS_INFO("PylonCameraNode running WITH OpenCV");
+	PylonCameraOpenCVNode pylon_camera_node;
+#else
+	ROS_INFO("PylonCameraNode running WITHOUT OpenCV");
+	PylonCameraNode pylon_camera_node;
+#endif
 
-    PylonCameraInterface pylon_cam;
+	pylon_camera_node.nh_ = ros::NodeHandle("~");
 
-    int camID;
+	pylon_camera_node.setInitialCameraParameter();
+	pylon_camera_node.createPylonInterface();
+	if(pylon_camera_node.init()){
+		ROS_ERROR("Error while initializing the pylon node!");
+	}
+	pylon_camera_node.setRuntimeCameraParameter();
 
-    pylon_cam.nh.param<std::string>("camera_identifier", camera_identifier,"x");
+	ros::Rate r(pylon_camera_node.params_.desired_frame_rate_);
 
-    n.param<std::string>("camera_frame", camera_frame, "");
-    n.param<std::string>("check_frame", check_frame, "insertion_y_visual");
-    n.param<int>("pylon_exposure_mu_s", exposure_mu_s, 2000);
-    n.param<int>("intrinsic_cam_id", camID, -1); // 22
-    n.param<bool>("write_exp_to_db", pylon_cam.write_exp_to_db, false); 
+	if (pylon_camera_node.params_.use_trigger_service_) {
+		ROS_INFO("Start image grabbing in service trigger mode with framerate: %.2f Hz", pylon_camera_node.params_.desired_frame_rate_);
+	} else {
+		ROS_INFO("Start image grabbing if node connects to topic with framerate: %.2f Hz", pylon_camera_node.params_.desired_frame_rate_);
+	}
 
-    n.param<std::string>("intrinsic_param_file_path",pylon_cam.intrinsic_file_path,"NOT_A_VALID_PATH");
-//    n.param<std::string>("intrinsic_param_file_path",pylon_cam.intrincdssic_file_path,"xxxxxx/home/md/catkin_ws/src/pylon_camera/calib/cam15_f6mm_2014-12-18.yml");
+	int params_update_counter = 0;
 
-    ROS_INFO("Opening camera on frame %s with id %i and exposure %i", camera_frame.c_str(), camID, exposure_mu_s);
+	while (ros::ok()) {
+		if(pylon_camera_node.getNumSubscribers() > 0){
+			// Update all possible runtime parameter (exposure, brightness, etc) every param_update_frequency_ cycles
+			params_update_counter++;
+			if (params_update_counter % pylon_camera_node.params_.param_update_frequency_ == 0) {
+				ROS_INFO("Updating runtime parameter (update frequency is %d cycles)", pylon_camera_node.params_.param_update_frequency_);
+				pylon_camera_node.setRuntimeCameraParameter();
+				params_update_counter = 0;
+				if (pylon_camera_node.params_.use_brightness_) {
+					if (pylon_camera_node.pylon_interface_->last_brightness_val() != pylon_camera_node.params_.brightness_) {
+						if (pylon_camera_node.pylon_interface_->setBrightness(pylon_camera_node.params_.brightness_)) {
+							ROS_ERROR("Error while updating brightness!");
+						}
+						pylon_camera_node.params_.brightness_ = pylon_camera_node.pylon_interface_->last_brightness_val();
+						pylon_camera_node.nh_.setParam("brightness", pylon_camera_node.params_.brightness_);
+					}
+				} else {
+					if (pylon_camera_node.pylon_interface_->last_exposure_val() != pylon_camera_node.params_.exposure_) {
+						if (pylon_camera_node.pylon_interface_->setExposure(pylon_camera_node.params_.exposure_)) {
+							ROS_ERROR("Error while updating exposure!");
+						}
+						pylon_camera_node.params_.exposure_ = pylon_camera_node.pylon_interface_->last_exposure_val();
+						pylon_camera_node.nh_.setParam("exposure", pylon_camera_node.params_.exposure_);
+					}
+				}
+			}
+			pylon_camera_node.grabbingCallback();
 
-    if (!pylon_cam.openCamera(camera_identifier, camera_frame, camID, exposure_mu_s)){
-        return 42;
-    }
+#ifdef WITH_OPENCV
+			if(pylon_camera_node.getNumSubscribersRaw() > 0) {
+				// Publish via image_transport
+				pylon_camera_node.img_raw_pub_->publish(pylon_camera_node.img_raw_msg_, pylon_camera_node.cam_info_msg_);
+			}
+			if(pylon_camera_node.getNumSubscribersRect() > 0) {
+				// Publish via normal publisher
+				pylon_camera_node.img_rect_pub_->publish(pylon_camera_node.cv_img_rect_);
+			}
+			if(pylon_camera_node.params_.use_sequencer_ && pylon_camera_node.getNumSubscribersSeq() > 0){
+				pylon_camera_node.img_seq_pub_->publish(pylon_camera_node.cv_img_seq_);
+			}
+#else
+			pylon_camera_node.img_raw_pub_.publish(pylon_camera_node.img_raw_msg_, pylon_camera_node.cam_info_msg_);
+#endif
 
-    int max_frame_rate = 30;
-    ros::Rate r(max_frame_rate);
-
-    while(ros::ok()){
-        pylon_cam.sendNextImage();
-        ros::spinOnce();
-
-        // ROS_INFO("SLEEP");
-        /// print warning if given camera frame is not in the tf-tree
-        //    if ( ! listener.canTransform(camera_frame,check_frame,ros::Time::now()-ros::Duration(0.5)) ) {
-        //        ROS_INFO("No trafo between %s and %s, is static_publisher running?",camera_frame.c_str(),check_frame.c_str());
-        //    }
-
-        /// does not work since listener does not forget frames...
-        //         if ((listener.allFramesAsString().find(camera_frame) == std::string::npos)){
-
-        r.sleep();
-    }
-
-    // pylon interface is closed in its own deconstructor
-    return 0;
+		}
+		ros::spinOnce();
+		r.sleep();
+	}
+	return 0;
 }
-
-
-
