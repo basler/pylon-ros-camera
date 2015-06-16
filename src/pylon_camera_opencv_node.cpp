@@ -10,12 +10,12 @@
 namespace pylon_camera {
 
 PylonCameraOpenCVNode::PylonCameraOpenCVNode() :
-		calib_loader_(NULL), img_rectifier_(), cv_img_rect_(), img_rect_pub_(NULL), cv_img_seq_(), img_seq_pub_(NULL) {
+		calib_loader_(NULL), img_rectifier_(), cv_img_rect_(), cv_img_seq_(), exp_times_(), img_rect_pub_(NULL), exp_times_pub_(NULL), img_seq_pub_(NULL) {
 }
 void PylonCameraOpenCVNode::setInitialCameraParameter() {
 	PylonCameraNode::setInitialCameraParameter();
 
-	nh_.param<bool>("use_hdr", params_.use_sequencer_, false);
+	nh_.param<bool>("use_sequencer", params_.use_sequencer_, false);
 
 	nh_.param<std::string>("intrinsic_yaml_string", params_.intrinsic_yaml_file_, "INVALID_YAML_FILE");
 
@@ -52,9 +52,11 @@ int PylonCameraOpenCVNode::init() {
 
 	img_rect_pub_ = new ros::Publisher(nh_.advertise<sensor_msgs::Image>("image_rect", 10));
 	img_seq_pub_ = new ros::Publisher(nh_.advertise<sensor_msgs::Image>("image_seq", 10));
+	exp_times_pub_ = new ros::Publisher(nh_.advertise<pylon_camera_msgs::SequenceExposureTimes>("seq_exp_times", 10));
 
 	cv_img_rect_.header = img_raw_msg_.header;
 	cv_img_seq_.header = img_raw_msg_.header;
+	exp_times_.header = img_raw_msg_.header;
 	// Encoding of pixels -- channel meaning, ordering, size
 	// taken from the list of strings in include/sensor_msgs/image_encodings.h
 	cv_img_rect_.encoding = pylon_interface_->img_encoding();
@@ -74,6 +76,12 @@ int PylonCameraOpenCVNode::init() {
 
 	setupCameraInfoMsg();
 	img_rectifier_.setupRectifyingMap(calib_loader_->K_, calib_loader_->D_, pylon_interface_->img_cols(), pylon_interface_->img_rows());
+
+	exp_times_.exp_times.data.clear();
+	exp_times_.exp_times.data.push_back(5000);
+	exp_times_.exp_times.data.push_back(10000);
+	exp_times_.exp_times.data.push_back(50000);
+
 
 	return 0;
 }
@@ -108,34 +116,43 @@ void PylonCameraOpenCVNode::setupCameraInfoMsg() {
 //	cam_info_msg_.roi =
 }
 
-const uint8_t* PylonCameraOpenCVNode::grabbingCallback() {
+bool PylonCameraOpenCVNode::grabbingCallback() {
 
-	if(params_.use_sequencer_){
-//		const uint8_t* img(pylon_interface_->grab(params_));
-//		if (img == NULL) {
-//			if (pylon_interface_->is_cam_removed()) {
-//				ROS_ERROR("Pylon Camera has been removed!");
-//				ros::shutdown();
-//			} else {
-//				ROS_ERROR("Pylon Interface returned NULL-Pointer!");
-//			}
-//			return NULL;
-//		}
-//		img_raw_msg_.data = std::vector<uint8_t>(img, img + img_size_byte_);
-//		img_raw_msg_.header.stamp = ros::Time::now();
-//		cam_info_msg_.header.stamp = img_raw_msg_.header.stamp;
-//
-//		cv_img_seq_.header =  img_raw_msg_.header;
-////		cv::Mat seq_1,seq_2,seq_3;
-////		cv::Mat out;
-////		cv::Mat in[] = {seq_1, seq_2, seq_3};
-////		cv::merge(in, 3, out);
-//
-//		cv::Mat in[] = {pylon_interface_->img_sequence_.at(0), pylon_interface_->img_sequence_.at(1), pylon_interface_->img_sequence_.at(2)};
-//		cv::merge(in, 3, cv_img_seq_.image);
-//
-//		return img;
-		return NULL;
+	if (params_.use_sequencer_) {
+		std::vector<cv::Mat> img_sequence;
+		img_sequence.clear();
+		for (int i = 0; i < 3; ++i) {
+			cv::Mat img(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1);
+			const uint8_t* img_ptr(pylon_interface_->grab(params_));
+			if (img_ptr == NULL) {
+				if (pylon_interface_->is_cam_removed()) {
+					ROS_ERROR("Pylon Camera has been removed!");
+					ros::shutdown();
+				} else {
+					ROS_ERROR("Pylon Interface returned NULL-Pointer!");
+				}
+				return NULL;
+			}
+			memcpy(img.ptr(), img_ptr, img_size_byte_);
+			img_sequence.push_back(img);
+			if(i == 1){
+				img_raw_msg_.data = std::vector<uint8_t>(img_ptr, img_ptr + img_size_byte_);
+			}
+		}
+
+		img_raw_msg_.header.stamp = ros::Time::now();
+		cam_info_msg_.header.stamp = img_raw_msg_.header.stamp;
+		cv_img_seq_.header.stamp = img_raw_msg_.header.stamp;
+		exp_times_.header.stamp = img_raw_msg_.header.stamp;
+
+		cv::Mat img_seq_bgr;
+		cv::Mat in[] = {img_sequence.at(0), img_sequence.at(1), img_sequence.at(2)};
+		cv::merge(in, 3, img_seq_bgr);
+
+		cv_img_seq_.image = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1);
+		img_rectifier_.rectify(img_seq_bgr, cv_img_seq_.image);
+
+		return true;
 	} else {
 		const uint8_t* img_raw_ptr = PylonCameraNode::grabbingCallback();
 
@@ -151,8 +168,9 @@ const uint8_t* PylonCameraOpenCVNode::grabbingCallback() {
 
 		cv_img_rect_.image = img_rect;
 
-		return img_raw_ptr;
+		return true;
 	}
+	return false;
 }
 PylonCameraOpenCVNode::~PylonCameraOpenCVNode() {
 	delete img_rect_pub_;

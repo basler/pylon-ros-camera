@@ -12,7 +12,7 @@
 #include <pylon_camera/pylon_camera_parameter.h>
 
 #ifdef WITH_OPENCV
-	#include <pylon_camera/pylon_camera_opencv_node.h>
+#include <pylon_camera/pylon_camera_opencv_node.h>
 #endif
 
 using namespace pylon_camera;
@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 
 	pylon_camera_node.setInitialCameraParameter();
 	pylon_camera_node.createPylonInterface();
-	if(pylon_camera_node.init()){
+	if (pylon_camera_node.init()) {
 		ROS_ERROR("Error while initializing the pylon node!");
 	}
 	pylon_camera_node.setRuntimeCameraParameter();
@@ -49,10 +49,10 @@ int main(int argc, char **argv) {
 	int params_update_counter = 0;
 
 	while (ros::ok()) {
-		if(pylon_camera_node.getNumSubscribers() > 0){
+		if (pylon_camera_node.getNumSubscribers() > 0) {
 			// Update all possible runtime parameter (exposure, brightness, etc) every param_update_frequency_ cycles
 			params_update_counter++;
-			if (params_update_counter % pylon_camera_node.params_.param_update_frequency_ == 0) {
+			if ((params_update_counter % pylon_camera_node.params_.param_update_frequency_ == 0) && !pylon_camera_node.params_.use_sequencer_) {
 				ROS_INFO("Updating runtime parameter (update frequency is %d cycles)", pylon_camera_node.params_.param_update_frequency_);
 				pylon_camera_node.setRuntimeCameraParameter();
 				params_update_counter = 0;
@@ -77,21 +77,24 @@ int main(int argc, char **argv) {
 			pylon_camera_node.grabbingCallback();
 
 #ifdef WITH_OPENCV
-			if(pylon_camera_node.getNumSubscribersRaw() > 0) {
-				// Publish via image_transport
-				pylon_camera_node.img_raw_pub_->publish(pylon_camera_node.img_raw_msg_, pylon_camera_node.cam_info_msg_);
-			}
-			if(pylon_camera_node.getNumSubscribersRect() > 0) {
-				// Publish via normal publisher
-				pylon_camera_node.img_rect_pub_->publish(pylon_camera_node.cv_img_rect_);
-			}
-			if(pylon_camera_node.params_.use_sequencer_ && pylon_camera_node.getNumSubscribersSeq() > 0){
-				pylon_camera_node.img_seq_pub_->publish(pylon_camera_node.cv_img_seq_);
+			if(pylon_camera_node.params_.use_sequencer_) {
+				if(pylon_camera_node.getNumSubscribersSeq() > 0) {
+					pylon_camera_node.img_seq_pub_->publish(pylon_camera_node.cv_img_seq_);
+					pylon_camera_node.exp_times_pub_->publish(pylon_camera_node.exp_times_);
+				}
+			} else {
+				if(pylon_camera_node.getNumSubscribersRaw() > 0) {
+					// Publish via image_transport
+					pylon_camera_node.img_raw_pub_->publish(pylon_camera_node.img_raw_msg_, pylon_camera_node.cam_info_msg_);
+				}
+				if(pylon_camera_node.getNumSubscribersRect() > 0) {
+					// Publish via normal publisher
+					pylon_camera_node.img_rect_pub_->publish(pylon_camera_node.cv_img_rect_);
+				}
 			}
 #else
 			pylon_camera_node.img_raw_pub_.publish(pylon_camera_node.img_raw_msg_, pylon_camera_node.cam_info_msg_);
 #endif
-
 		}
 		ros::spinOnce();
 		r.sleep();

@@ -13,6 +13,7 @@
 #include <pylon_camera/image_rectifier.h>
 #include <pylon_camera/pylon_sequencer_interface.h>
 #include <pylon_camera/intrinsic_calib_loader.h>
+#include <pylon_camera_msgs/SequenceExposureTimes.h>
 
 namespace pylon_camera {
 
@@ -34,12 +35,15 @@ public:
 	cv_bridge::CvImage cv_img_rect_;
 	ros::Publisher* img_rect_pub_;
 
+	pylon_camera_msgs::SequenceExposureTimes exp_times_;
+	ros::Publisher* exp_times_pub_;
+
 	cv_bridge::CvImage cv_img_seq_;
 	ros::Publisher* img_seq_pub_;
 
 	ImageRectifier img_rectifier_;
 	IntrinsicCalibLoader* calib_loader_;
-	const uint8_t* grabbingCallback();
+	bool grabbingCallback();
 
 };
 } /* namespace pylon_camera */
