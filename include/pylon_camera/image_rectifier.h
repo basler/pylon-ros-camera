@@ -12,18 +12,20 @@
 
 using namespace cv;
 
-namespace pylon_camera {
+namespace pylon_camera
+{
 
-class ImageRectifier {
+class ImageRectifier
+{
 public:
-	ImageRectifier();
-	virtual ~ImageRectifier();
+  ImageRectifier();
+  virtual ~ImageRectifier();
 
-	void setupRectifyingMap(const Mat& cam_matrix, const Mat& dist_coefficients, int img_width, int img_height);
-	void rectify(const Mat& src, Mat& dst);
+  void setupRectifyingMap(const Mat& cam_matrix, const Mat& dist_coefficients, int img_width, int img_height);
+  void rectify(const Mat& src, Mat& dst);
 
 private:
-	cv::Mat rect_map_x_, rect_map_y_;
+  cv::Mat rect_map_x_, rect_map_y_;
 };
 
 } /* namespace pylon_camera */

@@ -14,21 +14,23 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-namespace pylon_camera {
+namespace pylon_camera
+{
 
-class IntrinsicCalibLoader {
+class IntrinsicCalibLoader
+{
 public:
-	IntrinsicCalibLoader(const std::string yaml_file);
-	virtual ~IntrinsicCalibLoader();
-	bool loadCalib();
+  IntrinsicCalibLoader(const std::string yaml_file);
+  virtual ~IntrinsicCalibLoader();
+  bool loadCalib();
 
-	cv::Mat D_;
-	cv::Mat K_;
+  cv::Mat D_;
+  cv::Mat K_;
 
-	int img_cols_;
-	int img_rows_;
+  int img_cols_;
+  int img_rows_;
 
-	std::string intrinsic_yaml_file_;
+  std::string intrinsic_yaml_file_;
 };
 
 } /* namespace pylon_camera */

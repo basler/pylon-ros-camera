@@ -35,40 +35,44 @@ using std::cout;
 using std::endl;
 using namespace cv;
 
-namespace pylon_camera {
+namespace pylon_camera
+{
 
-class PylonCameraNode {
+class PylonCameraNode
+{
 public:
-	PylonCameraNode();
-	virtual ~PylonCameraNode();
-	ros::NodeHandle nh_;
+  PylonCameraNode();
+  virtual ~PylonCameraNode();
+  ros::NodeHandle nh_;
 
-	PylonInterface* pylon_interface_;
-	PylonCameraParameter params_;
+  PylonInterface* pylon_interface_;
+  PylonCameraParameter params_;
 
-	sensor_msgs::Image img_raw_msg_;
+  sensor_msgs::Image img_raw_msg_;
 
-	void setInitialCameraParameter();
-	void setRuntimeCameraParameter();
-	int init();
-	uint32_t getNumSubscribers();
-	void createPylonInterface();
-	const uint8_t* grabbingCallback();
+  void setInitialCameraParameter();
+  void setRuntimeCameraParameter();
+  int init();
+  uint32_t getNumSubscribers();
+  void createPylonInterface();
+  const uint8_t* grabbingCallback();
 
-	ros::ServiceServer set_exposure_service_;
-	ros::ServiceServer set_brightness_service_;
-	bool setExposureCallback(pylon_camera_msgs::SetExposureSrv::Request &req, pylon_camera_msgs::SetExposureSrv::Response &res);
-	bool setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req, pylon_camera_msgs::SetBrightnessSrv::Response &res);
+  ros::ServiceServer set_exposure_service_;
+  ros::ServiceServer set_brightness_service_;
+  bool setExposureCallback(pylon_camera_msgs::SetExposureSrv::Request &req,
+                           pylon_camera_msgs::SetExposureSrv::Response &res);
+  bool setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
+                             pylon_camera_msgs::SetBrightnessSrv::Response &res);
 
-	image_transport::ImageTransport* it_;
-	image_transport::CameraPublisher* img_raw_pub_;
+  image_transport::ImageTransport* it_;
+  image_transport::CameraPublisher* img_raw_pub_;
 
 //	camera_info_manager::CameraInfoManager* cam_info_manager_;
-	sensor_msgs::CameraInfo cam_info_msg_;
+  sensor_msgs::CameraInfo cam_info_msg_;
 
-	//ros::ServiceServer img_grabbing_server_;
+  //ros::ServiceServer img_grabbing_server_;
 
-	int img_size_byte_;
+  int img_size_byte_;
 private:
 //	bool imgGrabbingTriggerCallback();
 };

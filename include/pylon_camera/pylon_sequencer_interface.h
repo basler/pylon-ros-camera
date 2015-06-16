@@ -10,18 +10,20 @@
 
 #include <pylon_camera/pylon_interface.h>
 
-namespace pylon_camera {
+namespace pylon_camera
+{
 
-class PylonSequencerInterface: public PylonInterface {
+class PylonSequencerInterface : public PylonInterface
+{
 public:
-	PylonSequencerInterface();
-	virtual ~PylonSequencerInterface();
+  PylonSequencerInterface();
+  virtual ~PylonSequencerInterface();
 
-	int initialize(const PylonCameraParameter &params);
+  int initialize(const PylonCameraParameter &params);
 
-	virtual int initSequencer(const PylonCameraParameter &params);
+  virtual int initSequencer(const PylonCameraParameter &params);
 
-	std::vector<cv::Mat> img_sequence_;
+  std::vector<cv::Mat> img_sequence_;
 };
 
 } /* namespace pylon_camera */

@@ -15,35 +15,37 @@
 #include <pylon_camera/intrinsic_calib_loader.h>
 #include <pylon_camera_msgs/SequenceExposureTimes.h>
 
-namespace pylon_camera {
+namespace pylon_camera
+{
 
-class PylonCameraOpenCVNode: public PylonCameraNode {
+class PylonCameraOpenCVNode : public PylonCameraNode
+{
 public:
-	PylonCameraOpenCVNode();
-	virtual ~PylonCameraOpenCVNode();
+  PylonCameraOpenCVNode();
+  virtual ~PylonCameraOpenCVNode();
 
-	void setInitialCameraParameter();
-	void createPylonInterface();
-	int init();
+  void setInitialCameraParameter();
+  void createPylonInterface();
+  int init();
 
-	void setupCameraInfoMsg();
-	uint32_t getNumSubscribers();
-	uint32_t getNumSubscribersRaw();
-	uint32_t getNumSubscribersRect();
-	uint32_t getNumSubscribersSeq();
+  void setupCameraInfoMsg();
+  uint32_t getNumSubscribers();
+  uint32_t getNumSubscribersRaw();
+  uint32_t getNumSubscribersRect();
+  uint32_t getNumSubscribersSeq();
 
-	cv_bridge::CvImage cv_img_rect_;
-	ros::Publisher* img_rect_pub_;
+  cv_bridge::CvImage cv_img_rect_;
+  ros::Publisher* img_rect_pub_;
 
-	pylon_camera_msgs::SequenceExposureTimes exp_times_;
-	ros::Publisher* exp_times_pub_;
+  pylon_camera_msgs::SequenceExposureTimes exp_times_;
+  ros::Publisher* exp_times_pub_;
 
-	cv_bridge::CvImage cv_img_seq_;
-	ros::Publisher* img_seq_pub_;
+  cv_bridge::CvImage cv_img_seq_;
+  ros::Publisher* img_seq_pub_;
 
-	ImageRectifier img_rectifier_;
-	IntrinsicCalibLoader* calib_loader_;
-	bool grabbingCallback();
+  ImageRectifier img_rectifier_;
+  IntrinsicCalibLoader* calib_loader_;
+  bool grabbingCallback();
 
 };
 } /* namespace pylon_camera */

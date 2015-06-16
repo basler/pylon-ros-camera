@@ -7,40 +7,60 @@
 
 #include <pylon_camera/pylon_sequencer_interface.h>
 
-namespace pylon_camera {
+namespace pylon_camera
+{
 
-PylonSequencerInterface::PylonSequencerInterface() : img_sequence_() {
-	// TODO Auto-generated constructor stub
+PylonSequencerInterface::PylonSequencerInterface() :
+        img_sequence_()
+{
+  // TODO Auto-generated constructor stub
 }
-PylonSequencerInterface::~PylonSequencerInterface() {
-	// TODO Auto-generated destructor stub
+PylonSequencerInterface::~PylonSequencerInterface()
+{
+  // TODO Auto-generated destructor stub
 }
-int PylonSequencerInterface::initialize(const PylonCameraParameter &params) {
-	if(PylonInterface::initialize(params)){
-		cerr << "Error while initializing the base Pylon Interface" << endl;
-	}
+int PylonSequencerInterface::initialize(const PylonCameraParameter &params)
+{
+  if (PylonInterface::initialize(params))
+  {
+    cerr << "Error while initializing the base Pylon Interface" << endl;
+  }
 
-	int exit_code = 0;
+  int exit_code = 0;
 
-	return exit_code;
+  return exit_code;
 }
-int PylonSequencerInterface::initSequencer(const PylonCameraParameter &params){
-	switch (cam_type_) {
-	case GIGE:
-		try {
-			 if ( GenApi::IsWritable(gige_cam_->SequenceEnable))
-					    {
+int PylonSequencerInterface::initSequencer(const PylonCameraParameter &params)
+{
+  switch (cam_type_)
+  {
+    case GIGE:
+      try
+      {
+        if (GenApi::IsWritable(gige_cam_->SequenceEnable))
+        {
 
-					    }
-		} catch (GenICam::GenericException &e) {
-			cerr << e.GetDescription() << endl;
-			return 1;
-		}
-		break;
-	case USB:
-		try {
+        }
+      }
+      catch (GenICam::GenericException &e)
+      {
+        cerr << e.GetDescription() << endl;
+        return 1;
+      }
+      break;
+    case USB:
+      try
+      {
 
-			// Disable the sequencer feature
+        GenApi::INodeMap& nodemap = usb_cam_->GetNodeMap();
+        GenApi::CEnumEntryPtr SequencerMode(nodemap.GetNode("SequencerMode"));
+        SequencerMode->FromString("Off");
+        GenApi::CEnumEntryPtr SequencerConfigurationMode(nodemap.GetNode("SequencerConfigurationMode"));
+        SequencerConfigurationMode->FromString("ON");
+        GenApi::CEnumEntryPtr SequencerSetStart(nodemap.GetNode("SequencerSetStart"));
+
+//			usb_cam_->SequencerConfigurationMode.SetValue(SequencerConfigurationMode_On);
+//			 Disable the sequencer feature
 //			usb_cam_->SequencerMode.SetValue(SequencerMode_Off);
 //			// Enable the sequencer configuration mode
 //			usb_cam_->SequencerConfigurationMode.SetValue(SequencerConfigurationMode_On);
@@ -67,7 +87,6 @@ int PylonSequencerInterface::initSequencer(const PylonCameraParameter &params){
 //			// Save the camera parameter values and the sequencer set-related parameter values
 //			// for the selected sequencer set
 //			usb_cam_->SequencerSetSave.Execute( );
-
 
 //			gige_cam_->
 //		    if ( GenApi::IsWritable(usb_cam_->Seq)){
@@ -120,26 +139,30 @@ int PylonSequencerInterface::initSequencer(const PylonCameraParameter &params){
 //		    } else {
 //		    	cerr << "Sequencer function not available for this cam!" << endl;
 //		    }
-		} catch (GenICam::GenericException &e) {
-			cerr << e.GetDescription() << endl;
-			return 1;
-		}
-		break;
-	case DART:
-		try {
+      }
+      catch (GenICam::GenericException &e)
+      {
+        cerr << e.GetDescription() << endl;
+        return 1;
+      }
+      break;
+    case DART:
+      try
+      {
 
+      }
+      catch (GenICam::GenericException &e)
+      {
+        cerr << e.GetDescription() << endl;
+        return 1;
+      }
+      break;
+    default:
+      cerr << "Unknown Camera Type" << endl;
+      break;
+  }
 
-		} catch (GenICam::GenericException &e) {
-			cerr << e.GetDescription() << endl;
-			return 1;
-		}
-		break;
-	default:
-		cerr << "Unknown Camera Type" << endl;
-		break;
-	}
-
-	return 0;
+  return 0;
 
 }
 } /* namespace pylon_camera */
