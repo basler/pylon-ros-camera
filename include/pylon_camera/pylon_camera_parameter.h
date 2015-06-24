@@ -17,20 +17,20 @@ namespace pylon_camera
 class PylonCameraParameter
 {
 public:
-  PylonCameraParameter();
-  virtual ~PylonCameraParameter();
+    PylonCameraParameter();
+    virtual ~PylonCameraParameter();
 
-  std::string magazino_cam_id_;
-  std::string camera_frame_;
-  double desired_frame_rate_;
-  double target_exposure_;
-  bool use_sequencer_;
-  int param_update_frequency_;
-  double exposure_;
-  bool use_brightness_;
-  int brightness_;
-  bool use_trigger_service_;
-  std::string intrinsic_yaml_file_;
+    std::string magazino_cam_id_;
+    std::string camera_frame_;
+    double desired_frame_rate_;
+    double target_exposure_;
+    bool use_sequencer_;
+    int param_update_frequency_;
+    double exposure_;
+    bool use_brightness_;
+    int brightness_;
+    bool use_trigger_service_;
+    std::string intrinsic_yaml_file_;
 };
 
 } /* namespace pylon_camera */

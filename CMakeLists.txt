@@ -64,7 +64,7 @@ else (WITH_OPENCV)
 	)
 endif (WITH_OPENCV)
 
-add_executable(write_magazino_id_to_camera magazinoID_2_cam/write_magazino_id_to_camera.cpp)
+add_executable(write_magazino_id_to_camera magazino_id_2_cam/write_magazino_id_to_camera.cpp)
 target_link_libraries(write_magazino_id_to_camera 
 					  GenApi_gcc40_v2_3
 					  GCBase_gcc40_v2_3
