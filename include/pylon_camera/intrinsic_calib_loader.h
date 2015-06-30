@@ -20,17 +20,25 @@ namespace pylon_camera
 class IntrinsicCalibLoader
 {
 public:
-    IntrinsicCalibLoader(const std::string yaml_file);
+    IntrinsicCalibLoader();
     virtual ~IntrinsicCalibLoader();
+    bool init(const std::string yaml_file);
     bool loadCalib();
+
+    cv::Mat D();
+    cv::Mat K();
+    int img_rows();
+    int img_cols();
+
+private:
+
+    std::string intrinsic_yaml_file_;
 
     cv::Mat D_;
     cv::Mat K_;
 
     int img_cols_;
     int img_rows_;
-
-    std::string intrinsic_yaml_file_;
 };
 
 } /* namespace pylon_camera */

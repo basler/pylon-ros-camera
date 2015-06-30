@@ -1,4 +1,13 @@
-*.user
+#############
+## folders ##
+#############
+build
+
+#############
+##  files  ##
+#############
 *.*~
-CATKIN_IGNORE
 *.*user.*
+*.user
+*.autosave
+CATKIN_IGNORE

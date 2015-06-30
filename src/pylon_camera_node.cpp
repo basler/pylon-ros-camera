@@ -12,29 +12,24 @@ namespace pylon_camera
 
 PylonCameraNode::PylonCameraNode() :
                     nh_("~"),
-                    pylon_interface_(NULL),
                     it_(NULL),
-                    img_size_byte_(-1),
-                    img_raw_pub_(NULL),
+                    pylon_interface_(NULL),
+                    params_(),
+                    set_exposure_service_(),
+                    set_brightness_service_(),
+                    img_raw_msg_(),
                     cam_info_msg_(),
-                    img_raw_msg_()
+                    img_raw_pub_()
 
 {
     it_ = new image_transport::ImageTransport(nh_);
-    img_raw_pub_ = new image_transport::CameraPublisher(it_->advertiseCamera("image_raw", 10));
-//	img_grabbing_server_ = nh_.advertiseService("img_grab_srv", &PylonCameraNode::grabbingCallback, this);
+    img_raw_pub_ = it_->advertiseCamera("image_raw", 10);
     set_exposure_service_ = nh_.advertiseService("set_exposure_srv",
                                                  &PylonCameraNode::setExposureCallback,
                                                  this);
     set_brightness_service_ = nh_.advertiseService("set_brightness_srv",
                                                    &PylonCameraNode::setBrightnessCallback,
                                                    this);
-
-}
-
-PylonCameraNode::~PylonCameraNode()
-{
-    // TODO Auto-generated destructor stub
 }
 
 // Set parameter to open the desired camera
@@ -65,7 +60,7 @@ void PylonCameraNode::getRuntimeCameraParameter()
     nh_.param<bool>("use_trigger_service", params_.use_trigger_service_, false);
     nh_.param<int>("parameter_update_frequency", params_.param_update_frequency_, 100);
 
-    nh_.param<double>("exposure", params_.exposure_, 2000.0); 	// -2: AutoExposureOnce
+    nh_.param<double>("exposure", params_.exposure_, 35000.0); 	// -2: AutoExposureOnce
     // -1: AutoExposureContinuous
     //  0: AutoExposureOff
     // > 0: Exposure in micro-seconds
@@ -82,31 +77,55 @@ void PylonCameraNode::getRuntimeCameraParameter()
 }
 uint32_t PylonCameraNode::getNumSubscribers()
 {
-    return img_raw_pub_->getNumSubscribers();
+    return img_raw_pub_.getNumSubscribers();
 }
+
+// Using OpenCV -> creates PylonOpenCVNode (with sequencer and rectification), else: only image_raw
 void PylonCameraNode::createPylonInterface()
 {
     pylon_interface_ = new PylonInterface();
     ROS_INFO("Created PylonInterface");
 }
-int PylonCameraNode::init()
+void PylonCameraNode::updateROSBirghtnessParameter()
 {
-//    setInitialCameraParameter();
+    params_.brightness_ = pylon_interface_->last_brightness_val();
+    nh_.setParam("brightness", params_.brightness_);
+}
+bool PylonCameraNode::init(){
+    if (!initAndRegister())
+    {
+        return false;
+    }
 
-//    createPylonInterface();
-
+    if (!startGrabbing())
+    {
+        return false;
+    }
+    return true;
+}
+bool PylonCameraNode::initAndRegister()
+{
     if (pylon_interface_->initialize(params_) != 0)
     {
         ROS_ERROR("Error while initializing the Pylon Interface");
-        ros::shutdown();
-        return 1;
+        return false;
     }
-    if (pylon_interface_->setupCameraConfiguration(params_) != 0)
+
+    if (!pylon_interface_->registerCameraConfiguration(params_))
     {
-        ROS_ERROR("Error while setup the image aquisation config");
-        ros::shutdown();
-        return 2;
+        ROS_ERROR("Error while registering the camera configuration");
+        return false;
     }
+    return true;
+}
+
+bool PylonCameraNode::startGrabbing(){
+    if (!pylon_interface_->startGrabbing(params_))
+    {
+        ROS_ERROR("Error while start grabbing");
+        return false;
+    }
+
     // Framrate Settings
     if (pylon_interface_->max_possible_framerate() < params_.desired_frame_rate_)
     {
@@ -141,9 +160,9 @@ int PylonCameraNode::init()
     // step = full row length in bytes
     img_raw_msg_.step = img_raw_msg_.width * pylon_interface_->img_pixel_depth();
     // img_raw_msg_.data // actual matrix data, size is (step * rows)
-    img_size_byte_ = img_raw_msg_.step * img_raw_msg_.height;
+    pylon_interface_->set_image_size(img_raw_msg_.step * img_raw_msg_.height);
 
-    return 0;
+    return true;
 }
 void PylonCameraNode::updateAquisitionSettings()
 {
@@ -167,8 +186,7 @@ void PylonCameraNode::updateAquisitionSettings()
                 {
                     ROS_ERROR("Error while updating brightness!");
                 }
-                params_.brightness_ = pylon_interface_->last_brightness_val();
-                nh_.setParam("brightness", params_.brightness_);
+
             }
         }
         else
@@ -186,10 +204,9 @@ void PylonCameraNode::updateAquisitionSettings()
         }
     }
 }
-const uint8_t* PylonCameraNode::grabbingCallback()
+bool PylonCameraNode::grabImage()
 {
-    const uint8_t* img(pylon_interface_->grab(params_));
-    if (img == NULL)
+    if (!pylon_interface_->grab(params_, img_raw_msg_.data ))
     {
         if (pylon_interface_->is_cam_removed())
         {
@@ -198,17 +215,16 @@ const uint8_t* PylonCameraNode::grabbingCallback()
         }
         else
         {
-            ROS_ERROR("Pylon Interface returned NULL-Pointer!");
+            ROS_ERROR("Pylon Interface returned invalid image!");
         }
-        return NULL;
+        return false;
     }
-    img_raw_msg_.data = std::vector<uint8_t>(img, img + img_size_byte_);
     img_raw_msg_.header.stamp = ros::Time::now();
     cam_info_msg_.header.stamp = img_raw_msg_.header.stamp;
-    return img;
+    return true;
 }
 bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Request &req,
-                pylon_camera_msgs::SetExposureSrv::Response &res)
+    pylon_camera_msgs::SetExposureSrv::Response &res)
 {
     if (pylon_interface_->setExposure(req.target_exposure))
     {
@@ -223,7 +239,7 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
     return res.success;
 }
 bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
-                pylon_camera_msgs::SetBrightnessSrv::Response &res)
+    pylon_camera_msgs::SetBrightnessSrv::Response &res)
 {
     if (pylon_interface_->setBrightness(req.target_brightness))
     {
@@ -232,12 +248,16 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
     else
     {
         res.success = true;
-        params_.brightness_ = pylon_interface_->last_brightness_val();
-        nh_.setParam("brightness", params_.brightness_);
+//        params_.brightness_ = pylon_interface_->last_brightness_val();
+//        nh_.setParam("brightness", params_.brightness_);
     }
     return res.success;
 }
-int PylonCameraNode::terminate(){
-    return this->pylon_interface_->terminate(params_);
+PylonCameraNode::~PylonCameraNode()
+{
+    delete it_;
+    it_ = NULL;
+    delete pylon_interface_;
+    pylon_interface_ = NULL;
 }
 } /* namespace pylon_camera */

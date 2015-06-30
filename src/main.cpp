@@ -13,7 +13,6 @@
     #include <pylon_camera/pylon_camera_opencv_node.h>
 #else
     #include <pylon_camera/pylon_camera_node.h>
-//    #include <pylon_camera/pylon_camera_parameter.h>
 #endif
 
 using namespace pylon_camera;
@@ -39,9 +38,10 @@ int main(int argc, char **argv)
     // Parameter: Sequencer or not
     pylon_camera_node.createPylonInterface();
 
-    if (pylon_camera_node.init())
+    if (!pylon_camera_node.init())
     {
         ROS_ERROR("Error while initializing the pylon node!");
+        ros::shutdown();
     }
     pylon_camera_node.getRuntimeCameraParameter();
 
@@ -60,26 +60,44 @@ int main(int argc, char **argv)
 
     int params_update_counter = 0;
 
+    namedWindow("view", CV_WINDOW_KEEPRATIO);
+    startWindowThread();
+
     while (ros::ok())
     {
         if (pylon_camera_node.getNumSubscribers() > 0)
         {
-            // Update all possible runtime parameter (exposure, brightness, etc) every param_update_frequency_ cycles
-            params_update_counter++;
+            if(pylon_camera_node.pylon_interface_->exposure_search_running_){
+                if(pylon_camera_node.pylon_interface_->setExtendedBrightness(pylon_camera_node.params_.brightness_)){
+                    pylon_camera_node.updateROSBirghtnessParameter();
+                }
 
-            if (params_update_counter % pylon_camera_node.params_.param_update_frequency_ == 0){
-                pylon_camera_node.updateAquisitionSettings();
-                params_update_counter = 0;
+            } else {
+                // Update all possible runtime parameter (exposure, brightness, etc) every param_update_frequency_ cycles
+                params_update_counter++;
+
+                if (params_update_counter % pylon_camera_node.params_.param_update_frequency_ == 0){
+                    pylon_camera_node.updateAquisitionSettings();
+                    params_update_counter = 0;
+                }
             }
-            pylon_camera_node.grabbingCallback();
+#ifdef WITH_OPENCV
+            if (pylon_camera_node.params_.use_sequencer_){
+                pylon_camera_node.grabSequence();
+            }else{
+                pylon_camera_node.grabImage();
+            }
+#else
+            pylon_camera_node.grabImage();
+#endif
 
 #ifdef WITH_OPENCV
             if (pylon_camera_node.params_.use_sequencer_)
             {
                 if (pylon_camera_node.getNumSubscribersSeq() > 0)
                 {
-                    pylon_camera_node.img_seq_pub_->publish(pylon_camera_node.cv_img_seq_);
-                    pylon_camera_node.exp_times_pub_->publish(pylon_camera_node.exp_times_);
+                    pylon_camera_node.img_seq_pub_.publish(pylon_camera_node.cv_img_seq_);
+                    pylon_camera_node.exp_times_pub_.publish(pylon_camera_node.exp_times_);
                 }
             }
             else
@@ -87,24 +105,24 @@ int main(int argc, char **argv)
                 if (pylon_camera_node.getNumSubscribersRaw() > 0)
                 {
                     // Publish via image_transport
-                    pylon_camera_node.img_raw_pub_->publish(pylon_camera_node.img_raw_msg_,
+                    pylon_camera_node.img_raw_pub_.publish(pylon_camera_node.img_raw_msg_,
                                                             pylon_camera_node.cam_info_msg_);
                 }
                 if (pylon_camera_node.getNumSubscribersRect() > 0)
                 {
                     // Publish via normal publisher
-                    pylon_camera_node.img_rect_pub_->publish(pylon_camera_node.cv_img_rect_);
+                    pylon_camera_node.img_rect_pub_.publish(pylon_camera_node.cv_img_rect_);
                 }
             }
 #else
-            pylon_camera_node.img_raw_pub_->publish(pylon_camera_node.img_raw_msg_, pylon_camera_node.cam_info_msg_);
+            pylon_camera_node.img_raw_pub_.publish(pylon_camera_node.img_raw_msg_, pylon_camera_node.cam_info_msg_);
 #endif
         }
         ros::spinOnce();
         r.sleep();
     }
 
-    pylon_camera_node.terminate();
+    destroyWindow("view");
 
     return 0;
 }
