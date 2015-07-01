@@ -64,9 +64,9 @@ int main(int argc, char **argv)
     {
         if (pylon_camera_node.getNumSubscribers() > 0)
         {
-            if (pylon_camera_node.pylon_interface_->exposure_search_running_)
+            if (pylon_camera_node.pylon_interface_.exposure_search_running_)
             {
-                if (pylon_camera_node.pylon_interface_->setExtendedBrightness(pylon_camera_node.params_.brightness_))
+                if (pylon_camera_node.pylon_interface_.setExtendedBrightness(pylon_camera_node.params_.brightness_))
                 {
                     pylon_camera_node.updateROSBirghtnessParameter();
                 }

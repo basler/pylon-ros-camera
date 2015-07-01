@@ -27,35 +27,38 @@ PylonInterface::PylonInterface() :
                     last_brightness_val_(-1),
                     is_cam_removed_(false),
                     auto_init_term_(),
-                    c_instant_cam_(NULL),
+                    ptr_grab_result_(),
                     exposure_search_running_(false),
+                    exp_search_params_(),
                     usb_img_pixel_depth_(Basler_UsbCameraParams::PixelSize_Bpp8),
                     gige_img_pixel_depth_(Basler_GigECameraParams::PixelSize_Bpp8),
                     usb_img_encoding_(Basler_UsbCameraParams::PixelFormat_Mono8),
                     gige_img_encoding_(Basler_GigECameraParams::PixelFormat_Mono8),
                     cam_type_(UNKNOWN)
 {
-    // TODO Auto-generated constructor stub
 }
 PylonInterface::~PylonInterface()
 {
-    // TODO Auto-generated destructor stub
+    delete gige_cam_;
+    gige_cam_ = NULL;
+    delete usb_cam_;
+    usb_cam_ = NULL;
+    delete dart_cam_;
+    dart_cam_ = NULL;
 }
-int PylonInterface::initialize(const PylonCameraParameter &params)
+bool PylonInterface::initialize(const PylonCameraParameter &params)
 {
-    int exit_code = 0;
-
     // Find the desired camera device in the list of pluged-in devices
     // Use either magazino_cam_id or the device found first
-    if (findDesiredCam(params))
+    if (!findDesiredCam(params))
     {
-        return 1;
+        return false;
     }
     if (!(cam_type_ == GIGE || cam_type_ == USB || cam_type_ == DART))
     {
-        return 2;
+        return false;
     }
-    return exit_code;
+    return true;
 }
 bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_t> &image)
 {
@@ -275,7 +278,7 @@ bool PylonInterface::startGrabbing(const PylonCameraParameter &params)
     return true;
 }
 
-int PylonInterface::findDesiredCam(const PylonCameraParameter &params)
+bool PylonInterface::findDesiredCam(const PylonCameraParameter &params)
 {
 
     if (params.magazino_cam_id_ == "x")
@@ -304,13 +307,14 @@ int PylonInterface::findDesiredCam(const PylonCameraParameter &params)
                 default:
                     break;
             }
+            return true;
 
         }
         catch (GenICam::GenericException &e)
         {
             cerr << "An exception while selecting the first pylon camera found occurred:" << endl;
             cerr << e.GetDescription() << endl;
-            return 1;
+            return false;
         }
     }
     else
@@ -363,7 +367,7 @@ int PylonInterface::findDesiredCam(const PylonCameraParameter &params)
                      << params.magazino_cam_id_.c_str()
                      << ") is wrong or has not yet been written to the camera using 'write_magazino_id_to_camera' ?!"
                      << endl;
-                return 3;
+                return false;
             }
             if (!camera_array[cam_pos].IsOpen())
             {
@@ -389,7 +393,7 @@ int PylonInterface::findDesiredCam(const PylonCameraParameter &params)
                 default:
                     break;
             }
-
+            return true;
         }
         catch (GenICam::GenericException &e)
         {
@@ -398,11 +402,10 @@ int PylonInterface::findDesiredCam(const PylonCameraParameter &params)
                  << " occurred:"
                  << endl;
             cerr << e.GetDescription() << endl;
-            return 3;
+            return false;
         }
     }
-
-    return 0;
+    return true;
 }
 PYLON_CAM_TYPE PylonInterface::detectPylonCamType(const CInstantCamera* cam)
 {

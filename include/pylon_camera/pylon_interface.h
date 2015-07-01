@@ -37,7 +37,7 @@ public:
     PylonInterface();
     virtual ~PylonInterface();
 
-    int initialize(const PylonCameraParameter &params);
+    bool initialize(const PylonCameraParameter &params);
 
     virtual int img_rows();
     virtual int img_cols();
@@ -68,17 +68,14 @@ public:
     // is initialized during the lifetime of this object.
     Pylon::PylonAutoInitTerm auto_init_term_;
 
-    CInstantCamera* c_instant_cam_; // base camera class
-
 //    virtual int updateRuntimeParameter(const PylonCameraParameter &params);
     bool exposure_search_running_;
     ExposureSearchParameter exp_search_params_;
 
-    CBaslerUsbInstantCamera* usb_cam_;
 protected:
 
     std::string pylonCamTypeToString(const PYLON_CAM_TYPE type);
-    int findDesiredCam(const PylonCameraParameter &params);
+    bool findDesiredCam(const PylonCameraParameter &params);
     PYLON_CAM_TYPE detectPylonCamType(const CInstantCamera* cam);
 
     Basler_GigECameraParams::PixelFormatEnums gige_img_encoding_;
@@ -98,6 +95,7 @@ protected:
     CGrabResultPtr ptr_grab_result_;
 
     CBaslerGigEInstantCamera* gige_cam_;
+    CBaslerUsbInstantCamera* usb_cam_;
     CBaslerUsbInstantCamera* dart_cam_;
 
     double last_exposure_val_;
