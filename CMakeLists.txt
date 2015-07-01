@@ -57,6 +57,11 @@ if (WITH_OPENCV)
 	file(GLOB_RECURSE ${PROJECT_NAME}_FILES
 	    src/*.cpp
 	)
+        # We are too lazy to list all files, so even if we dont need (and
+        # it would even fail) all files, we want to use GLOB recurse and
+        # exclude just the not used files.
+        list(REMOVE_ITEM ${PROJECT_NAME}_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/write_magazino_id_to_camera.cpp")
+            
 	MESSAGE(STATUS "FILES " ${${PROJECT_NAME}_FILES})
 	add_executable(pylon_camera_node src/pylon_camera_node.cpp ${${PROJECT_NAME}_FILES})
 else (WITH_OPENCV)
@@ -68,7 +73,7 @@ else (WITH_OPENCV)
 	)
 endif (WITH_OPENCV)
 
-add_executable(write_magazino_id_to_camera magazino_id_2_cam/write_magazino_id_to_camera.cpp)
+add_executable(write_magazino_id_to_camera src/write_magazino_id_to_camera.cpp)
 target_link_libraries(write_magazino_id_to_camera 
 					  GenApi_gcc40_v2_3
 					  GCBase_gcc40_v2_3
