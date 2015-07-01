@@ -102,6 +102,8 @@ install(TARGETS pylon_camera_node write_magazino_id_to_camera RUNTIME DESTINATIO
 
 install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
+install(DIRECTORY calib/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/calib)
 
 #############
 ## Testing ##
