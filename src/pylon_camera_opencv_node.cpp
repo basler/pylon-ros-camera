@@ -19,7 +19,6 @@ PylonCameraOpenCVNode::PylonCameraOpenCVNode() :
                     img_seq_pub_(nh_.advertise<sensor_msgs::Image>("image_seq", 10)),
                     exp_times_pub_(nh_.advertise<pylon_camera_msgs::SequenceExposureTimes>("seq_exp_times", 10))
 {
-
 }
 
 void PylonCameraOpenCVNode::getInitialCameraParameter()
@@ -34,9 +33,11 @@ void PylonCameraOpenCVNode::getInitialCameraParameter()
 
     if (params_.intrinsic_yaml_file_ == "INVALID_YAML_FILE")
     {
-        ROS_ERROR("Yaml file string needed for rectification! Param: 'intrinsic_yaml_string' has entry: %s",
-                  params_.intrinsic_yaml_file_.c_str());
-        ROS_ERROR("Alternative: Get only distorted image by compiling 'WITHOUT_OPENCV'");
+        ROS_WARN("Yaml file string needed for rectification! Param: 'pylon_camera_node/intrinsic_yaml_string' has entry: %s",
+                 params_.intrinsic_yaml_file_.c_str());
+        ROS_WARN("Alternative: Get only distorted image by compiling 'WITHOUT_OPENCV'");
+        ROS_INFO("Will only provide image_raw!");
+        params_.have_intrinsic_data_ = false;
     }
 }
 
@@ -94,8 +95,9 @@ bool PylonCameraOpenCVNode::init()
 
     if (!calib_loader_.loadCalib())
     {
+        params_.have_intrinsic_data_ = false;
         cerr << "Error reading intrinsic calibration from yaml file!" << endl;
-        return false;
+//        return false;
     }
     if (calib_loader_.img_cols() != img_raw_msg_.width || calib_loader_.img_rows()
                                                           != img_raw_msg_.height)
@@ -105,20 +107,25 @@ bool PylonCameraOpenCVNode::init()
              << ") does not match to the size of the connected camera ("
              << img_raw_msg_.width
              << ", " << img_raw_msg_.height << ")!" << endl;
-        return false;
+        params_.have_intrinsic_data_ = false;
+//        return false;
+    } else
+    {
+        params_.have_intrinsic_data_ = true;
+        setupCameraInfoMsg();
+        img_rectifier_.setupRectifyingMap(calib_loader_.K(),
+                                          calib_loader_.D(),
+                                          pylon_interface_->img_cols(),
+                                          pylon_interface_->img_rows());
     }
 
-    setupCameraInfoMsg();
-    img_rectifier_.setupRectifyingMap(calib_loader_.K(),
-                                      calib_loader_.D(),
-                                      pylon_interface_->img_cols(),
-                                      pylon_interface_->img_rows());
-
-    exp_times_.exp_times.data.clear();
-    exp_times_.exp_times.data.push_back(5000);
-    exp_times_.exp_times.data.push_back(10000);
-    exp_times_.exp_times.data.push_back(50000);
-
+    if (params_.use_sequencer_)
+    {
+        exp_times_.exp_times.data.clear();
+        exp_times_.exp_times.data.push_back(5000);
+        exp_times_.exp_times.data.push_back(10000);
+        exp_times_.exp_times.data.push_back(50000);
+    }
     return true;
 }
 void PylonCameraOpenCVNode::setupCameraInfoMsg()
@@ -166,12 +173,8 @@ bool PylonCameraOpenCVNode::grabImage()
         return false;
     }
 
-    cv_img_rect_.header = img_raw_msg_.header;
-
-    cv::Mat img_raw = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(),
-    CV_8UC1);
+    cv::Mat img_raw = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1);
     memcpy(img_raw.ptr(), img_raw_msg_.data.data(), pylon_interface_->image_size());
-
     if (pylon_interface_->exposure_search_running_)
     {
         int c = pylon_interface_->img_cols(), r = pylon_interface_->img_rows();
@@ -179,11 +182,16 @@ bool PylonCameraOpenCVNode::grabImage()
                         .rowRange(0.25 * r, 0.75 * r)).val[0];
     }
 
-    cv::Mat img_rect = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(),
-    CV_8UC1);
+    if (params_.have_intrinsic_data_)
+    {
+        cv_img_rect_.header = img_raw_msg_.header;
 
-    img_rectifier_.rectify(img_raw, img_rect);
-    cv_img_rect_.image = img_rect;
+        cv::Mat img_rect = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(),
+        CV_8UC1);
+
+        img_rectifier_.rectify(img_raw, img_rect);
+        cv_img_rect_.image = img_rect;
+    }
 
     return true;
 }

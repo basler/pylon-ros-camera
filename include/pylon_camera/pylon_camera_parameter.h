@@ -31,6 +31,7 @@ public:
     int brightness_;
     bool use_trigger_service_;
     std::string intrinsic_yaml_file_;
+    bool have_intrinsic_data_;
 };
 
 } /* namespace pylon_camera */

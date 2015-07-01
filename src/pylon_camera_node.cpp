@@ -240,6 +240,9 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
     }
     return res.success;
 }
+bool PylonCameraNode::have_intrinsic_data(){
+    return params_.have_intrinsic_data_;
+}
 bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
     pylon_camera_msgs::SetBrightnessSrv::Response &res)
 {

@@ -91,21 +91,6 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
                 usb_cam_->RetrieveResult(usb_cam_->ExposureTime.GetMax() * 1.05,
                                          ptr_grab_result_,
                                          TimeoutHandling_ThrowException);
-
-//                if (ptr_grab_result_->GrabSucceeded())
-//                {
-//
-////                    const uint8_t *pImageBuffer = (uint8_t *)ptr_grab_result_->GetBuffer();
-////                    return pImageBuffer;
-//                    image = (uint8_t *)ptr_grab_result_->GetBuffer();
-//                    return true;
-//                }
-//                else
-//                {
-//                    cout << "Error: " << ptr_grab_result_->GetErrorCode() << " "
-//                         << ptr_grab_result_->GetErrorDescription()
-//                         << endl;
-//                }
             }
             catch (GenICam::GenericException &e)
             {
@@ -129,21 +114,6 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
                 dart_cam_->RetrieveResult(dart_cam_->ExposureTime.GetMax() * 1.05,
                                           ptr_grab_result_,
                                           TimeoutHandling_ThrowException);
-
-//                if (ptr_grab_result_->GrabSucceeded())
-//                {
-////                    const uint8_t *pImageBuffer = (uint8_t *)ptr_grab_result_->GetBuffer();
-//
-////                    return pImageBuffer;
-//                    image = (uint8_t *)ptr_grab_result_->GetBuffer();
-//                    return true;
-//                }
-//                else
-//                {
-//                    cout << "Error: " << ptr_grab_result_->GetErrorCode() << " "
-//                         << ptr_grab_result_->GetErrorDescription()
-//                         << endl;
-//                }
             }
             catch (GenICam::GenericException &e)
             {
@@ -179,7 +149,6 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
              << endl;
         return false;
     }
-
     return false;
 }
 int PylonInterface::initSequencer(const PylonCameraParameter &params)
@@ -202,7 +171,9 @@ bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &par
                 // Remove all previous settings (sequencer etc.)
                 gige_cam_->UserSetSelector.SetValue(Basler_GigECameraParams::UserSetSelector_Default);
                 gige_cam_->UserSetLoad.Execute();
-
+                // UserSetSelector_Default overrides Software Trigger Mode !!
+                gige_cam_->TriggerSource.SetValue(Basler_GigECameraParams::TriggerSource_Software);
+                gige_cam_->TriggerMode.SetValue(Basler_GigECameraParams::TriggerMode_On);
                 break;
             case USB:
                 usb_cam_->RegisterConfiguration(new CSoftwareTriggerConfiguration,
@@ -225,6 +196,9 @@ bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &par
                 // Remove all previous settings (sequencer etc.)
                 dart_cam_->UserSetSelector.SetValue(Basler_UsbCameraParams::UserSetSelector_Default);
                 dart_cam_->UserSetLoad.Execute();
+                // UserSetSelector_Default overrides Software Trigger Mode !!
+                dart_cam_->TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
+                dart_cam_->TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_On);
                 break;
             default:
                 cerr << "Unknown Camera Type" << endl;
@@ -594,31 +568,34 @@ bool PylonInterface::setBrightness(int brightness)
                 else
                 {
                     double brightness_f = brightness / 255.0;
-                    if (has_auto_exposure_)
-                    {
-                        dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
-                    }
-                    if (dart_cam_->AutoTargetBrightness.GetMin() > brightness_f)
-                    {
-                        cout << "Desired brightness (" << brightness
-                             << ") unreachable! Setting to lower limit: "
-                             << (int)(dart_cam_->AutoTargetBrightness.GetMin() * 255)
-                             << endl;
-                        brightness_f = dart_cam_->AutoTargetBrightness.GetMin();
-                    }
-                    else if (dart_cam_->AutoTargetBrightness.GetMax() < brightness_f)
-                    {
-                        cout << "Desired brightness (" << brightness
-                             << ") unreachable! Setting to upper limit: "
-                             << (int)(dart_cam_->AutoTargetBrightness.GetMax() * 255)
-                             << endl;
-                        brightness_f = dart_cam_->AutoTargetBrightness.GetMax() - 0.000001;
-                    }
                     // Set the target value for luminance control. The value is always expressed
                     // as an float value regardless of the current pixel data output format,
                     // i.e., 0.0 -> black, 1.0 -> white.
-                    dart_cam_->AutoTargetBrightness.SetValue(brightness_f, false);
-                    brightness = brightness_f * 255;
+                    if (dart_cam_->AutoTargetBrightness.GetMin() <= brightness_f && brightness_f
+                                    <= dart_cam_->AutoTargetBrightness.GetMax())
+                    {
+                        // Use Pylon Auto Funciton, whenever in possible range
+                        dart_cam_->AutoTargetBrightness.SetValue(brightness_f, false);
+                        dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+                    }
+                    else if (dart_cam_->AutoTargetBrightness.GetMin() > brightness_f)
+                    {
+                        dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+                        cout << "Desired brightness " << brightness
+                             << " out of Pylon-Auto-Range [50-205]. Starting own Auto-function!"
+                             << endl;
+                        exposure_search_running_ = true;
+                    } else if (dart_cam_->AutoTargetBrightness.GetMax() < brightness_f)
+                    {
+                        dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+                        cout << "Desired brightness " << brightness
+                             << " out of Pylon-Auto-Range [50-205]. Starting own Auto-function!"
+                             << endl;
+                        exposure_search_running_ = true;
+                    } else
+                    {
+                        cerr << "ERROR unexpected brightness case" << endl;
+                    }
                 }
                 break;
             default:
@@ -641,10 +618,96 @@ bool PylonInterface::setExtendedBrightness(int& brightness)
     switch (cam_type_)
     {
         case GIGE:
-            {
-            break;
+        {
+                    if (!exp_search_params_.is_initialized_)
+                    {
+                        gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Off);
+                        if (!GenApi::IsWritable(gige_cam_->ExposureTimeBaseAbs))
+                        {
+                            cerr << "Pylon Exposure Auto Node not writable in own auto-exp-function!" << endl;
+                            return false;
+                        }
+                        if (gige_cam_->AutoTargetValue.GetMin() > brightness)
+                        {
+                            exp_search_params_.initialize(brightness,
+                                                          gige_cam_->ExposureTimeAbs.GetMin(),
+                                                          gige_cam_->ExposureTimeAbs.GetValue(),
+                                                          gige_cam_->ExposureTimeAbs.GetValue(),
+                                                          exp_search_params_.current_brightness_);
+                        } else
+                        {
+                            exp_search_params_.initialize(brightness,
+                                                          gige_cam_->ExposureTimeAbs.GetValue(),
+                                                          gige_cam_->ExposureTimeAbs.GetMax(),
+                                                          gige_cam_->ExposureTimeAbs.GetValue(),
+                                                          exp_search_params_.current_brightness_);
+                        }
+                    }
 
-        }
+                    if (fabs(exp_search_params_.goal_brightness_ - exp_search_params_.current_brightness_) < 1)
+                    {
+                        exposure_search_running_ = false;
+                        exp_search_params_.is_initialized_ = false;
+                        brightness = exp_search_params_.current_brightness_;
+                        cout << "Own Auto Function: Success! Goal = " <<  brightness << endl;
+                        return true;
+                    }
+                    if (exp_search_params_.last_unchanged_exposure_counter_ > 2)
+                    {
+                        exposure_search_running_ = false;
+                        exp_search_params_.is_initialized_ = false;
+                        exp_search_params_.last_unchanged_exposure_counter_ = 0;
+                        brightness = exp_search_params_.current_brightness_;
+                        cout << "Own Auto Function: Success! Goal = " <<  brightness << endl;
+                        return true;
+                    }
+
+                    exp_search_params_.updateBinarySearch();
+
+                    // truncate desired exposure if out of range
+                    if (exp_search_params_.desired_exposure_ < gige_cam_->ExposureTimeAbs.GetMin() || exp_search_params_
+                                    .desired_exposure_
+                                                                                                  > gige_cam_->ExposureTimeAbs
+                                                                                                                  .GetMax())
+                    {
+                        if (exp_search_params_.desired_exposure_ < gige_cam_->ExposureTimeAbs.GetMin())
+                        {
+                            cout << "Desired mean brightness unreachable! Min possible exposure = "
+                                 << gige_cam_->ExposureTimeAbs.GetMin()
+                                 << ". Will limit to this value." << endl;
+                            exp_search_params_.desired_exposure_ = gige_cam_->ExposureTimeAbs.GetMin();
+                        } else if (exp_search_params_.desired_exposure_ > gige_cam_->ExposureTimeAbs.GetMax())
+                        {
+                            cout << "Desired mean brightness unreachable! Max possible exposure = "
+                                 << gige_cam_->ExposureTimeAbs.GetMax()
+                                 << ". Will limit to this value." << endl;
+                            exp_search_params_.desired_exposure_ = gige_cam_->ExposureTimeAbs.GetMax();
+                        }
+                    }
+                    // Current exposure  = min/max limit value -> auto function finished -> update brightness param
+                    if (exp_search_params_.current_exposure_ == gige_cam_->ExposureTimeAbs.GetMin() || exp_search_params_
+                                    .current_exposure_
+                                                                                                   == gige_cam_->ExposureTimeAbs
+                                                                                                                   .GetMax())
+                    {
+                        exposure_search_running_ = false;
+                        exp_search_params_.is_initialized_ = false;
+                        cout << "WILL USE SMALLES EXP POSSIBLE!!!" << endl;
+                        brightness = exp_search_params_.current_brightness_;
+                        return true;
+
+                    }
+
+                    //gige_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+                    gige_cam_->ExposureTimeAbs.SetValue(exp_search_params_.desired_exposure_);
+                    // Update GeniCam Cache with GetNodeMap().InvalidateNodes()
+                    gige_cam_->GetNodeMap().InvalidateNodes();
+                    // Attention: Setting and Getting exposure not necessary the same: Difference of up to 35.0 ms
+                    exp_search_params_.last_exposure_ = exp_search_params_.current_exposure_;
+                    exp_search_params_.current_exposure_ = gige_cam_->ExposureTimeAbs.GetValue();
+
+                    return false;
+                }
 
         case USB:
             {
@@ -740,10 +803,98 @@ bool PylonInterface::setExtendedBrightness(int& brightness)
             return false;
         }
         case DART:
-            {
+        {
+        double brightness_f = brightness / 255.0;
 
-            break;
+        if (!exp_search_params_.is_initialized_)
+        {
+            dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+            if (!GenApi::IsWritable(dart_cam_->ExposureTime))
+            {
+                cerr << "Pylon Exposure Auto Node not writable in own auto-exp-function!" << endl;
+                return false;
+            }
+            if (dart_cam_->AutoTargetBrightness.GetMin() > brightness_f)
+            {
+                exp_search_params_.initialize(brightness,
+                                              dart_cam_->ExposureTime.GetMin(),
+                                              dart_cam_->ExposureTime.GetValue(),
+                                              dart_cam_->ExposureTime.GetValue(),
+                                              exp_search_params_.current_brightness_);
+            } else
+            {
+                exp_search_params_.initialize(brightness,
+                                              dart_cam_->ExposureTime.GetValue(),
+                                              dart_cam_->ExposureTime.GetMax(),
+                                              dart_cam_->ExposureTime.GetValue(),
+                                              exp_search_params_.current_brightness_);
+            }
         }
+
+        if (fabs(exp_search_params_.goal_brightness_ - exp_search_params_.current_brightness_) < 1)
+        {
+            exposure_search_running_ = false;
+            exp_search_params_.is_initialized_ = false;
+            brightness = exp_search_params_.current_brightness_;
+            cout << "Own Auto Function: Success! Goal = " <<  brightness << endl;
+            return true;
+        }
+        if (exp_search_params_.last_unchanged_exposure_counter_ > 2)
+        {
+            exposure_search_running_ = false;
+            exp_search_params_.is_initialized_ = false;
+            exp_search_params_.last_unchanged_exposure_counter_ = 0;
+            brightness = exp_search_params_.current_brightness_;
+            cout << "Own Auto Function: Success! Goal = " <<  brightness << endl;
+            return true;
+        }
+
+        exp_search_params_.updateBinarySearch();
+
+        // truncate desired exposure if out of range
+        if (exp_search_params_.desired_exposure_ < dart_cam_->ExposureTime.GetMin() || exp_search_params_
+                        .desired_exposure_
+                                                                                      > dart_cam_->ExposureTime
+                                                                                                      .GetMax())
+        {
+            if (exp_search_params_.desired_exposure_ < dart_cam_->ExposureTime.GetMin())
+            {
+                cout << "Desired mean brightness unreachable! Min possible exposure = "
+                     << dart_cam_->ExposureTime.GetMin()
+                     << ". Will limit to this value." << endl;
+                exp_search_params_.desired_exposure_ = dart_cam_->ExposureTime.GetMin();
+            } else if (exp_search_params_.desired_exposure_ > dart_cam_->ExposureTime.GetMax())
+            {
+                cout << "Desired mean brightness unreachable! Max possible exposure = "
+                     << dart_cam_->ExposureTime.GetMax()
+                     << ". Will limit to this value." << endl;
+                exp_search_params_.desired_exposure_ = dart_cam_->ExposureTime.GetMax();
+            }
+        }
+        // Current exposure  = min/max limit value -> auto function finished -> update brightness param
+        if (exp_search_params_.current_exposure_ == dart_cam_->ExposureTime.GetMin() || exp_search_params_
+                        .current_exposure_
+                                                                                       == dart_cam_->ExposureTime
+                                                                                                       .GetMax())
+        {
+            exposure_search_running_ = false;
+            exp_search_params_.is_initialized_ = false;
+            cout << "WILL USE SMALLES EXP POSSIBLE!!!" << endl;
+            brightness = exp_search_params_.current_brightness_;
+            return true;
+
+        }
+
+        //dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+        dart_cam_->ExposureTime.SetValue(exp_search_params_.desired_exposure_);
+        // Update GeniCam Cache with GetNodeMap().InvalidateNodes()
+        dart_cam_->GetNodeMap().InvalidateNodes();
+        // Attention: Setting and Getting exposure not necessary the same: Difference of up to 35.0 ms
+        exp_search_params_.last_exposure_ = exp_search_params_.current_exposure_;
+        exp_search_params_.current_exposure_ = dart_cam_->ExposureTime.GetValue();
+
+        return false;
+    }
         default:
             break;
     }

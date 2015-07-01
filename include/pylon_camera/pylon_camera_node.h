@@ -59,6 +59,7 @@ public:
         pylon_camera_msgs::SetExposureSrv::Response &res);
     bool setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
         pylon_camera_msgs::SetBrightnessSrv::Response &res);
+    bool have_intrinsic_data();
 
 protected:
 
