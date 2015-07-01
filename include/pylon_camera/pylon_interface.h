@@ -53,7 +53,7 @@ public:
     void set_image_size(int size);
 
     virtual int setExposure(double exposure);
-    virtual int setBrightness(int brightness);
+    virtual bool setBrightness(int brightness);
     bool registerCameraConfiguration(const PylonCameraParameter &params);
     bool startGrabbing(const PylonCameraParameter &params);
 //    const uint8_t* grab(const PylonCameraParameter &params);

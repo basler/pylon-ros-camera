@@ -16,8 +16,8 @@ PylonCameraOpenCVNode::PylonCameraOpenCVNode() :
                     cv_img_seq_(),
                     exp_times_(),
                     img_rect_pub_(nh_.advertise<sensor_msgs::Image>("image_rect", 10)),
-                    exp_times_pub_(nh_.advertise<sensor_msgs::Image>("image_seq", 10)),
-                    img_seq_pub_(nh_.advertise<pylon_camera_msgs::SequenceExposureTimes>("seq_exp_times", 10))
+                    img_seq_pub_(nh_.advertise<sensor_msgs::Image>("image_seq", 10)),
+                    exp_times_pub_(nh_.advertise<pylon_camera_msgs::SequenceExposureTimes>("seq_exp_times", 10))
 {
 
 }
@@ -42,18 +42,8 @@ void PylonCameraOpenCVNode::getInitialCameraParameter()
 
 void PylonCameraOpenCVNode::createPylonInterface()
 {
-//    if (params_.use_sequencer_)
-//    {
-//    pylon_opencv_interface_ =
-        pylon_interface_ = &pylon_opencv_interface_;
-//    new PylonOpenCVInterface();
-//        ROS_INFO("Created PylonSequencerInterface");
-//    }
-//    else
-//    {
-//        pylon_interface_ = new PylonInterface();
-//        ROS_INFO("Created PylonInterface");
-//    }
+    pylon_interface_ = &pylon_opencv_interface_;
+    ROS_INFO("Created PylonOpenCVInterface");
 }
 
 uint32_t PylonCameraOpenCVNode::getNumSubscribers()
@@ -82,7 +72,8 @@ bool PylonCameraOpenCVNode::init()
         return false;
     }
 
-    if(params_.use_sequencer_){
+    if (params_.use_sequencer_)
+    {
         pylon_opencv_interface_.initSequencer(params_);
     }
 
@@ -169,7 +160,6 @@ void PylonCameraOpenCVNode::setupCameraInfoMsg()
 
 bool PylonCameraOpenCVNode::grabImage()
 {
-//        const uint8_t* img_raw_ptr = PylonCameraNode::grabImage();
     if (!PylonCameraNode::grabImage())
     {
         cout << "Error grabbing RAW image in PylonOpenCVNode!" << endl;
@@ -185,22 +175,14 @@ bool PylonCameraOpenCVNode::grabImage()
     if (pylon_interface_->exposure_search_running_)
     {
         int c = pylon_interface_->img_cols(), r = pylon_interface_->img_rows();
-//            Mat tmp = img_raw.colRange(0.25*c, 0.75*c).rowRange(0.25*r,0.75*r);
-//            cout << "tmp size: " << tmp.rows << " x " << tmp.cols << endl;
         pylon_interface_->exp_search_params_.current_brightness_ = cv::mean(img_raw.colRange(0.25 * c, 0.75 * c)
                         .rowRange(0.25 * r, 0.75 * r)).val[0];
-        cout << "after grabbing result Exp: " << pylon_interface_->usb_cam_->ExposureTime.GetValue()
-             << ", brightness = " << pylon_interface_->exp_search_params_.current_brightness_ << endl;
-        imshow("view", img_raw);
-        waitKey(1);
     }
 
     cv::Mat img_rect = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(),
     CV_8UC1);
 
     img_rectifier_.rectify(img_raw, img_rect);
-    //	img_rectifier_.rectify(cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1, img_raw_ptr), img_rect);
-
     cv_img_rect_.image = img_rect;
 
     return true;
@@ -212,14 +194,7 @@ bool PylonCameraOpenCVNode::grabSequence()
 
     for (int i = 0; i < 3; ++i)
     {
-        //            pylon_interface_->usb_cam_->SequencerSetSelector.SetValue(i);
         cv::Mat img;
-//        (pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1);
-//                const uint8_t* img_ptr(pylon_interface_->grab(params_));
-//        uint8_t img_ptr;
-
-        //            cout << "Set " << i << ": Exposure:"
-        //                 << pylon_interface_->usb_cam_->ExposureTime.GetValue() << endl;
         if (!(pylon_opencv_interface_.grab(params_, img)))
         {
             if (pylon_interface_->is_cam_removed())
@@ -231,11 +206,8 @@ bool PylonCameraOpenCVNode::grabSequence()
             {
                 ROS_ERROR("Pylon Interface returned NULL-Pointer!");
             }
-            return NULL;
+            return false;
         }
-        imshow("view", img);
-        waitKey(1);
-//        memcpy(img.ptr(), &img_ptr, img_size_byte_);
         img_sequence.push_back(img);
         if (i == 1)
         {
@@ -249,8 +221,8 @@ bool PylonCameraOpenCVNode::grabSequence()
     exp_times_.header.stamp = img_raw_msg_.header.stamp;
 
     cv::Mat img_seq_bgr;
-    cv::Mat in[] = {img_sequence.at(0), img_sequence.at(1), img_sequence.at(2)};
-    cv::merge(in, 3, img_seq_bgr);
+    cv::Mat img_seq_123[] = {img_sequence.at(0), img_sequence.at(1), img_sequence.at(2)};
+    cv::merge(img_seq_123, 3, img_seq_bgr);
 
     cv_img_seq_.image = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC3);
     img_rectifier_.rectify(img_seq_bgr, cv_img_seq_.image);

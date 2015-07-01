@@ -36,15 +36,10 @@ public:
     bool success_;
     bool is_initialized_;
 
-    int exp_update_sleep_counter_;
     bool first_time_;
 
     void updateBinarySearch();
-    void correctLimits();
-
     void initialize(double goal, double left_lim, double right_lim, double current_exp, double current_brightness);
-
-
 
 };
 

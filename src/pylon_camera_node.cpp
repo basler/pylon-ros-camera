@@ -91,7 +91,8 @@ void PylonCameraNode::updateROSBirghtnessParameter()
     params_.brightness_ = pylon_interface_->last_brightness_val();
     nh_.setParam("brightness", params_.brightness_);
 }
-bool PylonCameraNode::init(){
+bool PylonCameraNode::init()
+{
     if (!initAndRegister())
     {
         return false;
@@ -119,7 +120,8 @@ bool PylonCameraNode::initAndRegister()
     return true;
 }
 
-bool PylonCameraNode::startGrabbing(){
+bool PylonCameraNode::startGrabbing()
+{
     if (!pylon_interface_->startGrabbing(params_))
     {
         ROS_ERROR("Error while start grabbing");
@@ -182,7 +184,7 @@ void PylonCameraNode::updateAquisitionSettings()
         {
             if (pylon_interface_->last_brightness_val() != params_.brightness_)
             {
-                if (pylon_interface_->setBrightness(params_.brightness_))
+                if (!pylon_interface_->setBrightness(params_.brightness_))
                 {
                     ROS_ERROR("Error while updating brightness!");
                 }
@@ -206,7 +208,7 @@ void PylonCameraNode::updateAquisitionSettings()
 }
 bool PylonCameraNode::grabImage()
 {
-    if (!pylon_interface_->grab(params_, img_raw_msg_.data ))
+    if (!pylon_interface_->grab(params_, img_raw_msg_.data))
     {
         if (pylon_interface_->is_cam_removed())
         {
@@ -241,17 +243,11 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
 bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
     pylon_camera_msgs::SetBrightnessSrv::Response &res)
 {
-    if (pylon_interface_->setBrightness(req.target_brightness))
+    if (pylon_interface_->last_brightness_val() != req.target_brightness)
     {
-        res.success = false;
+        res.success = pylon_interface_->setBrightness(req.target_brightness);
     }
-    else
-    {
-        res.success = true;
-//        params_.brightness_ = pylon_interface_->last_brightness_val();
-//        nh_.setParam("brightness", params_.brightness_);
-    }
-    return res.success;
+    return true;
 }
 PylonCameraNode::~PylonCameraNode()
 {

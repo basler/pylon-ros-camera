@@ -131,10 +131,10 @@ bool PylonOpenCVInterface::grab(const PylonCameraParameter &params, cv::Mat &ima
         case GIGE:
             try
             {
-                gige_cam_->ExecuteSoftwareTrigger();
                 gige_cam_->RetrieveResult(gige_cam_->ExposureTimeAbs.GetMax() * 1.05,
                                           ptr_grab_result_,
                                           TimeoutHandling_ThrowException);
+                gige_cam_->ExecuteSoftwareTrigger();
             }
             catch (GenICam::GenericException &e)
             {
@@ -154,10 +154,10 @@ bool PylonOpenCVInterface::grab(const PylonCameraParameter &params, cv::Mat &ima
         case USB:
             try
             {
-                usb_cam_->ExecuteSoftwareTrigger();
                 usb_cam_->RetrieveResult(usb_cam_->ExposureTime.GetMax() * 1.05,
                                          ptr_grab_result_,
                                          TimeoutHandling_ThrowException);
+                usb_cam_->ExecuteSoftwareTrigger();
             }
             catch (GenICam::GenericException &e)
             {
@@ -177,10 +177,10 @@ bool PylonOpenCVInterface::grab(const PylonCameraParameter &params, cv::Mat &ima
         case DART:
             try
             {
-                dart_cam_->ExecuteSoftwareTrigger();
                 dart_cam_->RetrieveResult(dart_cam_->ExposureTime.GetMax() * 1.05,
                                           ptr_grab_result_,
                                           TimeoutHandling_ThrowException);
+                dart_cam_->ExecuteSoftwareTrigger();
             }
             catch (GenICam::GenericException &e)
             {
@@ -208,6 +208,9 @@ bool PylonOpenCVInterface::grab(const PylonCameraParameter &params, cv::Mat &ima
 //        const uint8_t *image_buffer = ptr_grab_result_->GetBuffer();
         image = cv::Mat(img_rows_, img_cols_, CV_8UC1);
         memcpy(image.ptr(), ptr_grab_result_->GetBuffer(), img_size_byte_);
+
+        cv::imshow("view", image);
+        cv::waitKey(1);
 //        image = std::vector<uint8_t>(pImageBuffer, image_buffer + img_size_byte_);
         return true;
     }
