@@ -241,23 +241,30 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
     }
     return res.success;
 }
-bool PylonCameraNode::have_intrinsic_data(){
+bool PylonCameraNode::have_intrinsic_data()
+{
     return params_.have_intrinsic_data_;
 }
 bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
     pylon_camera_msgs::SetBrightnessSrv::Response &res)
+
 {
-    if (pylon_interface_.last_brightness_val() != req.target_brightness)
+    params_.brightness_ = req.target_brightness;
+    if (pylon_interface_.last_brightness_val() != params_.brightness_)
     {
-        res.success = pylon_interface_.setBrightness(req.target_brightness);
+        if (!pylon_interface_.setBrightness(params_.brightness_))
+        {
+            ROS_ERROR("Error while updating brightness!");
+            return false;
+        }
+
     }
+
     return true;
 }
 PylonCameraNode::~PylonCameraNode()
 {
     delete it_;
     it_ = NULL;
-//    delete pylon_interface_;
-//    pylon_interface_ = NULL;
 }
 } /* namespace pylon_camera */
