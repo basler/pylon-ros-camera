@@ -154,7 +154,7 @@ bool PylonOpenCVInterface::grab(const PylonCameraParameter &params, cv::Mat &ima
         case USB:
             try
             {
-                usb_cam_->RetrieveResult(usb_cam_->ExposureTime.GetMax() * 1.05,
+                usb_cam_->RetrieveResult(usb_cam_->ExposureTime.GetMax() * 2000.0,
                                          ptr_grab_result_,
                                          TimeoutHandling_ThrowException);
                 usb_cam_->ExecuteSoftwareTrigger();
