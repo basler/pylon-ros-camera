@@ -3,14 +3,18 @@ project(pylon_camera)
 
 SET(CMAKE_BUILD_TYPE Debug)
 
-option(WITH_OPENCV "Build Pylon Camera with rectification functionality (needs OpenCV)" ON)
-#option(PYLON_CAMERA_WITH_SEQUENCER "Build Pylon Camera with Sequencer functionality (needs OpenCV)" OFF)
+option(WITH_OPENCV "Build Pylon Camera with Rectification, Extended Auto Brightness and Sequencer (needs OpenCV)" ON)
+
+find_package(OpenCV)
+if(NOT OpenCV_FOUND)
+	MESSAGE(STATUS "--- Could not find OpenCV!")
+	option(WITH_OPENCV "Build Pylon Camera with Rectification, Extended Auto Brightness and Sequencer (needs OpenCV)" OFF)
+endif()
 
 if (WITH_OPENCV)
 	MESSAGE(STATUS "+++ Building with OpenCV support")
 	add_definitions(-DWITH_OPENCV)
 	# OpenCV is not a catkin pkg
-	find_package(OpenCV REQUIRED)
 else ()
 	MESSAGE(STATUS "--- Building WITHOUT OpenCV support")
 endif ()

@@ -532,48 +532,6 @@ bool PylonInterface::setBrightness(int brightness)
                     }
                 }
                 break;
-                //##########################################################################################################
-                if (brightness == -2)
-                {
-                    gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
-                }
-                else if (brightness == -1)
-                {
-                    gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Continuous);
-                }
-                else if (brightness == 0)
-                {
-                    gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Off);
-                }
-                else
-                {
-                    if (has_auto_exposure_)
-                    {
-                        gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
-                    }
-
-                    if (gige_cam_->AutoTargetValue.GetMin() > brightness)
-                    {
-                        cout << "Desired brightness (" << brightness
-                             << ") unreachable! Setting to lower limit: "
-                             << gige_cam_->AutoTargetValue.GetMin()
-                             << endl;
-                        brightness = gige_cam_->AutoTargetValue.GetMin();
-                    }
-                    else if (gige_cam_->AutoTargetValue.GetMax() < brightness)
-                    {
-                        cout << "Desired brightness (" << brightness
-                             << ") unreachable! Setting to upper limit: "
-                             << gige_cam_->AutoTargetValue.GetMax()
-                             << endl;
-                        brightness = gige_cam_->AutoTargetValue.GetMax();
-                    }
-                    // Set the target value for luminance control. The value is always expressed
-                    // as an 8 bit value regardless of the current pixel data output format,
-                    // i.e., 0 -> black, 255 -> white.
-                    gige_cam_->AutoTargetValue.SetValue(brightness, false);
-                }
-                break;
             case USB:
                 if (brightness == -2)
                 {
