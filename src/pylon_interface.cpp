@@ -232,10 +232,15 @@ bool PylonInterface::startGrabbing(const PylonCameraParameter &params)
 
                 break;
             case USB:
+                usb_img_encoding_ = usb_cam_->PixelFormat.GetValue();
+                if(usb_img_encoding_ != Basler_UsbCameraParams::PixelFormat_Mono8){
+                    usb_cam_->PixelFormat.SetValue(Basler_UsbCameraParams::PixelFormat_Mono8);
+                    usb_img_encoding_ = usb_cam_->PixelFormat.GetValue();
+                    cout << "Color Image support not yet implemented! Will switch to 8-Bit Mono" << endl;
+                }
                 usb_cam_->StartGrabbing();
                 img_rows_ = (int)usb_cam_->Height.GetValue();
                 img_cols_ = (int)usb_cam_->Width.GetValue();
-                usb_img_encoding_ = usb_cam_->PixelFormat.GetValue();
                 usb_img_pixel_depth_ = usb_cam_->PixelSize.GetValue();
                 max_framerate_ = usb_cam_->ResultingFrameRate.GetValue();
                 has_auto_exposure_ = GenApi::IsAvailable(usb_cam_->ExposureAuto);
@@ -622,7 +627,7 @@ bool PylonInterface::setExtendedBrightness(int& brightness)
                     if (!exp_search_params_.is_initialized_)
                     {
                         gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Off);
-                        if (!GenApi::IsWritable(gige_cam_->ExposureTimeBaseAbs))
+                        if (!GenApi::IsWritable(gige_cam_->ExposureTimeAbs))
                         {
                             cerr << "Pylon Exposure Auto Node not writable in own auto-exp-function!" << endl;
                             return false;
@@ -1078,10 +1083,15 @@ std::string PylonInterface::img_encoding()
         case USB:
             switch (usb_img_encoding_)
             {
+//                case Basler_UsbCameraParams::PixelFormat_BGR8:
+//                    return "mono8";
+//                    break;
                 case Basler_UsbCameraParams::PixelFormat_Mono8:
                     return "mono8";
                     break;
                 default:
+                    cout << "encoding: " << usb_img_encoding_ << endl;
+                    cout << Basler_UsbCameraParams::PixelFormat_BGR8 << endl;
                     cerr << "Image encoding " << usb_img_encoding_ << " not yet implemented!"
                          << endl;
                     return "";

@@ -22,6 +22,7 @@ class IntrinsicCalibLoader
 public:
     IntrinsicCalibLoader();
     virtual ~IntrinsicCalibLoader();
+
     bool init(const std::string yaml_file);
     bool loadCalib();
 

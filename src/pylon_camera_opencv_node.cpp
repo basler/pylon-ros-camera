@@ -106,7 +106,7 @@ bool PylonCameraOpenCVNode::init()
              << calib_loader_.img_rows()
              << ") does not match to the size of the connected camera ("
              << img_raw_msg_.width
-             << ", " << img_raw_msg_.height << ")!" << endl;
+             << ", " << img_raw_msg_.height << ")! Will publish only raw image!" << endl;
         params_.have_intrinsic_data_ = false;
 //        return false;
     } else
