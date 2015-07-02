@@ -35,6 +35,7 @@ bool IntrinsicCalibLoader::loadCalib()
         cerr << "Error loading Intrinsic calib file: call init() first!" << endl;
         return false;
     }
+    //std::cout << intrinsic_yaml_file_ << std::endl;
     cv::FileStorage fs(intrinsic_yaml_file_, cv::FileStorage::READ + cv::FileStorage::MEMORY);
 
     if (!fs.isOpened())
