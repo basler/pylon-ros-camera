@@ -48,8 +48,18 @@ bool IntrinsicCalibLoader::loadCalib()
 
         fs["distortion"] >> D_;
         fs["cam_matrix"] >> K_;
-        fs["width"] >> img_cols_;
-        fs["height"] >> img_rows_;
+
+        // two calib file versions: one with 'row', 'col' and one with 'width', 'height'
+        // if not existent: filestorage sets to 0
+        int row_1 = 0, col_1 = 0, row_2 = 0, col_2 = 0;
+
+        fs["cols"] >> col_1;
+        fs["rows"] >> row_1;
+        fs["width"] >> col_2;
+        fs["height"] >> row_2;
+
+        row_1 > row_2 ? img_rows_ = row_1 : img_rows_ = row_2;
+        col_1 > col_2 ? img_cols_ = col_1 : img_cols_ = col_2;
 
         fs.release();
 

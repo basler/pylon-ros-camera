@@ -495,7 +495,7 @@ bool PylonInterface::setBrightness(int brightness)
                     else
                     {
                         // Extended brightness search only available in PylonOpenCVInterface
-                        setupExtendedBrightnessSearch(brightness);
+                        this->setupExtendedBrightnessSearch(brightness);
                     }
                 }
                 break;
@@ -528,7 +528,7 @@ bool PylonInterface::setBrightness(int brightness)
                     else
                     {
                         // Extended brightness search only available in PylonOpenCVInterface
-                        setupExtendedBrightnessSearch(brightness);
+                        this->setupExtendedBrightnessSearch(brightness);
                     }
                 }
                 break;
@@ -560,7 +560,7 @@ bool PylonInterface::setBrightness(int brightness)
                     } else
                     {
                         // Extended brightness search only available in PylonOpenCVInterface
-                        setupExtendedBrightnessSearch(brightness);
+                        this->setupExtendedBrightnessSearch(brightness);
                     }
                 }
                 break;
@@ -578,6 +578,8 @@ bool PylonInterface::setBrightness(int brightness)
     }
     return true;
 }
+
+// Be careful: Same function exists in PylonOpenCVInterface
 void PylonInterface::setupExtendedBrightnessSearch(int brightness)
 {
     cout << "Extended Auto-Funciton only available when compiling WITH_OPENCV! Possible Range: [50-205]. Will truncate desired value."

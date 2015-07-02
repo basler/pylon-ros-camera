@@ -30,8 +30,8 @@ public:
 
     bool exposure_search_running_;
     ExposureSearchParameter exp_search_params_;
-private:
     void setupExtendedBrightnessSearch(int brightness);
+private:
 };
 
 } /* namespace pylon_camera */
