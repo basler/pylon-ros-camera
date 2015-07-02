@@ -289,6 +289,7 @@ bool PylonInterface::findDesiredCam(const PylonCameraParameter &params)
             cam_type_ = detectPylonCamType(cam);
             cout << "Desired Cam is a " << pylonCamTypeToString(cam_type_) << " camera." << endl;
             cam->Close();
+            delete cam;
             switch (cam_type_)
             {
                 case GIGE:
@@ -390,6 +391,8 @@ bool PylonInterface::findDesiredCam(const PylonCameraParameter &params)
                                                                                             .CreateFirstDevice());
                     break;
                 default:
+                    cerr << "UNKNOWN camera type!" << endl;
+                    return false;
                     break;
             }
             return true;
@@ -495,7 +498,7 @@ bool PylonInterface::setBrightness(int brightness)
                     else
                     {
                         // Extended brightness search only available in PylonOpenCVInterface
-                        this->setupExtendedBrightnessSearch(brightness);
+                        setupExtendedBrightnessSearch(brightness);
                     }
                 }
                 break;
@@ -528,7 +531,7 @@ bool PylonInterface::setBrightness(int brightness)
                     else
                     {
                         // Extended brightness search only available in PylonOpenCVInterface
-                        this->setupExtendedBrightnessSearch(brightness);
+                        setupExtendedBrightnessSearch(brightness);
                     }
                 }
                 break;
@@ -560,7 +563,7 @@ bool PylonInterface::setBrightness(int brightness)
                     } else
                     {
                         // Extended brightness search only available in PylonOpenCVInterface
-                        this->setupExtendedBrightnessSearch(brightness);
+                        setupExtendedBrightnessSearch(brightness);
                     }
                 }
                 break;

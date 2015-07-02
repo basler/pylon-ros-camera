@@ -33,7 +33,7 @@ public:
     PylonCameraNode();
     virtual ~PylonCameraNode();
 
-    PylonInterface pylon_interface_;
+    PylonInterface* pylon_interface_;
     PylonCameraParameter params_;
 
     ros::ServiceServer set_exposure_service_;

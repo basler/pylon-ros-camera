@@ -78,7 +78,6 @@ int main(int argc, char **argv)
 #endif
                 // Update all possible runtime parameter (exposure, brightness, etc) every param_update_frequency_ cycles
                 pylon_camera_node.params_update_counter_++;
-
                 if (pylon_camera_node.params_update_counter_ % pylon_camera_node.params_.param_update_frequency_ == 0)
                 {
                     pylon_camera_node.updateAquisitionSettings();
@@ -120,10 +119,7 @@ int main(int argc, char **argv)
                 }
             }
 #else
-            pylon_camera_node.grabImage();
-            if (pylon_camera_node.getNumSubscribers() > 0)
-            {
-                // Publish via image_transport
+            if(pylon_camera_node.grabImage()){
                 pylon_camera_node.img_raw_pub_.publish(pylon_camera_node.img_raw_msg_, pylon_camera_node.cam_info_msg_);
             }
 #endif

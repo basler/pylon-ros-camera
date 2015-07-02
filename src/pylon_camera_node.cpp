@@ -47,6 +47,9 @@ void PylonCameraNode::getInitialCameraParameter()
         ROS_INFO("No Magazino Cam ID set -> Will use the camera device found fist");
     }
 
+    nh_.param<int>("parameter_update_frequency", params_.param_update_frequency_, 100);
+    params_update_counter_ = params_.param_update_frequency_ - 1;
+
     nh_.param<double>("desired_framerate", params_.desired_frame_rate_, 10.0);
     if (params_.desired_frame_rate_ < 0 && params_.desired_frame_rate_ != -1)
     {
@@ -61,7 +64,6 @@ void PylonCameraNode::getRuntimeCameraParameter()
 {
     nh_.param<bool>("use_trigger_service", params_.use_trigger_service_, false);
     nh_.param<int>("parameter_update_frequency", params_.param_update_frequency_, 100);
-    params_update_counter_ = params_.param_update_frequency_ - 1;
 
     nh_.param<double>("exposure", params_.exposure_, 35000.0); 	// -2: AutoExposureOnce
     // -1: AutoExposureContinuous
@@ -85,12 +87,12 @@ uint32_t PylonCameraNode::getNumSubscribers()
 // Using OpenCV -> creates PylonOpenCVNode (with sequencer and rectification), else: only image_raw
 void PylonCameraNode::createPylonInterface()
 {
-//    pylon_interface_ = new PylonInterface();
-//    ROS_INFO("Created PylonInterface");
+    pylon_interface_ = new PylonInterface();
+    ROS_INFO("Created PylonInterface");
 }
 void PylonCameraNode::updateROSBirghtnessParameter()
 {
-    params_.brightness_ = pylon_interface_.last_brightness_val();
+    params_.brightness_ = pylon_interface_->last_brightness_val();
     nh_.setParam("brightness", params_.brightness_);
 }
 bool PylonCameraNode::init()
@@ -110,13 +112,13 @@ bool PylonCameraNode::init()
 }
 bool PylonCameraNode::initAndRegister()
 {
-    if (!pylon_interface_.initialize(params_))
+    if (!pylon_interface_->initialize(params_))
     {
         ROS_ERROR("Error while initializing the Pylon Interface");
         return false;
     }
 
-    if (!pylon_interface_.registerCameraConfiguration(params_))
+    if (!pylon_interface_->registerCameraConfiguration(params_))
     {
         ROS_ERROR("Error while registering the camera configuration");
         return false;
@@ -126,25 +128,25 @@ bool PylonCameraNode::initAndRegister()
 
 bool PylonCameraNode::startGrabbing()
 {
-    if (!pylon_interface_.startGrabbing(params_))
+    if (!pylon_interface_->startGrabbing(params_))
     {
         ROS_ERROR("Error while start grabbing");
         return false;
     }
 
     // Framrate Settings
-    if (pylon_interface_.max_possible_framerate() < params_.desired_frame_rate_)
+    if (pylon_interface_->max_possible_framerate() < params_.desired_frame_rate_)
     {
         ROS_INFO("Desired framerate %.2f is higher than max possible. Will limit framerate to: %.2f Hz",
                  params_.desired_frame_rate_,
-                 pylon_interface_.max_possible_framerate());
-        params_.desired_frame_rate_ = pylon_interface_.max_possible_framerate();
-        nh_.setParam("desired_framerate", pylon_interface_.max_possible_framerate());
+                 pylon_interface_->max_possible_framerate());
+        params_.desired_frame_rate_ = pylon_interface_->max_possible_framerate();
+        nh_.setParam("desired_framerate", pylon_interface_->max_possible_framerate());
     }
     else if (params_.desired_frame_rate_ == -1)
     {
-        params_.desired_frame_rate_ = pylon_interface_.max_possible_framerate();
-        ROS_INFO("Max possible framerate is %.2f Hz", pylon_interface_.max_possible_framerate());
+        params_.desired_frame_rate_ = pylon_interface_->max_possible_framerate();
+        ROS_INFO("Max possible framerate is %.2f Hz", pylon_interface_->max_possible_framerate());
     }
 
     std_msgs::Header header;
@@ -153,20 +155,20 @@ bool PylonCameraNode::startGrabbing()
     header.stamp = ros::Time::now();
 
     cam_info_msg_.header = header;
-    cam_info_msg_.height = pylon_interface_.img_rows();
-    cam_info_msg_.width = pylon_interface_.img_cols();
+    cam_info_msg_.height = pylon_interface_->img_rows();
+    cam_info_msg_.width = pylon_interface_->img_cols();
     cam_info_msg_.distortion_model = "plumb_bob";
 
     img_raw_msg_.header = header;
     // Encoding of pixels -- channel meaning, ordering, size
     // taken from the list of strings in include/sensor_msgs/image_encodings.h
-    img_raw_msg_.encoding = pylon_interface_.img_encoding();
-    img_raw_msg_.height = pylon_interface_.img_rows();
-    img_raw_msg_.width = pylon_interface_.img_cols();
+    img_raw_msg_.encoding = pylon_interface_->img_encoding();
+    img_raw_msg_.height = pylon_interface_->img_rows();
+    img_raw_msg_.width = pylon_interface_->img_cols();
     // step = full row length in bytes
-    img_raw_msg_.step = img_raw_msg_.width * pylon_interface_.img_pixel_depth();
+    img_raw_msg_.step = img_raw_msg_.width * pylon_interface_->img_pixel_depth();
     // img_raw_msg_.data // actual matrix data, size is (step * rows)
-    pylon_interface_.set_image_size(img_raw_msg_.step * img_raw_msg_.height);
+    pylon_interface_->set_image_size(img_raw_msg_.step * img_raw_msg_.height);
 
     return true;
 }
@@ -186,9 +188,9 @@ void PylonCameraNode::updateAquisitionSettings()
 
         if (params_.use_brightness_)
         {
-            if (pylon_interface_.last_brightness_val() != params_.brightness_)
+            if (pylon_interface_->last_brightness_val() != params_.brightness_)
             {
-                if (!pylon_interface_.setBrightness(params_.brightness_))
+                if (!pylon_interface_->setBrightness(params_.brightness_))
                 {
                     ROS_ERROR("Error while updating brightness!");
                 }
@@ -197,13 +199,13 @@ void PylonCameraNode::updateAquisitionSettings()
         }
         else
         {
-            if (pylon_interface_.last_exposure_val() != params_.exposure_)
+            if (pylon_interface_->last_exposure_val() != params_.exposure_)
             {
-                if (pylon_interface_.setExposure(params_.exposure_))
+                if (pylon_interface_->setExposure(params_.exposure_))
                 {
                     ROS_ERROR("Error while updating exposure!");
                 }
-                params_.exposure_ = pylon_interface_.last_exposure_val();
+                params_.exposure_ = pylon_interface_->last_exposure_val();
                 nh_.setParam("exposure", params_.exposure_);
             }
         }
@@ -211,16 +213,16 @@ void PylonCameraNode::updateAquisitionSettings()
 }
 bool PylonCameraNode::grabImage()
 {
-    if (!pylon_interface_.grab(params_, img_raw_msg_.data))
+    if (!pylon_interface_->grab(params_, img_raw_msg_.data))
     {
-        if (pylon_interface_.is_cam_removed())
+        if (pylon_interface_->is_cam_removed())
         {
             ROS_ERROR("Pylon Camera has been removed!");
             ros::shutdown();
         }
         else
         {
-            ROS_ERROR("Pylon Interface returned invalid image!");
+            ROS_WARN("Pylon Interface returned invalid image! Skipping");
         }
         return false;
     }
@@ -231,14 +233,14 @@ bool PylonCameraNode::grabImage()
 bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Request &req,
     pylon_camera_msgs::SetExposureSrv::Response &res)
 {
-    if (pylon_interface_.setExposure(req.target_exposure))
+    if (pylon_interface_->setExposure(req.target_exposure))
     {
         res.success = false;
     }
     else
     {
         res.success = true;
-        params_.exposure_ = pylon_interface_.last_exposure_val();
+        params_.exposure_ = pylon_interface_->last_exposure_val();
         nh_.setParam("exposure", params_.exposure_);
     }
     return res.success;
