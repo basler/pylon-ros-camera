@@ -15,7 +15,8 @@ class CompAction():
        rospy.loginfo("Action: " + str(self._action_name))
        self._as = actionlib.SimpleActionServer(self._action_name, maru_msgs.msg.calib_exposureAction, execute_cb=self.execute_cb, auto_start = False)
        rospy.loginfo("Service: " + str(camera_name + '/set_brightness_srv'))
-       self.exp_srv = rospy.ServiceProxy(camera_name + '/set_brightness_srv', pylon_camera_msgs.srv.SetBrightnessSrv)
+       self.brg_srv = rospy.ServiceProxy(camera_name + '/set_brightness_srv', pylon_camera_msgs.srv.SetBrightnessSrv)
+       self.exp_srv = rospy.ServiceProxy(camera_name + '/set_exposure_srv', pylon_camera_msgs.srv.SetExposureSrv)
        
        rospy.wait_for_service(camera_name + '/set_brightness_srv', timeout=100)
        #rospy.logerr( camera_name + '/set_exposure_srv' + " not available")
@@ -28,7 +29,20 @@ class CompAction():
        rospy.loginfo("got brightness request for: " + str(msg.goal_exposure))
        self._as.publish_feedback(self._feedback)       
        try:
-          res = self.exp_srv(msg.goal_exposure)
+          if msg.goal_exposure > 200:         
+              res = self.exp_srv(10000)
+          elif msg.goal_exposure > 150:
+              res = self.exp_srv(8000)
+          elif msg.goal_exposure > 90:
+              res = self.exp_srv(5000)
+          elif msg.goal_exposure > 60:
+              res = self.exp_srv(2000)
+          elif msg.goal_exposure > 20:
+              res = self.exp_srv(800)
+          else:
+              res = self.exp_srv(500)
+                       
+              
           rospy.loginfo("Brightness service result: " +  str(res))
        except Exception, ex:
           rospy.logerr(str(ex))
