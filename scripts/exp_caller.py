@@ -27,7 +27,11 @@ if __name__ == '__main__':
   
   try:
       rospy.init_node('exp_caller')
-      result = exposure_client(int(sys.argv[1]),"/crane")
+      cam_name = "/crane"
+      if len(sys.argv) > 2:
+          cam_name = sys.argv[2]
+  
+      result = exposure_client(int(sys.argv[1]),cam_name)
       # print result
       # print "Result:", ', '.join([str(n) for n in result.sequence])
   except rospy.ROSInterruptException:
