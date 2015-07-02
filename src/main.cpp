@@ -66,15 +66,16 @@ int main(int argc, char **argv)
 #ifdef WITH_OPENCV
             if (pylon_camera_node.pylon_opencv_interface_.exposure_search_running_)
             {
-                if (pylon_camera_node.pylon_opencv_interface_.setExtendedBrightness(pylon_camera_node.params_.brightness_))
+                if (pylon_camera_node.pylon_opencv_interface_.setExtendedBrightness(pylon_camera_node.params_
+                                .brightness_))
                 {
                     pylon_camera_node.updateROSBirghtnessParameter();
                 }
 
             }
-#endif
             else
             {
+#endif
                 // Update all possible runtime parameter (exposure, brightness, etc) every param_update_frequency_ cycles
                 pylon_camera_node.params_update_counter_++;
 
@@ -86,8 +87,11 @@ int main(int argc, char **argv)
                     {
                         pylon_camera_node.brightness_service_running_ = false;
                     }
-                }
+                 }
+
+#ifdef WITH_OPENCV
             }
+#endif
 
 #ifdef WITH_OPENCV
             if (pylon_camera_node.params_.use_sequencer_)
@@ -117,7 +121,7 @@ int main(int argc, char **argv)
             }
 #else
             pylon_camera_node.grabImage();
-            if (pylon_camera_node.getNumSubscribersRaw() > 0)
+            if (pylon_camera_node.getNumSubscribers() > 0)
             {
                 // Publish via image_transport
                 pylon_camera_node.img_raw_pub_.publish(pylon_camera_node.img_raw_msg_, pylon_camera_node.cam_info_msg_);
