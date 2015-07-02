@@ -620,7 +620,7 @@ void PylonInterface::setupExtendedBrightnessSearch(int brightness)
         case DART:
         {
             double brightness_f = brightness / 255.0;
-            if (usb_cam_->AutoTargetBrightness.GetMin() > brightness_f)
+            if (dart_cam_->AutoTargetBrightness.GetMin() > brightness_f)
             {
                 dart_cam_->AutoTargetBrightness.SetValue(dart_cam_->AutoTargetBrightness.GetMin(), false);
                 dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
