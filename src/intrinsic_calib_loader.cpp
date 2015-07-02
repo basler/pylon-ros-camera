@@ -23,13 +23,15 @@ IntrinsicCalibLoader::~IntrinsicCalibLoader()
 {
     // TODO Auto-generated destructor stub
 }
-bool IntrinsicCalibLoader::init(const std::string yaml_file){
+bool IntrinsicCalibLoader::init(const std::string yaml_file)
+{
     intrinsic_yaml_file_ = yaml_file;
     return true;
 }
 bool IntrinsicCalibLoader::loadCalib()
 {
-    if(intrinsic_yaml_file_ == "INVALID_YAML_FILE"){
+    if (intrinsic_yaml_file_ == "INVALID_YAML_FILE")
+    {
         cerr << "Error loading Intrinsic calib file: call init() first!" << endl;
         return false;
     }
@@ -76,16 +78,20 @@ bool IntrinsicCalibLoader::loadCalib()
 
     return true;
 }
-cv::Mat IntrinsicCalibLoader::D(){
+cv::Mat IntrinsicCalibLoader::D()
+{
     return D_;
 }
-cv::Mat IntrinsicCalibLoader::K(){
+cv::Mat IntrinsicCalibLoader::K()
+{
     return K_;
 }
-int IntrinsicCalibLoader::img_rows(){
+int IntrinsicCalibLoader::img_rows()
+{
     return img_rows_;
 }
-int IntrinsicCalibLoader::img_cols(){
+int IntrinsicCalibLoader::img_cols()
+{
     return img_cols_;
 }
 } /* namespace pylon_camera */

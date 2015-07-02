@@ -42,13 +42,16 @@ void ExposureSearchParameter::updateBinarySearch()
 
     desired_exposure_ = (right_limit_ + left_limit_) / 2.0;
 
-    if(current_exposure_ == last_exposure_){
+    if (current_exposure_ == last_exposure_)
+    {
         last_unchanged_exposure_counter_++;
-    }else{
+    } else
+    {
         last_exposure_ = current_exposure_;
     }
 
-    if(first_time_){
+    if (first_time_)
+    {
         first_time_ = false;
     }
 //    cout << "####################################################################################################" << endl;
@@ -57,7 +60,8 @@ void ExposureSearchParameter::updateBinarySearch()
 //    cout << "####################################################################################################" << endl;
 
 }
-void ExposureSearchParameter::initialize(double goal, double left_lim, double right_lim, double current_exp, double current_brightness)
+void ExposureSearchParameter::initialize(double goal, double left_lim, double right_lim, double current_exp,
+    double current_brightness)
 {
     goal_brightness_ = goal;
     left_limit_ = left_lim;

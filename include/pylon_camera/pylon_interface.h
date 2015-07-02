@@ -62,15 +62,14 @@ public:
     virtual int initSequencer(const PylonCameraParameter &params);
 
 //    virtual int terminate(const PylonCameraParameter &params);
-    virtual bool setExtendedBrightness(int &brightness);
+
 
     // Con-/ De-structor automagically calls PylonInitialize and PylonTerminate to ensure the pylon runtime system
     // is initialized during the lifetime of this object.
     Pylon::PylonAutoInitTerm auto_init_term_;
 
 //    virtual int updateRuntimeParameter(const PylonCameraParameter &params);
-    bool exposure_search_running_;
-    ExposureSearchParameter exp_search_params_;
+
 
 protected:
 
@@ -102,6 +101,8 @@ protected:
     int last_brightness_val_;
     bool is_cam_removed_;
 
+private:
+    void setupExtendedBrightnessSearch(int brightness);
 };
 
 } /* namespace pylon_camera */
