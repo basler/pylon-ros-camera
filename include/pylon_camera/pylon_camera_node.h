@@ -44,6 +44,9 @@ public:
 
     image_transport::CameraPublisher img_raw_pub_;
 
+    int params_update_counter_;
+    bool brightness_service_running_;
+
     bool init();
     bool initAndRegister();
     bool startGrabbing();

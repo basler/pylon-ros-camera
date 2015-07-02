@@ -58,8 +58,6 @@ int main(int argc, char **argv)
                  pylon_camera_node.params_.desired_frame_rate_);
     }
 
-    int params_update_counter = 0;
-
     while (ros::ok())
     {
         if (pylon_camera_node.getNumSubscribers() > 0)
@@ -75,12 +73,15 @@ int main(int argc, char **argv)
             else
             {
                 // Update all possible runtime parameter (exposure, brightness, etc) every param_update_frequency_ cycles
-                params_update_counter++;
+                pylon_camera_node.params_update_counter_++;
 
-                if (params_update_counter % pylon_camera_node.params_.param_update_frequency_ == 0)
+                if (pylon_camera_node.params_update_counter_ % pylon_camera_node.params_.param_update_frequency_ == 0)
                 {
                     pylon_camera_node.updateAquisitionSettings();
-                    params_update_counter = 0;
+                    pylon_camera_node.params_update_counter_ = 0;
+                    if(pylon_camera_node.brightness_service_running_){
+                        pylon_camera_node.brightness_service_running_ = false;
+                    }
                 }
             }
 

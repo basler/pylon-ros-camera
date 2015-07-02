@@ -464,7 +464,6 @@ bool PylonInterface::setBrightness(int brightness)
         return 2;
     }
 
-    int truncated_brightness = brightness;
     try
     {
         switch (cam_type_)
@@ -644,6 +643,9 @@ bool PylonInterface::setExtendedBrightness(int& brightness)
                                                           exp_search_params_.current_brightness_);
                         } else
                         {
+                            if(brightness > 255){
+                                brightness = 255;
+                            }
                             exp_search_params_.initialize(brightness,
                                                           gige_cam_->ExposureTimeAbs.GetValue(),
                                                           gige_cam_->ExposureTimeAbs.GetMax(),
@@ -738,6 +740,9 @@ bool PylonInterface::setExtendedBrightness(int& brightness)
                                                   exp_search_params_.current_brightness_);
                 } else
                 {
+                    if(brightness > 255){
+                        brightness = 255;
+                    }
                     exp_search_params_.initialize(brightness,
                                                   usb_cam_->ExposureTime.GetValue(),
                                                   usb_cam_->ExposureTime.GetMax(),
@@ -831,6 +836,9 @@ bool PylonInterface::setExtendedBrightness(int& brightness)
                                               exp_search_params_.current_brightness_);
             } else
             {
+                if(brightness > 255){
+                    brightness = 255;
+                }
                 exp_search_params_.initialize(brightness,
                                               dart_cam_->ExposureTime.GetValue(),
                                               dart_cam_->ExposureTime.GetMax(),
