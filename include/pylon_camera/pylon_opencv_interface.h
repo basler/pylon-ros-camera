@@ -24,7 +24,14 @@ public:
 //    virtual int terminate(const PylonCameraParameter &params);
     bool grab(const PylonCameraParameter &params, cv::Mat &image);
 
+    virtual bool setExtendedBrightness(int &brightness);
+
     std::vector<cv::Mat> img_sequence_;
+
+    bool exposure_search_running_;
+    ExposureSearchParameter exp_search_params_;
+private:
+    void setupExtendedBrightnessSearch(int brightness);
 };
 
 } /* namespace pylon_camera */

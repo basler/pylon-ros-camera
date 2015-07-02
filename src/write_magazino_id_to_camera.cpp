@@ -37,7 +37,8 @@ int main(int argc, char* argv[])
     {
         cout << "ERROR:" << endl;
         cout << "Your desired Magazino ID (" << magazino_id
-             << ") does not follow the naming conventions:" << endl;
+             << ") does not follow the naming conventions:"
+             << endl;
         cout << "--------------------------------------------------------------------" << endl;
         cout << "###########################" << endl;
         cout << "# PROJECT-NAME_NR_CAM-POS #" << endl;
