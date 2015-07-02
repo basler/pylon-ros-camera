@@ -19,7 +19,9 @@ PylonCameraNode::PylonCameraNode() :
                     set_brightness_service_(),
                     img_raw_msg_(),
                     cam_info_msg_(),
-                    img_raw_pub_()
+                    img_raw_pub_(),
+                    params_update_counter_(0),
+                    brightness_service_running_(false)
 
 {
     it_ = new image_transport::ImageTransport(nh_);
@@ -59,21 +61,21 @@ void PylonCameraNode::getRuntimeCameraParameter()
 {
     nh_.param<bool>("use_trigger_service", params_.use_trigger_service_, false);
     nh_.param<int>("parameter_update_frequency", params_.param_update_frequency_, 100);
+    params_update_counter_ = params_.param_update_frequency_ - 1;
 
     nh_.param<double>("exposure", params_.exposure_, 35000.0); 	// -2: AutoExposureOnce
     // -1: AutoExposureContinuous
     //  0: AutoExposureOff
     // > 0: Exposure in micro-seconds
     nh_.param<bool>("use_brightness", params_.use_brightness_, false); // Using exposure or brightness
-    nh_.param<int>("brightness", params_.brightness_, 128); 	// -2: AutoExposureOnce
-    // -1: AutoExposureContinuous
-    //  0: AutoExposureOff
-    // > 0: Intensity Value (0-255)
-
-//	if ((params_.exposure_ == -1.0 || params_.exposure_ == -2.0 || params_.exposure_ == 0.0) && !pylon_interface_.has_auto_exposure()) {
-//		ROS_WARN("Illegal operation: Camera has NO auto-exposure. Set parameter back to 'false'");
-//		nh_.setParam("auto_exposure", false);
-//	}
+    if (!brightness_service_running_)
+    {
+        // -2: AutoExposureOnce
+        // -1: AutoExposureContinuous
+        //  0: AutoExposureOff
+        // > 0: Intensity Value (0-255)
+        nh_.param<int>("brightness", params_.brightness_, 128);
+    }
 }
 uint32_t PylonCameraNode::getNumSubscribers()
 {
@@ -250,16 +252,9 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
 
 {
     params_.brightness_ = req.target_brightness;
-    if (pylon_interface_.last_brightness_val() != params_.brightness_)
-    {
-        if (!pylon_interface_.setBrightness(params_.brightness_))
-        {
-            ROS_ERROR("Error while updating brightness!");
-            return false;
-        }
-
-    }
-
+    params_update_counter_ = params_.param_update_frequency_ - 1;
+    brightness_service_running_ = true;
+    res.success = true;
     return true;
 }
 PylonCameraNode::~PylonCameraNode()
