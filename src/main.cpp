@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 
     while (ros::ok())
     {
-        if (pylon_camera_node.getNumSubscribers() > 0)
+        if (pylon_camera_node.getNumSubscribers() > 0 && !pylon_camera_node.is_sleeping())
         {
 
 #ifdef WITH_OPENCV

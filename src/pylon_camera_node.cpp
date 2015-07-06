@@ -17,11 +17,13 @@ PylonCameraNode::PylonCameraNode() :
                     params_(),
                     set_exposure_service_(),
                     set_brightness_service_(),
+                    set_sleeping_service_(),
                     img_raw_msg_(),
                     cam_info_msg_(),
                     img_raw_pub_(),
                     params_update_counter_(0),
-                    brightness_service_running_(false)
+                    brightness_service_running_(false),
+                    is_sleeping_(false)
 
 {
     it_ = new image_transport::ImageTransport(nh_);
@@ -31,6 +33,9 @@ PylonCameraNode::PylonCameraNode() :
                                                  this);
     set_brightness_service_ = nh_.advertiseService("set_brightness_srv",
                                                    &PylonCameraNode::setBrightnessCallback,
+                                                   this);
+    set_sleeping_service_ = nh_.advertiseService("set_sleeping_srv",
+                                                   &PylonCameraNode::setSleepingCallback,
                                                    this);
 }
 
@@ -245,10 +250,6 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
     }
     return res.success;
 }
-bool PylonCameraNode::have_intrinsic_data()
-{
-    return params_.have_intrinsic_data_;
-}
 bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
     pylon_camera_msgs::SetBrightnessSrv::Response &res)
 
@@ -259,6 +260,24 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
     brightness_service_running_ = true;
     res.success = true;
     return true;
+}
+bool PylonCameraNode::setSleepingCallback(pylon_camera_msgs::SetSleepingSrv::Request &req,
+    pylon_camera_msgs::SetSleepingSrv::Response &res){
+    is_sleeping_ = req.set_sleeping;
+    if(is_sleeping_){
+        ROS_INFO("Seting Pylon Camera Node to sleep...");
+    } else {
+        ROS_INFO("Pylon Camera Node continues grabbing");
+    }
+    res.success = true;
+    return true;
+}
+bool PylonCameraNode::is_sleeping(){
+    return is_sleeping_;
+}
+bool PylonCameraNode::have_intrinsic_data()
+{
+    return params_.have_intrinsic_data_;
 }
 PylonCameraNode::~PylonCameraNode()
 {

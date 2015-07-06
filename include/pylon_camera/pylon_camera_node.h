@@ -19,6 +19,7 @@
 #include <pylon_camera/pylon_interface.h>
 #include <pylon_camera_msgs/SetExposureSrv.h>
 #include <pylon_camera_msgs/SetBrightnessSrv.h>
+#include <pylon_camera_msgs/SetSleepingSrv.h>
 
 using std::cout;
 using std::endl;
@@ -38,6 +39,7 @@ public:
 
     ros::ServiceServer set_exposure_service_;
     ros::ServiceServer set_brightness_service_;
+    ros::ServiceServer set_sleeping_service_;
 
     sensor_msgs::Image img_raw_msg_;
     sensor_msgs::CameraInfo cam_info_msg_;
@@ -62,12 +64,16 @@ public:
         pylon_camera_msgs::SetExposureSrv::Response &res);
     bool setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
         pylon_camera_msgs::SetBrightnessSrv::Response &res);
+    bool setSleepingCallback(pylon_camera_msgs::SetSleepingSrv::Request &req,
+        pylon_camera_msgs::SetSleepingSrv::Response &res);
     bool have_intrinsic_data();
+    bool is_sleeping();
 
 protected:
 
     ros::NodeHandle nh_;
     image_transport::ImageTransport* it_;
+    bool is_sleeping_;
 
 };
 } /* namespace pylon_camera */
