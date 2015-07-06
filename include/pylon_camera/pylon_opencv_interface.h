@@ -30,7 +30,7 @@ public:
 
     bool exposure_search_running_;
     ExposureSearchParameter exp_search_params_;
-    void setupExtendedBrightnessSearch(int brightness);
+    void setupExtendedBrightnessSearch(int &brightness);
 private:
 };
 

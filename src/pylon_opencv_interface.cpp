@@ -125,7 +125,7 @@ int PylonOpenCVInterface::initSequencer(const PylonCameraParameter &params)
     return 0;
 
 }
-void PylonOpenCVInterface::setupExtendedBrightnessSearch(int brightness)
+void PylonOpenCVInterface::setupExtendedBrightnessSearch(int &brightness)
 {
     double brightness_f = brightness / 255.0;
 

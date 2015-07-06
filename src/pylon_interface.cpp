@@ -492,8 +492,8 @@ bool PylonInterface::setBrightness(int brightness)
                                                                              <= gige_cam_->AutoTargetValue.GetMax())
                     {
                         // Use Pylon Auto Funciton, whenever in possible range
-                        gige_cam_->AutoTargetValue.SetValue(brightness, false);
                         gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
+                        gige_cam_->AutoTargetValue.SetValue(brightness, false);
                     }
                     else
                     {
@@ -524,9 +524,10 @@ bool PylonInterface::setBrightness(int brightness)
                     if (usb_cam_->AutoTargetBrightness.GetMin() <= brightness_f && brightness_f
                                     <= usb_cam_->AutoTargetBrightness.GetMax())
                     {
+//                        cout << "setting " << brightness_f << endl;
                         // Use Pylon Auto Funciton, whenever in possible range
-                        usb_cam_->AutoTargetBrightness.SetValue(brightness_f, false);
                         usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+                        usb_cam_->AutoTargetBrightness.SetValue(brightness_f);
                     }
                     else
                     {
@@ -558,8 +559,8 @@ bool PylonInterface::setBrightness(int brightness)
                                     <= dart_cam_->AutoTargetBrightness.GetMax())
                     {
                         // Use Pylon Auto Funciton, whenever in possible range
-                        dart_cam_->AutoTargetBrightness.SetValue(brightness_f, false);
                         dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+                        dart_cam_->AutoTargetBrightness.SetValue(brightness_f, false);
                     } else
                     {
                         // Extended brightness search only available in PylonOpenCVInterface
@@ -583,7 +584,7 @@ bool PylonInterface::setBrightness(int brightness)
 }
 
 // Be careful: Same function exists in PylonOpenCVInterface
-void PylonInterface::setupExtendedBrightnessSearch(int brightness)
+void PylonInterface::setupExtendedBrightnessSearch(int &brightness)
 {
     cout << "Extended Auto-Funciton only available when compiling WITH_OPENCV! Possible Range: [50-205]. Will truncate desired value."
          << endl;
@@ -593,12 +594,12 @@ void PylonInterface::setupExtendedBrightnessSearch(int brightness)
         {
             if (gige_cam_->AutoTargetValue.GetMin() > brightness)
             {
-                gige_cam_->AutoTargetValue.SetValue(gige_cam_->AutoTargetValue.GetMin(), false);
                 gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
+                gige_cam_->AutoTargetValue.SetValue(gige_cam_->AutoTargetValue.GetMin(), false);
             } else if (gige_cam_->AutoTargetValue.GetMax() < brightness)
             {
-                gige_cam_->AutoTargetValue.SetValue(gige_cam_->AutoTargetValue.GetMax(), false);
                 gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
+                gige_cam_->AutoTargetValue.SetValue(gige_cam_->AutoTargetValue.GetMax(), false);
             } else
             {
                 cerr << "ERROR unexpected brightness case" << endl;

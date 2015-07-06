@@ -181,7 +181,7 @@ void PylonCameraNode::updateAquisitionSettings()
     }
     else
     {
-        ROS_DEBUG("Updating runtime parameter (update frequency is %d cycles)",
+        ROS_INFO("Updating runtime parameter (update frequency is %d cycles)",
                  params_.param_update_frequency_);
 
         getRuntimeCameraParameter();
@@ -254,6 +254,7 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
 
 {
     params_.brightness_ = req.target_brightness;
+    nh_.setParam("brightness", params_.brightness_);
     params_update_counter_ = params_.param_update_frequency_ - 1;
     brightness_service_running_ = true;
     res.success = true;

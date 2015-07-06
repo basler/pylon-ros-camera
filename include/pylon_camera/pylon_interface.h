@@ -102,7 +102,7 @@ protected:
     bool is_cam_removed_;
 
 private:
-    virtual void setupExtendedBrightnessSearch(int brightness);
+    virtual void setupExtendedBrightnessSearch(int &brightness);
 };
 
 } /* namespace pylon_camera */

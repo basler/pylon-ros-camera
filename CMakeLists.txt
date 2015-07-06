@@ -85,7 +85,7 @@ target_link_libraries(write_magazino_id_to_camera
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(pylon_camera_node pylon_camera_generate_messages_cpp)
 
-add_dependencies(pylon_camera_node ${catkin_EXPORTED_TARGETS})
+
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(pylon_camera_node 
