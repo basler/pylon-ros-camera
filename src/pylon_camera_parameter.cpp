@@ -20,7 +20,6 @@ PylonCameraParameter::PylonCameraParameter() :
                     exposure_(2000.0),
                     use_brightness_(false),
                     brightness_(128),
-                    use_trigger_service_(false),
                     intrinsic_yaml_file_(""),
                     have_intrinsic_data_(false)
 {

@@ -47,16 +47,8 @@ int main(int argc, char **argv)
 
     ros::Rate r(pylon_camera_node.params_.desired_frame_rate_);
 
-    if (pylon_camera_node.params_.use_trigger_service_)
-    {
-        ROS_INFO("Start image grabbing in service trigger mode with framerate: %.2f Hz",
+    ROS_INFO("Start image grabbing if node connects to topic with framerate: %.2f Hz",
                  pylon_camera_node.params_.desired_frame_rate_);
-    }
-    else
-    {
-        ROS_INFO("Start image grabbing if node connects to topic with framerate: %.2f Hz",
-                 pylon_camera_node.params_.desired_frame_rate_);
-    }
 
     while (ros::ok())
     {

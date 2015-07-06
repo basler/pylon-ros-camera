@@ -67,7 +67,6 @@ void PylonCameraNode::getInitialCameraParameter()
 }
 void PylonCameraNode::getRuntimeCameraParameter()
 {
-    nh_.param<bool>("use_trigger_service", params_.use_trigger_service_, false);
     nh_.param<int>("parameter_update_frequency", params_.param_update_frequency_, 100);
 
     nh_.param<double>("exposure", params_.exposure_, 35000.0); 	// -2: AutoExposureOnce

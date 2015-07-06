@@ -29,7 +29,6 @@ public:
     double exposure_;
     bool use_brightness_;
     int brightness_;
-    bool use_trigger_service_;
     std::string intrinsic_yaml_file_;
     bool have_intrinsic_data_;
 };
