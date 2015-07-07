@@ -185,7 +185,7 @@ void PylonCameraNode::updateAquisitionSettings()
     }
     else
     {
-        ROS_INFO("Updating runtime parameter (update frequency is %d cycles)",
+        ROS_DEBUG("Updating runtime parameter (update frequency is %d cycles)",
                  params_.param_update_frequency_);
 
         getRuntimeCameraParameter();

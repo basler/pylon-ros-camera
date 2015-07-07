@@ -175,6 +175,11 @@ bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &par
                 // UserSetSelector_Default overrides Software Trigger Mode !!
                 gige_cam_->TriggerSource.SetValue(Basler_GigECameraParams::TriggerSource_Software);
                 gige_cam_->TriggerMode.SetValue(Basler_GigECameraParams::TriggerMode_On);
+
+                // raise package size for solving error: 'the image buffer was incompleteyl grabbed'
+                // also in ubuntu settings -> network -> opitons -> MTU Size from 'automatic' to 9000
+                gige_cam_->GevStreamChannelSelector.SetValue(Basler_GigECameraParams::GevStreamChannelSelector_StreamChannel0);
+                gige_cam_->GevSCPSPacketSize.SetValue(1500);
                 break;
             case USB:
                 usb_cam_->RegisterConfiguration(new CSoftwareTriggerConfiguration,
@@ -611,12 +616,12 @@ void PylonInterface::setupExtendedBrightnessSearch(int &brightness)
             double brightness_f = brightness / 255.0;
             if (usb_cam_->AutoTargetBrightness.GetMin() > brightness_f)
             {
-                usb_cam_->AutoTargetBrightness.SetValue(usb_cam_->AutoTargetBrightness.GetMin(), false);
                 usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+                usb_cam_->AutoTargetBrightness.SetValue(usb_cam_->AutoTargetBrightness.GetMin(), false);
             } else if (usb_cam_->AutoTargetBrightness.GetMax() < brightness_f)
             {
-                usb_cam_->AutoTargetBrightness.SetValue(usb_cam_->AutoTargetBrightness.GetMax(), false);
                 usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+                usb_cam_->AutoTargetBrightness.SetValue(usb_cam_->AutoTargetBrightness.GetMax(), false);
             } else
             {
                 cerr << "ERROR unexpected brightness case" << endl;

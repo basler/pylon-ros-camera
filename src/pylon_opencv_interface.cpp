@@ -133,17 +133,18 @@ void PylonOpenCVInterface::setupExtendedBrightnessSearch(int &brightness)
     {
         case GIGE:
         {
-
             if (gige_cam_->AutoTargetValue.GetMin() > brightness)
             {
-                gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Off);
+                gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
+                gige_cam_->AutoTargetValue.SetValue(gige_cam_->AutoTargetValue.GetMin(), false);
                 cout << "Desired brightness " << brightness
                      << " out of Pylon-Auto-Range [50-205]. Starting own Auto-function!"
                      << endl;
                 exposure_search_running_ = true;
             } else if (gige_cam_->AutoTargetValue.GetMax() < brightness)
             {
-                gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Off);
+                gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
+                gige_cam_->AutoTargetValue.SetValue(gige_cam_->AutoTargetValue.GetMax(), false);
                 cout << "Desired brightness " << brightness
                      << " out of Pylon-Auto-Range [50-205]. Starting own Auto-function!"
                      << endl;
@@ -156,17 +157,18 @@ void PylonOpenCVInterface::setupExtendedBrightnessSearch(int &brightness)
         }
         case USB:
         {
-
             if (usb_cam_->AutoTargetBrightness.GetMin() > brightness_f)
             {
-                usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+                usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+                usb_cam_->AutoTargetBrightness.SetValue(usb_cam_->AutoTargetBrightness.GetMin(), false);
                 cout << "Desired brightness " << brightness
                      << " out of Pylon-Auto-Range [50-205]. Starting own Auto-function!"
                      << endl;
                 exposure_search_running_ = true;
             } else if (usb_cam_->AutoTargetBrightness.GetMax() < brightness_f)
             {
-                usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+                usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+                usb_cam_->AutoTargetBrightness.SetValue(usb_cam_->AutoTargetBrightness.GetMax(), false);
                 cout << "Desired brightness " << brightness
                      << " out of Pylon-Auto-Range [50-205]. Starting own Auto-function!"
                      << endl;
@@ -181,14 +183,16 @@ void PylonOpenCVInterface::setupExtendedBrightnessSearch(int &brightness)
         {
             if (dart_cam_->AutoTargetBrightness.GetMin() > brightness_f)
             {
-                dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+                dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+                dart_cam_->AutoTargetBrightness.SetValue(dart_cam_->AutoTargetBrightness.GetMin(), false);
                 cout << "Desired brightness " << brightness
                      << " out of Pylon-Auto-Range [50-205]. Starting own Auto-function!"
                      << endl;
                 exposure_search_running_ = true;
             } else if (dart_cam_->AutoTargetBrightness.GetMax() < brightness_f)
             {
-                dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+                dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+                dart_cam_->AutoTargetBrightness.SetValue(dart_cam_->AutoTargetBrightness.GetMax(), false);
                 cout << "Desired brightness " << brightness
                      << " out of Pylon-Auto-Range [50-205]. Starting own Auto-function!"
                      << endl;
