@@ -8,6 +8,7 @@
  */
 
 #include <ros/ros.h>
+#include <boost/thread.hpp>
 
 #ifdef WITH_OPENCV
 #include <pylon_camera/pylon_camera_opencv_node.h>
@@ -49,6 +50,9 @@ int main(int argc, char **argv)
 
     ROS_INFO("Start image grabbing if node connects to topic with framerate: %.2f Hz",
              pylon_camera_node.params_.desired_frame_rate_);
+
+    // Main thread and brightness-service thread
+    boost::thread th(boost::bind(&ros::spin));
 
     while (ros::ok())
     {
@@ -98,9 +102,6 @@ int main(int argc, char **argv)
             } else // single image acquisition
             {
                 pylon_camera_node.grabImage();
-                if(pylon_camera_node.pylon_opencv_interface_.exposure_search_running_){
-                    continue;
-                }
 
                 if (pylon_camera_node.getNumSubscribersRaw() > 0)
                 {
@@ -122,7 +123,8 @@ int main(int argc, char **argv)
 #endif
 
         }
-        ros::spinOnce();
+        // will now be called from the boost thread
+        // ros::spinOnce();
         r.sleep();
     }
 

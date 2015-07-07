@@ -259,7 +259,6 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
 
 bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
     pylon_camera_msgs::SetBrightnessSrv::Response &res)
-
 {
     params_.use_brightness_ =  true;
     nh_.setParam("use_brightness", params_.use_brightness_);
@@ -268,11 +267,12 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
     params_update_counter_ = params_.param_update_frequency_ - 1;
     brightness_service_running_ = true;
 
-//    ros::Rate r(2.0);
-//    while(brightness_service_running_){
-//        ros::spinOnce();
-//        r.sleep();
-//    }
+    ros::Rate r(5.0);
+//    boost::thread* spinner = new boost::thread(&ros::spin());
+    while(ros::ok() && brightness_service_running_){
+        ros::spinOnce();
+        r.sleep();
+    }
     res.success = true;
     return true;
 }
