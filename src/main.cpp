@@ -98,6 +98,9 @@ int main(int argc, char **argv)
             } else // single image acquisition
             {
                 pylon_camera_node.grabImage();
+                if(pylon_camera_node.pylon_opencv_interface_.exposure_search_running_){
+                    continue;
+                }
 
                 if (pylon_camera_node.getNumSubscribersRaw() > 0)
                 {

@@ -243,6 +243,7 @@ bool PylonCameraNode::grabImage()
 bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Request &req,
     pylon_camera_msgs::SetExposureSrv::Response &res)
 {
+    params_.use_brightness_ =  false;
     if (pylon_interface_->setExposure(req.target_exposure))
     {
         res.success = false;
@@ -255,17 +256,27 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
     }
     return res.success;
 }
+
 bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
     pylon_camera_msgs::SetBrightnessSrv::Response &res)
 
 {
+    params_.use_brightness_ =  true;
+    nh_.setParam("use_brightness", params_.use_brightness_);
     params_.brightness_ = req.target_brightness;
     nh_.setParam("brightness", params_.brightness_);
     params_update_counter_ = params_.param_update_frequency_ - 1;
     brightness_service_running_ = true;
+
+//    ros::Rate r(2.0);
+//    while(brightness_service_running_){
+//        ros::spinOnce();
+//        r.sleep();
+//    }
     res.success = true;
     return true;
 }
+
 bool PylonCameraNode::setSleepingCallback(pylon_camera_msgs::SetSleepingSrv::Request &req,
     pylon_camera_msgs::SetSleepingSrv::Response &res)
 {
