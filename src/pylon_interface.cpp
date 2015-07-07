@@ -384,16 +384,13 @@ bool PylonInterface::findDesiredCam(const PylonCameraParameter &params)
             switch (cam_type_)
             {
                 case GIGE:
-                    gige_cam_ = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance()
-                                                                                             .CreateFirstDevice());
+                    gige_cam_ = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateDevice(camera_array[cam_pos].GetDeviceInfo()));
                     break;
                 case USB:
-                    usb_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance()
-                                                                                           .CreateFirstDevice());
+                    usb_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateDevice(camera_array[cam_pos].GetDeviceInfo()));
                     break;
                 case DART:
-                    dart_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance()
-                                                                                            .CreateFirstDevice());
+                    dart_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateDevice(camera_array[cam_pos].GetDeviceInfo()));
                     break;
                 default:
                     cerr << "UNKNOWN camera type!" << endl;
