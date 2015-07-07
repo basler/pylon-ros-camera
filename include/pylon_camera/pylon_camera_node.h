@@ -58,7 +58,6 @@ public:
     void updateAquisitionSettings();
     void updateROSBirghtnessParameter();
     uint32_t getNumSubscribers();
-//    const uint8_t* grabImage();
     bool grabImage();
     bool setExposureCallback(pylon_camera_msgs::SetExposureSrv::Request &req,
         pylon_camera_msgs::SetExposureSrv::Response &res);

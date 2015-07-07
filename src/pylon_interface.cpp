@@ -596,7 +596,7 @@ void PylonInterface::setupExtendedBrightnessSearch(int &brightness)
     switch (cam_type_)
     {
         case GIGE:
-        {
+            {
             if (gige_cam_->AutoTargetValue.GetMin() > brightness)
             {
                 gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
@@ -612,7 +612,7 @@ void PylonInterface::setupExtendedBrightnessSearch(int &brightness)
             break;
         }
         case USB:
-        {
+            {
             double brightness_f = brightness / 255.0;
             if (usb_cam_->AutoTargetBrightness.GetMin() > brightness_f)
             {
@@ -629,7 +629,7 @@ void PylonInterface::setupExtendedBrightnessSearch(int &brightness)
             break;
         }
         case DART:
-        {
+            {
             double brightness_f = brightness / 255.0;
             if (dart_cam_->AutoTargetBrightness.GetMin() > brightness_f)
             {

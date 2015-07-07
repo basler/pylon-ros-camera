@@ -179,9 +179,9 @@ bool PylonCameraOpenCVNode::grabImage()
     {
         int c = pylon_interface_->img_cols(), r = pylon_interface_->img_rows();
         pylon_opencv_interface_.exp_search_params_.current_brightness_ = cv::mean(img_raw.colRange(0.25 * c, 0.75 * c)
-                                                                                                               .rowRange(0.25 * r,
-                                                                                                                         0.75 * r))
-                        .val[0];
+                        .rowRange(0.25 * r,
+                                  0.75 * r))
+                                            .val[0];
     }
 
     if (params_.have_intrinsic_data_)

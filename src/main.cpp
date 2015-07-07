@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     ros::Rate r(pylon_camera_node.params_.desired_frame_rate_);
 
     ROS_INFO("Start image grabbing if node connects to topic with framerate: %.2f Hz",
-                 pylon_camera_node.params_.desired_frame_rate_);
+             pylon_camera_node.params_.desired_frame_rate_);
 
     while (ros::ok())
     {
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
                     {
                         pylon_camera_node.brightness_service_running_ = false;
                     }
-                 }
+                }
 
 #ifdef WITH_OPENCV
             }
@@ -112,7 +112,8 @@ int main(int argc, char **argv)
                 }
             }
 #else
-            if(pylon_camera_node.grabImage()){
+            if(pylon_camera_node.grabImage())
+            {
                 pylon_camera_node.img_raw_pub_.publish(pylon_camera_node.img_raw_msg_, pylon_camera_node.cam_info_msg_);
             }
 #endif

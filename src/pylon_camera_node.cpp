@@ -34,8 +34,8 @@ PylonCameraNode::PylonCameraNode() :
                                                    &PylonCameraNode::setBrightnessCallback,
                                                    this);
     set_sleeping_service_ = nh_.advertiseService("set_sleeping_srv",
-                                                   &PylonCameraNode::setSleepingCallback,
-                                                   this);
+                                                 &PylonCameraNode::setSleepingCallback,
+                                                 this);
 }
 
 // Set parameter to open the desired camera
@@ -64,6 +64,7 @@ void PylonCameraNode::getInitialCameraParameter()
     }
     nh_.param<std::string>("camera_frame", params_.camera_frame_, "pylon_camera");
 }
+
 void PylonCameraNode::getRuntimeCameraParameter()
 {
     nh_.param<int>("parameter_update_frequency", params_.param_update_frequency_, 100);
@@ -83,6 +84,7 @@ void PylonCameraNode::getRuntimeCameraParameter()
         nh_.param<int>("brightness", params_.brightness_, 128);
     }
 }
+
 uint32_t PylonCameraNode::getNumSubscribers()
 {
     return img_raw_pub_.getNumSubscribers();
@@ -94,11 +96,13 @@ void PylonCameraNode::createPylonInterface()
 //    pylon_interface_ = new PylonInterface();
 //    ROS_INFO("Created PylonInterface");
 }
+
 void PylonCameraNode::updateROSBirghtnessParameter()
 {
     params_.brightness_ = pylon_interface_->last_brightness_val();
     nh_.setParam("brightness", params_.brightness_);
 }
+
 bool PylonCameraNode::init()
 {
     if (!initAndRegister())
@@ -176,6 +180,7 @@ bool PylonCameraNode::startGrabbing()
 
     return true;
 }
+
 void PylonCameraNode::updateAquisitionSettings()
 {
     if (params_.use_sequencer_)
@@ -186,7 +191,7 @@ void PylonCameraNode::updateAquisitionSettings()
     else
     {
         ROS_DEBUG("Updating runtime parameter (update frequency is %d cycles)",
-                 params_.param_update_frequency_);
+                  params_.param_update_frequency_);
 
         getRuntimeCameraParameter();
 
@@ -215,6 +220,7 @@ void PylonCameraNode::updateAquisitionSettings()
         }
     }
 }
+
 bool PylonCameraNode::grabImage()
 {
     if (!pylon_interface_->grab(params_, img_raw_msg_.data))
@@ -261,17 +267,21 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
     return true;
 }
 bool PylonCameraNode::setSleepingCallback(pylon_camera_msgs::SetSleepingSrv::Request &req,
-    pylon_camera_msgs::SetSleepingSrv::Response &res){
+    pylon_camera_msgs::SetSleepingSrv::Response &res)
+{
     is_sleeping_ = req.set_sleeping;
-    if(is_sleeping_){
+    if (is_sleeping_)
+    {
         ROS_INFO("Seting Pylon Camera Node to sleep...");
-    } else {
+    } else
+    {
         ROS_INFO("Pylon Camera Node continues grabbing");
     }
     res.success = true;
     return true;
 }
-bool PylonCameraNode::is_sleeping(){
+bool PylonCameraNode::is_sleeping()
+{
     return is_sleeping_;
 }
 bool PylonCameraNode::have_intrinsic_data()
