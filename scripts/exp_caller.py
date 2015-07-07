@@ -10,10 +10,12 @@ from math import pi
 
 def exposure_client(exp,camera_name):
     name = camera_name+'/calib_exposure_action'
-    print "waiting for server", name
+    rospy.loginfo("waiting for server " + name)
     client_exp = actionlib.SimpleActionClient(name, maru_msgs.msg.calib_exposureAction)
-    client_exp.wait_for_server()
-    print "has server"
+    if not client_exp.wait_for_server(rospy.Duration(5.0)):
+        rospy.logerr("Could not find server")
+        exit(0)
+
     goal = maru_msgs.msg.calib_exposureGoal()
     goal.goal_exposure = exp
     goal.accuracy = 5
@@ -24,15 +26,24 @@ def exposure_client(exp,camera_name):
 
 
 if __name__ == '__main__':
-  
-  try:
-      rospy.init_node('exp_caller')
-      cam_name = "/crane"
-      if len(sys.argv) > 2:
-          cam_name = sys.argv[2]
-  
-      result = exposure_client(int(sys.argv[1]),cam_name)
-      # print result
-      # print "Result:", ', '.join([str(n) for n in result.sequence])
-  except rospy.ROSInterruptException:
-      print "program interrupted before completion"
+
+    try:
+        rospy.init_node('exp_caller')
+
+
+        if len(sys.argv) < 3:
+            print "Usage: ./exp_caller brightness camera"
+            exit(0)
+
+        cam_name = sys.argv[2]
+
+        try:
+            brightness = int(sys.argv[1])
+        except ValueError:
+            rospy.logerr("target brightness of " + str(sys.argv[1]) + " is not an integer!")
+            exit(0)
+
+        result = exposure_client(brightness,cam_name)
+
+    except rospy.ROSInterruptException:
+        print "program interrupted before completion"

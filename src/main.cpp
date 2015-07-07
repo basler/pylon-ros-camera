@@ -70,6 +70,7 @@ int main(int argc, char **argv)
 #endif
                 // Update all possible runtime parameter (exposure, brightness, etc) every param_update_frequency_ cycles
                 pylon_camera_node.params_update_counter_++;
+
                 if (pylon_camera_node.params_update_counter_ % pylon_camera_node.params_.param_update_frequency_ == 0)
                 {
                     pylon_camera_node.updateAquisitionSettings();

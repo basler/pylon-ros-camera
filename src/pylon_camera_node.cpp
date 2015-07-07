@@ -24,7 +24,6 @@ PylonCameraNode::PylonCameraNode() :
                     params_update_counter_(0),
                     brightness_service_running_(false),
                     is_sleeping_(false)
-
 {
     it_ = new image_transport::ImageTransport(nh_);
     img_raw_pub_ = it_->advertiseCamera("image_raw", 10);
@@ -68,6 +67,7 @@ void PylonCameraNode::getInitialCameraParameter()
 void PylonCameraNode::getRuntimeCameraParameter()
 {
     nh_.param<int>("parameter_update_frequency", params_.param_update_frequency_, 100);
+    params_update_counter_ = params_.param_update_frequency_ - 1;
 
     nh_.param<double>("exposure", params_.exposure_, 35000.0); 	// -2: AutoExposureOnce
     // -1: AutoExposureContinuous
@@ -91,8 +91,8 @@ uint32_t PylonCameraNode::getNumSubscribers()
 // Using OpenCV -> creates PylonOpenCVNode (with sequencer and rectification), else: only image_raw
 void PylonCameraNode::createPylonInterface()
 {
-    pylon_interface_ = new PylonInterface();
-    ROS_INFO("Created PylonInterface");
+//    pylon_interface_ = new PylonInterface();
+//    ROS_INFO("Created PylonInterface");
 }
 void PylonCameraNode::updateROSBirghtnessParameter()
 {
