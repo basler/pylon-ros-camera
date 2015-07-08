@@ -180,7 +180,7 @@ bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &par
                 // also in ubuntu settings -> network -> options -> MTU Size from 'automatic' to 9000 (if card supports it, else 3000)
                 gige_cam_->GevStreamChannelSelector.SetValue(Basler_GigECameraParams::GevStreamChannelSelector_StreamChannel0);
                 gige_cam_->GevSCPSPacketSize.SetValue(3000);
-                gige_cam_->GevSCPD.SetValue(6000);
+                gige_cam_->GevSCPD.SetValue(10000);
                 break;
             case USB:
                 usb_cam_->RegisterConfiguration(new CSoftwareTriggerConfiguration,
