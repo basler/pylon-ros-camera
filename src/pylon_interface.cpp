@@ -176,10 +176,11 @@ bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &par
                 gige_cam_->TriggerSource.SetValue(Basler_GigECameraParams::TriggerSource_Software);
                 gige_cam_->TriggerMode.SetValue(Basler_GigECameraParams::TriggerMode_On);
 
-                // raise package size for solving error: 'the image buffer was incompleteyl grabbed'
-                // also in ubuntu settings -> network -> opitons -> MTU Size from 'automatic' to 9000
+                // raise inter-package delay (GevSCPD) for solving error: 'the image buffer was incompletely grabbed'
+                // also in ubuntu settings -> network -> options -> MTU Size from 'automatic' to 9000 (if card supports it, else 3000)
                 gige_cam_->GevStreamChannelSelector.SetValue(Basler_GigECameraParams::GevStreamChannelSelector_StreamChannel0);
-                gige_cam_->GevSCPSPacketSize.SetValue(1500);
+                gige_cam_->GevSCPSPacketSize.SetValue(3000);
+                gige_cam_->GevSCPD.SetValue(6000);
                 break;
             case USB:
                 usb_cam_->RegisterConfiguration(new CSoftwareTriggerConfiguration,
