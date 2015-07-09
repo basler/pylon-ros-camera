@@ -126,6 +126,8 @@ bool PylonCameraNode::initAndRegister()
         return false;
     }
 
+    nh_.setParam("device_name", params_.magazino_cam_id_);
+
     if (!pylon_interface_->registerCameraConfiguration(params_))
     {
         ROS_ERROR("Error while registering the camera configuration");
@@ -260,6 +262,7 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
 bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
     pylon_camera_msgs::SetBrightnessSrv::Response &res)
 {
+
     params_.use_brightness_ =  true;
     nh_.setParam("use_brightness", params_.use_brightness_);
     params_.brightness_ = req.target_brightness;
