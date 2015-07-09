@@ -28,6 +28,7 @@ int PylonOpenCVInterface::initialize(const PylonCameraParameter &params)
         cerr << "Error while initializing the base Pylon Interface" << endl;
     }
 
+    /// Why is the result code ignored?
     int exit_code = 0;
 
     return exit_code;
