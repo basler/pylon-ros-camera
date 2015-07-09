@@ -60,7 +60,7 @@ int main(int argc, char **argv)
         {
 
 #ifdef WITH_OPENCV
-            if (pylon_camera_node.pylon_opencv_interface_.exposure_search_running_)
+            if (pylon_camera_node.pylon_opencv_interface_.own_brightness_search_running_)
             {
                 if (pylon_camera_node.pylon_opencv_interface_.setExtendedBrightness(pylon_camera_node.params_
                                 .brightness_))
@@ -74,16 +74,12 @@ int main(int argc, char **argv)
 #endif
                 // Update all possible runtime parameter (exposure, brightness, etc) every param_update_frequency_ cycles
                 pylon_camera_node.params_update_counter_++;
-
                 if (pylon_camera_node.params_update_counter_ % pylon_camera_node.params_.param_update_frequency_ == 0)
                 {
                     pylon_camera_node.updateAquisitionSettings();
                     pylon_camera_node.params_update_counter_ = 0;
-                    if (pylon_camera_node.brightness_service_running_)
-                    {
-                        pylon_camera_node.brightness_service_running_ = false;
-                    }
                 }
+                pylon_camera_node.checkForPylonAutoFunctionRunning();
 
 #ifdef WITH_OPENCV
             }

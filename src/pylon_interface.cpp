@@ -32,6 +32,7 @@ PylonInterface::PylonInterface() :
                     gige_img_pixel_depth_(Basler_GigECameraParams::PixelSize_Bpp8),
                     usb_img_encoding_(Basler_UsbCameraParams::PixelFormat_Mono8),
                     gige_img_encoding_(Basler_GigECameraParams::PixelFormat_Mono8),
+                    is_pylon_auto_function_running_(false),
                     cam_type_(UNKNOWN)
 {
 }
@@ -385,13 +386,16 @@ bool PylonInterface::findDesiredCam(const PylonCameraParameter &params)
             switch (cam_type_)
             {
                 case GIGE:
-                    gige_cam_ = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateDevice(camera_array[cam_pos].GetDeviceInfo()));
+                    gige_cam_ = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateDevice(camera_array[cam_pos]
+                                    .GetDeviceInfo()));
                     break;
                 case USB:
-                    usb_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateDevice(camera_array[cam_pos].GetDeviceInfo()));
+                    usb_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateDevice(camera_array[cam_pos]
+                                    .GetDeviceInfo()));
                     break;
                 case DART:
-                    dart_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateDevice(camera_array[cam_pos].GetDeviceInfo()));
+                    dart_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateDevice(camera_array[cam_pos]
+                                    .GetDeviceInfo()));
                     break;
                 default:
                     cerr << "UNKNOWN camera type!" << endl;
@@ -648,6 +652,34 @@ void PylonInterface::setupExtendedBrightnessSearch(int &brightness)
     }
     return;
 }
+bool PylonInterface::isAutoBrightnessFunctionRunning()
+{
+    switch (cam_type_)
+    {
+        case GIGE:
+        {
+            is_pylon_auto_function_running_ = !(gige_cam_->ExposureAuto.GetValue()
+                            == Basler_GigECameraParams::ExposureAuto_Off);
+            break;
+        }
+        case USB:
+        {
+            is_pylon_auto_function_running_ = !(usb_cam_->ExposureAuto.GetValue()
+                            == Basler_UsbCameraParams::ExposureAuto_Off);
+            break;
+        }
+        case DART:
+        {
+            is_pylon_auto_function_running_ = !(dart_cam_->ExposureAuto.GetValue()
+                            == Basler_UsbCameraParams::ExposureAuto_Off);
+            break;
+        }
+        default:
+            break;
+    }
+    return is_pylon_auto_function_running_;
+}
+
 int PylonInterface::setExposure(double exposure)
 {
     // Exposure Auto is the 'automatic' counterpart to manually setting the Exposure Time Abs parameter.

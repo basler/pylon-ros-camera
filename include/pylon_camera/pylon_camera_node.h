@@ -67,6 +67,7 @@ public:
         pylon_camera_msgs::SetSleepingSrv::Response &res);
     bool have_intrinsic_data();
     bool is_sleeping();
+    void checkForPylonAutoFunctionRunning();
 
 protected:
 

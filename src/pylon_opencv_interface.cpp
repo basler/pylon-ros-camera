@@ -12,7 +12,7 @@ namespace pylon_camera
 
 PylonOpenCVInterface::PylonOpenCVInterface() :
                     img_sequence_(),
-                    exposure_search_running_(false),
+                    own_brightness_search_running_(false),
                     exp_search_params_()
 {
     // TODO Auto-generated constructor stub
@@ -140,7 +140,7 @@ void PylonOpenCVInterface::setupExtendedBrightnessSearch(int &brightness)
                 cout << "Desired brightness " << brightness
                      << " out of Pylon-Auto-Range [50-205]. Starting own Auto-function!"
                      << endl;
-                exposure_search_running_ = true;
+                own_brightness_search_running_ = true;
             } else if (gige_cam_->AutoTargetValue.GetMax() < brightness)
             {
                 gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
@@ -148,7 +148,7 @@ void PylonOpenCVInterface::setupExtendedBrightnessSearch(int &brightness)
                 cout << "Desired brightness " << brightness
                      << " out of Pylon-Auto-Range [50-205]. Starting own Auto-function!"
                      << endl;
-                exposure_search_running_ = true;
+                own_brightness_search_running_ = true;
             } else
             {
                 cerr << "ERROR unexpected brightness case" << endl;
@@ -164,7 +164,7 @@ void PylonOpenCVInterface::setupExtendedBrightnessSearch(int &brightness)
                 cout << "Desired brightness " << brightness
                      << " out of Pylon-Auto-Range [50-205]. Starting own Auto-function!"
                      << endl;
-                exposure_search_running_ = true;
+                own_brightness_search_running_ = true;
             } else if (usb_cam_->AutoTargetBrightness.GetMax() < brightness_f)
             {
                 usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
@@ -172,7 +172,7 @@ void PylonOpenCVInterface::setupExtendedBrightnessSearch(int &brightness)
                 cout << "Desired brightness " << brightness
                      << " out of Pylon-Auto-Range [50-205]. Starting own Auto-function!"
                      << endl;
-                exposure_search_running_ = true;
+                own_brightness_search_running_ = true;
             } else
             {
                 cerr << "ERROR unexpected brightness case" << endl;
@@ -188,7 +188,7 @@ void PylonOpenCVInterface::setupExtendedBrightnessSearch(int &brightness)
                 cout << "Desired brightness " << brightness
                      << " out of Pylon-Auto-Range [50-205]. Starting own Auto-function!"
                      << endl;
-                exposure_search_running_ = true;
+                own_brightness_search_running_ = true;
             } else if (dart_cam_->AutoTargetBrightness.GetMax() < brightness_f)
             {
                 dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
@@ -196,7 +196,7 @@ void PylonOpenCVInterface::setupExtendedBrightnessSearch(int &brightness)
                 cout << "Desired brightness " << brightness
                      << " out of Pylon-Auto-Range [50-205]. Starting own Auto-function!"
                      << endl;
-                exposure_search_running_ = true;
+                own_brightness_search_running_ = true;
             } else
             {
                 cerr << "ERROR unexpected brightness case" << endl;
@@ -247,7 +247,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
 
             if (fabs(exp_search_params_.goal_brightness_ - exp_search_params_.current_brightness_) < 1)
             {
-                exposure_search_running_ = false;
+                own_brightness_search_running_ = false;
                 exp_search_params_.is_initialized_ = false;
                 brightness = exp_search_params_.current_brightness_;
                 cout << "Own Auto Function: Success! Goal = " << brightness << endl;
@@ -255,7 +255,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
             }
             if (exp_search_params_.last_unchanged_exposure_counter_ > 2)
             {
-                exposure_search_running_ = false;
+                own_brightness_search_running_ = false;
                 exp_search_params_.is_initialized_ = false;
                 exp_search_params_.last_unchanged_exposure_counter_ = 0;
                 brightness = exp_search_params_.current_brightness_;
@@ -291,7 +291,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                                                                                                == gige_cam_->ExposureTimeAbs
                                                                                                                .GetMax())
             {
-                exposure_search_running_ = false;
+                own_brightness_search_running_ = false;
                 exp_search_params_.is_initialized_ = false;
                 cout << "WILL USE SMALLES EXP POSSIBLE!!!" << endl;
                 brightness = exp_search_params_.current_brightness_;
@@ -345,7 +345,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
 
             if (fabs(exp_search_params_.goal_brightness_ - exp_search_params_.current_brightness_) < 1)
             {
-                exposure_search_running_ = false;
+                own_brightness_search_running_ = false;
                 exp_search_params_.is_initialized_ = false;
                 brightness = exp_search_params_.current_brightness_;
                 cout << "Own Auto Function: Success! Goal = " << brightness << endl;
@@ -353,7 +353,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
             }
             if (exp_search_params_.last_unchanged_exposure_counter_ > 2)
             {
-                exposure_search_running_ = false;
+                own_brightness_search_running_ = false;
                 exp_search_params_.is_initialized_ = false;
                 exp_search_params_.last_unchanged_exposure_counter_ = 0;
                 brightness = exp_search_params_.current_brightness_;
@@ -389,7 +389,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                                                                                            == usb_cam_->ExposureTime
                                                                                                            .GetMax())
             {
-                exposure_search_running_ = false;
+                own_brightness_search_running_ = false;
                 exp_search_params_.is_initialized_ = false;
                 cout << "WILL USE SMALLES EXP POSSIBLE!!!" << endl;
                 brightness = exp_search_params_.current_brightness_;
@@ -442,7 +442,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
 
             if (fabs(exp_search_params_.goal_brightness_ - exp_search_params_.current_brightness_) < 1)
             {
-                exposure_search_running_ = false;
+                own_brightness_search_running_ = false;
                 exp_search_params_.is_initialized_ = false;
                 brightness = exp_search_params_.current_brightness_;
                 cout << "Own Auto Function: Success! Goal = " << brightness << endl;
@@ -450,7 +450,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
             }
             if (exp_search_params_.last_unchanged_exposure_counter_ > 2)
             {
-                exposure_search_running_ = false;
+                own_brightness_search_running_ = false;
                 exp_search_params_.is_initialized_ = false;
                 exp_search_params_.last_unchanged_exposure_counter_ = 0;
                 brightness = exp_search_params_.current_brightness_;
@@ -486,7 +486,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                                                                                             == dart_cam_->ExposureTime
                                                                                                             .GetMax())
             {
-                exposure_search_running_ = false;
+                own_brightness_search_running_ = false;
                 exp_search_params_.is_initialized_ = false;
                 cout << "WILL USE SMALLES EXP POSSIBLE!!!" << endl;
                 brightness = exp_search_params_.current_brightness_;
@@ -510,6 +510,43 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
 
     return false;
 }
+
+//bool PylonOpenCVInterface::isAutoBrightnessFunctionRunning()
+//{
+//    if (own_brightness_search_running_)
+//    {
+//        is_pylon_auto_function_running_ = true;
+//    }
+//    else
+//    {
+//        switch (cam_type_)
+//        {
+//            case GIGE:
+//            {
+//                is_pylon_auto_function_running_ = !(gige_cam_->ExposureAuto.GetValue()
+//                                == Basler_GigECameraParams::ExposureAuto_Off);
+//                break;
+//            }
+//            case USB:
+//            {
+//                is_pylon_auto_function_running_ = !(usb_cam_->ExposureAuto.GetValue()
+//                                == Basler_UsbCameraParams::ExposureAuto_Off);
+//                break;
+//            }
+//            case DART:
+//            {
+//                is_pylon_auto_function_running_ = !(dart_cam_->ExposureAuto.GetValue()
+//                                == Basler_UsbCameraParams::ExposureAuto_Off);
+//                break;
+//            }
+//            default:
+//                break;
+//        }
+//
+//    }
+//    return is_pylon_auto_function_running_;
+//}
+
 bool PylonOpenCVInterface::grab(const PylonCameraParameter &params, cv::Mat &image)
 {
     switch (cam_type_)

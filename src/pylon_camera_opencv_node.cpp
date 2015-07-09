@@ -175,7 +175,7 @@ bool PylonCameraOpenCVNode::grabImage()
 
     cv::Mat img_raw = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1);
     memcpy(img_raw.ptr(), img_raw_msg_.data.data(), pylon_interface_->image_size());
-    if (pylon_opencv_interface_.exposure_search_running_)
+    if (pylon_opencv_interface_.own_brightness_search_running_)
     {
         int c = pylon_interface_->img_cols(), r = pylon_interface_->img_rows();
         pylon_opencv_interface_.exp_search_params_.current_brightness_ = cv::mean(img_raw.colRange(0.25 * c, 0.75 * c)

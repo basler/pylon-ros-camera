@@ -89,6 +89,9 @@ uint32_t PylonCameraNode::getNumSubscribers()
 {
     return img_raw_pub_.getNumSubscribers();
 }
+void PylonCameraNode::checkForPylonAutoFunctionRunning(){
+    brightness_service_running_ = pylon_interface_->isAutoBrightnessFunctionRunning();
+}
 
 // Using OpenCV -> creates PylonOpenCVNode (with sequencer and rectification), else: only image_raw
 void PylonCameraNode::createPylonInterface()

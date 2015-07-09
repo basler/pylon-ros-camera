@@ -28,9 +28,11 @@ public:
 
     std::vector<cv::Mat> img_sequence_;
 
-    bool exposure_search_running_;
+    bool own_brightness_search_running_;
     ExposureSearchParameter exp_search_params_;
     void setupExtendedBrightnessSearch(int &brightness);
+
+//    bool isAutoBrightnessFunctionRunning();
 private:
 };
 

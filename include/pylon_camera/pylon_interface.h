@@ -60,6 +60,7 @@ public:
     virtual bool grab(const PylonCameraParameter &params, std::vector<uint8_t> &image);
 
     virtual int initSequencer(const PylonCameraParameter &params);
+    virtual bool isAutoBrightnessFunctionRunning();
 
 //    virtual int terminate(const PylonCameraParameter &params);
 
@@ -100,6 +101,8 @@ protected:
     double last_exposure_val_;
     int last_brightness_val_;
     bool is_cam_removed_;
+
+    bool is_pylon_auto_function_running_;
 
 private:
     virtual void setupExtendedBrightnessSearch(int &brightness);
