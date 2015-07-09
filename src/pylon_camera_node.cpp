@@ -126,8 +126,6 @@ bool PylonCameraNode::initAndRegister()
         return false;
     }
 
-    nh_.setParam("device_name", params_.magazino_cam_id_);
-
     if (!pylon_interface_->registerCameraConfiguration(params_))
     {
         ROS_ERROR("Error while registering the camera configuration");
