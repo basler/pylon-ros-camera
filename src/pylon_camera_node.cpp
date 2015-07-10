@@ -264,6 +264,8 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
     pylon_camera_msgs::SetBrightnessSrv::Response &res)
 {
 
+    ROS_INFO("New brightness request for brightness %i", req.target_brightness);
+
     params_.use_brightness_ =  true;
     nh_.setParam("use_brightness", params_.use_brightness_);
     params_.brightness_ = req.target_brightness;

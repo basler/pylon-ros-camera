@@ -153,12 +153,16 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
     }
     return false;
 }
+
+
 int PylonInterface::initSequencer(const PylonCameraParameter &params)
 {
     // Dummy -> only used in PylonSequencerInterface
 //    usb_cam_->SequencerMode.SetValue(Basler_UsbCameraParams::SequencerMode_Off);
     return 0;
 }
+
+
 bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &params)
 {
     try
@@ -220,6 +224,7 @@ bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &par
     }
     return true;
 }
+
 
 bool PylonInterface::startGrabbing(const PylonCameraParameter &params)
 {
@@ -652,6 +657,8 @@ void PylonInterface::setupExtendedBrightnessSearch(int &brightness)
     }
     return;
 }
+
+
 bool PylonInterface::isAutoBrightnessFunctionRunning()
 {
     switch (cam_type_)
