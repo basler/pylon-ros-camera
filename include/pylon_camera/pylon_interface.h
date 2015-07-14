@@ -59,7 +59,7 @@ public:
 //    const uint8_t* grab(const PylonCameraParameter &params);
     virtual bool grab(const PylonCameraParameter &params, std::vector<uint8_t> &image);
 
-    virtual int initSequencer(const PylonCameraParameter &params);
+    virtual bool setupSequencer(const PylonCameraParameter &params);
     virtual bool isAutoBrightnessFunctionRunning();
 
 //    virtual int terminate(const PylonCameraParameter &params);

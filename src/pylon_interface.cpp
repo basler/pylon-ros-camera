@@ -153,11 +153,10 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
     }
     return false;
 }
-int PylonInterface::initSequencer(const PylonCameraParameter &params)
+bool PylonInterface::setupSequencer(const PylonCameraParameter &params)
 {
     // Dummy -> only used in PylonSequencerInterface
-//    usb_cam_->SequencerMode.SetValue(Basler_UsbCameraParams::SequencerMode_Off);
-    return 0;
+    return true;
 }
 bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &params)
 {
