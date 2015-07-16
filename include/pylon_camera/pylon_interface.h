@@ -8,7 +8,7 @@
 #ifndef PYLON_INTERFACE_H_
 #define PYLON_INTERFACE_H_
 
-//#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 #include <iostream>
 #include <pylon/PylonIncludes.h>
