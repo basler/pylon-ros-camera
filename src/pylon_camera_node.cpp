@@ -63,6 +63,7 @@ void PylonCameraNode::getInitialCameraParameter()
                   params_.desired_frame_rate_);
     }
     nh_.param<std::string>("camera_frame", params_.camera_frame_, "pylon_camera");
+    nh_.param<int>("mtu_size", params_.mtu_size_, 3000);
 }
 
 void PylonCameraNode::getRuntimeCameraParameter()
@@ -274,8 +275,16 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
     brightness_service_running_ = true;
 
     ros::Rate r(5.0);
+    ros::Time start = ros::Time::now();
 //    boost::thread* spinner = new boost::thread(&ros::spin());
-    while(ros::ok() && brightness_service_running_){
+    while(ros::ok() && brightness_service_running_)
+    {
+        if (ros::Time::now() - start > ros::Duration(5.0))
+        {
+           ROS_ERROR("Did not reach the required brightness in time");
+           res.success = false;          
+           return true;
+        }
         ros::spinOnce();
         r.sleep();
     }

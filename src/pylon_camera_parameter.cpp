@@ -23,7 +23,8 @@ PylonCameraParameter::PylonCameraParameter() :
                     brightness_(128),
                     intrinsic_yaml_file_(""),
                     have_intrinsic_data_(false),
-                    desired_seq_exp_times_()
+                    desired_seq_exp_times_(),
+                    mtu_size_(3000)
 {
     desired_seq_exp_times_.clear();
 }

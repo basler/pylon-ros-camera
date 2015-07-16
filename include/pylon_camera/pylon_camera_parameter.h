@@ -33,6 +33,7 @@ public:
     std::string intrinsic_yaml_file_;
     bool have_intrinsic_data_;
     std::vector<float> desired_seq_exp_times_;
+    int mtu_size_;
 };
 
 } /* namespace pylon_camera */
