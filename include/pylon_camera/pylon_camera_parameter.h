@@ -31,6 +31,7 @@ public:
     int brightness_;
     std::string intrinsic_yaml_file_;
     bool have_intrinsic_data_;
+    int mtu_size_;
 };
 
 } /* namespace pylon_camera */

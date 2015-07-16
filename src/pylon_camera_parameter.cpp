@@ -21,7 +21,8 @@ PylonCameraParameter::PylonCameraParameter() :
                     use_brightness_(false),
                     brightness_(128),
                     intrinsic_yaml_file_(""),
-                    have_intrinsic_data_(false)
+                    have_intrinsic_data_(false),
+                    mtu_size_(3000)
 {
     // TODO Auto-generated constructor stub
 }
