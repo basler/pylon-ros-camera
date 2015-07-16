@@ -158,6 +158,8 @@ bool PylonInterface::setupSequencer(const PylonCameraParameter &params)
     // Dummy -> only used in PylonSequencerInterface
     return true;
 }
+
+
 bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &params)
 {
     try
@@ -219,6 +221,7 @@ bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &par
     }
     return true;
 }
+
 
 bool PylonInterface::startGrabbing(const PylonCameraParameter &params)
 {
@@ -651,6 +654,8 @@ void PylonInterface::setupExtendedBrightnessSearch(int &brightness)
     }
     return;
 }
+
+
 bool PylonInterface::isAutoBrightnessFunctionRunning()
 {
     switch (cam_type_)
