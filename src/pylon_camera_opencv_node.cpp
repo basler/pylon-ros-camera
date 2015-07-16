@@ -10,16 +10,17 @@
 namespace pylon_camera {
 
 PylonCameraOpenCVNode::PylonCameraOpenCVNode() :
-                    img_rectifier_(),
-                    calib_loader_(),
                     cv_img_rect_(),
                     cv_img_seq_(),
                     cv_img_hdr_(),
                     exp_times_(),
+                    pylon_opencv_interface_(),
                     img_rect_pub_(nh_.advertise<sensor_msgs::Image>("image_rect", 10)),
                     img_seq_pub_(nh_.advertise<sensor_msgs::Image>("image_seq", 10)),
                     img_hdr_pub_(nh_.advertise<sensor_msgs::Image>("image_hdr", 10)),
-                    exp_times_pub_(nh_.advertise<pylon_camera_msgs::SequenceExposureTimes>("seq_exp_times", 10))
+                    exp_times_pub_(nh_.advertise<pylon_camera_msgs::SequenceExposureTimes>("seq_exp_times", 10)),
+                    img_rectifier_(),
+                    calib_loader_()
 {
 }
 
@@ -45,7 +46,14 @@ void PylonCameraOpenCVNode::getInitialCameraParameter()
         ROS_WARN("Alternative: Get only distorted image by compiling 'WITHOUT_OPENCV'");
         ROS_INFO("Will only provide image_raw!");
         params_.have_intrinsic_data_ = false;
+        if(params_.use_sequencer_){
+            ROS_WARN("Sequencer-Mode needs intrinsic data! Will disable sequencer!");
+            params_.use_sequencer_ =  false;
+            params_.output_hdr_ = false;
+        }
+
     }
+
 }
 
 void PylonCameraOpenCVNode::createPylonInterface()
@@ -113,8 +121,8 @@ bool PylonCameraOpenCVNode::init()
         cerr << "Error reading intrinsic calibration from yaml file!" << endl;
 //        return false;
     }
-    if (calib_loader_.img_cols() != img_raw_msg_.width || calib_loader_.img_rows()
-                                                          != img_raw_msg_.height)
+    if (calib_loader_.img_cols() != (int)img_raw_msg_.width || calib_loader_.img_rows()
+                                                          != (int)img_raw_msg_.height)
     {
         cerr << "Error: Image size from yaml file (" << calib_loader_.img_cols() << ", "
              << calib_loader_.img_rows()
@@ -122,7 +130,11 @@ bool PylonCameraOpenCVNode::init()
              << img_raw_msg_.width
              << ", " << img_raw_msg_.height << ")! Will publish only raw image!" << endl;
         params_.have_intrinsic_data_ = false;
-//        return false;
+        if(params_.use_sequencer_){
+            ROS_WARN("Sequencer-Mode needs intrinsic data! Will disable sequencer!");
+            params_.use_sequencer_ =  false;
+            params_.output_hdr_ = false;
+        }
     } else
     {
         params_.have_intrinsic_data_ = true;

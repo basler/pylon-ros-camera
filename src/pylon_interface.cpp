@@ -173,7 +173,11 @@ bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &par
                 gige_cam_->RegisterConfiguration(new CSoftwareTriggerConfiguration,
                                                  RegistrationMode_ReplaceAll,
                                                  Cleanup_Delete);
+                gige_cam_->GetTLParams().MaxRetryCountRead.SetValue(5);
+                gige_cam_->GetTLParams().MaxRetryCountWrite.SetValue(5);
+
                 gige_cam_->Open();
+
                 // Remove all previous settings (sequencer etc.)
                 gige_cam_->UserSetSelector.SetValue(Basler_GigECameraParams::UserSetSelector_Default);
                 gige_cam_->UserSetLoad.Execute();

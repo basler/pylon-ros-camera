@@ -33,10 +33,10 @@ public:
     cv_bridge::CvImage cv_img_hdr_;
     pylon_camera_msgs::SequenceExposureTimes exp_times_;
 
-    ros::Publisher exp_times_pub_;
-    ros::Publisher img_seq_pub_;
     ros::Publisher img_rect_pub_;
+    ros::Publisher img_seq_pub_;
     ros::Publisher img_hdr_pub_;
+    ros::Publisher exp_times_pub_;
 
     PylonOpenCVInterface pylon_opencv_interface_;
 
