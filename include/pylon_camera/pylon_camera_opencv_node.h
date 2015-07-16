@@ -17,7 +17,10 @@
 #include <pylon_camera/image_rectifier.h>
 #include <pylon_camera/pylon_opencv_interface.h>
 #include <pylon_camera/intrinsic_calib_loader.h>
-#include <pylon_camera/hdr_generator.h>
+
+#if CV_MAJOR_VERSION > 2   // If you are using OpenCV 3
+    #include <pylon_camera/hdr_generator.h>
+#endif
 
 namespace pylon_camera
 {

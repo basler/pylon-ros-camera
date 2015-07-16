@@ -32,7 +32,10 @@ void PylonCameraOpenCVNode::getInitialCameraParameter()
     if (params_.use_sequencer_)
     {
         nh_.getParam("desired_brightness_seq", params_.desired_seq_exp_times_);
-        nh_.param<bool>("output_hdr_img", params_.output_hdr_, false);
+
+#if CV_MAJOR_VERSION > 2   // If you are using OpenCV 3
+       nh_.param<bool>("output_hdr_img", params_.output_hdr_, false);
+#endif
     }
 
     nh_.param<std::string>("intrinsic_yaml_string",
@@ -266,6 +269,7 @@ bool PylonCameraOpenCVNode::grabSequence()
     cv_img_seq_.header.stamp = img_raw_msg_.header.stamp;
     exp_times_.header.stamp = img_raw_msg_.header.stamp;
 
+#if CV_MAJOR_VERSION > 2   // If you are using OpenCV 3
     if (params_.output_hdr_)
     {
         cv_img_hdr_.header.stamp = img_raw_msg_.header.stamp;
@@ -278,6 +282,7 @@ bool PylonCameraOpenCVNode::grabSequence()
         }
         img_rectifier_.rectify(hdr_img, cv_img_hdr_.image);
     }
+#endif
 
     cv::Mat img_seq_bgr;
     cv::Mat img_seq_123[] = {img_sequence.at(0), img_sequence.at(1), img_sequence.at(2)};

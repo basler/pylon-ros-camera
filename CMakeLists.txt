@@ -63,6 +63,14 @@ if (WITH_OPENCV)
         # it would even fail) all files, we want to use GLOB recurse and
         # exclude just the not used files.
         list(REMOVE_ITEM ${PROJECT_NAME}_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/write_magazino_id_to_camera.cpp")
+        MESSAGE(STATUS "--- ound OpenCV Version:")
+        MESSAGE(STATUS ${OpenCV_VERSION_MAJOR})
+        MESSAGE(STATUS ${OpenCV_VERSION_MAJOR} LESS 3)
+        if(${OpenCV_VERSION_MAJOR} LESS 3)
+        	# HDR only availbale for OpenCV 3.0
+        	MESSAGE(STATUS "OpenCV Major Version is ${OpenCV_VERSION_MAJOR}. Need Major Version > 3.0.0 for HDR support.")
+        	list(REMOVE_ITEM ${PROJECT_NAME}_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/hdr_generator.cpp")
+        endif(${OpenCV_VERSION_MAJOR} LESS 3)
             
 	MESSAGE(STATUS "FILES " ${${PROJECT_NAME}_FILES})
 	add_executable(pylon_camera_node src/pylon_camera_node.cpp ${${PROJECT_NAME}_FILES})
