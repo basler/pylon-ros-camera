@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(pylon_camera)
 
 SET(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS "-g -Wall -Wunknown-pragmas -Wdelete-non-virtual-dtor")
+set(CMAKE_CXX_FLAGS "-g -Wall -Wno-unknown-pragmas -Wno-delete-non-virtual-dtor")
 
 
 option(WITH_OPENCV "Build Pylon Camera with Rectification, Extended Auto Brightness and Sequencer (needs OpenCV)" ON)
