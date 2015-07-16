@@ -7,14 +7,14 @@
 
 #ifndef PYLON_INTERFACE_H_
 #define PYLON_INTERFACE_H_
+
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 #include <iostream>
 #include <pylon/PylonIncludes.h>
 #include <GenApi/IEnumEntry.h>
 #include <pylon/usb/BaslerUsbInstantCamera.h>
 #include <pylon/gige/BaslerGigEInstantCamera.h>
-
-#include <pylon/FeaturePersistence.h>
-
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/exposure_search_parameter.h>
 
@@ -59,7 +59,7 @@ public:
 //    const uint8_t* grab(const PylonCameraParameter &params);
     virtual bool grab(const PylonCameraParameter &params, std::vector<uint8_t> &image);
 
-    virtual int initSequencer(const PylonCameraParameter &params);
+    virtual bool setupSequencer(const PylonCameraParameter &params);
     virtual bool isAutoBrightnessFunctionRunning();
 
 //    virtual int terminate(const PylonCameraParameter &params);
@@ -103,7 +103,6 @@ protected:
     bool is_cam_removed_;
 
     bool is_pylon_auto_function_running_;
-
 private:
     virtual void setupExtendedBrightnessSearch(int &brightness);
 };

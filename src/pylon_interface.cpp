@@ -66,8 +66,10 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
         case GIGE:
             try
             {
+                double timeout = gige_cam_->ExposureTimeAbs.GetMax() * 1.05;
+                timeout = std::min(std::max(timeout, 200.0), 500.0);
                 gige_cam_->ExecuteSoftwareTrigger();
-                gige_cam_->RetrieveResult(gige_cam_->ExposureTimeAbs.GetMax() * 1.05,
+                gige_cam_->RetrieveResult((int)timeout,
                                           ptr_grab_result_,
                                           TimeoutHandling_ThrowException);
             }
@@ -76,6 +78,7 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
                 if (gige_cam_->IsCameraDeviceRemoved())
                 {
                     is_cam_removed_ = true;
+                    cerr << "cam is removed" << endl;
                 }
                 else
                 {
@@ -153,13 +156,10 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
     }
     return false;
 }
-
-
-int PylonInterface::initSequencer(const PylonCameraParameter &params)
+bool PylonInterface::setupSequencer(const PylonCameraParameter &params)
 {
     // Dummy -> only used in PylonSequencerInterface
-//    usb_cam_->SequencerMode.SetValue(Basler_UsbCameraParams::SequencerMode_Off);
-    return 0;
+    return true;
 }
 
 
@@ -173,7 +173,11 @@ bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &par
                 gige_cam_->RegisterConfiguration(new CSoftwareTriggerConfiguration,
                                                  RegistrationMode_ReplaceAll,
                                                  Cleanup_Delete);
+                gige_cam_->GetTLParams().MaxRetryCountRead.SetValue(5);
+                gige_cam_->GetTLParams().MaxRetryCountWrite.SetValue(5);
+
                 gige_cam_->Open();
+
                 // Remove all previous settings (sequencer etc.)
                 gige_cam_->UserSetSelector.SetValue(Basler_GigECameraParams::UserSetSelector_Default);
                 gige_cam_->UserSetLoad.Execute();
@@ -184,7 +188,7 @@ bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &par
                 // raise inter-package delay (GevSCPD) for solving error: 'the image buffer was incompletely grabbed'
                 // also in ubuntu settings -> network -> options -> MTU Size from 'automatic' to 9000 (if card supports it, else 3000)
                 gige_cam_->GevStreamChannelSelector.SetValue(Basler_GigECameraParams::GevStreamChannelSelector_StreamChannel0);
-                gige_cam_->GevSCPSPacketSize.SetValue(3000);
+                gige_cam_->GevSCPSPacketSize.SetValue(params.mtu_size_);
                 gige_cam_->GevSCPD.SetValue(10000);
                 break;
             case USB:
@@ -353,25 +357,31 @@ bool PylonInterface::findDesiredCam(const PylonCameraParameter &params)
             size_t cam_pos = -1;
             for (size_t i = 0; i < camera_array.GetSize(); ++i)
             {
-
-                camera_array[i].Attach(transport_layer_factory.CreateDevice(device_info_list[i]));
-
-                camera_array[i].Open();
-
-                GenApi::INodeMap& node_map = camera_array[i].GetNodeMap();
-                GenApi::CStringPtr DeviceUserID(node_map.GetNode("DeviceUserID"));
-
-                if (std::string(DeviceUserID->GetValue()) == params.magazino_cam_id_)
+                try
                 {
-                    found_desired_device = true;
-                    cam_pos = i;
-                    cout << "Found the desired Camera with Magazino ID: " << params.magazino_cam_id_
-                         << ": "
-                         << camera_array[cam_pos].GetDeviceInfo().GetModelName()
-                         << endl;
-                    break;
+                    camera_array[i].Attach(transport_layer_factory.CreateDevice(device_info_list[i]));
+    
+                    camera_array[i].Open();
+
+                    GenApi::INodeMap& node_map = camera_array[i].GetNodeMap();
+                    GenApi::CStringPtr DeviceUserID(node_map.GetNode("DeviceUserID"));
+
+                    if (std::string(DeviceUserID->GetValue()) == params.magazino_cam_id_)
+                    {
+                        found_desired_device = true;
+                        cam_pos = i;
+                        cout << "Found the desired Camera with Magazino ID: " << params.magazino_cam_id_
+                             << ": "
+                             << camera_array[cam_pos].GetDeviceInfo().GetModelName()
+                             << endl;
+                        break;
+                    }
+                    camera_array[i].Close();
                 }
-                camera_array[i].Close();
+                catch(GenICam::GenericException &e)
+                {
+                   continue;
+                }
             }
             if (!found_desired_device)
             {

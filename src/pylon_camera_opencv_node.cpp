@@ -10,14 +10,17 @@
 namespace pylon_camera {
 
 PylonCameraOpenCVNode::PylonCameraOpenCVNode() :
-                    img_rectifier_(),
-                    calib_loader_(),
                     cv_img_rect_(),
                     cv_img_seq_(),
+                    cv_img_hdr_(),
                     exp_times_(),
+                    pylon_opencv_interface_(),
                     img_rect_pub_(nh_.advertise<sensor_msgs::Image>("image_rect", 10)),
                     img_seq_pub_(nh_.advertise<sensor_msgs::Image>("image_seq", 10)),
-                    exp_times_pub_(nh_.advertise<pylon_camera_msgs::SequenceExposureTimes>("seq_exp_times", 10))
+                    img_hdr_pub_(nh_.advertise<sensor_msgs::Image>("image_hdr", 10)),
+                    exp_times_pub_(nh_.advertise<pylon_camera_msgs::SequenceExposureTimes>("seq_exp_times", 10)),
+                    img_rectifier_(),
+                    calib_loader_()
 {
 }
 
@@ -26,6 +29,14 @@ void PylonCameraOpenCVNode::getInitialCameraParameter()
     PylonCameraNode::getInitialCameraParameter();
 
     nh_.param<bool>("use_sequencer", params_.use_sequencer_, false);
+    if (params_.use_sequencer_)
+    {
+        nh_.getParam("desired_brightness_seq", params_.desired_seq_exp_times_);
+
+#if CV_MAJOR_VERSION > 2   // If you are using OpenCV 3
+       nh_.param<bool>("output_hdr_img", params_.output_hdr_, false);
+#endif
+    }
 
     nh_.param<std::string>("intrinsic_yaml_string",
                            params_.intrinsic_yaml_file_,
@@ -38,7 +49,14 @@ void PylonCameraOpenCVNode::getInitialCameraParameter()
         ROS_WARN("Alternative: Get only distorted image by compiling 'WITHOUT_OPENCV'");
         ROS_INFO("Will only provide image_raw!");
         params_.have_intrinsic_data_ = false;
+        if(params_.use_sequencer_){
+            ROS_WARN("Sequencer-Mode needs intrinsic data! Will disable sequencer!");
+            params_.use_sequencer_ =  false;
+            params_.output_hdr_ = false;
+        }
+
     }
+
 }
 
 void PylonCameraOpenCVNode::createPylonInterface()
@@ -50,7 +68,8 @@ void PylonCameraOpenCVNode::createPylonInterface()
 uint32_t PylonCameraOpenCVNode::getNumSubscribers()
 {
     return img_raw_pub_.getNumSubscribers() + img_rect_pub_.getNumSubscribers()
-           + img_seq_pub_.getNumSubscribers();
+           + img_seq_pub_.getNumSubscribers()
+           + img_hdr_pub_.getNumSubscribers();
 }
 
 uint32_t PylonCameraOpenCVNode::getNumSubscribersRaw()
@@ -66,6 +85,10 @@ uint32_t PylonCameraOpenCVNode::getNumSubscribersSeq()
 {
     return img_seq_pub_.getNumSubscribers();
 }
+uint32_t PylonCameraOpenCVNode::getNumSubscribersHdr()
+{
+    return img_hdr_pub_.getNumSubscribers();
+}
 bool PylonCameraOpenCVNode::init()
 {
     if (!PylonCameraNode::initAndRegister())
@@ -75,7 +98,7 @@ bool PylonCameraOpenCVNode::init()
 
     if (params_.use_sequencer_)
     {
-        pylon_opencv_interface_.initSequencer(params_);
+        pylon_opencv_interface_.setupSequencer(params_);
     }
 
     if (!PylonCameraNode::startGrabbing())
@@ -85,11 +108,13 @@ bool PylonCameraOpenCVNode::init()
 
     cv_img_rect_.header = img_raw_msg_.header;
     cv_img_seq_.header = img_raw_msg_.header;
+    cv_img_hdr_.header = img_raw_msg_.header;
     exp_times_.header = img_raw_msg_.header;
     // Encoding of pixels -- channel meaning, ordering, size
     // taken from the list of strings in include/sensor_msgs/image_encodings.h
     cv_img_rect_.encoding = pylon_interface_->img_encoding();
     cv_img_seq_.encoding = sensor_msgs::image_encodings::BGR8;
+    cv_img_hdr_.encoding = pylon_interface_->img_encoding();
 
     calib_loader_.init(params_.intrinsic_yaml_file_);
 
@@ -99,8 +124,8 @@ bool PylonCameraOpenCVNode::init()
         cerr << "Error reading intrinsic calibration from yaml file!" << endl;
 //        return false;
     }
-    if (calib_loader_.img_cols() != img_raw_msg_.width || calib_loader_.img_rows()
-                                                          != img_raw_msg_.height)
+    if (calib_loader_.img_cols() != (int)img_raw_msg_.width || calib_loader_.img_rows()
+                                                          != (int)img_raw_msg_.height)
     {
         cerr << "Error: Image size from yaml file (" << calib_loader_.img_cols() << ", "
              << calib_loader_.img_rows()
@@ -108,7 +133,11 @@ bool PylonCameraOpenCVNode::init()
              << img_raw_msg_.width
              << ", " << img_raw_msg_.height << ")! Will publish only raw image!" << endl;
         params_.have_intrinsic_data_ = false;
-//        return false;
+        if(params_.use_sequencer_){
+            ROS_WARN("Sequencer-Mode needs intrinsic data! Will disable sequencer!");
+            params_.use_sequencer_ =  false;
+            params_.output_hdr_ = false;
+        }
     } else
     {
         params_.have_intrinsic_data_ = true;
@@ -222,13 +251,38 @@ bool PylonCameraOpenCVNode::grabSequence()
         if (i == 1)
         {
             img_raw_msg_.data = std::vector<uint8_t>(img.data, img.data + pylon_interface_->image_size());
+            if (params_.have_intrinsic_data_)
+            {
+
+                cv::Mat img_rect = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(),
+                CV_8UC1);
+
+                img_rectifier_.rectify(img, img_rect);
+                cv_img_rect_.image = img_rect;
+            }
         }
     }
 
     img_raw_msg_.header.stamp = ros::Time::now();
     cam_info_msg_.header.stamp = img_raw_msg_.header.stamp;
+    cv_img_rect_.header = img_raw_msg_.header;
     cv_img_seq_.header.stamp = img_raw_msg_.header.stamp;
     exp_times_.header.stamp = img_raw_msg_.header.stamp;
+
+#if CV_MAJOR_VERSION > 2   // If you are using OpenCV 3
+    if (params_.output_hdr_)
+    {
+        cv_img_hdr_.header.stamp = img_raw_msg_.header.stamp;
+        HDRGenerator hdr_generator;
+        cv_img_hdr_.image = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1);
+        Mat hdr_img;
+        if (!hdr_generator.mergeMertens(img_sequence, pylon_opencv_interface_.seq_exp_times_, hdr_img))
+        {
+            cerr << "Error while generating HDR image" << endl;
+        }
+        img_rectifier_.rectify(hdr_img, cv_img_hdr_.image);
+    }
+#endif
 
     cv::Mat img_seq_bgr;
     cv::Mat img_seq_123[] = {img_sequence.at(0), img_sequence.at(1), img_sequence.at(2)};

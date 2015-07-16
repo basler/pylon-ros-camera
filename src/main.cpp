@@ -67,7 +67,6 @@ int main(int argc, char **argv)
                 {
                     pylon_camera_node.updateROSBirghtnessParameter();
                 }
-
             }
             else
             {
@@ -94,6 +93,19 @@ int main(int argc, char **argv)
                 {
                     pylon_camera_node.img_seq_pub_.publish(pylon_camera_node.cv_img_seq_);
                     pylon_camera_node.exp_times_pub_.publish(pylon_camera_node.exp_times_);
+                }
+                if(pylon_camera_node.getNumSubscribersHdr() > 0 && pylon_camera_node.params_.output_hdr_){
+                    pylon_camera_node.img_hdr_pub_.publish(pylon_camera_node.cv_img_hdr_);
+                }
+                if (pylon_camera_node.getNumSubscribersRaw() > 0)
+                {
+                    // Publish via image_transport
+                    pylon_camera_node.img_raw_pub_.publish(pylon_camera_node.img_raw_msg_,
+                                                           pylon_camera_node.cam_info_msg_);
+                }
+                if (pylon_camera_node.getNumSubscribersRect() > 0 && pylon_camera_node.have_intrinsic_data())
+                {
+                    pylon_camera_node.img_rect_pub_.publish(pylon_camera_node.cv_img_rect_);
                 }
             } else // single image acquisition
             {

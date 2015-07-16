@@ -16,14 +16,17 @@ PylonCameraParameter::PylonCameraParameter() :
                     desired_frame_rate_(-1.0),
                     target_exposure_(3000),
                     use_sequencer_(false),
+                    output_hdr_(false),
                     param_update_frequency_(50),
                     exposure_(2000.0),
                     use_brightness_(false),
                     brightness_(128),
                     intrinsic_yaml_file_(""),
-                    have_intrinsic_data_(false)
+                    have_intrinsic_data_(false),
+                    desired_seq_exp_times_(),
+                    mtu_size_(3000)
 {
-    // TODO Auto-generated constructor stub
+    desired_seq_exp_times_.clear();
 }
 
 PylonCameraParameter::~PylonCameraParameter()

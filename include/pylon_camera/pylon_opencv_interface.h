@@ -20,7 +20,7 @@ public:
     virtual ~PylonOpenCVInterface();
 
     int initialize(const PylonCameraParameter &params);
-    virtual int initSequencer(const PylonCameraParameter &params);
+    virtual bool setupSequencer(const PylonCameraParameter &params);
 //    virtual int terminate(const PylonCameraParameter &params);
     bool grab(const PylonCameraParameter &params, cv::Mat &image);
 
@@ -31,6 +31,11 @@ public:
     bool own_brightness_search_running_;
     ExposureSearchParameter exp_search_params_;
     void setupExtendedBrightnessSearch(int &brightness);
+    std::vector<float> seq_exp_times();
+
+    std::vector<float> seq_exp_times_;
+
+    bool findExposureSequence(const PylonCameraParameter &params);
 
 //    bool isAutoBrightnessFunctionRunning();
 private:
