@@ -66,7 +66,7 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
         case GIGE:
             try
             {
-                double timeout = gige_cam_->ExposureTimeAbs.GetMax() * 1.05;
+                double timeout = gige_cam_->ExposureTimeAbs.GetValue() * 1.05;
                 timeout = std::min(std::max(timeout, 200.0), 500.0);
                 gige_cam_->ExecuteSoftwareTrigger();
                 gige_cam_->RetrieveResult((int)timeout,
@@ -93,7 +93,7 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
             try
             {
                 usb_cam_->ExecuteSoftwareTrigger();
-                usb_cam_->RetrieveResult(usb_cam_->ExposureTime.GetMax() * 1.05,
+                usb_cam_->RetrieveResult(usb_cam_->ExposureTime.GetValue() * 1.05,
                                          ptr_grab_result_,
                                          TimeoutHandling_ThrowException);
             }
@@ -116,7 +116,7 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
             try
             {
                 dart_cam_->ExecuteSoftwareTrigger();
-                dart_cam_->RetrieveResult(dart_cam_->ExposureTime.GetMax() * 1.05,
+                dart_cam_->RetrieveResult(dart_cam_->ExposureTime.GetValue() * 1.05,
                                           ptr_grab_result_,
                                           TimeoutHandling_ThrowException);
             }
@@ -173,8 +173,8 @@ bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &par
                 gige_cam_->RegisterConfiguration(new CSoftwareTriggerConfiguration,
                                                  RegistrationMode_ReplaceAll,
                                                  Cleanup_Delete);
-                gige_cam_->GetTLParams().MaxRetryCountRead.SetValue(5);
-                gige_cam_->GetTLParams().MaxRetryCountWrite.SetValue(5);
+                gige_cam_->GetTLParams().MaxRetryCountRead.SetValue(6);
+                gige_cam_->GetTLParams().MaxRetryCountWrite.SetValue(6);
 
                 gige_cam_->Open();
 

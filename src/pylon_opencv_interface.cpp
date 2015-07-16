@@ -13,6 +13,7 @@ namespace pylon_camera
 PylonOpenCVInterface::PylonOpenCVInterface() :
                     img_sequence_(),
                     own_brightness_search_running_(false),
+                    own_brightness_search_sucess_(false),
                     exp_search_params_(),
                     seq_exp_times_()
 {
@@ -61,7 +62,7 @@ bool PylonOpenCVInterface::setupSequencer(const PylonCameraParameter &params)
                 {
                     if (GenApi::IsWritable(gige_cam_->SequenceEnable))
                     {
-                        cerr << "NOT YET IMPLEMENTED!!!" << endl;
+                        cerr << "SEQUENCER FOR GIGE NOT YET IMPLEMENTED!!!" << endl;
                     }
                 }
                 catch (GenICam::GenericException &e)
@@ -139,8 +140,7 @@ bool PylonOpenCVInterface::setupSequencer(const PylonCameraParameter &params)
             case DART:
                 try
                 {
-                    cerr << "NOT YET IMPLEMENTED!!!" << endl;
-
+                    cerr << "SEQUENCER FOR DART CAMERAS NOT YET IMPLEMENTED!!!" << endl;
                 }
                 catch (GenICam::GenericException &e)
                 {
@@ -282,6 +282,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 exp_search_params_.is_initialized_ = false;
                 brightness = exp_search_params_.current_brightness_;
                 cout << "Own Auto Function: Success! Goal = " << brightness << endl;
+                own_brightness_search_sucess_ = true;
                 return true;
             }
             if (exp_search_params_.last_unchanged_exposure_counter_ > 2)
@@ -290,7 +291,8 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 exp_search_params_.is_initialized_ = false;
                 exp_search_params_.last_unchanged_exposure_counter_ = 0;
                 brightness = exp_search_params_.current_brightness_;
-                cout << "Own Auto Function: Success! Goal = " << brightness << endl;
+                cout << "Own Auto Function: Fail! Last brightness = " << brightness << endl;
+                own_brightness_search_sucess_ = false;
                 return true;
             }
 
@@ -326,6 +328,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 exp_search_params_.is_initialized_ = false;
                 cout << "WILL USE SMALLES EXP POSSIBLE!!!" << endl;
                 brightness = exp_search_params_.current_brightness_;
+                own_brightness_search_sucess_ = true;
                 return true;
 
             }
@@ -380,6 +383,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 exp_search_params_.is_initialized_ = false;
                 brightness = exp_search_params_.current_brightness_;
                 cout << "Own Auto Function: Success! Goal = " << brightness << endl;
+                own_brightness_search_sucess_ = true;
                 return true;
             }
             if (exp_search_params_.last_unchanged_exposure_counter_ > 2)
@@ -388,7 +392,8 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 exp_search_params_.is_initialized_ = false;
                 exp_search_params_.last_unchanged_exposure_counter_ = 0;
                 brightness = exp_search_params_.current_brightness_;
-                cout << "Own Auto Function: Success! Goal = " << brightness << endl;
+                cout << "Own Auto Function: Fail! Last brightness = " << brightness << endl;
+                own_brightness_search_sucess_ = false;
                 return true;
             }
 
@@ -424,6 +429,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 exp_search_params_.is_initialized_ = false;
                 cout << "WILL USE SMALLES EXP POSSIBLE!!!" << endl;
                 brightness = exp_search_params_.current_brightness_;
+                own_brightness_search_sucess_ = false;
                 return true;
 
             }
@@ -477,6 +483,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 exp_search_params_.is_initialized_ = false;
                 brightness = exp_search_params_.current_brightness_;
                 cout << "Own Auto Function: Success! Goal = " << brightness << endl;
+                own_brightness_search_sucess_ = true;
                 return true;
             }
             if (exp_search_params_.last_unchanged_exposure_counter_ > 2)
@@ -485,7 +492,8 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 exp_search_params_.is_initialized_ = false;
                 exp_search_params_.last_unchanged_exposure_counter_ = 0;
                 brightness = exp_search_params_.current_brightness_;
-                cout << "Own Auto Function: Success! Goal = " << brightness << endl;
+                cout << "Own Auto Function: Fail! Last brightness = " << brightness << endl;
+                own_brightness_search_sucess_ = false;
                 return true;
             }
 
@@ -521,6 +529,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 exp_search_params_.is_initialized_ = false;
                 cout << "WILL USE SMALLES EXP POSSIBLE!!!" << endl;
                 brightness = exp_search_params_.current_brightness_;
+                own_brightness_search_sucess_ = true;
                 return true;
 
             }

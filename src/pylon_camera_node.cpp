@@ -279,7 +279,7 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
 //    boost::thread* spinner = new boost::thread(&ros::spin());
     while(ros::ok() && brightness_service_running_)
     {
-        if (ros::Time::now() - start > ros::Duration(5.0))
+        if (ros::Time::now() - start > ros::Duration(10.0))
         {
            ROS_ERROR("Did not reach the required brightness in time");
            res.success = false;          

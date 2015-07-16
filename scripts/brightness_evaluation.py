@@ -1,11 +1,12 @@
 #! /usr/bin/python2
 from django.template.defaultfilters import last
 
+import cv2
 from pylon_camera_msgs.srv import SetBrightnessSrv
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
-import cv2
 import rospy
+  
 import random
 
 img_time = None #rospy.Time.now() + rospy.Duration(1e10)
@@ -23,7 +24,10 @@ def get_brightness(img):
         return cv2.mean(img)[0]
 
     else:
-        w,h = img.shape
+        #print img.shape
+        s = img.shape
+        w = s[0]
+        h = s[1]
         # r = img[0.25*w:0.75*w,0.25*h:0.75*h]
         return cv2.mean(img[0.25*w:0.75*w,0.25*h:0.75*h])[0]
         # cv2.imwrite('img.jpg',r)
@@ -32,6 +36,7 @@ def get_brightness(img):
 
 def img_cb(msg):
     global last_brightness, img_time
+    global do_next
     if rospy.Time.now() < img_time:
         #print "rejected"
         return
@@ -43,6 +48,7 @@ def img_cb(msg):
 
     # print cv_image.shape
     last_brightness = get_brightness(cv_image)
+    do_next = True
     #print "last", last_brightness
 
 
@@ -56,7 +62,7 @@ if __name__ == "__main__":
     img_time = rospy.Time.now() + rospy.Duration(1e10)
 
 
-    camera_name = "/pylon"
+    camera_name = "/sol_camera"
     service_name = camera_name+"/set_brightness_srv"
 
     rospy.Subscriber(camera_name+"/image_raw", Image, img_cb, queue_size = 1)
@@ -81,9 +87,10 @@ if __name__ == "__main__":
                 full_image = not (expected < 50 or expected > 205)
                 img_time = rospy.Time.now()#+rospy.Duration(5)
                 last_brightness = 0
-                do_next = False
+                
             else:
                 print "brightness failed"
+            
 
 
         if last_brightness > 0:

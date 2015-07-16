@@ -29,6 +29,7 @@ public:
     std::vector<cv::Mat> img_sequence_;
 
     bool own_brightness_search_running_;
+    bool own_brightness_search_sucess_;
     ExposureSearchParameter exp_search_params_;
     void setupExtendedBrightnessSearch(int &brightness);
     std::vector<float> seq_exp_times();
