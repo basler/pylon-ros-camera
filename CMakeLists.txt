@@ -4,13 +4,12 @@ project(pylon_camera)
 SET(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS "-g -Wall -Wno-unknown-pragmas -Wno-delete-non-virtual-dtor")
 
-
 option(WITH_OPENCV "Build Pylon Camera with Rectification, Extended Auto Brightness and Sequencer (needs OpenCV)" ON)
 
 find_package(OpenCV)
 if(NOT OpenCV_FOUND)
 	MESSAGE(STATUS "--- Could not find OpenCV!")
-	option(WITH_OPENCV "Build Pylon Camera with Rectification, Extended Auto Brightness and Sequencer (needs OpenCV)" OFF)
+	set(WITH_OPENCV OFF)
 endif()
 
 if (WITH_OPENCV)
