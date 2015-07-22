@@ -510,12 +510,17 @@ bool PylonInterface::setBrightness(int brightness)
                     // Set the target value for luminance control. The value is always expressed
                     // as an 8 bit value regardless of the current pixel data output format,
                     // i.e., 0 -> black, 255 -> white.
-                    if (gige_cam_->AutoTargetValue.GetMin() <= brightness && brightness
-                                                                             <= gige_cam_->AutoTargetValue.GetMax())
+                    if (gige_cam_->AutoTargetValue.GetMin() <= brightness &&
+                            brightness <= gige_cam_->AutoTargetValue.GetMax())
                     {
                         // Use Pylon Auto Funciton, whenever in possible range
                         gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
                         gige_cam_->AutoTargetValue.SetValue(brightness, false);
+
+                        if (gige_cam_->ExposureAuto.GetValue() != Basler_GigECameraParams::ExposureAuto_Once){
+                            cerr << "Could not set GigE-Exposure-Mode to ONCE" << endl;
+                        }
+
                     }
                     else
                     {
