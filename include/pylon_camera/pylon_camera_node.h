@@ -56,7 +56,7 @@ public:
     void getInitialCameraParameter();
     void getRuntimeCameraParameter();
     void updateAquisitionSettings();
-    void updateROSBirghtnessParameter();
+    void updateROSBrightnessParameter();
     uint32_t getNumSubscribers();
     bool grabImage();
     bool setExposureCallback(pylon_camera_msgs::SetExposureSrv::Request &req,

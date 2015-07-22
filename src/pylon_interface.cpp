@@ -66,7 +66,7 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
         case GIGE:
             try
             {
-                double timeout = gige_cam_->ExposureTimeAbs.GetValue() * 1.05;
+                double timeout = gige_cam_->ExposureTimeAbs.GetValue() * 0.00105;
                 timeout = std::min(std::max(timeout, 200.0), 500.0);
                 gige_cam_->ExecuteSoftwareTrigger();
                 gige_cam_->RetrieveResult((int)timeout,
@@ -92,8 +92,11 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
         case USB:
             try
             {
+                double timeout = usb_cam_->ExposureTime.GetValue() * 0.004;
+                cerr << timeout << endl;
+                timeout = std::min(std::max(timeout, 200.0), 1000.0);
                 usb_cam_->ExecuteSoftwareTrigger();
-                usb_cam_->RetrieveResult(usb_cam_->ExposureTime.GetValue() * 1.05,
+                usb_cam_->RetrieveResult(timeout,
                                          ptr_grab_result_,
                                          TimeoutHandling_ThrowException);
             }
@@ -115,8 +118,11 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
         case DART:
             try
             {
+                double timeout = dart_cam_->ExposureTime.GetValue() * 0.00105;
+                //cerr << timeout << endl;
+                timeout = std::min(std::max(timeout, 200.0), 1000.0);
                 dart_cam_->ExecuteSoftwareTrigger();
-                dart_cam_->RetrieveResult(dart_cam_->ExposureTime.GetValue() * 1.05,
+                dart_cam_->RetrieveResult(timeout,
                                           ptr_grab_result_,
                                           TimeoutHandling_ThrowException);
             }
@@ -510,12 +516,17 @@ bool PylonInterface::setBrightness(int brightness)
                     // Set the target value for luminance control. The value is always expressed
                     // as an 8 bit value regardless of the current pixel data output format,
                     // i.e., 0 -> black, 255 -> white.
-                    if (gige_cam_->AutoTargetValue.GetMin() <= brightness && brightness
-                                                                             <= gige_cam_->AutoTargetValue.GetMax())
+                    if (gige_cam_->AutoTargetValue.GetMin() <= brightness &&
+                            brightness <= gige_cam_->AutoTargetValue.GetMax())
                     {
                         // Use Pylon Auto Funciton, whenever in possible range
                         gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
                         gige_cam_->AutoTargetValue.SetValue(brightness, false);
+
+                        if (gige_cam_->ExposureAuto.GetValue() != Basler_GigECameraParams::ExposureAuto_Once){
+                            cerr << "Could not set GigE-Exposure-Mode to ONCE" << endl;
+                        }
+
                     }
                     else
                     {

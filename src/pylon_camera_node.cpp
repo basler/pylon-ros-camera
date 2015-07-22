@@ -101,7 +101,7 @@ void PylonCameraNode::createPylonInterface()
 //    ROS_INFO("Created PylonInterface");
 }
 
-void PylonCameraNode::updateROSBirghtnessParameter()
+void PylonCameraNode::updateROSBrightnessParameter()
 {
     params_.brightness_ = pylon_interface_->last_brightness_val();
     nh_.setParam("brightness", params_.brightness_);
@@ -288,14 +288,23 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
         ros::spinOnce();
         r.sleep();
     }
+
+
+
+    ///TODO: check brightness
+
+
     res.success = true;
     return true;
 }
 
+
+/// Warum Service, wenn sofort immer true zurueckgegeben wird?
 bool PylonCameraNode::setSleepingCallback(pylon_camera_msgs::SetSleepingSrv::Request &req,
     pylon_camera_msgs::SetSleepingSrv::Response &res)
 {
     is_sleeping_ = req.set_sleeping;
+
     if (is_sleeping_)
     {
         ROS_INFO("Seting Pylon Camera Node to sleep...");
@@ -303,20 +312,25 @@ bool PylonCameraNode::setSleepingCallback(pylon_camera_msgs::SetSleepingSrv::Req
     {
         ROS_INFO("Pylon Camera Node continues grabbing");
     }
+
     res.success = true;
     return true;
 }
+
 bool PylonCameraNode::is_sleeping()
 {
     return is_sleeping_;
 }
+
 bool PylonCameraNode::have_intrinsic_data()
 {
     return params_.have_intrinsic_data_;
 }
+
 PylonCameraNode::~PylonCameraNode()
 {
     delete it_;
     it_ = NULL;
 }
+
 } /* namespace pylon_camera */
