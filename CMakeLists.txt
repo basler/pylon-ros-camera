@@ -36,6 +36,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   $ENV{PYLON_ROOT}/include
   $ENV{PYLON_ROOT}/genicam/library/CPP/include
+  
+  MESAGE(STATUS "$ENV{PYLON_ROOT}/include")
 )
 if (WITH_OPENCV)
 include_directories(
@@ -44,11 +46,30 @@ include_directories(
 )
 endif (WITH_OPENCV)
 
-link_directories(
-  $ENV{PYLON_ROOT}/lib64
-  $ENV{PYLON_ROOT}/genicam/bin/Linux64_x64
-  $ENV{PYLON_ROOT}/genicam/bin/Linux64_x64/GenApi/Generic
-)
+
+
+###################################
+####### Architecture Check ########
+###################################
+
+EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
+if(${ARCHITECTURE} MATCHES "arm")
+	MESSAGE(STATUS "+++ Found ARM Architecture: ${ARCHITECTURE}" )
+	link_directories(
+		$ENV{PYLON_ROOT}/lib
+		$ENV{PYLON_ROOT}/genicam/bin/Linux32_ARM
+		$ENV{PYLON_ROOT}/genicam/bin/Linux32_ARM/GenApi/Generic
+	)
+elseif(${ARCHITECTURE} STREQUAL "x86_64")
+    	MESSAGE(STATUS "+++ Found x86_64 Architecture")
+	link_directories(
+		$ENV{PYLON_ROOT}/lib64
+		$ENV{PYLON_ROOT}/genicam/bin/Linux64_x64
+		$ENV{PYLON_ROOT}/genicam/bin/Linux64_x64/GenApi/Generic
+	)
+else()
+	MESSAGE(WARNING "+++ Unknown Architecture!")
+endif()
 
 ###################################
 #### Declare a cpp executable #####
