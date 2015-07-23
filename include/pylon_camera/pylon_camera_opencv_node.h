@@ -31,18 +31,6 @@ public:
     PylonCameraOpenCVNode();
     virtual ~PylonCameraOpenCVNode();
 
-    cv_bridge::CvImage cv_img_rect_;
-    cv_bridge::CvImage cv_img_seq_;
-    cv_bridge::CvImage cv_img_hdr_;
-    pylon_camera_msgs::SequenceExposureTimes exp_times_;
-
-    ros::Publisher img_rect_pub_;
-    ros::Publisher img_seq_pub_;
-    ros::Publisher img_hdr_pub_;
-    ros::Publisher exp_times_pub_;
-
-    PylonOpenCVInterface pylon_opencv_interface_;
-
     bool init();
     void createPylonInterface();
     void getInitialCameraParameter();
@@ -54,6 +42,18 @@ public:
     uint32_t getNumSubscribersHdr();
     bool grabImage();
     bool grabSequence();
+
+    PylonOpenCVInterface pylon_opencv_interface_;
+
+    cv_bridge::CvImage cv_img_rect_;
+    cv_bridge::CvImage cv_img_seq_;
+    cv_bridge::CvImage cv_img_hdr_;
+    pylon_camera_msgs::SequenceExposureTimes exp_times_;
+
+    ros::Publisher img_rect_pub_;
+    ros::Publisher img_seq_pub_;
+    ros::Publisher img_hdr_pub_;
+    ros::Publisher exp_times_pub_;
 
 private:
     ImageRectifier img_rectifier_;

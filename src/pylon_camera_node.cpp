@@ -11,9 +11,7 @@ namespace pylon_camera
 {
 
 PylonCameraNode::PylonCameraNode() :
-                    nh_("~"),
-                    it_(NULL),
-                    pylon_interface_(),
+                    pylon_interface_(NULL),
                     params_(),
                     set_exposure_service_(),
                     set_brightness_service_(),
@@ -23,6 +21,8 @@ PylonCameraNode::PylonCameraNode() :
                     img_raw_pub_(),
                     params_update_counter_(0),
                     brightness_service_running_(false),
+                    nh_("~"),
+                    it_(NULL),
                     is_sleeping_(false)
 {
     it_ = new image_transport::ImageTransport(nh_);
@@ -97,8 +97,7 @@ void PylonCameraNode::checkForPylonAutoFunctionRunning(){
 // Using OpenCV -> creates PylonOpenCVNode (with sequencer and rectification), else: only image_raw
 void PylonCameraNode::createPylonInterface()
 {
-//    pylon_interface_ = new PylonInterface();
-//    ROS_INFO("Created PylonInterface");
+    pylon_interface_ = new PylonInterface();
 }
 
 void PylonCameraNode::updateROSBrightnessParameter()
@@ -329,6 +328,10 @@ bool PylonCameraNode::have_intrinsic_data()
 
 PylonCameraNode::~PylonCameraNode()
 {
+    if(!pylon_interface_->is_opencv_interface_){
+        delete pylon_interface_;
+        pylon_interface_ = NULL;
+    }
     delete it_;
     it_ = NULL;
 }

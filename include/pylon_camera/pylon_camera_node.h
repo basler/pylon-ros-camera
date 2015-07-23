@@ -34,21 +34,6 @@ public:
     PylonCameraNode();
     virtual ~PylonCameraNode();
 
-    PylonInterface *pylon_interface_;
-    PylonCameraParameter params_;
-
-    ros::ServiceServer set_exposure_service_;
-    ros::ServiceServer set_brightness_service_;
-    ros::ServiceServer set_sleeping_service_;
-
-    sensor_msgs::Image img_raw_msg_;
-    sensor_msgs::CameraInfo cam_info_msg_;
-
-    image_transport::CameraPublisher img_raw_pub_;
-
-    int params_update_counter_;
-    bool brightness_service_running_;
-
     bool init();
     bool initAndRegister();
     bool startGrabbing();
@@ -68,6 +53,21 @@ public:
     bool have_intrinsic_data();
     bool is_sleeping();
     void checkForPylonAutoFunctionRunning();
+
+    PylonInterface *pylon_interface_;
+    PylonCameraParameter params_;
+
+    ros::ServiceServer set_exposure_service_;
+    ros::ServiceServer set_brightness_service_;
+    ros::ServiceServer set_sleeping_service_;
+
+    sensor_msgs::Image img_raw_msg_;
+    sensor_msgs::CameraInfo cam_info_msg_;
+
+    image_transport::CameraPublisher img_raw_pub_;
+
+    int params_update_counter_;
+    bool brightness_service_running_;
 
 protected:
 

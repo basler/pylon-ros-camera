@@ -10,11 +10,11 @@
 namespace pylon_camera {
 
 PylonCameraOpenCVNode::PylonCameraOpenCVNode() :
+                    pylon_opencv_interface_(),
                     cv_img_rect_(),
                     cv_img_seq_(),
                     cv_img_hdr_(),
                     exp_times_(),
-                    pylon_opencv_interface_(),
                     img_rect_pub_(nh_.advertise<sensor_msgs::Image>("image_rect", 10)),
                     img_seq_pub_(nh_.advertise<sensor_msgs::Image>("image_seq", 10)),
                     img_hdr_pub_(nh_.advertise<sensor_msgs::Image>("image_hdr", 10)),
@@ -54,14 +54,13 @@ void PylonCameraOpenCVNode::getInitialCameraParameter()
             params_.use_sequencer_ =  false;
             params_.output_hdr_ = false;
         }
-
     }
-
 }
 
 void PylonCameraOpenCVNode::createPylonInterface()
 {
     pylon_interface_ = &pylon_opencv_interface_;
+    pylon_interface_->is_opencv_interface_ = true;
     ROS_INFO("Created PylonOpenCVInterface");
 }
 

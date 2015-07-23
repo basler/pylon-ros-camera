@@ -70,6 +70,7 @@ public:
     Pylon::PylonAutoInitTerm auto_init_term_;
 
 //    virtual int updateRuntimeParameter(const PylonCameraParameter &params);
+    bool is_opencv_interface_;
 
 
 protected:
@@ -103,6 +104,7 @@ protected:
     bool is_cam_removed_;
 
     bool is_pylon_auto_function_running_;
+
 private:
     virtual void setupExtendedBrightnessSearch(int &brightness);
 };
