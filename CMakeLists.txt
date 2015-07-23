@@ -2,13 +2,14 @@ cmake_minimum_required(VERSION 2.8.3)
 project(pylon_camera)
 
 SET(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_FLAGS "-g -Wall -Wno-unknown-pragmas -Wno-delete-non-virtual-dtor -Wno-unused-variable")
 
 option(WITH_OPENCV "Build Pylon Camera with Rectification, Extended Auto Brightness and Sequencer (needs OpenCV)" ON)
 
 find_package(OpenCV)
 if(NOT OpenCV_FOUND)
 	MESSAGE(STATUS "--- Could not find OpenCV!")
-	option(WITH_OPENCV "Build Pylon Camera with Rectification, Extended Auto Brightness and Sequencer (needs OpenCV)" OFF)
+	set(WITH_OPENCV OFF)
 endif()
 
 if (WITH_OPENCV)
@@ -35,6 +36,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   $ENV{PYLON_ROOT}/include
   $ENV{PYLON_ROOT}/genicam/library/CPP/include
+  
+  MESAGE(STATUS "$ENV{PYLON_ROOT}/include")
 )
 if (WITH_OPENCV)
 include_directories(
@@ -43,11 +46,30 @@ include_directories(
 )
 endif (WITH_OPENCV)
 
-link_directories(
-  $ENV{PYLON_ROOT}/lib64
-  $ENV{PYLON_ROOT}/genicam/bin/Linux64_x64
-  $ENV{PYLON_ROOT}/genicam/bin/Linux64_x64/GenApi/Generic
-)
+
+
+###################################
+####### Architecture Check ########
+###################################
+
+EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
+if(${ARCHITECTURE} MATCHES "arm")
+	MESSAGE(STATUS "+++ Found ARM Architecture: ${ARCHITECTURE}" )
+	link_directories(
+		$ENV{PYLON_ROOT}/lib
+		$ENV{PYLON_ROOT}/genicam/bin/Linux32_ARM
+		$ENV{PYLON_ROOT}/genicam/bin/Linux32_ARM/GenApi/Generic
+	)
+elseif(${ARCHITECTURE} STREQUAL "x86_64")
+    	MESSAGE(STATUS "+++ Found x86_64 Architecture")
+	link_directories(
+		$ENV{PYLON_ROOT}/lib64
+		$ENV{PYLON_ROOT}/genicam/bin/Linux64_x64
+		$ENV{PYLON_ROOT}/genicam/bin/Linux64_x64/GenApi/Generic
+	)
+else()
+	MESSAGE(WARNING "+++ Unknown Architecture!")
+endif()
 
 ###################################
 #### Declare a cpp executable #####
@@ -61,6 +83,11 @@ if (WITH_OPENCV)
         # it would even fail) all files, we want to use GLOB recurse and
         # exclude just the not used files.
         list(REMOVE_ITEM ${PROJECT_NAME}_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/write_magazino_id_to_camera.cpp")
+        if(${OpenCV_VERSION_MAJOR} LESS 3)
+        	# HDR only availbale for OpenCV 3.0
+        	MESSAGE(STATUS "OpenCV Major Version is ${OpenCV_VERSION_MAJOR}. Need Major Version > 3 for HDR support. Will not compile hdr_generator.cpp")
+        	list(REMOVE_ITEM ${PROJECT_NAME}_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/hdr_generator.cpp")
+        endif(${OpenCV_VERSION_MAJOR} LESS 3)
             
 	MESSAGE(STATUS "FILES " ${${PROJECT_NAME}_FILES})
 	add_executable(pylon_camera_node src/pylon_camera_node.cpp ${${PROJECT_NAME}_FILES})

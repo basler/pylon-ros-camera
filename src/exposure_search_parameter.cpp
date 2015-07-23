@@ -10,17 +10,17 @@
 namespace pylon_camera {
 
 ExposureSearchParameter::ExposureSearchParameter() :
-                    is_initialized_(false),
                     goal_brightness_(0.0),
                     goal_exposure_(0.0),
-                    current_exposure_(0.0),
                     desired_exposure_(0.0),
+                    current_exposure_(0.0),
                     last_exposure_(0.0),
                     last_unchanged_exposure_counter_(0),
                     current_brightness_(0),
                     left_limit_(0.0),
                     right_limit_(0.0),
                     success_(false),
+                    is_initialized_(false),
                     first_time_(true)
 {
 }
@@ -29,6 +29,7 @@ ExposureSearchParameter::~ExposureSearchParameter()
 {
     // TODO Auto-generated destructor stub
 }
+
 void ExposureSearchParameter::updateBinarySearch()
 {
 

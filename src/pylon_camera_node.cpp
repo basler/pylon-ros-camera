@@ -63,6 +63,7 @@ void PylonCameraNode::getInitialCameraParameter()
                   params_.desired_frame_rate_);
     }
     nh_.param<std::string>("camera_frame", params_.camera_frame_, "pylon_camera");
+    nh_.param<int>("mtu_size", params_.mtu_size_, 3000);
 }
 
 void PylonCameraNode::getRuntimeCameraParameter()
@@ -89,6 +90,9 @@ uint32_t PylonCameraNode::getNumSubscribers()
 {
     return img_raw_pub_.getNumSubscribers();
 }
+void PylonCameraNode::checkForPylonAutoFunctionRunning(){
+    brightness_service_running_ = pylon_interface_->isAutoBrightnessFunctionRunning();
+}
 
 // Using OpenCV -> creates PylonOpenCVNode (with sequencer and rectification), else: only image_raw
 void PylonCameraNode::createPylonInterface()
@@ -97,7 +101,7 @@ void PylonCameraNode::createPylonInterface()
 //    ROS_INFO("Created PylonInterface");
 }
 
-void PylonCameraNode::updateROSBirghtnessParameter()
+void PylonCameraNode::updateROSBrightnessParameter()
 {
     params_.brightness_ = pylon_interface_->last_brightness_val();
     nh_.setParam("brightness", params_.brightness_);
@@ -260,6 +264,9 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
 bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
     pylon_camera_msgs::SetBrightnessSrv::Response &res)
 {
+
+    ROS_INFO("New brightness request for brightness %i", req.target_brightness);
+
     params_.use_brightness_ =  true;
     nh_.setParam("use_brightness", params_.use_brightness_);
     params_.brightness_ = req.target_brightness;
@@ -268,19 +275,36 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
     brightness_service_running_ = true;
 
     ros::Rate r(5.0);
+    ros::Time start = ros::Time::now();
 //    boost::thread* spinner = new boost::thread(&ros::spin());
-    while(ros::ok() && brightness_service_running_){
+    while(ros::ok() && brightness_service_running_)
+    {
+        if (ros::Time::now() - start > ros::Duration(10.0))
+        {
+           ROS_ERROR("Did not reach the required brightness in time");
+           res.success = false;          
+           return true;
+        }
         ros::spinOnce();
         r.sleep();
     }
+
+
+
+    ///TODO: check brightness
+
+
     res.success = true;
     return true;
 }
 
+
+/// Warum Service, wenn sofort immer true zurueckgegeben wird?
 bool PylonCameraNode::setSleepingCallback(pylon_camera_msgs::SetSleepingSrv::Request &req,
     pylon_camera_msgs::SetSleepingSrv::Response &res)
 {
     is_sleeping_ = req.set_sleeping;
+
     if (is_sleeping_)
     {
         ROS_INFO("Seting Pylon Camera Node to sleep...");
@@ -288,20 +312,25 @@ bool PylonCameraNode::setSleepingCallback(pylon_camera_msgs::SetSleepingSrv::Req
     {
         ROS_INFO("Pylon Camera Node continues grabbing");
     }
+
     res.success = true;
     return true;
 }
+
 bool PylonCameraNode::is_sleeping()
 {
     return is_sleeping_;
 }
+
 bool PylonCameraNode::have_intrinsic_data()
 {
     return params_.have_intrinsic_data_;
 }
+
 PylonCameraNode::~PylonCameraNode()
 {
     delete it_;
     it_ = NULL;
 }
+
 } /* namespace pylon_camera */
