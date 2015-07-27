@@ -247,9 +247,11 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
 bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
     pylon_camera_msgs::SetBrightnessSrv::Response &res)
 {
+    // Get actual image
+    ros::spinOnce();
 
     int current_brightness = calcCurrentBrightness();
-//    ROS_INFO("New brightness request for brightness %i, current brightness = %i", req.target_brightness, current_brightness);
+    ROS_INFO("New brightness request for brightness %i, current brightness = %i", req.target_brightness, current_brightness);
 
     if (!pylon_interface_->is_ready_)
     {
