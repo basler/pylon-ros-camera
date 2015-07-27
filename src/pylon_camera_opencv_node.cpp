@@ -122,7 +122,6 @@ bool PylonCameraOpenCVNode::init()
     {
         params_.have_intrinsic_data_ = false;
         cerr << "Error reading intrinsic calibration from yaml file!" << endl;
-//        return false;
     }
     if (calib_loader_.img_cols() != (int)img_raw_msg_.width || calib_loader_.img_rows()
                                                           != (int)img_raw_msg_.height)
@@ -193,40 +192,6 @@ void PylonCameraOpenCVNode::setupCameraInfoMsg()
     //	cam_info_msg_.binning_y =
     //	cam_info_msg_.roi =
 }
-
-//bool PylonCameraOpenCVNode::brightnessValidation(int target)
-//{
-////    int c = img_raw_msg_.width, r = img_raw_msg_.height;
-////            pylon_opencv_interface_.exp_search_params_.current_brightness_
-//    int  mean = calcCurrentBrightness();
-//
-////    cout << "Target = " << target << ", Mean = " << mean << endl;
-//
-//    if(abs(target - mean) > 2){
-//        return false;
-//    }
-//    return true;
-//}
-
-//int PylonCameraOpenCVNode::calcCurrentBrightness()
-//{
-//    int sum = std::accumulate(img_raw_msg_.data.begin(),img_raw_msg_.data.end(),0);
-////    for (int i = 0; i < img_raw_msg_.data.size(); ++i){
-////        mean += img_raw_msg_.data.at(i);
-////    }
-//    cout << "sum = " << sum << endl;
-//
-//    float mean_ = sum / img_raw_msg_.data.size();
-//
-//    cout << "mean_ = " << (int)mean_ << endl;
-//
-//
-//
-//    double mean = cv::mean(img_raw_).val[0];
-//
-//    cout << "opencv mean = " <<  (int)mean << endl;
-//    return (int)mean;
-//}
 
 bool PylonCameraOpenCVNode::grabImage()
 {

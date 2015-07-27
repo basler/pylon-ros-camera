@@ -42,8 +42,6 @@ public:
     uint32_t getNumSubscribersHdr();
     bool grabImage();
     bool grabSequence();
-//    virtual bool brightnessValidation(int target);
-//    virtual int calcCurrentBrightness();
 
     PylonOpenCVInterface pylon_opencv_interface_;
 
