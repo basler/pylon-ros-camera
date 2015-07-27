@@ -107,6 +107,11 @@ if(${ARCHITECTURE} MATCHES "arm")
 						  GCBase_gcc43_v2_3
 						  pylonbase
 						  pylongigesupp
+						  pylonbase
+						  Log_gcc43_v2_3
+						  MathParser_gcc43_v2_3
+						  Xerces-C_gcc43_v2_7_1
+						  log4cpp_gcc43_v2_3
 	)
 elseif(${ARCHITECTURE} STREQUAL "x86_64")
 	target_link_libraries(write_magazino_id_to_camera 
@@ -119,12 +124,6 @@ else()
 	MESSAGE(WARNING "+++ Unknown Architecture!")
 endif()
 
-
-
-
-
-
-
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(pylon_camera_node pylon_camera_generate_messages_cpp)
@@ -133,7 +132,7 @@ add_dependencies(pylon_camera_node ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 if(${ARCHITECTURE} MATCHES "arm")
-	target_link_libraries(write_magazino_id_to_camera 
+	target_link_libraries(pylon_camera_node 
 						  ${catkin_LIBRARIES}
 						  GenApi_gcc43_v2_3
 						  GCBase_gcc43_v2_3
