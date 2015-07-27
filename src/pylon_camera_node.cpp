@@ -66,8 +66,8 @@ void PylonCameraNode::getInitialCameraParameter()
     nh_.param<std::string>("camera_frame", params_.camera_frame_, "pylon_camera");
     nh_.param<int>("mtu_size", params_.mtu_size_, 3000);
 
-    nh_.param<int>("parameter_update_frequency", params_.param_update_frequency_, 100);
-    params_update_counter_ = params_.param_update_frequency_ - 1;
+//    nh_.param<int>("parameter_update_frequency", params_.param_update_frequency_, 100);
+//    params_update_counter_ = params_.param_update_frequency_ - 1;
 
     // -2: AutoExposureOnce
     // -1: AutoExposureContinuous
@@ -281,6 +281,7 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
         if (ros::Time::now() - start > duration)
         {
             ROS_ERROR("Did not reach the required brightness in time");
+            brightness_service_running_ = false;
             res.success = false;
             return true;
         }
@@ -309,8 +310,9 @@ bool PylonCameraNode::brightnessValidation(int target)
 
 int PylonCameraNode::calcCurrentBrightness()
 {
-    // Dummy -> only used in PylonOpenCVInterface
-    return -42;
+    int sum = std::accumulate(img_raw_msg_.data.begin(),img_raw_msg_.data.end(),0);
+    float mean = sum / img_raw_msg_.data.size();
+    return (int) mean;
 }
 
 float PylonCameraNode::getCurrenCurrentExposure()

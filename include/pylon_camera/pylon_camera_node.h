@@ -10,6 +10,7 @@
 #include <iostream>
 #include <memory>
 #include <ros/ros.h>
+#include <numeric>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
 #include <boost/array.hpp>

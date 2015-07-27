@@ -69,15 +69,15 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
         case GIGE:
             try
             {
-                int timeout = 2000.0;
+//                int timeout = 2000.0;
                 // Alle 3 Takte braucht die Camera ca 510 msec bis der Frame-Trigger bereit ist
-//                double timeout = (gige_cam_->ResultingFramePeriodAbs.GetValue() / 1000.0) * 10;
+                double timeout = (gige_cam_->ResultingFramePeriodAbs.GetValue() / 1000.0) * 10;
 //                cout << "timeout 01: " << timeout << endl;
-//                timeout = std::min(std::max(timeout, 200.0), 100000.0);
-//                cout << "timeout 02: " << timeout << endl;
+                timeout = std::min(std::max(timeout, 200.0), 1000.0);
+//                cout << "timeout: " << timeout << endl;
                 try
                 {
-                    timespec start, end;
+//                    timespec start, end;
 //                    clock_t prgstart, prgend_;
 
 //                    time_t t = time(0);   // get time now
@@ -88,17 +88,18 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
 //                    clock_gettime(CLOCK_REALTIME, &start_global_);
 
 //                    prgstart = clock();
-                    clock_gettime(CLOCK_REALTIME, &start);
+//                    clock_gettime(CLOCK_REALTIME, &start);
 
                     // Update GeniCam Cache with GetNodeMap().InvalidateNodes()
-                    if (gige_cam_->WaitForFrameTriggerReady(timeout, TimeoutHandling_ThrowException))
+                    if (gige_cam_->WaitForFrameTriggerReady((int)timeout, TimeoutHandling_ThrowException))
                     {
-                    clock_gettime(CLOCK_REALTIME, &end);
-                    cout << "Trigger ready after: "
-                    << (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_nsec - start.tv_nsec) / 1000000.0
-                    << " msec" << endl;
+//                        clock_gettime(CLOCK_REALTIME, &end);
+//                        cout << "Trigger ready after: "
+//                             << (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_nsec - start.tv_nsec) / 1000000.0
+//                             << " msec" << endl;
                         gige_cam_->ExecuteSoftwareTrigger();
-                    } else {
+                    } else
+                    {
                         return false;
                     }
 
@@ -108,12 +109,13 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
                     cerr << e.GetDescription() << endl;
                 }
 
-                if (gige_cam_->GetGrabResultWaitObject().Wait(timeout))
+                if (gige_cam_->GetGrabResultWaitObject().Wait((int)timeout))
                 {
-                    gige_cam_->RetrieveResult(timeout,
+                    gige_cam_->RetrieveResult((int)timeout,
                                               ptr_grab_result_,
                                               TimeoutHandling_ThrowException);
-                } else {
+                } else
+                {
                     return false;
                 }
             }
@@ -137,28 +139,39 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
             try
             {
                 float timeout = (usb_cam_->ExposureTime.GetMax() / 1000) * 1.05;
+                try
+                {
+                    // Update GeniCam Cache with GetNodeMap().InvalidateNodes()
+                    if (usb_cam_->WaitForFrameTriggerReady((int)timeout, TimeoutHandling_ThrowException))
+                    {
+                        usb_cam_->ExecuteSoftwareTrigger();
+                    } else
+                    {
+                        return false;
+                    }
+
 //                ResultingFrameRate.GetValue() * 5000;
 //                float timeout = 1.0 / usb_cam_->ResultingFrameRate.GetValue() * 5000;
 //                try
 //                {
 //                    // Update GeniCam Cache with GetNodeMap().InvalidateNodes()
 //                    if (usb_cam_->WaitForFrameTriggerReady((int)timeout, TimeoutHandling_ThrowException))
-//                    {
-                usb_cam_->ExecuteSoftwareTrigger();
-//                    }
+////                    {
+//                usb_cam_->ExecuteSoftwareTrigger();
+////                    }
 //
-//                } catch (GenICam::GenericException &e)
-//                {
-//                    cerr << "Error while waiting till software trigger is ready" << endl;
-//                    cerr << e.GetDescription() << endl;
-//                }
+                } catch (GenICam::GenericException &e)
+                {
+                    cerr << "Error while waiting till software trigger is ready" << endl;
+                    cerr << e.GetDescription() << endl;
+                }
 
-//                if (usb_cam_->GetGrabResultWaitObject().Wait(timeout))
-//                {
-                usb_cam_->RetrieveResult((int)timeout,
-                                         ptr_grab_result_,
-                                         TimeoutHandling_ThrowException);
-//                }
+                if (usb_cam_->GetGrabResultWaitObject().Wait((int)timeout))
+                {
+                    usb_cam_->RetrieveResult((int)timeout,
+                                             ptr_grab_result_,
+                                             TimeoutHandling_ThrowException);
+                }
             }
             catch (GenICam::GenericException &e)
             {
@@ -253,9 +266,10 @@ bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &par
                 // raise inter-package delay (GevSCPD) for solving error: 'the image buffer was incompletely grabbed'
                 // also in ubuntu settings -> network -> options -> MTU Size from 'automatic' to 9000 (if card supports it, else 3000)
                 gige_cam_->GevStreamChannelSelector.SetValue(Basler_GigECameraParams::GevStreamChannelSelector_StreamChannel0);
+
                 // TODO: Sinnvolle Werte ermitteln! Ideal: Maximum = 9000
                 gige_cam_->GevSCPSPacketSize.SetValue(params.mtu_size_);
-                // TODO: Sinnvolle Werte ermitteln! Ideal: Maximum = 9000
+
                 // http://www.baslerweb.com/media/documents/AW00064902000%20Control%20Packet%20Timing%20With%20Delays.pdf
                 // inter package delay in ticks -> prevent lost frames
                 // package size * n_cams + overhead = inter package size
@@ -313,7 +327,7 @@ bool PylonInterface::startGrabbing(const PylonCameraParameter &params)
                 gige_img_pixel_depth_ = gige_cam_->PixelSize.GetValue();
                 max_framerate_ = gige_cam_->ResultingFrameRateAbs.GetValue();
                 has_auto_exposure_ = GenApi::IsAvailable(gige_cam_->ExposureAuto);
-
+                gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Off);
                 try
                 {
                     float timeout = gige_cam_->ResultingFramePeriodAbs.GetValue() * 0.01;
@@ -660,10 +674,10 @@ bool PylonInterface::setBrightness(int brightness)
                         gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
                         gige_cam_->AutoTargetValue.SetValue(brightness, false);
 
-                        if (gige_cam_->ExposureAuto.GetValue() != Basler_GigECameraParams::ExposureAuto_Once)
-                        {
-                            cerr << "Could not set GigE-Exposure-Mode to 'ExposureAuto_Once'" << endl;
-                        }
+//                        if (gige_cam_->ExposureAuto.GetValue() != Basler_GigECameraParams::ExposureAuto_Once)
+//                        {
+//                            cerr << "Could not set GigE-Exposure-Mode to 'ExposureAuto_Once'" << endl;
+//                        }
                     }
                     else
                     {
@@ -698,8 +712,8 @@ bool PylonInterface::setBrightness(int brightness)
                     {
                         // Use Pylon Auto Funciton, whenever in possible range
                         usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
-                        usb_cam_->AutoTargetBrightness.SetValue(brightness_f);
-                        usb_cam_->GetNodeMap().InvalidateNodes();
+                        usb_cam_->AutoTargetBrightness.SetValue(brightness_f, false);
+//                        usb_cam_->GetNodeMap().InvalidateNodes();
 //                        usb_cam_->AutoTargetBrightness.InvalidateNode("AutoTargetBrightness");
 
                     }

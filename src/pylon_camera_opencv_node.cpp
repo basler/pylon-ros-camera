@@ -208,11 +208,25 @@ bool PylonCameraOpenCVNode::brightnessValidation(int target)
     return true;
 }
 
-int PylonCameraOpenCVNode::calcCurrentBrightness()
-{
-    double mean = cv::mean(img_raw_).val[0];
-    return (int)mean;
-}
+//int PylonCameraOpenCVNode::calcCurrentBrightness()
+//{
+//    int sum = std::accumulate(img_raw_msg_.data.begin(),img_raw_msg_.data.end(),0);
+////    for (int i = 0; i < img_raw_msg_.data.size(); ++i){
+////        mean += img_raw_msg_.data.at(i);
+////    }
+//    cout << "sum = " << sum << endl;
+//
+//    float mean_ = sum / img_raw_msg_.data.size();
+//
+//    cout << "mean_ = " << (int)mean_ << endl;
+//
+//
+//
+//    double mean = cv::mean(img_raw_).val[0];
+//
+//    cout << "opencv mean = " <<  (int)mean << endl;
+//    return (int)mean;
+//}
 
 bool PylonCameraOpenCVNode::grabImage()
 {
