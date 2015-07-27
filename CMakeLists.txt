@@ -101,12 +101,29 @@ else (WITH_OPENCV)
 endif (WITH_OPENCV)
 
 add_executable(write_magazino_id_to_camera src/write_magazino_id_to_camera.cpp)
-target_link_libraries(write_magazino_id_to_camera 
-					  GenApi_gcc40_v2_3
-					  GCBase_gcc40_v2_3
-					  pylonbase
-					  pylongigesupp
-)
+if(${ARCHITECTURE} MATCHES "arm")
+	target_link_libraries(write_magazino_id_to_camera 
+						  GenApi_gcc43_v2_3
+						  GCBase_gcc43_v2_3
+						  pylonbase
+						  pylongigesupp
+	)
+elseif(${ARCHITECTURE} STREQUAL "x86_64")
+	target_link_libraries(write_magazino_id_to_camera 
+						  GenApi_gcc40_v2_3
+						  GCBase_gcc40_v2_3
+						  pylonbase
+						  pylongigesupp
+	)
+else()
+	MESSAGE(WARNING "+++ Unknown Architecture!")
+endif()
+
+
+
+
+
+
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
