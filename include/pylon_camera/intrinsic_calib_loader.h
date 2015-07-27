@@ -33,13 +33,13 @@ public:
 
 private:
 
-    std::string intrinsic_yaml_file_;
+    int img_rows_;
+    int img_cols_;
 
     cv::Mat D_;
     cv::Mat K_;
 
-    int img_cols_;
-    int img_rows_;
+    std::string intrinsic_yaml_file_;
 };
 
 } /* namespace pylon_camera */

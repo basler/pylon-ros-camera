@@ -1079,9 +1079,9 @@ std::string PylonInterface::img_encoding()
             {
             switch (usb_img_encoding_)
             {
-//                case Basler_UsbCameraParams::PixelFormat_BGR8:
-//                    return "mono8";
-//                    break;
+                //                case Basler_UsbCameraParams::PixelFormat_BGR8:
+                //                    return "mono8";
+                //                    break;
                 case Basler_UsbCameraParams::PixelFormat_Mono8:
                     return "mono8";
                     break;
@@ -1113,6 +1113,7 @@ std::string PylonInterface::img_encoding()
         case UNKNOWN:
 
         default:
+            cerr << "Unknown camera type";
             break;
     }
     return "";
@@ -1186,17 +1187,17 @@ int PylonInterface::img_pixel_depth()
     }
     return -1;
 
-//	switch (img_pixel_depth_) {
-//	case Basler_UsbCameraParams::PixelSize_Bpp8:
-//		return sizeof(uint8_t);
-//		break;
-//
-//	default:
-//		cerr << "Image Pixel Depth not yet implemented!" << endl;
-//		return -1;
-//		break;
-//	}
-//	return -1;
+    //	switch (img_pixel_depth_) {
+    //	case Basler_UsbCameraParams::PixelSize_Bpp8:
+    //		return sizeof(uint8_t);
+    //		break;
+    //
+    //	default:
+    //		cerr << "Image Pixel Depth not yet implemented!" << endl;
+    //		return -1;
+    //		break;
+    //	}
+    //	return -1;
 }
 std::string PylonInterface::pylonCamTypeToString(const PYLON_CAM_TYPE type)
 {

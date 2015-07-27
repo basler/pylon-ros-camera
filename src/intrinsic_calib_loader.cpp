@@ -11,10 +11,10 @@ namespace pylon_camera
 {
 
 IntrinsicCalibLoader::IntrinsicCalibLoader() :
-                    img_cols_(-1),
                     img_rows_(-1),
-                    K_(),
+                    img_cols_(-1),
                     D_(),
+                    K_(),
                     intrinsic_yaml_file_("INVALID_YAML_FILE")
 {
 }
