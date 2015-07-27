@@ -11,29 +11,29 @@ namespace pylon_camera
 {
 
 PylonInterface::PylonInterface() :
-    img_rows_(-1),
-    img_cols_(-1),
-    height_aoi_(-1),
-    width_aoi_(-1),
-    img_size_byte_(-1),
-    offset_height_aoi_(-1),
-    offset_width_aoi_(-1),
-    max_framerate_(-1.0),
-    gige_cam_(NULL),
-    usb_cam_(NULL),
-    dart_cam_(NULL),
-    has_auto_exposure_(false),
-    last_exposure_val_(2000.0),
-    last_brightness_val_(-1),
-    is_cam_removed_(false),
-    auto_init_term_(),
-    ptr_grab_result_(),
-    usb_img_pixel_depth_(Basler_UsbCameraParams::PixelSize_Bpp8),
-    gige_img_pixel_depth_(Basler_GigECameraParams::PixelSize_Bpp8),
-    usb_img_encoding_(Basler_UsbCameraParams::PixelFormat_Mono8),
-    gige_img_encoding_(Basler_GigECameraParams::PixelFormat_Mono8),
-    is_pylon_auto_function_running_(false),
-    cam_type_(UNKNOWN)
+                    img_rows_(-1),
+                    img_cols_(-1),
+                    height_aoi_(-1),
+                    width_aoi_(-1),
+                    img_size_byte_(-1),
+                    offset_height_aoi_(-1),
+                    offset_width_aoi_(-1),
+                    max_framerate_(-1.0),
+                    gige_cam_(NULL),
+                    usb_cam_(NULL),
+                    dart_cam_(NULL),
+                    has_auto_exposure_(false),
+                    last_exposure_val_(2000.0),
+                    last_brightness_val_(-1),
+                    is_cam_removed_(false),
+                    auto_init_term_(),
+                    ptr_grab_result_(),
+                    usb_img_pixel_depth_(Basler_UsbCameraParams::PixelSize_Bpp8),
+                    gige_img_pixel_depth_(Basler_GigECameraParams::PixelSize_Bpp8),
+                    usb_img_encoding_(Basler_UsbCameraParams::PixelFormat_Mono8),
+                    gige_img_encoding_(Basler_GigECameraParams::PixelFormat_Mono8),
+                    is_pylon_auto_function_running_(false),
+                    cam_type_(UNKNOWN)
 {
 }
 PylonInterface::~PylonInterface()
@@ -63,87 +63,87 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
 {
     switch (cam_type_)
     {
-    case GIGE:
-        try
-    {
-        double timeout = gige_cam_->ExposureTimeAbs.GetValue() * 0.00105;
-        timeout = std::min(std::max(timeout, 200.0), 500.0);
-        gige_cam_->ExecuteSoftwareTrigger();
-        gige_cam_->RetrieveResult((int)timeout,
-                                  ptr_grab_result_,
-                                  TimeoutHandling_ThrowException);
-    }
-        catch (GenICam::GenericException &e)
-        {
-            if (gige_cam_->IsCameraDeviceRemoved())
+        case GIGE:
+            try
             {
-                is_cam_removed_ = true;
-                cerr << "cam is removed" << endl;
+                double timeout = gige_cam_->ExposureTimeAbs.GetValue() * 0.00105;
+                timeout = std::min(std::max(timeout, 200.0), 500.0);
+                gige_cam_->ExecuteSoftwareTrigger();
+                gige_cam_->RetrieveResult((int)timeout,
+                                          ptr_grab_result_,
+                                          TimeoutHandling_ThrowException);
             }
-            else
+            catch (GenICam::GenericException &e)
             {
-                cerr << "An image grabbing exception in pylon camera occurred:" << endl
-                     << e.GetDescription()
-                     << endl;
-                return false;
+                if (gige_cam_->IsCameraDeviceRemoved())
+                {
+                    is_cam_removed_ = true;
+                    cerr << "cam is removed" << endl;
+                }
+                else
+                {
+                    cerr << "An image grabbing exception in pylon camera occurred:" << endl
+                         << e.GetDescription()
+                         << endl;
+                    return false;
+                }
             }
-        }
-        break;
-    case USB:
-        try
-    {
-        double timeout = usb_cam_->ExposureTime.GetValue() * 0.004;
-        cerr << timeout << endl;
-        timeout = std::min(std::max(timeout, 200.0), 1000.0);
-        usb_cam_->ExecuteSoftwareTrigger();
-        usb_cam_->RetrieveResult(timeout,
-                                 ptr_grab_result_,
-                                 TimeoutHandling_ThrowException);
-    }
-        catch (GenICam::GenericException &e)
-        {
-            if (usb_cam_->IsCameraDeviceRemoved())
+            break;
+        case USB:
+            try
             {
-                is_cam_removed_ = true;
+                double timeout = usb_cam_->ExposureTime.GetValue() * 0.004;
+                cerr << timeout << endl;
+                timeout = std::min(std::max(timeout, 200.0), 1000.0);
+                usb_cam_->ExecuteSoftwareTrigger();
+                usb_cam_->RetrieveResult(timeout,
+                                         ptr_grab_result_,
+                                         TimeoutHandling_ThrowException);
             }
-            else
+            catch (GenICam::GenericException &e)
             {
-                cerr << "An image grabbing exception in pylon camera occurred:" << endl
-                     << e.GetDescription()
-                     << endl;
-                return false;
+                if (usb_cam_->IsCameraDeviceRemoved())
+                {
+                    is_cam_removed_ = true;
+                }
+                else
+                {
+                    cerr << "An image grabbing exception in pylon camera occurred:" << endl
+                         << e.GetDescription()
+                         << endl;
+                    return false;
+                }
             }
-        }
-        break;
-    case DART:
-        try
-    {
-        double timeout = dart_cam_->ExposureTime.GetValue() * 0.00105;
-        //cerr << timeout << endl;
-        timeout = std::min(std::max(timeout, 200.0), 1000.0);
-        dart_cam_->ExecuteSoftwareTrigger();
-        dart_cam_->RetrieveResult(timeout,
-                                  ptr_grab_result_,
-                                  TimeoutHandling_ThrowException);
-    }
-        catch (GenICam::GenericException &e)
-        {
-            if (dart_cam_->IsCameraDeviceRemoved())
+            break;
+        case DART:
+            try
             {
-                is_cam_removed_ = true;
+                double timeout = dart_cam_->ExposureTime.GetValue() * 0.00105;
+                //cerr << timeout << endl;
+                timeout = std::min(std::max(timeout, 200.0), 1000.0);
+                dart_cam_->ExecuteSoftwareTrigger();
+                dart_cam_->RetrieveResult(timeout,
+                                          ptr_grab_result_,
+                                          TimeoutHandling_ThrowException);
             }
-            else
+            catch (GenICam::GenericException &e)
             {
-                cerr << "An image grabbing exception in pylon camera occurred:" << endl
-                     << e.GetDescription()
-                     << endl;
-                return false;
+                if (dart_cam_->IsCameraDeviceRemoved())
+                {
+                    is_cam_removed_ = true;
+                }
+                else
+                {
+                    cerr << "An image grabbing exception in pylon camera occurred:" << endl
+                         << e.GetDescription()
+                         << endl;
+                    return false;
+                }
             }
-        }
-        break;
-    default:
-        cerr << "Unknown Camera Type" << endl;
-        break;
+            break;
+        default:
+            cerr << "Unknown Camera Type" << endl;
+            break;
     }
 
     if (ptr_grab_result_->GrabSucceeded())
@@ -168,63 +168,62 @@ bool PylonInterface::setupSequencer(const PylonCameraParameter &params)
     return true;
 }
 
-
 bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &params)
 {
     try
     {
         switch (cam_type_)
         {
-        case GIGE:
-            gige_cam_->RegisterConfiguration(new CSoftwareTriggerConfiguration,
-                                             RegistrationMode_ReplaceAll,
-                                             Cleanup_Delete);
-            gige_cam_->GetTLParams().MaxRetryCountRead.SetValue(6);
-            gige_cam_->GetTLParams().MaxRetryCountWrite.SetValue(6);
+            case GIGE:
+                gige_cam_->RegisterConfiguration(new CSoftwareTriggerConfiguration,
+                                                 RegistrationMode_ReplaceAll,
+                                                 Cleanup_Delete);
+                gige_cam_->GetTLParams().MaxRetryCountRead.SetValue(6);
+                gige_cam_->GetTLParams().MaxRetryCountWrite.SetValue(6);
 
-            gige_cam_->Open();
+                gige_cam_->Open();
 
-            // Remove all previous settings (sequencer etc.)
-            gige_cam_->UserSetSelector.SetValue(Basler_GigECameraParams::UserSetSelector_Default);
-            gige_cam_->UserSetLoad.Execute();
-            // UserSetSelector_Default overrides Software Trigger Mode !!
-            gige_cam_->TriggerSource.SetValue(Basler_GigECameraParams::TriggerSource_Software);
-            gige_cam_->TriggerMode.SetValue(Basler_GigECameraParams::TriggerMode_On);
+                // Remove all previous settings (sequencer etc.)
+                gige_cam_->UserSetSelector.SetValue(Basler_GigECameraParams::UserSetSelector_Default);
+                gige_cam_->UserSetLoad.Execute();
+                // UserSetSelector_Default overrides Software Trigger Mode !!
+                gige_cam_->TriggerSource.SetValue(Basler_GigECameraParams::TriggerSource_Software);
+                gige_cam_->TriggerMode.SetValue(Basler_GigECameraParams::TriggerMode_On);
 
-            // raise inter-package delay (GevSCPD) for solving error: 'the image buffer was incompletely grabbed'
-            // also in ubuntu settings -> network -> options -> MTU Size from 'automatic' to 9000 (if card supports it, else 3000)
-            gige_cam_->GevStreamChannelSelector.SetValue(Basler_GigECameraParams::GevStreamChannelSelector_StreamChannel0);
-            gige_cam_->GevSCPSPacketSize.SetValue(params.mtu_size_);
-            gige_cam_->GevSCPD.SetValue(10000);
-            break;
-        case USB:
-            usb_cam_->RegisterConfiguration(new CSoftwareTriggerConfiguration,
-                                            RegistrationMode_ReplaceAll,
-                                            Cleanup_Delete);
-            usb_cam_->Open();
-            // Remove all previous settings (sequencer etc.)
-            usb_cam_->UserSetSelector.SetValue(Basler_UsbCameraParams::UserSetSelector_Default);
-            usb_cam_->UserSetLoad.Execute();
-            // UserSetSelector_Default overrides Software Trigger Mode !!
-            usb_cam_->TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
-            usb_cam_->TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_On);
-            break;
-        case DART:
+                // raise inter-package delay (GevSCPD) for solving error: 'the image buffer was incompletely grabbed'
+                // also in ubuntu settings -> network -> options -> MTU Size from 'automatic' to 9000 (if card supports it, else 3000)
+                gige_cam_->GevStreamChannelSelector.SetValue(Basler_GigECameraParams::GevStreamChannelSelector_StreamChannel0);
+                gige_cam_->GevSCPSPacketSize.SetValue(params.mtu_size_);
+                gige_cam_->GevSCPD.SetValue(10000);
+                break;
+            case USB:
+                usb_cam_->RegisterConfiguration(new CSoftwareTriggerConfiguration,
+                                                RegistrationMode_ReplaceAll,
+                                                Cleanup_Delete);
+                usb_cam_->Open();
+                // Remove all previous settings (sequencer etc.)
+                usb_cam_->UserSetSelector.SetValue(Basler_UsbCameraParams::UserSetSelector_Default);
+                usb_cam_->UserSetLoad.Execute();
+                // UserSetSelector_Default overrides Software Trigger Mode !!
+                usb_cam_->TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
+                usb_cam_->TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_On);
+                break;
+            case DART:
 
-            dart_cam_->RegisterConfiguration(new CSoftwareTriggerConfiguration,
-                                             RegistrationMode_ReplaceAll,
-                                             Cleanup_Delete);
-            dart_cam_->Open();
-            // Remove all previous settings (sequencer etc.)
-            dart_cam_->UserSetSelector.SetValue(Basler_UsbCameraParams::UserSetSelector_Default);
-            dart_cam_->UserSetLoad.Execute();
-            // UserSetSelector_Default overrides Software Trigger Mode !!
-            dart_cam_->TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
-            dart_cam_->TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_On);
-            break;
-        default:
-            cerr << "Unknown Camera Type" << endl;
-            break;
+                dart_cam_->RegisterConfiguration(new CSoftwareTriggerConfiguration,
+                                                 RegistrationMode_ReplaceAll,
+                                                 Cleanup_Delete);
+                dart_cam_->Open();
+                // Remove all previous settings (sequencer etc.)
+                dart_cam_->UserSetSelector.SetValue(Basler_UsbCameraParams::UserSetSelector_Default);
+                dart_cam_->UserSetLoad.Execute();
+                // UserSetSelector_Default overrides Software Trigger Mode !!
+                dart_cam_->TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
+                dart_cam_->TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_On);
+                break;
+            default:
+                cerr << "Unknown Camera Type" << endl;
+                break;
         }
     }
     catch (GenICam::GenericException &e)
@@ -235,54 +234,53 @@ bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &par
     return true;
 }
 
-
 bool PylonInterface::startGrabbing(const PylonCameraParameter &params)
 {
     try
     {
         switch (cam_type_)
         {
-        case GIGE:
-            //                initSequencer(params);
-            gige_cam_->StartGrabbing();
-            img_rows_ = (int)gige_cam_->Height.GetValue();
-            img_cols_ = (int)gige_cam_->Width.GetValue();
-            gige_img_encoding_ = gige_cam_->PixelFormat.GetValue();
-            gige_img_pixel_depth_ = gige_cam_->PixelSize.GetValue();
-            max_framerate_ = gige_cam_->ResultingFrameRateAbs.GetValue();
-            has_auto_exposure_ = GenApi::IsAvailable(gige_cam_->ExposureAuto);
-            gige_cam_->ExecuteSoftwareTrigger();
+            case GIGE:
+                //                initSequencer(params);
+                gige_cam_->StartGrabbing();
+                img_rows_ = (int)gige_cam_->Height.GetValue();
+                img_cols_ = (int)gige_cam_->Width.GetValue();
+                gige_img_encoding_ = gige_cam_->PixelFormat.GetValue();
+                gige_img_pixel_depth_ = gige_cam_->PixelSize.GetValue();
+                max_framerate_ = gige_cam_->ResultingFrameRateAbs.GetValue();
+                has_auto_exposure_ = GenApi::IsAvailable(gige_cam_->ExposureAuto);
+                gige_cam_->ExecuteSoftwareTrigger();
 
-            break;
-        case USB:
-            usb_img_encoding_ = usb_cam_->PixelFormat.GetValue();
-            if (usb_img_encoding_ != Basler_UsbCameraParams::PixelFormat_Mono8)
-            {
-                usb_cam_->PixelFormat.SetValue(Basler_UsbCameraParams::PixelFormat_Mono8);
+                break;
+            case USB:
                 usb_img_encoding_ = usb_cam_->PixelFormat.GetValue();
-                cout << "Color Image support not yet implemented! Will switch to 8-Bit Mono" << endl;
-            }
-            usb_cam_->StartGrabbing();
-            img_rows_ = (int)usb_cam_->Height.GetValue();
-            img_cols_ = (int)usb_cam_->Width.GetValue();
-            usb_img_pixel_depth_ = usb_cam_->PixelSize.GetValue();
-            max_framerate_ = usb_cam_->ResultingFrameRate.GetValue();
-            has_auto_exposure_ = GenApi::IsAvailable(usb_cam_->ExposureAuto);
-            usb_cam_->ExecuteSoftwareTrigger();
-            break;
-        case DART:
-            dart_cam_->StartGrabbing();
-            img_rows_ = (int)dart_cam_->Height.GetValue();
-            img_cols_ = (int)dart_cam_->Width.GetValue();
-            usb_img_encoding_ = dart_cam_->PixelFormat.GetValue();
-            usb_img_pixel_depth_ = dart_cam_->PixelSize.GetValue();
-            max_framerate_ = dart_cam_->ResultingFrameRate.GetValue();
-            has_auto_exposure_ = GenApi::IsAvailable(dart_cam_->ExposureAuto);
-            dart_cam_->ExecuteSoftwareTrigger();
-            break;
-        default:
-            cerr << "Unknown Camera Type" << endl;
-            break;
+                if (usb_img_encoding_ != Basler_UsbCameraParams::PixelFormat_Mono8)
+                {
+                    usb_cam_->PixelFormat.SetValue(Basler_UsbCameraParams::PixelFormat_Mono8);
+                    usb_img_encoding_ = usb_cam_->PixelFormat.GetValue();
+                    cout << "Color Image support not yet implemented! Will switch to 8-Bit Mono" << endl;
+                }
+                usb_cam_->StartGrabbing();
+                img_rows_ = (int)usb_cam_->Height.GetValue();
+                img_cols_ = (int)usb_cam_->Width.GetValue();
+                usb_img_pixel_depth_ = usb_cam_->PixelSize.GetValue();
+                max_framerate_ = usb_cam_->ResultingFrameRate.GetValue();
+                has_auto_exposure_ = GenApi::IsAvailable(usb_cam_->ExposureAuto);
+                usb_cam_->ExecuteSoftwareTrigger();
+                break;
+            case DART:
+                dart_cam_->StartGrabbing();
+                img_rows_ = (int)dart_cam_->Height.GetValue();
+                img_cols_ = (int)dart_cam_->Width.GetValue();
+                usb_img_encoding_ = dart_cam_->PixelFormat.GetValue();
+                usb_img_pixel_depth_ = dart_cam_->PixelSize.GetValue();
+                max_framerate_ = dart_cam_->ResultingFrameRate.GetValue();
+                has_auto_exposure_ = GenApi::IsAvailable(dart_cam_->ExposureAuto);
+                dart_cam_->ExecuteSoftwareTrigger();
+                break;
+            default:
+                cerr << "Unknown Camera Type" << endl;
+                break;
         }
     }
     catch (GenICam::GenericException &e)
@@ -314,20 +312,20 @@ bool PylonInterface::findDesiredCam(const PylonCameraParameter &params)
             delete cam;
             switch (cam_type_)
             {
-            case GIGE:
-                gige_cam_ = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance()
-                                                                .CreateFirstDevice());
-                break;
-            case USB:
-                usb_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance()
-                                                              .CreateFirstDevice());
-                break;
-            case DART:
-                dart_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance()
-                                                               .CreateFirstDevice());
-                break;
-            default:
-                break;
+                case GIGE:
+                    gige_cam_ = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance()
+                                                                                             .CreateFirstDevice());
+                    break;
+                case USB:
+                    usb_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance()
+                                                                                           .CreateFirstDevice());
+                    break;
+                case DART:
+                    dart_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance()
+                                                                                            .CreateFirstDevice());
+                    break;
+                default:
+                    break;
             }
             return true;
 
@@ -384,7 +382,7 @@ bool PylonInterface::findDesiredCam(const PylonCameraParameter &params)
                     }
                     camera_array[i].Close();
                 }
-                catch(GenICam::GenericException &e)
+                catch (GenICam::GenericException &e)
                 {
                     continue;
                 }
@@ -406,22 +404,22 @@ bool PylonInterface::findDesiredCam(const PylonCameraParameter &params)
 
             switch (cam_type_)
             {
-            case GIGE:
-                gige_cam_ = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateDevice(camera_array[cam_pos]
-                                                                                                       .GetDeviceInfo()));
-                break;
-            case USB:
-                usb_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateDevice(camera_array[cam_pos]
-                                                                                                     .GetDeviceInfo()));
-                break;
-            case DART:
-                dart_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateDevice(camera_array[cam_pos]
-                                                                                                      .GetDeviceInfo()));
-                break;
-            default:
-                cerr << "UNKNOWN camera type!" << endl;
-                return false;
-                break;
+                case GIGE:
+                    gige_cam_ = new Pylon::CBaslerGigEInstantCamera(CTlFactory::GetInstance().CreateDevice(camera_array[cam_pos]
+                                    .GetDeviceInfo()));
+                    break;
+                case USB:
+                    usb_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateDevice(camera_array[cam_pos]
+                                    .GetDeviceInfo()));
+                    break;
+                case DART:
+                    dart_cam_ = new Pylon::CBaslerUsbInstantCamera(CTlFactory::GetInstance().CreateDevice(camera_array[cam_pos]
+                                    .GetDeviceInfo()));
+                    break;
+                default:
+                    cerr << "UNKNOWN camera type!" << endl;
+                    return false;
+                    break;
             }
             return true;
         }
@@ -446,17 +444,17 @@ PYLON_CAM_TYPE PylonInterface::detectPylonCamType(const CInstantCamera* cam)
 
         if (sfnc_version < Sfnc_2_0_0)
         { // ace GigE
-            //CIntegerPtr ExposureTimeRaw (nodemap.GetNode("ExposureTimeRaw"));
+          //CIntegerPtr ExposureTimeRaw (nodemap.GetNode("ExposureTimeRaw"));
             cam_type = GIGE;
         }
         else if (sfnc_version == Sfnc_2_1_0)
         { // ace USB
-            // CFloatPtr ExposureTime (nodemap.GetNode("ExposureTime"));
+          // CFloatPtr ExposureTime (nodemap.GetNode("ExposureTime"));
             cam_type = USB;
         }
         else if (sfnc_version == Sfnc_2_2_0)
         { // Dart Cameras
-            // CFloatPtr ExposureTime (nodemap.GetNode("ExposureTime"));
+          // CFloatPtr ExposureTime (nodemap.GetNode("ExposureTime"));
             cam_type = DART;
         }
     }
@@ -498,111 +496,112 @@ bool PylonInterface::setBrightness(int brightness)
     {
         switch (cam_type_)
         {
-        case GIGE:
-            if (brightness == -2)
-            {
-                gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
-            }
-            else if (brightness == -1)
-            {
-                gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Continuous);
-            }
-            else if (brightness == 0)
-            {
-                gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Off);
-            }
-            else
-            {
-                // Set the target value for luminance control. The value is always expressed
-                // as an 8 bit value regardless of the current pixel data output format,
-                // i.e., 0 -> black, 255 -> white.
-                if (gige_cam_->AutoTargetValue.GetMin() <= brightness &&
-                        brightness <= gige_cam_->AutoTargetValue.GetMax())
+            case GIGE:
+                if (brightness == -2)
                 {
-                    // Use Pylon Auto Funciton, whenever in possible range
                     gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
-                    gige_cam_->AutoTargetValue.SetValue(brightness, false);
+                }
+                else if (brightness == -1)
+                {
+                    gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Continuous);
+                }
+                else if (brightness == 0)
+                {
+                    gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Off);
+                }
+                else
+                {
+                    // Set the target value for luminance control. The value is always expressed
+                    // as an 8 bit value regardless of the current pixel data output format,
+                    // i.e., 0 -> black, 255 -> white.
+                    if (gige_cam_->AutoTargetValue.GetMin() <= brightness &&
+                        brightness <= gige_cam_->AutoTargetValue.GetMax())
+                    {
+                        // Use Pylon Auto Funciton, whenever in possible range
+                        gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
+                        gige_cam_->AutoTargetValue.SetValue(brightness, false);
 
-                    if (gige_cam_->ExposureAuto.GetValue() != Basler_GigECameraParams::ExposureAuto_Once){
-                        cerr << "Could not set GigE-Exposure-Mode to ONCE" << endl;
+                        if (gige_cam_->ExposureAuto.GetValue() != Basler_GigECameraParams::ExposureAuto_Once)
+                        {
+                            cerr << "Could not set GigE-Exposure-Mode to ONCE" << endl;
+                        }
+
                     }
-
+                    else
+                    {
+                        // Extended brightness search only available in PylonOpenCVInterface
+                        setupExtendedBrightnessSearch(brightness);
+                    }
                 }
-                else
+                break;
+            case USB:
+                if (brightness == -2)
                 {
-                    // Extended brightness search only available in PylonOpenCVInterface
-                    setupExtendedBrightnessSearch(brightness);
-                }
-            }
-            break;
-        case USB:
-            if (brightness == -2)
-            {
-                usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
-            }
-            else if (brightness == -1)
-            {
-                usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Continuous);
-            }
-            else if (brightness == 0)
-            {
-                usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
-            }
-            else
-            {
-                double brightness_f = brightness / 255.0;
-                // Set the target value for luminance control. The value is always expressed
-                // as an float value regardless of the current pixel data output format,
-                // i.e., 0.0 -> black, 1.0 -> white.
-                if (usb_cam_->AutoTargetBrightness.GetMin() <= brightness_f && brightness_f
-                        <= usb_cam_->AutoTargetBrightness.GetMax())
-                {
-                    //                        cout << "setting " << brightness_f << endl;
-                    // Use Pylon Auto Funciton, whenever in possible range
                     usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
-                    usb_cam_->AutoTargetBrightness.SetValue(brightness_f);
+                }
+                else if (brightness == -1)
+                {
+                    usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Continuous);
+                }
+                else if (brightness == 0)
+                {
+                    usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
                 }
                 else
                 {
-                    // Extended brightness search only available in PylonOpenCVInterface
-                    setupExtendedBrightnessSearch(brightness);
+                    double brightness_f = brightness / 255.0;
+                    // Set the target value for luminance control. The value is always expressed
+                    // as an float value regardless of the current pixel data output format,
+                    // i.e., 0.0 -> black, 1.0 -> white.
+                    if (usb_cam_->AutoTargetBrightness.GetMin() <= brightness_f && brightness_f
+                                    <= usb_cam_->AutoTargetBrightness.GetMax())
+                    {
+                        //                        cout << "setting " << brightness_f << endl;
+                        // Use Pylon Auto Funciton, whenever in possible range
+                        usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+                        usb_cam_->AutoTargetBrightness.SetValue(brightness_f);
+                    }
+                    else
+                    {
+                        // Extended brightness search only available in PylonOpenCVInterface
+                        setupExtendedBrightnessSearch(brightness);
+                    }
                 }
-            }
-            break;
-        case DART:
-            if (brightness == -2)
-            {
-                dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
-            }
-            else if (brightness == -1)
-            {
-                dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Continuous);
-            }
-            else if (brightness == 0)
-            {
-                dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
-            }
-            else
-            {
-                double brightness_f = brightness / 255.0;
-                // Set the target value for luminance control. The value is always expressed
-                // as an float value regardless of the current pixel data output format,
-                // i.e., 0.0 -> black, 1.0 -> white.
-                if (dart_cam_->AutoTargetBrightness.GetMin() <= brightness_f && brightness_f
-                        <= dart_cam_->AutoTargetBrightness.GetMax())
+                break;
+            case DART:
+                if (brightness == -2)
                 {
-                    // Use Pylon Auto Funciton, whenever in possible range
                     dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
-                    dart_cam_->AutoTargetBrightness.SetValue(brightness_f, false);
-                } else
-                {
-                    // Extended brightness search only available in PylonOpenCVInterface
-                    setupExtendedBrightnessSearch(brightness);
                 }
-            }
-            break;
-        default:
-            break;
+                else if (brightness == -1)
+                {
+                    dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Continuous);
+                }
+                else if (brightness == 0)
+                {
+                    dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+                }
+                else
+                {
+                    double brightness_f = brightness / 255.0;
+                    // Set the target value for luminance control. The value is always expressed
+                    // as an float value regardless of the current pixel data output format,
+                    // i.e., 0.0 -> black, 1.0 -> white.
+                    if (dart_cam_->AutoTargetBrightness.GetMin() <= brightness_f && brightness_f
+                                    <= dart_cam_->AutoTargetBrightness.GetMax())
+                    {
+                        // Use Pylon Auto Funciton, whenever in possible range
+                        dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+                        dart_cam_->AutoTargetBrightness.SetValue(brightness_f, false);
+                    } else
+                    {
+                        // Extended brightness search only available in PylonOpenCVInterface
+                        setupExtendedBrightnessSearch(brightness);
+                    }
+                }
+                break;
+            default:
+                break;
         }
         last_brightness_val_ = brightness;
     }
@@ -623,87 +622,86 @@ void PylonInterface::setupExtendedBrightnessSearch(int &brightness)
          << endl;
     switch (cam_type_)
     {
-    case GIGE:
-    {
-        if (gige_cam_->AutoTargetValue.GetMin() > brightness)
-        {
-            gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
-            gige_cam_->AutoTargetValue.SetValue(gige_cam_->AutoTargetValue.GetMin(), false);
-        } else if (gige_cam_->AutoTargetValue.GetMax() < brightness)
-        {
-            gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
-            gige_cam_->AutoTargetValue.SetValue(gige_cam_->AutoTargetValue.GetMax(), false);
-        } else
-        {
-            cerr << "ERROR unexpected brightness case" << endl;
+        case GIGE:
+            {
+            if (gige_cam_->AutoTargetValue.GetMin() > brightness)
+            {
+                gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
+                gige_cam_->AutoTargetValue.SetValue(gige_cam_->AutoTargetValue.GetMin(), false);
+            } else if (gige_cam_->AutoTargetValue.GetMax() < brightness)
+            {
+                gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
+                gige_cam_->AutoTargetValue.SetValue(gige_cam_->AutoTargetValue.GetMax(), false);
+            } else
+            {
+                cerr << "ERROR unexpected brightness case" << endl;
+            }
+            break;
         }
-        break;
-    }
-    case USB:
-    {
-        double brightness_f = brightness / 255.0;
-        if (usb_cam_->AutoTargetBrightness.GetMin() > brightness_f)
-        {
-            usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
-            usb_cam_->AutoTargetBrightness.SetValue(usb_cam_->AutoTargetBrightness.GetMin(), false);
-        } else if (usb_cam_->AutoTargetBrightness.GetMax() < brightness_f)
-        {
-            usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
-            usb_cam_->AutoTargetBrightness.SetValue(usb_cam_->AutoTargetBrightness.GetMax(), false);
-        } else
-        {
-            cerr << "ERROR unexpected brightness case" << endl;
+        case USB:
+            {
+            double brightness_f = brightness / 255.0;
+            if (usb_cam_->AutoTargetBrightness.GetMin() > brightness_f)
+            {
+                usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+                usb_cam_->AutoTargetBrightness.SetValue(usb_cam_->AutoTargetBrightness.GetMin(), false);
+            } else if (usb_cam_->AutoTargetBrightness.GetMax() < brightness_f)
+            {
+                usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+                usb_cam_->AutoTargetBrightness.SetValue(usb_cam_->AutoTargetBrightness.GetMax(), false);
+            } else
+            {
+                cerr << "ERROR unexpected brightness case" << endl;
+            }
+            break;
         }
-        break;
-    }
-    case DART:
-    {
-        double brightness_f = brightness / 255.0;
-        if (dart_cam_->AutoTargetBrightness.GetMin() > brightness_f)
-        {
-            dart_cam_->AutoTargetBrightness.SetValue(dart_cam_->AutoTargetBrightness.GetMin(), false);
-            dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
-        } else if (dart_cam_->AutoTargetBrightness.GetMax() < brightness_f)
-        {
-            dart_cam_->AutoTargetBrightness.SetValue(dart_cam_->AutoTargetBrightness.GetMax(), false);
-            dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
-        } else
-        {
-            cerr << "ERROR unexpected brightness case" << endl;
+        case DART:
+            {
+            double brightness_f = brightness / 255.0;
+            if (dart_cam_->AutoTargetBrightness.GetMin() > brightness_f)
+            {
+                dart_cam_->AutoTargetBrightness.SetValue(dart_cam_->AutoTargetBrightness.GetMin(), false);
+                dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+            } else if (dart_cam_->AutoTargetBrightness.GetMax() < brightness_f)
+            {
+                dart_cam_->AutoTargetBrightness.SetValue(dart_cam_->AutoTargetBrightness.GetMax(), false);
+                dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+            } else
+            {
+                cerr << "ERROR unexpected brightness case" << endl;
+            }
+            break;
         }
-        break;
-    }
-    default:
-        break;
+        default:
+            break;
     }
     return;
 }
-
 
 bool PylonInterface::isAutoBrightnessFunctionRunning()
 {
     switch (cam_type_)
     {
-    case GIGE:
-    {
-        is_pylon_auto_function_running_ = !(gige_cam_->ExposureAuto.GetValue()
-                                            == Basler_GigECameraParams::ExposureAuto_Off);
-        break;
-    }
-    case USB:
-    {
-        is_pylon_auto_function_running_ = !(usb_cam_->ExposureAuto.GetValue()
-                                            == Basler_UsbCameraParams::ExposureAuto_Off);
-        break;
-    }
-    case DART:
-    {
-        is_pylon_auto_function_running_ = !(dart_cam_->ExposureAuto.GetValue()
-                                            == Basler_UsbCameraParams::ExposureAuto_Off);
-        break;
-    }
-    default:
-        break;
+        case GIGE:
+            {
+            is_pylon_auto_function_running_ = !(gige_cam_->ExposureAuto.GetValue()
+                                                == Basler_GigECameraParams::ExposureAuto_Off);
+            break;
+        }
+        case USB:
+            {
+            is_pylon_auto_function_running_ = !(usb_cam_->ExposureAuto.GetValue()
+                                                == Basler_UsbCameraParams::ExposureAuto_Off);
+            break;
+        }
+        case DART:
+            {
+            is_pylon_auto_function_running_ = !(dart_cam_->ExposureAuto.GetValue()
+                                                == Basler_UsbCameraParams::ExposureAuto_Off);
+            break;
+        }
+        default:
+            break;
     }
     return is_pylon_auto_function_running_;
 }
@@ -735,89 +733,89 @@ int PylonInterface::setExposure(double exposure)
     {
         switch (cam_type_)
         {
-        case GIGE:
-            if (exposure == -2.0)
-            {
-                gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
-            }
-            else if (exposure == -1.0)
-            {
-                gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Continuous);
-            }
-            else if (exposure == 0.0)
-            {
-                gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Off);
-            }
-            else
-            {
-                if (has_auto_exposure_)
+            case GIGE:
+                if (exposure == -2.0)
+                {
+                    gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Once);
+                }
+                else if (exposure == -1.0)
+                {
+                    gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Continuous);
+                }
+                else if (exposure == 0.0)
                 {
                     gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Off);
                 }
-                if (gige_cam_->ExposureTimeAbs.GetMin() > exposure)
+                else
                 {
-                    exposure = gige_cam_->ExposureTimeAbs.GetMin();
-                    cout << "Desired exposure time unreachable! Setting to lower limit: "
-                         << exposure
-                         << endl;
+                    if (has_auto_exposure_)
+                    {
+                        gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Off);
+                    }
+                    if (gige_cam_->ExposureTimeAbs.GetMin() > exposure)
+                    {
+                        exposure = gige_cam_->ExposureTimeAbs.GetMin();
+                        cout << "Desired exposure time unreachable! Setting to lower limit: "
+                             << exposure
+                             << endl;
+                    }
+                    else if (gige_cam_->ExposureTimeAbs.GetMax() < exposure)
+                    {
+                        exposure = gige_cam_->ExposureTimeAbs.GetMax();
+                        cout << "Desired exposure time unreachable! Setting to upper limit: "
+                             << exposure
+                             << endl;
+                    }
+                    gige_cam_->ExposureTimeAbs.SetValue(exposure, false);
                 }
-                else if (gige_cam_->ExposureTimeAbs.GetMax() < exposure)
+                break;
+            case USB:
+                if (exposure == -2.0)
                 {
-                    exposure = gige_cam_->ExposureTimeAbs.GetMax();
-                    cout << "Desired exposure time unreachable! Setting to upper limit: "
-                         << exposure
-                         << endl;
+                    usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
                 }
-                gige_cam_->ExposureTimeAbs.SetValue(exposure, false);
-            }
-            break;
-        case USB:
-            if (exposure == -2.0)
-            {
-                usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
-            }
-            else if (exposure == -1.0)
-            {
-                usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Continuous);
-            }
-            else if (exposure == 0.0)
-            {
-                usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
-            }
-            else
-            {
-                if (has_auto_exposure_)
+                else if (exposure == -1.0)
+                {
+                    usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Continuous);
+                }
+                else if (exposure == 0.0)
                 {
                     usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
                 }
-                usb_cam_->ExposureTime.SetValue(exposure, false);
-            }
-            break;
-        case DART:
-            if (exposure == -2.0)
-            {
-                dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
-            }
-            else if (exposure == -1.0)
-            {
-                dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Continuous);
-            }
-            else if (exposure == 0.0)
-            {
-                dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
-            }
-            else
-            {
-                if (has_auto_exposure_)
+                else
+                {
+                    if (has_auto_exposure_)
+                    {
+                        usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+                    }
+                    usb_cam_->ExposureTime.SetValue(exposure, false);
+                }
+                break;
+            case DART:
+                if (exposure == -2.0)
+                {
+                    dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Once);
+                }
+                else if (exposure == -1.0)
+                {
+                    dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Continuous);
+                }
+                else if (exposure == 0.0)
                 {
                     dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
                 }
-                dart_cam_->ExposureTime.SetValue(exposure, false);
-            }
-            break;
-        default:
-            cerr << "Unknown Camera Type" << endl;
-            break;
+                else
+                {
+                    if (has_auto_exposure_)
+                    {
+                        dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+                    }
+                    dart_cam_->ExposureTime.SetValue(exposure, false);
+                }
+                break;
+            default:
+                cerr << "Unknown Camera Type" << endl;
+                break;
         }
         last_exposure_val_ = exposure;
     }
@@ -869,54 +867,54 @@ std::string PylonInterface::img_encoding()
 {
     switch (cam_type_)
     {
-    case GIGE:
-        switch (gige_img_encoding_)
-        {
-        case Basler_GigECameraParams::PixelFormat_Mono8:
-            return "mono8";
+        case GIGE:
+            switch (gige_img_encoding_)
+            {
+                case Basler_GigECameraParams::PixelFormat_Mono8:
+                    return "mono8";
+                    break;
+                default:
+                    cerr << "Image encoding " << gige_img_encoding_ << " not yet implemented!"
+                         << endl;
+                    return "";
+                    break;
+            }
             break;
-        default:
-            cerr << "Image encoding " << gige_img_encoding_ << " not yet implemented!"
-                 << endl;
-            return "";
+        case USB:
+            switch (usb_img_encoding_)
+            {
+                //                case Basler_UsbCameraParams::PixelFormat_BGR8:
+                //                    return "mono8";
+                //                    break;
+                case Basler_UsbCameraParams::PixelFormat_Mono8:
+                    return "mono8";
+                    break;
+                default:
+                    cout << "encoding: " << usb_img_encoding_ << endl;
+                    cout << Basler_UsbCameraParams::PixelFormat_BGR8 << endl;
+                    cerr << "Image encoding " << usb_img_encoding_ << " not yet implemented!"
+                         << endl;
+                    return "";
+                    break;
+            }
+            break;
+        case DART:
+            switch (usb_img_encoding_)
+            {
+                case Basler_UsbCameraParams::PixelFormat_Mono8:
+                    return "mono8";
+                    break;
+                default:
+                    cerr << "Image encoding " << usb_img_encoding_ << " not yet implemented!"
+                         << endl;
+                    return "";
+                    break;
+            }
+        case UNKNOWN:
+            {
+            cerr << "Unknown camera type";
             break;
         }
-        break;
-    case USB:
-        switch (usb_img_encoding_)
-        {
-        //                case Basler_UsbCameraParams::PixelFormat_BGR8:
-        //                    return "mono8";
-        //                    break;
-        case Basler_UsbCameraParams::PixelFormat_Mono8:
-            return "mono8";
-            break;
-        default:
-            cout << "encoding: " << usb_img_encoding_ << endl;
-            cout << Basler_UsbCameraParams::PixelFormat_BGR8 << endl;
-            cerr << "Image encoding " << usb_img_encoding_ << " not yet implemented!"
-                 << endl;
-            return "";
-            break;
-        }
-        break;
-    case DART:
-        switch (usb_img_encoding_)
-        {
-        case Basler_UsbCameraParams::PixelFormat_Mono8:
-            return "mono8";
-            break;
-        default:
-            cerr << "Image encoding " << usb_img_encoding_ << " not yet implemented!"
-                 << endl;
-            return "";
-            break;
-        }
-    case UNKNOWN:
-    {
-        cerr << "Unknown camera type";
-        break;
-    }
     }
     return "";
     // List from #include <sensor_msgs/image_encodings.h>
@@ -935,56 +933,56 @@ int PylonInterface::img_pixel_depth()
 {
     switch (cam_type_)
     {
-    case GIGE:
-        switch (gige_img_pixel_depth_)
-        {
-        case Basler_GigECameraParams::PixelSize_Bpp8:
-            return sizeof(uint8_t);
-            break;
+        case GIGE:
+            switch (gige_img_pixel_depth_)
+            {
+                case Basler_GigECameraParams::PixelSize_Bpp8:
+                    return sizeof(uint8_t);
+                    break;
 
-        default:
-            cerr << "Image Pixel Depth not yet implemented!" << endl;
-            return -1;
+                default:
+                    cerr << "Image Pixel Depth not yet implemented!" << endl;
+                    return -1;
+                    break;
+            }
+            break;
+        case USB:
+            switch (usb_img_pixel_depth_)
+            {
+                case Basler_UsbCameraParams::PixelSize_Bpp8:
+                    return sizeof(uint8_t);
+                    break;
+                    //		case Basler_UsbCameraParams::PixelSize_Bpp12:
+                    //			return 12;
+                    //			break;
+                    //		case Basler_UsbCameraParams::PixelSize_Bpp16:
+                    //			return 16;
+                    //			break;
+                    //		case Basler_UsbCameraParams::PixelSize_Bpp24:
+                    //			return 24;
+                    //			break;
+                default:
+                    cerr << "Image Pixel Depth not yet implemented!" << endl;
+                    return -1;
+                    break;
+            }
+            break;
+        case DART:
+            switch (usb_img_pixel_depth_)
+            {
+                case Basler_UsbCameraParams::PixelSize_Bpp8:
+                    return sizeof(uint8_t);
+                    break;
+                default:
+                    cerr << "Image Pixel Depth not yet implemented!" << endl;
+                    return -1;
+                    break;
+            }
+        case UNKNOWN:
+            {
+            cerr << "Unknown camera type";
             break;
         }
-        break;
-    case USB:
-        switch (usb_img_pixel_depth_)
-        {
-        case Basler_UsbCameraParams::PixelSize_Bpp8:
-            return sizeof(uint8_t);
-            break;
-            //		case Basler_UsbCameraParams::PixelSize_Bpp12:
-            //			return 12;
-            //			break;
-            //		case Basler_UsbCameraParams::PixelSize_Bpp16:
-            //			return 16;
-            //			break;
-            //		case Basler_UsbCameraParams::PixelSize_Bpp24:
-            //			return 24;
-            //			break;
-        default:
-            cerr << "Image Pixel Depth not yet implemented!" << endl;
-            return -1;
-            break;
-        }
-        break;
-    case DART:
-        switch (usb_img_pixel_depth_)
-        {
-        case Basler_UsbCameraParams::PixelSize_Bpp8:
-            return sizeof(uint8_t);
-            break;
-        default:
-            cerr << "Image Pixel Depth not yet implemented!" << endl;
-            return -1;
-            break;
-        }
-    case UNKNOWN:
-    {
-        cerr << "Unknown camera type";
-        break;
-    }
     }
     return -1;
 
@@ -1004,14 +1002,14 @@ std::string PylonInterface::pylonCamTypeToString(const PYLON_CAM_TYPE type)
 {
     switch (type)
     {
-    case GIGE:
-        return "GigE";
-    case USB:
-        return "USB";
-    case DART:
-        return "Dart";
-    case UNKNOWN:
-        return "UNKNOWN";
+        case GIGE:
+            return "GigE";
+        case USB:
+            return "USB";
+        case DART:
+            return "Dart";
+        case UNKNOWN:
+            return "UNKNOWN";
     }
     return "Unknown Camera Type";
 }
