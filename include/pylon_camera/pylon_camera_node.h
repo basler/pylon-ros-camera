@@ -39,9 +39,7 @@ public:
     bool startGrabbing();
     void createPylonInterface();
     void getInitialCameraParameter();
-    void getRuntimeCameraParameter();
     void updateAquisitionSettings();
-    void updateROSBrightnessParameter();
     uint32_t getNumSubscribers();
     bool grabImage();
     bool setExposureCallback(pylon_camera_msgs::SetExposureSrv::Request &req,
@@ -54,8 +52,14 @@ public:
     bool is_sleeping();
     void checkForPylonAutoFunctionRunning();
 
+    virtual bool brightnessValidation(int target);
+    virtual int calcCurrentBrightness();
+    virtual float getCurrenCurrentExposure();
+
     PylonInterface *pylon_interface_;
     PylonCameraParameter params_;
+
+    int target_brightness_;
 
     ros::ServiceServer set_exposure_service_;
     ros::ServiceServer set_brightness_service_;

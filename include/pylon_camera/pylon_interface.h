@@ -10,6 +10,8 @@
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
+#include <ros/ros.h>
+#include <time.h>
 #include <iostream>
 #include <pylon/PylonIncludes.h>
 #include <GenApi/IEnumEntry.h>
@@ -49,29 +51,21 @@ public:
     virtual bool is_cam_removed();
     virtual double last_exposure_val();
     virtual int last_brightness_val();
-
     void set_image_size(int size);
-
     virtual int setExposure(double exposure);
     virtual bool setBrightness(int brightness);
     bool registerCameraConfiguration(const PylonCameraParameter &params);
     bool startGrabbing(const PylonCameraParameter &params);
-//    const uint8_t* grab(const PylonCameraParameter &params);
     virtual bool grab(const PylonCameraParameter &params, std::vector<uint8_t> &image);
-
     virtual bool setupSequencer(const PylonCameraParameter &params);
     virtual bool isAutoBrightnessFunctionRunning();
-
-//    virtual int terminate(const PylonCameraParameter &params);
-
+    float getCurrentExposure();
 
     // Con-/ De-structor automagically calls PylonInitialize and PylonTerminate to ensure the pylon runtime system
     // is initialized during the lifetime of this object.
     Pylon::PylonAutoInitTerm auto_init_term_;
-
-//    virtual int updateRuntimeParameter(const PylonCameraParameter &params);
     bool is_opencv_interface_;
-
+    bool is_ready_;
 
 protected:
 
@@ -101,8 +95,8 @@ protected:
 
     double last_exposure_val_;
     int last_brightness_val_;
-    bool is_cam_removed_;
 
+    bool is_cam_removed_;
     bool is_pylon_auto_function_running_;
 
 private:

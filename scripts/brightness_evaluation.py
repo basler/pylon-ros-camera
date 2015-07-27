@@ -62,7 +62,7 @@ if __name__ == "__main__":
     img_time = rospy.Time.now() + rospy.Duration(1e10)
 
 
-    camera_name = "/sol_camera"
+    camera_name = "/pylon_camera"
     service_name = camera_name+"/set_brightness_srv"
 
     rospy.Subscriber(camera_name+"/image_raw", Image, img_cb, queue_size = 1)

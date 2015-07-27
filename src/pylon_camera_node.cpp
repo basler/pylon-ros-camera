@@ -13,6 +13,7 @@ namespace pylon_camera
 PylonCameraNode::PylonCameraNode() :
                     pylon_interface_(NULL),
                     params_(),
+                    target_brightness_(-42),
                     set_exposure_service_(),
                     set_brightness_service_(),
                     set_sleeping_service_(),
@@ -51,8 +52,8 @@ void PylonCameraNode::getInitialCameraParameter()
         ROS_INFO("No Magazino Cam ID set -> Will use the camera device found fist");
     }
 
-    nh_.param<int>("parameter_update_frequency", params_.param_update_frequency_, 100);
-    params_update_counter_ = params_.param_update_frequency_ - 1;
+//    nh_.param<int>("parameter_update_frequency", params_.param_update_frequency_, 100);
+//    params_update_counter_ = params_.param_update_frequency_ - 1;
 
     nh_.param<double>("desired_framerate", params_.desired_frame_rate_, 10.0);
     if (params_.desired_frame_rate_ < 0 && params_.desired_frame_rate_ != -1)
@@ -64,33 +65,30 @@ void PylonCameraNode::getInitialCameraParameter()
     }
     nh_.param<std::string>("camera_frame", params_.camera_frame_, "pylon_camera");
     nh_.param<int>("mtu_size", params_.mtu_size_, 3000);
-}
 
-void PylonCameraNode::getRuntimeCameraParameter()
-{
     nh_.param<int>("parameter_update_frequency", params_.param_update_frequency_, 100);
     params_update_counter_ = params_.param_update_frequency_ - 1;
 
-    nh_.param<double>("exposure", params_.exposure_, 35000.0); 	// -2: AutoExposureOnce
+    // -2: AutoExposureOnce
     // -1: AutoExposureContinuous
     //  0: AutoExposureOff
     // > 0: Exposure in micro-seconds
+    nh_.param<double>("start_exposure", params_.start_exposure_, 35000.0);
+
     nh_.param<bool>("use_brightness", params_.use_brightness_, false); // Using exposure or brightness
-    if (!brightness_service_running_)
-    {
-        // -2: AutoExposureOnce
-        // -1: AutoExposureContinuous
-        //  0: AutoExposureOff
-        // > 0: Intensity Value (0-255)
-        nh_.param<int>("brightness", params_.brightness_, 128);
-    }
+    // -2: AutoExposureOnce
+    // -1: AutoExposureContinuous
+    //  0: AutoExposureOff
+    // > 0: Intensity Value (0-255)
+    nh_.param<int>("start_brightness", params_.start_brightness_, 128);
 }
 
 uint32_t PylonCameraNode::getNumSubscribers()
 {
     return img_raw_pub_.getNumSubscribers();
 }
-void PylonCameraNode::checkForPylonAutoFunctionRunning(){
+void PylonCameraNode::checkForPylonAutoFunctionRunning()
+{
     brightness_service_running_ = pylon_interface_->isAutoBrightnessFunctionRunning();
 }
 
@@ -100,24 +98,18 @@ void PylonCameraNode::createPylonInterface()
     pylon_interface_ = new PylonInterface();
 }
 
-void PylonCameraNode::updateROSBrightnessParameter()
-{
-    params_.brightness_ = pylon_interface_->last_brightness_val();
-    nh_.setParam("brightness", params_.brightness_);
-}
-
 bool PylonCameraNode::init()
 {
     if (!initAndRegister())
     {
-        return false;
         ros::shutdown();
+        return false;
     }
 
     if (!startGrabbing())
     {
-        return false;
         ros::shutdown();
+        return false;
     }
     return true;
 }
@@ -129,11 +121,14 @@ bool PylonCameraNode::initAndRegister()
         return false;
     }
 
+//    cout << "BASE CAM NODE INIT FINISHED" << endl;
+
     if (!pylon_interface_->registerCameraConfiguration(params_))
     {
         ROS_ERROR("Error while registering the camera configuration");
         return false;
     }
+//    cout << "BASE CAM NODE REGISTER FINISHED" << endl;
     return true;
 }
 
@@ -181,48 +176,11 @@ bool PylonCameraNode::startGrabbing()
     // img_raw_msg_.data // actual matrix data, size is (step * rows)
     pylon_interface_->set_image_size(img_raw_msg_.step * img_raw_msg_.height);
 
+    pylon_interface_->is_ready_ = true;
+
     return true;
 }
 
-void PylonCameraNode::updateAquisitionSettings()
-{
-    if (params_.use_sequencer_)
-    {
-        // Up-To-Now: Impossible to change runtime parameter, when in sequencer mode
-        return;
-    }
-    else
-    {
-        ROS_DEBUG("Updating runtime parameter (update frequency is %d cycles)",
-                  params_.param_update_frequency_);
-
-        getRuntimeCameraParameter();
-
-        if (params_.use_brightness_)
-        {
-            if (pylon_interface_->last_brightness_val() != params_.brightness_)
-            {
-                if (!pylon_interface_->setBrightness(params_.brightness_))
-                {
-                    ROS_ERROR("Error while updating brightness!");
-                }
-
-            }
-        }
-        else
-        {
-            if (pylon_interface_->last_exposure_val() != params_.exposure_)
-            {
-                if (pylon_interface_->setExposure(params_.exposure_))
-                {
-                    ROS_ERROR("Error while updating exposure!");
-                }
-                params_.exposure_ = pylon_interface_->last_exposure_val();
-                nh_.setParam("exposure", params_.exposure_);
-            }
-        }
-    }
-}
 
 bool PylonCameraNode::grabImage()
 {
@@ -243,60 +201,122 @@ bool PylonCameraNode::grabImage()
     cam_info_msg_.header.stamp = img_raw_msg_.header.stamp;
     return true;
 }
+
 bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Request &req,
     pylon_camera_msgs::SetExposureSrv::Response &res)
 {
-    params_.use_brightness_ =  false;
-    if (pylon_interface_->setExposure(req.target_exposure))
+    float current_exposure = getCurrenCurrentExposure();
+//    ROS_INFO("New exposure request for exposure %.f, current exposure = %.f", req.target_exposure, current_exposure);
+
+    if (!pylon_interface_->is_ready_)
     {
         res.success = false;
+        return true;
     }
-    else
+    if (current_exposure != req.target_exposure) {
+        pylon_interface_->setExposure(req.target_exposure);
+    }
+
+    // wait for 2 cycles till the cam has updated the exposure
+    ros::Rate r(5.0);
+    ros::Time start = ros::Time::now();
+    int ctr = 0;
+    while (ros::ok() && ctr < 2)
     {
-        res.success = true;
-        params_.exposure_ = pylon_interface_->last_exposure_val();
-        nh_.setParam("exposure", params_.exposure_);
+        if (ros::Time::now() - start > ros::Duration(5.0))
+        {
+            ROS_ERROR("Did not reach the required brightness in time");
+            res.success = false;
+            return true;
+        }
+        ros::spinOnce();
+        r.sleep();
+        ctr++;
     }
-    return res.success;
+
+    current_exposure = getCurrenCurrentExposure();
+
+    if (current_exposure == req.target_exposure) {
+        res.success = true;
+    } else {
+        res.success = false;
+    }
+    return true;
 }
 
 bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
     pylon_camera_msgs::SetBrightnessSrv::Response &res)
 {
 
-    ROS_INFO("New brightness request for brightness %i", req.target_brightness);
+    int current_brightness = calcCurrentBrightness();
+//    ROS_INFO("New brightness request for brightness %i, current brightness = %i", req.target_brightness, current_brightness);
 
-    params_.use_brightness_ =  true;
-    nh_.setParam("use_brightness", params_.use_brightness_);
-    params_.brightness_ = req.target_brightness;
-    nh_.setParam("brightness", params_.brightness_);
-    params_update_counter_ = params_.param_update_frequency_ - 1;
+    if (!pylon_interface_->is_ready_)
+    {
+        res.success = false;
+        return res.success;
+    }
+
+    target_brightness_ = req.target_brightness;
     brightness_service_running_ = true;
 
+//    cout << "current brightness = " << current_brightness << ", target_brightness = " << target_brightness_ << endl;
+
+    if (current_brightness != target_brightness_)
+    {
+        pylon_interface_->setBrightness(target_brightness_);
+    }
+
+    ros::Duration duration;
+    if(target_brightness_ > 205){
+        // Need more time for great exposure values
+        duration = ros::Duration(15.0);
+    } else {
+        duration = ros::Duration(5.0);
+    }
     ros::Rate r(5.0);
     ros::Time start = ros::Time::now();
-//    boost::thread* spinner = new boost::thread(&ros::spin());
-    while(ros::ok() && brightness_service_running_)
+    while (ros::ok() && brightness_service_running_)
     {
-        if (ros::Time::now() - start > ros::Duration(10.0))
+        if (ros::Time::now() - start > duration)
         {
-           ROS_ERROR("Did not reach the required brightness in time");
-           res.success = false;          
-           return true;
+            ROS_ERROR("Did not reach the required brightness in time");
+            res.success = false;
+            return true;
         }
         ros::spinOnce();
         r.sleep();
     }
 
-
-
-    ///TODO: check brightness
-
+    if (pylon_interface_->is_opencv_interface_)
+    {
+        if (!brightnessValidation(req.target_brightness))
+            res.success = false;
+        else
+            res.success = true;
+        return true;
+    }
 
     res.success = true;
     return true;
 }
 
+bool PylonCameraNode::brightnessValidation(int target)
+{
+    // Dummy -> only used in PylonOpenCVInterface
+    return true;
+}
+
+int PylonCameraNode::calcCurrentBrightness()
+{
+    // Dummy -> only used in PylonOpenCVInterface
+    return -42;
+}
+
+float PylonCameraNode::getCurrenCurrentExposure()
+{
+    return pylon_interface_->getCurrentExposure();
+}
 
 /// Warum Service, wenn sofort immer true zurueckgegeben wird?
 bool PylonCameraNode::setSleepingCallback(pylon_camera_msgs::SetSleepingSrv::Request &req,
@@ -328,7 +348,8 @@ bool PylonCameraNode::have_intrinsic_data()
 
 PylonCameraNode::~PylonCameraNode()
 {
-    if(!pylon_interface_->is_opencv_interface_){
+    if (!pylon_interface_->is_opencv_interface_)
+    {
         delete pylon_interface_;
         pylon_interface_ = NULL;
     }

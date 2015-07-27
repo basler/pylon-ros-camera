@@ -27,9 +27,9 @@ public:
     bool use_sequencer_;
     bool output_hdr_;
     int param_update_frequency_;
-    double exposure_;
+    double start_exposure_;
     bool use_brightness_;
-    int brightness_;
+    int start_brightness_;
     std::string intrinsic_yaml_file_;
     bool have_intrinsic_data_;
     std::vector<float> desired_seq_exp_times_;

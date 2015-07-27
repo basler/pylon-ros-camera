@@ -23,6 +23,7 @@ PylonOpenCVInterface::~PylonOpenCVInterface()
 {
     // TODO Auto-generated destructor stub
 }
+
 int PylonOpenCVInterface::initialize(const PylonCameraParameter &params)
 {
     if (PylonInterface::initialize(params))
@@ -182,8 +183,9 @@ void PylonOpenCVInterface::setupExtendedBrightnessSearch(int &brightness)
                 own_brightness_search_running_ = true;
             } else
             {
-                cerr << "ERROR unexpected brightness case" << endl;
+                cerr << "ERROR unexpected brightness case while setting up extended brightness search" << endl;
             }
+            gige_cam_->GetNodeMap().InvalidateNodes();
             break;
         }
         case USB:
@@ -206,8 +208,9 @@ void PylonOpenCVInterface::setupExtendedBrightnessSearch(int &brightness)
                 own_brightness_search_running_ = true;
             } else
             {
-                cerr << "ERROR unexpected brightness case" << endl;
+                cerr << "ERROR unexpected brightness case while setting up extended brightness search" << endl;
             }
+            usb_cam_->GetNodeMap().InvalidateNodes();
             break;
         }
         case DART:
@@ -230,11 +233,15 @@ void PylonOpenCVInterface::setupExtendedBrightnessSearch(int &brightness)
                 own_brightness_search_running_ = true;
             } else
             {
-                cerr << "ERROR unexpected brightness case" << endl;
+                cerr << "ERROR unexpected brightness case while setting up extended brightness search" << endl;
             }
+            dart_cam_->GetNodeMap().InvalidateNodes();
             break;
         }
+        case UNKNOWN:
+
         default:
+            cerr << "ERROR: Cam type ENUM is unknown!" << endl;
             break;
     }
     return;
@@ -276,7 +283,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 }
             }
 
-            if (fabs(exp_search_params_.goal_brightness_ - exp_search_params_.current_brightness_) < 1)
+            if (fabs(exp_search_params_.goal_brightness_ - exp_search_params_.current_brightness_) < 2)
             {
                 own_brightness_search_running_ = false;
                 exp_search_params_.is_initialized_ = false;
@@ -293,7 +300,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 brightness = exp_search_params_.current_brightness_;
                 cout << "Own Auto Function: Fail! Last brightness = " << brightness << endl;
                 own_brightness_search_sucess_ = false;
-                return true;
+                return false;
             }
 
             exp_search_params_.updateBinarySearch();
@@ -391,10 +398,10 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 own_brightness_search_running_ = false;
                 exp_search_params_.is_initialized_ = false;
                 exp_search_params_.last_unchanged_exposure_counter_ = 0;
-                brightness = exp_search_params_.current_brightness_;
-                cout << "Own Auto Function: Fail! Last brightness = " << brightness << endl;
+                //                brightness = exp_search_params_.current_brightness_;
+                                cout << "Own Auto Function: Fail! Last brightness = " << exp_search_params_.current_brightness_ << endl;
                 own_brightness_search_sucess_ = false;
-                return true;
+                return false;
             }
 
             exp_search_params_.updateBinarySearch();
@@ -491,10 +498,10 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 own_brightness_search_running_ = false;
                 exp_search_params_.is_initialized_ = false;
                 exp_search_params_.last_unchanged_exposure_counter_ = 0;
-                brightness = exp_search_params_.current_brightness_;
-                cout << "Own Auto Function: Fail! Last brightness = " << brightness << endl;
+                //                brightness = exp_search_params_.current_brightness_;
+                                cout << "Own Auto Function: Fail! Last brightness = " << exp_search_params_.current_brightness_ << endl;
                 own_brightness_search_sucess_ = false;
-                return true;
+                return false;
             }
 
             exp_search_params_.updateBinarySearch();
@@ -544,7 +551,10 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
 
             return false;
         }
+        case UNKNOWN:
+
         default:
+            cerr << "ERROR: Cam type ENUM is unknown!" << endl;
             break;
     }
 

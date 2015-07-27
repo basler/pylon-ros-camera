@@ -20,7 +20,8 @@ PylonCameraOpenCVNode::PylonCameraOpenCVNode() :
                     img_hdr_pub_(nh_.advertise<sensor_msgs::Image>("image_hdr", 10)),
                     exp_times_pub_(nh_.advertise<pylon_camera_msgs::SequenceExposureTimes>("seq_exp_times", 10)),
                     img_rectifier_(),
-                    calib_loader_()
+                    calib_loader_(),
+                    img_raw_()
 {
 }
 
@@ -193,6 +194,26 @@ void PylonCameraOpenCVNode::setupCameraInfoMsg()
     //	cam_info_msg_.roi =
 }
 
+bool PylonCameraOpenCVNode::brightnessValidation(int target)
+{
+//    int c = img_raw_msg_.width, r = img_raw_msg_.height;
+//            pylon_opencv_interface_.exp_search_params_.current_brightness_
+    int  mean = calcCurrentBrightness();
+
+//    cout << "Target = " << target << ", Mean = " << mean << endl;
+
+    if(abs(target - mean) > 2){
+        return false;
+    }
+    return true;
+}
+
+int PylonCameraOpenCVNode::calcCurrentBrightness()
+{
+    double mean = cv::mean(img_raw_).val[0];
+    return (int)mean;
+}
+
 bool PylonCameraOpenCVNode::grabImage()
 {
     if (!PylonCameraNode::grabImage())
@@ -201,15 +222,20 @@ bool PylonCameraOpenCVNode::grabImage()
         return false;
     }
 
-    cv::Mat img_raw = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1);
-    memcpy(img_raw.ptr(), img_raw_msg_.data.data(), pylon_interface_->image_size());
+    img_raw_ = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1);
+    memcpy(img_raw_.ptr(), img_raw_msg_.data.data(), pylon_interface_->image_size());
     if (pylon_opencv_interface_.own_brightness_search_running_)
     {
-        int c = pylon_interface_->img_cols(), r = pylon_interface_->img_rows();
-        pylon_opencv_interface_.exp_search_params_.current_brightness_ = cv::mean(img_raw.colRange(0.25 * c, 0.75 * c)
-                        .rowRange(0.25 * r,
-                                  0.75 * r))
-                                            .val[0];
+//        int c = pylon_interface_->img_cols(), r = pylon_interface_->img_rows();
+//        pylon_opencv_interface_.exp_search_params_.current_brightness_ = cv::mean(img_raw_.colRange(0.25 * c, 0.75 * c)
+//                        .rowRange(0.25 * r,
+//                                  0.75 * r))
+//                                            .val[0];
+        pylon_opencv_interface_.exp_search_params_.current_brightness_ = cv::mean(img_raw_).val[0];
+//        .colRange(0.25 * c, 0.75 * c)
+//                        .rowRange(0.25 * r,
+//                                  0.75 * r))
+//                                            .val[0];
     }
 
     if (params_.have_intrinsic_data_)
@@ -219,7 +245,7 @@ bool PylonCameraOpenCVNode::grabImage()
         cv::Mat img_rect = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(),
         CV_8UC1);
 
-        img_rectifier_.rectify(img_raw, img_rect);
+        img_rectifier_.rectify(img_raw_, img_rect);
         cv_img_rect_.image = img_rect;
     }
 

@@ -42,6 +42,8 @@ public:
     uint32_t getNumSubscribersHdr();
     bool grabImage();
     bool grabSequence();
+    virtual bool brightnessValidation(int target);
+    virtual int calcCurrentBrightness();
 
     PylonOpenCVInterface pylon_opencv_interface_;
 
@@ -56,8 +58,11 @@ public:
     ros::Publisher exp_times_pub_;
 
 private:
+
     ImageRectifier img_rectifier_;
     IntrinsicCalibLoader calib_loader_;
+
+    cv::Mat img_raw_;
 };
 } /* namespace pylon_camera */
 #endif /* PYLON_CAMERA_OPENCV_NODE_H_ */

@@ -44,7 +44,6 @@ int main(int argc, char **argv)
         ROS_ERROR("Error while initializing the pylon node!");
         ros::shutdown();
     }
-    pylon_camera_node.getRuntimeCameraParameter();
 
     ros::Rate r(pylon_camera_node.params_.desired_frame_rate_);
 
@@ -62,22 +61,44 @@ int main(int argc, char **argv)
 #ifdef WITH_OPENCV
             if (pylon_camera_node.pylon_opencv_interface_.own_brightness_search_running_)
             {
-                if (pylon_camera_node.pylon_opencv_interface_.setExtendedBrightness(pylon_camera_node.params_
-                                .brightness_))
-                {
-                    pylon_camera_node.updateROSBrightnessParameter();
-                }
+                pylon_camera_node.pylon_opencv_interface_.setExtendedBrightness(pylon_camera_node.target_brightness_);
             }
             else
             {
 #endif
                 // Update all possible runtime parameter (exposure, brightness, etc) every param_update_frequency_ cycles
-                pylon_camera_node.params_update_counter_++;
-                if (pylon_camera_node.params_update_counter_ % pylon_camera_node.params_.param_update_frequency_ == 0)
-                {
-                    pylon_camera_node.updateAquisitionSettings();
-                    pylon_camera_node.params_update_counter_ = 0;
-                }
+//                pylon_camera_node.params_update_counter_++;
+//                if (pylon_camera_node.params_update_counter_ % pylon_camera_node.params_.param_update_frequency_ == 0)
+//                {
+//                    pylon_camera_node.updateAquisitionSettings();
+//                    pylon_camera_node.params_update_counter_ = 0;
+//                }
+//                if(pylon_camera_node.brightness_service_running_){
+//                        if (pylon_camera_node.params_.use_brightness_)
+//                        {
+//                            if (pylon_camera_node.pylon_interface_->last_brightness_val() != pylon_camera_node.target_brightness_)
+//                            {
+//                                if (!pylon_camera_node.pylon_interface_->setBrightness(pylon_camera_node.target_brightness_))
+//                                {
+//                                    ROS_ERROR("Error while updating brightness!");
+//                                }
+//
+//                            }
+//                        }
+//                        else
+//                        {
+//                            if (pylon_camera_node.pylon_interface_->last_exposure_val() != pylon_camera_node.params_.exposure_)
+//                            {
+//                                if (pylon_camera_nodepylon_interface_->setExposure(params_.exposure_))
+//                                {
+//                                    ROS_ERROR("Error while updating exposure!");
+//                                }
+////                                pylon_camera_node.params_.exposure_ = pylon_interface_->last_exposure_val();
+////                                nh_.setParam("exposure", params_.exposure_);
+//                            }
+//                        }
+//
+//                }
                 pylon_camera_node.checkForPylonAutoFunctionRunning();
 
 #ifdef WITH_OPENCV
@@ -138,6 +159,7 @@ int main(int argc, char **argv)
         }
         // will now be called from the boost thread
         // ros::spinOnce();
+//        r.expectedCycleTime().toSec()
         r.sleep();
     }
 
