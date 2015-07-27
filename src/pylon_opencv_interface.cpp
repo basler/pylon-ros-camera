@@ -288,7 +288,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 own_brightness_search_running_ = false;
                 exp_search_params_.is_initialized_ = false;
                 brightness = exp_search_params_.current_brightness_;
-                cout << "Own Auto Function: Success! Goal = " << brightness << endl;
+                cout << "Own Auto Function: Success! Reached: " << brightness << endl;
                 own_brightness_search_sucess_ = true;
                 return true;
             }
@@ -389,7 +389,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 own_brightness_search_running_ = false;
                 exp_search_params_.is_initialized_ = false;
                 brightness = exp_search_params_.current_brightness_;
-                cout << "Own Auto Function: Success! Goal = " << brightness << endl;
+                cout << "Own Auto Function: Success! Reached: " << brightness << endl;
                 own_brightness_search_sucess_ = true;
                 return true;
             }
@@ -489,7 +489,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 own_brightness_search_running_ = false;
                 exp_search_params_.is_initialized_ = false;
                 brightness = exp_search_params_.current_brightness_;
-                cout << "Own Auto Function: Success! Goal = " << brightness << endl;
+                cout << "Own Auto Function: Success! Reached: " << brightness << endl;
                 own_brightness_search_sucess_ = true;
                 return true;
             }

@@ -306,7 +306,10 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
 
 bool PylonCameraNode::brightnessValidation(int target)
 {
-    // Dummy -> only used in PylonOpenCVInterface
+    int  mean = calcCurrentBrightness();
+    if(abs(target - mean) > 2){
+        return false;
+    }
     return true;
 }
 

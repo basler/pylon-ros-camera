@@ -194,19 +194,19 @@ void PylonCameraOpenCVNode::setupCameraInfoMsg()
     //	cam_info_msg_.roi =
 }
 
-bool PylonCameraOpenCVNode::brightnessValidation(int target)
-{
-//    int c = img_raw_msg_.width, r = img_raw_msg_.height;
-//            pylon_opencv_interface_.exp_search_params_.current_brightness_
-    int  mean = calcCurrentBrightness();
-
-//    cout << "Target = " << target << ", Mean = " << mean << endl;
-
-    if(abs(target - mean) > 2){
-        return false;
-    }
-    return true;
-}
+//bool PylonCameraOpenCVNode::brightnessValidation(int target)
+//{
+////    int c = img_raw_msg_.width, r = img_raw_msg_.height;
+////            pylon_opencv_interface_.exp_search_params_.current_brightness_
+//    int  mean = calcCurrentBrightness();
+//
+////    cout << "Target = " << target << ", Mean = " << mean << endl;
+//
+//    if(abs(target - mean) > 2){
+//        return false;
+//    }
+//    return true;
+//}
 
 //int PylonCameraOpenCVNode::calcCurrentBrightness()
 //{
