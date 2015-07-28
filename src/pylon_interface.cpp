@@ -69,14 +69,11 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
         case GIGE:
             try
             {
-//                int timeout = 2000.0;
                 // Alle 3 Takte braucht die Camera ca 510 msec bis der Frame-Trigger bereit ist
                 double timeout = (gige_cam_->ResultingFramePeriodAbs.GetValue() / 1000.0) * 10;
-//                cout << "timeout 01: " << timeout << endl;
                 timeout = std::min(std::max(timeout, 200.0), 1000.0);
-//                cout << "timeout: " << timeout << endl;
-                try
-                {
+//                try
+//                {
 //                    timespec start, end;
 //                    clock_t prgstart, prgend_;
 
@@ -103,11 +100,11 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
                         return false;
                     }
 
-                } catch (GenICam::GenericException &e)
-                {
-                    cerr << "Error while waiting till software trigger is ready" << endl;
-                    cerr << e.GetDescription() << endl;
-                }
+//                } catch (GenICam::GenericException &e)
+//                {
+//                    cerr << "Error while waiting till software trigger is ready" << endl;
+//                    cerr << e.GetDescription() << endl;
+//                }
 
                 if (gige_cam_->GetGrabResultWaitObject().Wait((int)timeout))
                 {
@@ -128,8 +125,7 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
                 }
                 else
                 {
-                    cerr << "An image grabbing exception in pylon camera occurred:" << endl
-                         << e.GetDescription()
+                    cerr << "An image grabbing exception in pylon camera occurred: " << e.GetDescription()
                          << endl;
                     return false;
                 }
@@ -181,8 +177,7 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
                 }
                 else
                 {
-                    cerr << "An image grabbing exception in pylon camera occurred:" << endl
-                         << e.GetDescription()
+                    cerr << "An image grabbing exception in pylon camera occurred: " << e.GetDescription()
                          << endl;
                     return false;
                 }
@@ -206,8 +201,7 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
                 }
                 else
                 {
-                    cerr << "An image grabbing exception in pylon camera occurred:" << endl
-                         << e.GetDescription()
+                    cerr << "An image grabbing exception in pylon camera occurred: " << e.GetDescription()
                          << endl;
                     return false;
                 }

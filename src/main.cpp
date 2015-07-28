@@ -134,7 +134,9 @@ int main(int argc, char **argv)
                 }
             } else // single image acquisition
             {
-                pylon_camera_node.grabImage();
+                if(!pylon_camera_node.grabImage()){
+                    continue;
+                }
 
                 if (pylon_camera_node.getNumSubscribersRaw() > 0)
                 {

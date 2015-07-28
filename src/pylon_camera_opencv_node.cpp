@@ -196,10 +196,7 @@ void PylonCameraOpenCVNode::setupCameraInfoMsg()
 bool PylonCameraOpenCVNode::grabImage()
 {
     if (!PylonCameraNode::grabImage())
-    {
-        cout << "Error grabbing RAW image in PylonOpenCVNode!" << endl;
         return false;
-    }
 
     img_raw_ = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1);
     memcpy(img_raw_.ptr(), img_raw_msg_.data.data(), pylon_interface_->image_size());
