@@ -12,6 +12,8 @@
 #ifndef INCLUDED_SFNCVERSION_H_3193628
 #define INCLUDED_SFNCVERSION_H_3193628
 
+#warning ("Will include edited SfncVersion.h, because the version from the current pylon SDK is deprecated! Please remove me if new Pylon Version is released")
+
 #include <pylon/Platform.h>
 #include <pylon/PylonVersionInfo.h>
 #include <GenApi/GenApi.h>
