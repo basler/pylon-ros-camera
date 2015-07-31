@@ -27,40 +27,19 @@ class CompAction():
        
     def execute_cb(self, msg):
         rospy.loginfo("got brightness request for: " + str(msg.goal_exposure))
-        self._as.publish_feedback(self._feedback)   
-
-        exposure = 0
-             
-         
-        if msg.goal_exposure > 200:
-            exposure = 10000
-            #res = self.exp_srv(10000)
-        elif msg.goal_exposure > 150:
-            exposure = 8000
-            #res = self.exp_srv(8000)
-        elif msg.goal_exposure > 90:
-            exposure = 5000
-            #res = self.exp_srv(5000)
-        elif msg.goal_exposure > 60:
-            exposure = 2000
-            #res = self.exp_srv(2000)
-        elif msg.goal_exposure > 20:
-            exposure = 800
-            #res = self.exp_srv(800)
-        else:
-            exposure = 500
-            #res = self.exp_srv(500)
-            
-        try:             
-          res = self.exp_srv(exposure)
-          rospy.loginfo("Brightness service result: " +  str(res))
+        self._as.publish_feedback(self._feedback)           
+        try:
+           res = self.brg_srv(target_brightness=msg.goal_exposure)
+           rospy.loginfo("Brightness service result: " +  str(res))
         except Exception, ex:
-          rospy.logerr(str(ex))
-            
+           print "error"
+           rospy.logerr(str(ex))
+           return
+        
         print res   
         self._result.success = res.success   
 
-        self._result.exposure_mu_s = exposure  
+        self._result.exposure_mu_s = msg.goal_exposure
 
         self._as.set_succeeded(self._result)
        
