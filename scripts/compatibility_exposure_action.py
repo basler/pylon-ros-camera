@@ -34,6 +34,7 @@ class CompAction():
         except Exception, ex:
            print "error"
            rospy.logerr(str(ex))
+           self._as.set_succeeded(self._result)
            return
         
         print res   
