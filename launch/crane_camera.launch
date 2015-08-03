@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-
   <node name="exp_comp_node" pkg="pylon_camera" type="compatibility_exposure_action.py" output="screen"  respawn_delay="5" />
   <node name="crane" pkg="pylon_camera" type="pylon_camera_node" output="screen" respawn="true" respawn_delay="5" > 
     <!-- set exposure to -1 (or delete parameter to activate auto exposure -->
@@ -11,7 +10,8 @@
       <param name="write_exp_to_db" value="true" type="bool" />
       <param name="magazino_cam_id"  value="MARU_0003_crane"  type="string" />
      <param name="intrinsic_yaml_string" command="python -c 'import django; from maru_status.models import IntrinsicCalibration; print IntrinsicCalibration.objects.get(CamID=31).data'" />
-    </node>
+  </node>
+  <node name="maru_frame_rate_tester" pkg="pylon_camera" type="scripts/maru_frame_rate_tester.py"/>
 </launch>
 
 
