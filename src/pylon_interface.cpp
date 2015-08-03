@@ -87,18 +87,18 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
 //                    prgstart = clock();
 //                    clock_gettime(CLOCK_REALTIME, &start);
 
-                    // Update GeniCam Cache with GetNodeMap().InvalidateNodes()
-                    if (gige_cam_->WaitForFrameTriggerReady((int)timeout, TimeoutHandling_ThrowException))
-                    {
+                // Update GeniCam Cache with GetNodeMap().InvalidateNodes()
+                if (gige_cam_->WaitForFrameTriggerReady((int)timeout, TimeoutHandling_ThrowException))
+                {
 //                        clock_gettime(CLOCK_REALTIME, &end);
 //                        cout << "Trigger ready after: "
 //                             << (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_nsec - start.tv_nsec) / 1000000.0
 //                             << " msec" << endl;
-                        gige_cam_->ExecuteSoftwareTrigger();
-                    } else
-                    {
-                        return false;
-                    }
+                    gige_cam_->ExecuteSoftwareTrigger();
+                } else
+                {
+                    return false;
+                }
 
 //                } catch (GenICam::GenericException &e)
 //                {
@@ -314,14 +314,33 @@ bool PylonInterface::startGrabbing(const PylonCameraParameter &params)
         switch (cam_type_)
         {
             case GIGE:
+                {
                 gige_cam_->StartGrabbing();
                 img_rows_ = (int)gige_cam_->Height.GetValue();
                 img_cols_ = (int)gige_cam_->Width.GetValue();
                 gige_img_encoding_ = gige_cam_->PixelFormat.GetValue();
                 gige_img_pixel_depth_ = gige_cam_->PixelSize.GetValue();
-                max_framerate_ = gige_cam_->ResultingFrameRateAbs.GetValue();
                 has_auto_exposure_ = GenApi::IsAvailable(gige_cam_->ExposureAuto);
                 gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Off);
+
+                double truncated_start_exposure = params.start_exposure_;
+                if (gige_cam_->ExposureTimeAbs.GetMin() > truncated_start_exposure)
+                {
+                    truncated_start_exposure = gige_cam_->ExposureTimeAbs.GetMin();
+                    cout << "Desired exposure time unreachable! Setting to lower limit: "
+                         << truncated_start_exposure
+                         << endl;
+                }
+                else if (gige_cam_->ExposureTimeAbs.GetMax() < truncated_start_exposure)
+                {
+                    truncated_start_exposure = gige_cam_->ExposureTimeAbs.GetMax();
+                    cout << "Desired exposure time unreachable! Setting to upper limit: "
+                         << truncated_start_exposure
+                         << endl;
+                }
+                gige_cam_->ExposureTimeAbs.SetValue(truncated_start_exposure, false);
+
+                max_framerate_ = gige_cam_->ResultingFrameRateAbs.GetValue();
                 try
                 {
                     float timeout = gige_cam_->ResultingFramePeriodAbs.GetValue() * 0.01;
@@ -335,8 +354,10 @@ bool PylonInterface::startGrabbing(const PylonCameraParameter &params)
                     cerr << "Error while executing initial software trigger" << endl;
                     cerr << e.GetDescription() << endl;
                 }
+            }
                 break;
             case USB:
+                {
                 usb_cam_->StartGrabbing();
                 usb_img_encoding_ = usb_cam_->PixelFormat.GetValue();
                 if (usb_img_encoding_ != Basler_UsbCameraParams::PixelFormat_Mono8)
@@ -348,8 +369,26 @@ bool PylonInterface::startGrabbing(const PylonCameraParameter &params)
                 img_rows_ = (int)usb_cam_->Height.GetValue();
                 img_cols_ = (int)usb_cam_->Width.GetValue();
                 usb_img_pixel_depth_ = usb_cam_->PixelSize.GetValue();
-                max_framerate_ = usb_cam_->ResultingFrameRate.GetValue();
                 has_auto_exposure_ = GenApi::IsAvailable(usb_cam_->ExposureAuto);
+                usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+
+                double truncated_start_exposure = params.start_exposure_;
+                if (usb_cam_->ExposureTime.GetMin() > truncated_start_exposure)
+                {
+                    truncated_start_exposure = usb_cam_->ExposureTime.GetMin();
+                    cout << "Desired exposure time unreachable! Setting to lower limit: "
+                         << truncated_start_exposure
+                         << endl;
+                }
+                else if (usb_cam_->ExposureTime.GetMax() < truncated_start_exposure)
+                {
+                    truncated_start_exposure = usb_cam_->ExposureTime.GetMax();
+                    cout << "Desired exposure time unreachable! Setting to upper limit: "
+                         << truncated_start_exposure
+                         << endl;
+                }
+                usb_cam_->ExposureTime.SetValue(truncated_start_exposure, false);
+                max_framerate_ = usb_cam_->ResultingFrameRate.GetValue();
                 try
                 {
                     float timeout = 1.0 / usb_cam_->ResultingFrameRate.GetValue() * 1000;
@@ -364,16 +403,37 @@ bool PylonInterface::startGrabbing(const PylonCameraParameter &params)
                     cerr << "Error while executing initial software trigger" << endl;
                     cerr << e.GetDescription() << endl;
                 }
+            }
                 break;
             case DART:
+                {
                 dart_cam_->StartGrabbing();
                 img_rows_ = (int)dart_cam_->Height.GetValue();
                 img_cols_ = (int)dart_cam_->Width.GetValue();
                 usb_img_encoding_ = dart_cam_->PixelFormat.GetValue();
                 usb_img_pixel_depth_ = dart_cam_->PixelSize.GetValue();
-                max_framerate_ = dart_cam_->ResultingFrameRate.GetValue();
                 has_auto_exposure_ = GenApi::IsAvailable(dart_cam_->ExposureAuto);
+                dart_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+                double truncated_start_exposure = params.start_exposure_;
+                if (dart_cam_->ExposureTime.GetMin() > truncated_start_exposure)
+                {
+                    truncated_start_exposure = dart_cam_->ExposureTime.GetMin();
+                    cout << "Desired exposure time unreachable! Setting to lower limit: "
+                         << truncated_start_exposure
+                         << endl;
+                }
+                else if (dart_cam_->ExposureTime.GetMax() < truncated_start_exposure)
+                {
+                    truncated_start_exposure = dart_cam_->ExposureTime.GetMax();
+                    cout << "Desired exposure time unreachable! Setting to upper limit: "
+                         << truncated_start_exposure
+                         << endl;
+                }
+                dart_cam_->ExposureTime.SetValue(truncated_start_exposure, false);
+                max_framerate_ = dart_cam_->ResultingFrameRate.GetValue();
+                // DART cam has no 'WaitForFrameTriggerReady'
                 dart_cam_->ExecuteSoftwareTrigger();
+            }
                 break;
             default:
                 cerr << "Unknown Camera Type" << endl;
