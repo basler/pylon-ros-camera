@@ -254,7 +254,7 @@ bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &par
                 gige_cam_->RegisterConfiguration(new CSoftwareTriggerConfiguration,
                                                  RegistrationMode_ReplaceAll,
                                                  Cleanup_Delete);
-                // TODO: Sinnvolle Werte ermitteln!
+                // TODO: Sinnvolle Werte ermitteln! -> default = 2
                 gige_cam_->GetTLParams().MaxRetryCountRead.SetValue(6);
                 gige_cam_->GetTLParams().MaxRetryCountWrite.SetValue(6);
                 gige_cam_->Open();
