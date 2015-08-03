@@ -3,6 +3,7 @@ import roslib
 import rospy
 import sys
 from sensor_msgs.msg import Image
+import datetime
 
 global_start = 0
 
@@ -56,10 +57,18 @@ if __name__ == "__main__":
       
     rospy.spin()
     
-    print "\n"
-    print "Frame Rate Tester has finished after " + str(rospy.get_time() - global_start) + " seconds"
-    print "CRANE: Recieved " + str(num_crane_imgs) + " images. Crane Cam exceeded timeout " + str(crane_timeout_ctr) + " times."
-    print "INSERTION: Recieved " + str(num_insertion_imgs) + " images. Insertion Cam exceeded timeout " + str(insertion_timeout_ctr) + " times."
+    f = open('/tmp/maru_frame_rate_tester_result.txt', 'a')
+    f.write('###########################################################################\n')
+    f.write('Result from '+ datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '\n')
+    f.write("Frame Rate Tester has finished after " + str(rospy.get_time() - global_start) + " seconds \n")
+    f.write("CRANE: Recieved " + str(num_crane_imgs) + " images. Crane Cam exceeded timeout " + str(crane_timeout_ctr) + " times.\n")
+    f.write("INSERTION: Recieved " + str(num_insertion_imgs) + " images. Insertion Cam exceeded timeout " + str(insertion_timeout_ctr) + " times.\n")
+    f.write('###########################################################################\n')
+
+#     print "\n"
+#     print "Frame Rate Tester has finished after " + str(rospy.get_time() - global_start) + " seconds"
+#     print "CRANE: Recieved " + str(num_crane_imgs) + " images. Crane Cam exceeded timeout " + str(crane_timeout_ctr) + " times."
+#     print "INSERTION: Recieved " + str(num_insertion_imgs) + " images. Insertion Cam exceeded timeout " + str(insertion_timeout_ctr) + " times."
     
   except rospy.ROSInterruptException:
     print "Program interrupted before completion"
