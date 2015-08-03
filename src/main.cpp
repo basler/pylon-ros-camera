@@ -164,6 +164,6 @@ int main(int argc, char **argv)
 //        r.expectedCycleTime().toSec()
         r.sleep();
     }
-
+    ROS_INFO("Terminate pylon node");
     return 0;
 }

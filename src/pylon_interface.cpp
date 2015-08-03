@@ -125,10 +125,14 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
                 }
                 else
                 {
-//                    cerr << "An image grabbing exception in pylon camera occurred: " << e.GetDescription()
-//                         << endl;
+                    cerr << "An image grabbing exception in pylon camera occurred: " << e.GetDescription()
+                         << endl;
                     return false;
                 }
+            }
+            catch (...)            
+            {
+                cerr << "An image grabbing exception in pylon camera occurred"  << endl;
             }
             break;
         case USB:
