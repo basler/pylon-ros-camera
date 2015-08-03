@@ -221,6 +221,11 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
         //TODO: wird hier neuer Speicher allokiert? Kann der bereits allokierte weiterverwendet werden?
         const uint8_t *pImageBuffer = (uint8_t *)ptr_grab_result_->GetBuffer();
         image = std::vector<uint8_t>(pImageBuffer, pImageBuffer + img_size_byte_);
+
+        // pylon interface is ready, if it has already grabbed one image
+        if(!is_ready_)
+            is_ready_ = true;
+
         return true;
     }
     else

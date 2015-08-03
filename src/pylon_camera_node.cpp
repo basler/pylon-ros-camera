@@ -69,10 +69,10 @@ void PylonCameraNode::getInitialCameraParameter()
 //    nh_.param<int>("parameter_update_frequency", params_.param_update_frequency_, 100);
 //    params_update_counter_ = params_.param_update_frequency_ - 1;
 
-    // -2: AutoExposureOnce
-    // -1: AutoExposureContinuous
-    //  0: AutoExposureOff
-    // > 0: Exposure in micro-seconds
+// -2: AutoExposureOnce
+// -1: AutoExposureContinuous
+//  0: AutoExposureOff
+// > 0: Exposure in micro-seconds
     nh_.param<double>("start_exposure", params_.start_exposure_, 35000.0);
 
     nh_.param<bool>("use_brightness", params_.use_brightness_, false); // Using exposure or brightness
@@ -176,11 +176,8 @@ bool PylonCameraNode::startGrabbing()
     // img_raw_msg_.data // actual matrix data, size is (step * rows)
     pylon_interface_->set_image_size(img_raw_msg_.step * img_raw_msg_.height);
 
-    pylon_interface_->is_ready_ = true;
-
     return true;
 }
-
 
 bool PylonCameraNode::grabImage()
 {
@@ -213,7 +210,8 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
         res.success = false;
         return true;
     }
-    if (current_exposure != req.target_exposure) {
+    if (current_exposure != req.target_exposure)
+    {
         pylon_interface_->setExposure(req.target_exposure);
     }
 
@@ -236,9 +234,11 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
 
     current_exposure = getCurrenCurrentExposure();
 
-    if (current_exposure == req.target_exposure) {
+    if (current_exposure == req.target_exposure)
+    {
         res.success = true;
-    } else {
+    } else
+    {
         res.success = false;
     }
     return true;
@@ -247,33 +247,51 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
 bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
     pylon_camera_msgs::SetBrightnessSrv::Response &res)
 {
+    // Brightness Service can only work, if an image has already been grabbed (calc mean on current img)
+    if (!pylon_interface_->is_ready_)
+    {
+        ros::Rate r(2.0);
+        ros::Time start = ros::Time::now();
+        while (ros::ok() && !pylon_interface_->is_ready_)
+        {
+            if (ros::Time::now() - start > ros::Duration(3.0))
+            {
+                ROS_ERROR("Pylon Interface has not yet grabbed an image, although waiting for 3 seconds!");
+                res.success = false;
+                return true;
+            }
+            ros::spinOnce();
+            r.sleep();
+        }
+    }
+
     // Get actual image
     ros::spinOnce();
 
     int current_brightness = calcCurrentBrightness();
-    ROS_INFO("New brightness request for brightness %i, current brightness = %i", req.target_brightness, current_brightness);
-
-    if (!pylon_interface_->is_ready_)
-    {
-        res.success = false;
-        return res.success;
-    }
+    ROS_INFO("New brightness request for brightness %i, current brightness = %i",
+             req.target_brightness,
+             current_brightness);
 
     target_brightness_ = req.target_brightness;
     brightness_service_running_ = true;
 
-//    cout << "current brightness = " << current_brightness << ", target_brightness = " << target_brightness_ << endl;
-
     if (current_brightness != target_brightness_)
     {
         pylon_interface_->setBrightness(target_brightness_);
+    } else
+    {
+        res.success = true;
+        return true;
     }
 
     ros::Duration duration;
-    if(target_brightness_ > 205){
+    if (target_brightness_ > 205)
+    {
         // Need more time for great exposure values
         duration = ros::Duration(15.0);
-    } else {
+    } else
+    {
         duration = ros::Duration(5.0);
     }
     ros::Rate r(5.0);
@@ -306,8 +324,9 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
 
 bool PylonCameraNode::brightnessValidation(int target)
 {
-    int  mean = calcCurrentBrightness();
-    if(abs(target - mean) > 2){
+    int mean = calcCurrentBrightness();
+    if (abs(target - mean) > 2)
+    {
         return false;
     }
     return true;
@@ -315,9 +334,10 @@ bool PylonCameraNode::brightnessValidation(int target)
 
 int PylonCameraNode::calcCurrentBrightness()
 {
-    int sum = std::accumulate(img_raw_msg_.data.begin(),img_raw_msg_.data.end(),0);
+    int sum = std::accumulate(img_raw_msg_.data.begin(), img_raw_msg_.data.end(), 0);
+    assert(img_raw_msg_.data.size() > 0);
     float mean = sum / img_raw_msg_.data.size();
-    return (int) mean;
+    return (int)mean;
 }
 
 float PylonCameraNode::getCurrenCurrentExposure()
