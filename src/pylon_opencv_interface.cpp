@@ -56,103 +56,102 @@ bool PylonOpenCVInterface::setupSequencer(const PylonCameraParameter &params)
 //    } else
 //    {
 //        cout << "Camera in Sequencer-Mode: No raw or rect images will be provided!" << endl;
-        switch (cam_type_)
-        {
-            case GIGE:
-                try
+    switch (cam_type_)
+    {
+        case GIGE:
+            try
+            {
+                if (GenApi::IsWritable(gige_cam_->SequenceEnable))
                 {
-                    if (GenApi::IsWritable(gige_cam_->SequenceEnable))
-                    {
-                        cerr << "SEQUENCER FOR GIGE NOT YET IMPLEMENTED!!!" << endl;
-                    }
+                    cerr << "SEQUENCER FOR GIGE NOT YET IMPLEMENTED!!!" << endl;
                 }
-                catch (GenICam::GenericException &e)
+            }
+            catch (GenICam::GenericException &e)
+            {
+                cerr << e.GetDescription() << endl;
+                return false;
+            }
+            break;
+        case USB:
+            try
+            {
+
+                if (GenApi::IsWritable(usb_cam_->SequencerMode))
                 {
-                    cerr << e.GetDescription() << endl;
-                    return false;
-                }
-                break;
-            case USB:
-                try
+                    usb_cam_->SequencerMode.SetValue(Basler_UsbCameraParams::SequencerMode_Off);
+                } else
                 {
-
-                    if (GenApi::IsWritable(usb_cam_->SequencerMode))
-                    {
-                        usb_cam_->SequencerMode.SetValue(Basler_UsbCameraParams::SequencerMode_Off);
-                    } else
-                    {
-                        cerr << "Sequencer Mode not writable" << endl;
-                    }
-
-                    usb_cam_->SequencerConfigurationMode.SetValue(Basler_UsbCameraParams::SequencerConfigurationMode_On);
-
-                    // **** valid for all sets: reset on software signal 1 ****
-                    int64_t initial_set = usb_cam_->SequencerSetSelector.GetMin();
-
-                    usb_cam_->SequencerSetSelector.SetValue(initial_set);
-                    usb_cam_->SequencerPathSelector.SetValue(0);
-                    usb_cam_->SequencerSetNext.SetValue(initial_set);
-                    usb_cam_->SequencerTriggerSource.SetValue(Basler_UsbCameraParams::SequencerTriggerSource_SoftwareSignal1);
-                    // advance on Frame Start
-                    usb_cam_->SequencerPathSelector.SetValue(1);
-                    usb_cam_->SequencerTriggerSource.SetValue(Basler_UsbCameraParams::SequencerTriggerSource_FrameStart);
-                    // ********************************************************
-
-                    // Set the parameters for step 0: Exp1
-                    usb_cam_->SequencerSetNext.SetValue(1);
-                    PylonInterface::setExposure(params.desired_seq_exp_times_.at(0));
-                    seq_exp_times_.push_back(1.0 / (usb_cam_->ExposureTime.GetValue() * 1000000));
-                    usb_cam_->SequencerSetSave.Execute();
-
-                    usb_cam_->SequencerSetSelector.SetValue(1);
-                    usb_cam_->SequencerSetNext.SetValue(2);
-                    PylonInterface::setExposure(params.desired_seq_exp_times_.at(1));
-                    seq_exp_times_.push_back(1.0 / (usb_cam_->ExposureTime.GetValue() * 1000000));
-                    usb_cam_->SequencerSetSave.Execute();
-
-                    usb_cam_->SequencerSetSelector.SetValue(2);
-                    usb_cam_->SequencerSetNext.SetValue(0);
-                    PylonInterface::setExposure(params.desired_seq_exp_times_.at(2));
-                    seq_exp_times_.push_back(1.0 / (usb_cam_->ExposureTime.GetValue() * 1000000));
-                    usb_cam_->SequencerSetSave.Execute();
-
-                    // config finished
-                    usb_cam_->SequencerConfigurationMode.SetValue(Basler_UsbCameraParams::SequencerConfigurationMode_Off);
-                    usb_cam_->SequencerMode.SetValue(Basler_UsbCameraParams::SequencerMode_On);
-
-                    cout << "Initialized sequencer with the following inverse exposure-times [1/s]: ";
-                    for (size_t i = 0; i < seq_exp_times_.size(); ++i)
-                    {
-                        cout << seq_exp_times_.at(i);
-                        if (i != seq_exp_times_.size() - 1)
-                            cout << ", ";
-                        else
-                            cout << endl;
-                    }
-
+                    cerr << "Sequencer Mode not writable" << endl;
                 }
-                catch (GenICam::GenericException &e)
+
+                usb_cam_->SequencerConfigurationMode.SetValue(Basler_UsbCameraParams::SequencerConfigurationMode_On);
+
+                // **** valid for all sets: reset on software signal 1 ****
+                int64_t initial_set = usb_cam_->SequencerSetSelector.GetMin();
+
+                usb_cam_->SequencerSetSelector.SetValue(initial_set);
+                usb_cam_->SequencerPathSelector.SetValue(0);
+                usb_cam_->SequencerSetNext.SetValue(initial_set);
+                usb_cam_->SequencerTriggerSource.SetValue(Basler_UsbCameraParams::SequencerTriggerSource_SoftwareSignal1);
+                // advance on Frame Start
+                usb_cam_->SequencerPathSelector.SetValue(1);
+                usb_cam_->SequencerTriggerSource.SetValue(Basler_UsbCameraParams::SequencerTriggerSource_FrameStart);
+                // ********************************************************
+
+                // Set the parameters for step 0: Exp1
+                usb_cam_->SequencerSetNext.SetValue(1);
+                PylonInterface::setExposure(params.desired_seq_exp_times_.at(0));
+                seq_exp_times_.push_back(1.0 / (usb_cam_->ExposureTime.GetValue() * 1000000));
+                usb_cam_->SequencerSetSave.Execute();
+
+                usb_cam_->SequencerSetSelector.SetValue(1);
+                usb_cam_->SequencerSetNext.SetValue(2);
+                PylonInterface::setExposure(params.desired_seq_exp_times_.at(1));
+                seq_exp_times_.push_back(1.0 / (usb_cam_->ExposureTime.GetValue() * 1000000));
+                usb_cam_->SequencerSetSave.Execute();
+
+                usb_cam_->SequencerSetSelector.SetValue(2);
+                usb_cam_->SequencerSetNext.SetValue(0);
+                PylonInterface::setExposure(params.desired_seq_exp_times_.at(2));
+                seq_exp_times_.push_back(1.0 / (usb_cam_->ExposureTime.GetValue() * 1000000));
+                usb_cam_->SequencerSetSave.Execute();
+
+                // config finished
+                usb_cam_->SequencerConfigurationMode.SetValue(Basler_UsbCameraParams::SequencerConfigurationMode_Off);
+                usb_cam_->SequencerMode.SetValue(Basler_UsbCameraParams::SequencerMode_On);
+
+                cout << "Initialized sequencer with the following inverse exposure-times [1/s]: ";
+                for (size_t i = 0; i < seq_exp_times_.size(); ++i)
                 {
-                    cerr << "ERROR while initializing pylon sequencer:" << endl;
-                    cerr << e.GetDescription() << endl;
-                    return false;
+                    cout << seq_exp_times_.at(i);
+                    if (i != seq_exp_times_.size() - 1)
+                        cout << ", ";
+                    else
+                        cout << endl;
                 }
-                break;
-            case DART:
-                try
-                {
-                    cerr << "SEQUENCER FOR DART CAMERAS NOT YET IMPLEMENTED!!!" << endl;
-                }
-                catch (GenICam::GenericException &e)
-                {
-                    cerr << e.GetDescription() << endl;
-                    return false;
-                }
-                break;
-            default:
-                cerr << "Unknown Camera Type" << endl;
-                break;
-        }
+            }
+            catch (GenICam::GenericException &e)
+            {
+                cerr << "ERROR while initializing pylon sequencer:" << endl;
+                cerr << e.GetDescription() << endl;
+                return false;
+            }
+            break;
+        case DART:
+            try
+            {
+                cerr << "SEQUENCER FOR DART CAMERAS NOT YET IMPLEMENTED!!!" << endl;
+            }
+            catch (GenICam::GenericException &e)
+            {
+                cerr << e.GetDescription() << endl;
+                return false;
+            }
+            break;
+        default:
+            cerr << "Unknown Camera Type" << endl;
+            break;
+    }
 //    }
     return true;
 
@@ -399,7 +398,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 exp_search_params_.is_initialized_ = false;
                 exp_search_params_.last_unchanged_exposure_counter_ = 0;
                 //                brightness = exp_search_params_.current_brightness_;
-                                cout << "Own Auto Function: Fail! Last brightness = " << exp_search_params_.current_brightness_ << endl;
+                cout << "Own Auto Function: Fail! Last brightness = " << exp_search_params_.current_brightness_ << endl;
                 own_brightness_search_sucess_ = false;
                 return false;
             }
@@ -499,7 +498,7 @@ bool PylonOpenCVInterface::setExtendedBrightness(int& brightness)
                 exp_search_params_.is_initialized_ = false;
                 exp_search_params_.last_unchanged_exposure_counter_ = 0;
                 //                brightness = exp_search_params_.current_brightness_;
-                                cout << "Own Auto Function: Fail! Last brightness = " << exp_search_params_.current_brightness_ << endl;
+                cout << "Own Auto Function: Fail! Last brightness = " << exp_search_params_.current_brightness_ << endl;
                 own_brightness_search_sucess_ = false;
                 return false;
             }

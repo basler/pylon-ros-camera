@@ -130,9 +130,9 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
                     return false;
                 }
             }
-            catch (...)            
+            catch (...)
             {
-                cerr << "An image grabbing exception in pylon camera occurred"  << endl;
+                cerr << "An image grabbing exception in pylon camera occurred" << endl;
             }
             break;
         case USB:
@@ -223,7 +223,7 @@ bool PylonInterface::grab(const PylonCameraParameter &params, std::vector<uint8_
         image = std::vector<uint8_t>(pImageBuffer, pImageBuffer + img_size_byte_);
 
         // pylon interface is ready, if it has already grabbed one image
-        if(!is_ready_)
+        if (!is_ready_)
             is_ready_ = true;
 
         return true;
@@ -379,24 +379,28 @@ bool PylonInterface::startGrabbing(const PylonCameraParameter &params)
                 img_cols_ = (int)usb_cam_->Width.GetValue();
                 usb_img_pixel_depth_ = usb_cam_->PixelSize.GetValue();
                 has_auto_exposure_ = GenApi::IsAvailable(usb_cam_->ExposureAuto);
-                usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
 
-                double truncated_start_exposure = params.start_exposure_;
-                if (usb_cam_->ExposureTime.GetMin() > truncated_start_exposure)
+                if (!params.use_sequencer_)
                 {
-                    truncated_start_exposure = usb_cam_->ExposureTime.GetMin();
-                    cout << "Desired exposure time unreachable! Setting to lower limit: "
-                         << truncated_start_exposure
-                         << endl;
+                    usb_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
+
+                    double truncated_start_exposure = params.start_exposure_;
+                    if (usb_cam_->ExposureTime.GetMin() > truncated_start_exposure)
+                    {
+                        truncated_start_exposure = usb_cam_->ExposureTime.GetMin();
+                        cout << "Desired exposure time unreachable! Setting to lower limit: "
+                             << truncated_start_exposure
+                             << endl;
+                    }
+                    else if (usb_cam_->ExposureTime.GetMax() < truncated_start_exposure)
+                    {
+                        truncated_start_exposure = usb_cam_->ExposureTime.GetMax();
+                        cout << "Desired exposure time unreachable! Setting to upper limit: "
+                             << truncated_start_exposure
+                             << endl;
+                    }
+                    usb_cam_->ExposureTime.SetValue(truncated_start_exposure, false);
                 }
-                else if (usb_cam_->ExposureTime.GetMax() < truncated_start_exposure)
-                {
-                    truncated_start_exposure = usb_cam_->ExposureTime.GetMax();
-                    cout << "Desired exposure time unreachable! Setting to upper limit: "
-                         << truncated_start_exposure
-                         << endl;
-                }
-                usb_cam_->ExposureTime.SetValue(truncated_start_exposure, false);
                 max_framerate_ = usb_cam_->ResultingFrameRate.GetValue();
                 try
                 {
