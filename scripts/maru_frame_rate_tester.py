@@ -57,7 +57,7 @@ if __name__ == "__main__":
       
     rospy.spin()
     
-    f = open('/tmp/maru_frame_rate_tester_result.txt', 'a')
+    f = open('/opt/tmp/maru_frame_rate_tester_result.txt', 'a')
     f.write('###########################################################################\n')
     f.write('Result from '+ datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '\n')
     f.write("Frame Rate Tester has finished after " + str(rospy.get_time() - global_start) + " seconds \n")

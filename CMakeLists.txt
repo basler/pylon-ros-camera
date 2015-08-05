@@ -158,8 +158,8 @@ if(WITH_OPENCV)
 	)
 endif(WITH_OPENCV)	
 
-catkin_install_python(PROGRAMS scripts/maru_frame_rate_tester.py
-                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+catkin_python_setup()
+
 
 install(TARGETS pylon_camera_node write_magazino_id_to_camera RUNTIME DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
