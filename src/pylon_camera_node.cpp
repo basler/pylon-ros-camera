@@ -95,15 +95,6 @@ void PylonCameraNode::createPylonInterface()
 
 bool PylonCameraNode::init()
 {
-    if (!params_.use_sequencer_)
-    {
-        set_exposure_service_ = nh_.advertiseService("set_exposure_srv",
-                                                     &PylonCameraNode::setExposureCallback,
-                                                     this);
-        set_brightness_service_ = nh_.advertiseService("set_brightness_srv",
-                                                       &PylonCameraNode::setBrightnessCallback,
-                                                       this);
-    }
 
     if (!initAndRegister())
     {
@@ -120,6 +111,16 @@ bool PylonCameraNode::init()
 }
 bool PylonCameraNode::initAndRegister()
 {
+    if (!params_.use_sequencer_)
+    {
+        set_exposure_service_ = nh_.advertiseService("set_exposure_srv",
+                                                     &PylonCameraNode::setExposureCallback,
+                                                     this);
+        set_brightness_service_ = nh_.advertiseService("set_brightness_srv",
+                                                       &PylonCameraNode::setBrightnessCallback,
+                                                       this);
+    }
+
     if (!pylon_interface_->initialize(params_))
     {
         ROS_ERROR("Error while initializing the Pylon Interface");
