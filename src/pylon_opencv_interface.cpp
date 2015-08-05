@@ -645,6 +645,11 @@ bool PylonOpenCVInterface::grab(const PylonCameraParameter &params, cv::Mat &ima
         image = cv::Mat(img_rows_, img_cols_, CV_8UC1);
         memcpy(image.ptr(), ptr_grab_result_->GetBuffer(), img_size_byte_);
 //        image = std::vector<uint8_t>(pImageBuffer, image_buffer + img_size_byte_);
+
+        // pylon interface is ready, if it has already grabbed one image
+        if (!is_ready_)
+            is_ready_ = true;
+
         return true;
     }
     else
