@@ -92,6 +92,7 @@ uint32_t PylonCameraOpenCVNode::getNumSubscribersHdr()
 }
 bool PylonCameraOpenCVNode::init()
 {
+
     if (!PylonCameraNode::initAndRegister())
     {
         return false;

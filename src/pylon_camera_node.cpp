@@ -28,12 +28,7 @@ PylonCameraNode::PylonCameraNode() :
 {
     it_ = new image_transport::ImageTransport(nh_);
     img_raw_pub_ = it_->advertiseCamera("image_raw", 10);
-    set_exposure_service_ = nh_.advertiseService("set_exposure_srv",
-                                                 &PylonCameraNode::setExposureCallback,
-                                                 this);
-    set_brightness_service_ = nh_.advertiseService("set_brightness_srv",
-                                                   &PylonCameraNode::setBrightnessCallback,
-                                                   this);
+
     set_sleeping_service_ = nh_.advertiseService("set_sleeping_srv",
                                                  &PylonCameraNode::setSleepingCallback,
                                                  this);
@@ -100,6 +95,7 @@ void PylonCameraNode::createPylonInterface()
 
 bool PylonCameraNode::init()
 {
+
     if (!initAndRegister())
     {
         ros::shutdown();
@@ -115,6 +111,16 @@ bool PylonCameraNode::init()
 }
 bool PylonCameraNode::initAndRegister()
 {
+    if (!params_.use_sequencer_)
+    {
+        set_exposure_service_ = nh_.advertiseService("set_exposure_srv",
+                                                     &PylonCameraNode::setExposureCallback,
+                                                     this);
+        set_brightness_service_ = nh_.advertiseService("set_brightness_srv",
+                                                       &PylonCameraNode::setBrightnessCallback,
+                                                       this);
+    }
+
     if (!pylon_interface_->initialize(params_))
     {
         ROS_ERROR("Error while initializing the Pylon Interface");
@@ -247,6 +253,7 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
 bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
     pylon_camera_msgs::SetBrightnessSrv::Response &res)
 {
+
     // Brightness Service can only work, if an image has already been grabbed (calc mean on current img)
     if (!pylon_interface_->is_ready_)
     {
