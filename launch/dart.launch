@@ -6,7 +6,9 @@
   <param name="use_sequencer" value="false" type="bool" />
   <param name="desired_framerate" value="100.0" type="double" />
   <param name="use_brightness" value="true" type="bool" />
-  <param name="intrinsic_yaml_string" command="cat $(find pylon_camera)/calib/dart.yaml"/>
+  <param name="magazino_cam_id"  value="TORU_0002_temp"  type="string" />
+
+  <param name="intrinsic_yaml_string" command="cat $(find pylon_camera)/calib/dart2.yaml"/>
  </node>
  <node name="image_view" pkg="image_view" type="image_view" respawn="false" output="screen">
   <remap from="image" to="/pylon_camera_node/image_rect"/>
