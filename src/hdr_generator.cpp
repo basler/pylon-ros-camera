@@ -24,9 +24,9 @@ bool HDRGenerator::mergeMertens(vector<Mat> img_sequence, vector<float> exp_time
 {
 //    cout << "CHECK 01" << endl;
 //
-    imwrite("00input.png", img_sequence.at(0));
-    imwrite("01input.png", img_sequence.at(1));
-    imwrite("02input.png", img_sequence.at(2));
+//    imwrite("00input.png", img_sequence.at(0));
+//    imwrite("01input.png", img_sequence.at(1));
+//    imwrite("02input.png", img_sequence.at(2));
 //
 //    cout << "CHECK 01a" << endl;
 //    cout << "exp times size = " << exp_times.size() << endl;
