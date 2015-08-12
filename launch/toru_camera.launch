@@ -25,6 +25,10 @@
    <remap from="visualization_marker" to="$(arg viz_topic)"/>
 </node>
 
+ <node name="robot_base_transform" pkg="tf" type="static_transform_publisher" args="0.449084 -0.0107909 0.49317 0.0194728 0.929878 -0.367034 -0.0153135 /jaco_link_base /toru_camera 100" />
+
+
+
 <!-- <node name="robot_base_transform" pkg="tf" type="static_transform_publisher" args="0.426168 0.23919 0.360211 -0.0662802 -0.89524 0.435927 -0.0641853 /toru_camera  /jaco_link_base 100" />-->
 <!-- <node name="robot_base_transform" pkg="tf" type="static_transform_publisher" args="0.26 0.23919 0.360211 -0.0662802 -0.89524 0.435927 -0.0641853 /toru_camera  /jaco_link_base 100" /> -->
 
