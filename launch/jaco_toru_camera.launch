@@ -6,10 +6,8 @@
   <param name="use_sequencer" value="false" type="bool" />
   <param name="desired_framerate" value="10.0" type="double" />
   <param name="use_brightness" value="true" type="bool" />
-  <param name="magazino_cam_id"  value="TORU_0001_gripper"  type="string" />
   <param name="intrinsic_yaml_string" command="cat $(find pylon_camera)/calib/toru.yml"/>
   </node>
-<!--<arg name="marker_size" default="13.0" />-->
 <arg name="marker_size" default="8.0" />
 <arg name="max_new_marker_error" default="0.08" />
 <arg name="max_track_error" default="0.2" />
@@ -25,7 +23,7 @@
    <remap from="visualization_marker" to="$(arg viz_topic)"/>
 </node>
 
-<!-- <node name="robot_base_transform" pkg="tf" type="static_transform_publisher" args="0.426168 0.23919 0.360211 -0.0662802 -0.89524 0.435927 -0.0641853 /toru_camera  /jaco_link_base 100" />-->
-<!-- <node name="robot_base_transform" pkg="tf" type="static_transform_publisher" args="0.26 0.23919 0.360211 -0.0662802 -0.89524 0.435927 -0.0641853 /toru_camera  /jaco_link_base 100" /> -->
+<!--node name="state_transform" pkg="tf" type="static_transform_publisher" args="-0.5 0.1 0.6 0.9 0.3 0.1 /jaco_link_base /toru_camera 100" /-->
+
 
 </launch>
