@@ -9,7 +9,14 @@
 #define PYLON_CAMERA_PARAMETER_H_
 
 #include <string>
+
+
+#ifdef WITH_OPENCV
 #include <opencv2/opencv.hpp>
+#else
+#include <vector>
+#endif
+
 
 namespace pylon_camera
 {

@@ -67,8 +67,16 @@ elseif(${ARCHITECTURE} STREQUAL "x86_64")
 		$ENV{PYLON_ROOT}/genicam/bin/Linux64_x64
 		$ENV{PYLON_ROOT}/genicam/bin/Linux64_x64/GenApi/Generic
 	)
+
+elseif(${ARCHITECTURE} STREQUAL "i686")
+        MESSAGE(STATUS "+++ Found i686 Architecture")
+        link_directories( 
+                $ENV{PYLON_ROOT}/lib
+                $ENV{PYLON_ROOT}/genicam/bin/Linux32_i86
+                $ENV{PYLON_ROOT}/genicam/bin/Linux32_i86/GenApi/Generic
+        )
 else()
-	MESSAGE(WARNING "+++ Unknown Architecture!")
+	MESSAGE(WARNING "+++ Unknown Architecture: ${ARCHITECTURE}!")
 endif()
 
 ###################################
@@ -120,8 +128,16 @@ elseif(${ARCHITECTURE} STREQUAL "x86_64")
 						  pylonbase
 						  pylongigesupp
 	)
+elseif(${ARCHITECTURE} STREQUAL "i686")
+        target_link_libraries(write_magazino_id_to_camera 
+                                                  GenApi_gcc40_v2_3
+                                                  GCBase_gcc40_v2_3
+                                                  pylonbase
+                                                  pylongigesupp
+        )
+
 else()
-	MESSAGE(WARNING "+++ Unknown Architecture!")
+	MESSAGE(WARNING "+++ Unknown Architecture: ${ARCHITECTURE}!")
 endif()
 
 ## Add cmake target dependencies of the executable/library
@@ -147,8 +163,18 @@ elseif(${ARCHITECTURE} STREQUAL "x86_64")
 						  pylonbase
 					  	  pylongigesupp
 	)
+elseif(${ARCHITECTURE} STREQUAL "i686")
+        target_link_libraries(pylon_camera_node 
+                                                  ${catkin_LIBRARIES}
+                                                  GenApi_gcc40_v2_3
+                                                  GCBase_gcc40_v2_3
+                                                  pylonbase
+                                                  pylongigesupp
+        )
+
+
 else()
-	MESSAGE(WARNING "+++ Unknown Architecture!")
+	MESSAGE(WARNING "+++ Unknown Architecture: ${ARCHITECTURE}!")
 endif()
 
 

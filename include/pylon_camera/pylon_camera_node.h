@@ -24,7 +24,9 @@
 
 using std::cout;
 using std::endl;
+#ifdef WITH_OPENCV
 using namespace cv;
+#endif
 
 namespace pylon_camera
 {
