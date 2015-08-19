@@ -9,7 +9,7 @@
       <param name="desired_framerate" value="5" type="double" />
       <param name="write_exp_to_db" value="true" type="bool" />
       <param name="magazino_cam_id"  value="MARU_0003_crane"  type="string" />
-     <param name="intrinsic_yaml_string" command="python -c 'import django; django.setup() if django.setup else None; from maru_status.models import IntrinsicCalibration; print IntrinsicCalibration.objects.get(CamID=31).data'" />
+     <param name="intrinsic_yaml_string" command="python -c 'import django; django.setup() if "setup" in dir(django) else None; from maru_status.models import IntrinsicCalibration; print IntrinsicCalibration.objects.get(CamID=31).data'" />
   </node>
   <node name="maru_frame_rate_tester" pkg="pylon_camera" type="maru_frame_rate_tester.py"/>
 </launch>
