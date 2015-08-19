@@ -11,3 +11,4 @@ build
 *.user
 *.autosave
 CATKIN_IGNORE
+*.orig
