@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+ <node pkg="pylon_camera" name="pylon_camera_node" type="pylon_camera_node" output="screen"> <!--  respawn="true" respawn_delay="30" -->
+  <param name="camera_frame" value="test_cam" type="string" /> <!-- frame to which the camera is attached -->
+  <param name="exposure" value="-1" type="int" />
+  <param name="use_sequencer" value="true" type="bool" />
+  <param name="desired_framerate" value="100.0" type="double" />
+  <param name="use_brightness" value="true" type="bool" />
+  <param name="magazino_cam_id"  value="dart_0001_x"  type="string" />
+  <param name="intrinsic_yaml_string" command="python -c 'import django;  django.setup() if django.setup else None; from maru_status.models import IntrinsicCalibration; print IntrinsicCalibration.objects.get(CamID=1).data'" />
+
+  <param name="use_sequencer" value="true" type="bool" />
+  <param name="output_hdr_img" value="true" type="bool" />
+  <param name="desired_framerate" value="15.0" type="double" />
+  <rosparam param="desired_brightness_seq"> [750, 7000, 20000] </rosparam>
+
+ 
+ </node>
+</launch>
