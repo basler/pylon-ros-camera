@@ -7,5 +7,6 @@
   <param name="desired_framerate" value="10.0" type="double" />
   <param name="use_brightness" value="true" type="bool" />
   <param name="intrinsic_yaml_string" command="cat $(find pylon_camera)/calib/nav_eval_dart_cam.yml"/>
+  <param name="magazino_cam_id" value="SOL_0001_b" type="string" />
   </node>
 </launch>
