@@ -330,24 +330,28 @@ bool PylonInterface::startGrabbing(const PylonCameraParameter &params)
                 gige_img_encoding_ = gige_cam_->PixelFormat.GetValue();
                 gige_img_pixel_depth_ = gige_cam_->PixelSize.GetValue();
                 has_auto_exposure_ = GenApi::IsAvailable(gige_cam_->ExposureAuto);
-                gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Off);
+                
+                if (!params.use_sequencer_)
+                {
+                    gige_cam_->ExposureAuto.SetValue(Basler_GigECameraParams::ExposureAuto_Off);
 
-                double truncated_start_exposure = params.start_exposure_;
-                if (gige_cam_->ExposureTimeAbs.GetMin() > truncated_start_exposure)
-                {
-                    truncated_start_exposure = gige_cam_->ExposureTimeAbs.GetMin();
-                    cout << "Desired exposure time unreachable! Setting to lower limit: "
-                         << truncated_start_exposure
-                         << endl;
+                    double truncated_start_exposure = params.start_exposure_;
+                    if (gige_cam_->ExposureTimeAbs.GetMin() > truncated_start_exposure)
+                    {
+                        truncated_start_exposure = gige_cam_->ExposureTimeAbs.GetMin();
+                        cout << "Desired exposure time unreachable! Setting to lower limit: "
+                             << truncated_start_exposure
+                             << endl;
+                    }
+                    else if (gige_cam_->ExposureTimeAbs.GetMax() < truncated_start_exposure)
+                    {
+                        truncated_start_exposure = gige_cam_->ExposureTimeAbs.GetMax();
+                        cout << "Desired exposure time unreachable! Setting to upper limit: "
+                             << truncated_start_exposure
+                             << endl;
+                    }
+                    gige_cam_->ExposureTimeAbs.SetValue(truncated_start_exposure, false);
                 }
-                else if (gige_cam_->ExposureTimeAbs.GetMax() < truncated_start_exposure)
-                {
-                    truncated_start_exposure = gige_cam_->ExposureTimeAbs.GetMax();
-                    cout << "Desired exposure time unreachable! Setting to upper limit: "
-                         << truncated_start_exposure
-                         << endl;
-                }
-                gige_cam_->ExposureTimeAbs.SetValue(truncated_start_exposure, false);
 
                 max_framerate_ = gige_cam_->ResultingFrameRateAbs.GetValue();
                 try

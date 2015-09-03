@@ -60,10 +60,48 @@ bool PylonOpenCVInterface::setupSequencer(const PylonCameraParameter &params)
     {
         case GIGE:
             try
-            {
+            {                
                 if (GenApi::IsWritable(gige_cam_->SequenceEnable))
                 {
-                    cerr << "SEQUENCER FOR GIGE NOT YET IMPLEMENTED!!!" << endl;
+                    gige_cam_->SequenceEnable.SetValue(false);
+                }
+                else
+                {
+                    cerr << "Sequence mode not enabled." << endl;
+                }
+                 
+                gige_cam_->SequenceAdvanceMode = Basler_GigECameraParams::SequenceAdvanceMode_Auto;
+                gige_cam_->SequenceSetTotalNumber = 3;
+                
+                // Set parameters for step 0
+                gige_cam_->SequenceSetIndex = 0;
+                PylonInterface::setExposure(params.desired_seq_exp_times_.at(0));
+                seq_exp_times_.push_back(1.0 / (gige_cam_->ExposureTimeAbs.GetValue() * 1000000));
+                gige_cam_->SequenceSetStore.Execute();
+                
+                // Set parameters for step 1
+                gige_cam_->SequenceSetIndex = 1;
+                PylonInterface::setExposure(params.desired_seq_exp_times_.at(1));
+                seq_exp_times_.push_back(1.0 / (gige_cam_->ExposureTimeAbs.GetValue() * 1000000));
+                gige_cam_->SequenceSetStore.Execute();
+                
+                // Set parameters for step 2
+                gige_cam_->SequenceSetIndex = 2;
+                PylonInterface::setExposure(params.desired_seq_exp_times_.at(2));
+                seq_exp_times_.push_back(1.0 / (gige_cam_->ExposureTimeAbs.GetValue() * 1000000));
+                gige_cam_->SequenceSetStore.Execute();
+                
+                // config finished
+                gige_cam_->SequenceEnable.SetValue(true);
+                
+                cout << "Initialized sequencer with the following inverse exposure-times [1/s]: ";
+                for (size_t i = 0; i < seq_exp_times_.size(); ++i)
+                {
+                    cout << seq_exp_times_.at(i);
+                    if (i != seq_exp_times_.size() - 1)
+                        cout << ", ";
+                    else
+                        cout << endl;
                 }
             }
             catch (GenICam::GenericException &e)
@@ -75,7 +113,6 @@ bool PylonOpenCVInterface::setupSequencer(const PylonCameraParameter &params)
         case USB:
             try
             {
-
                 if (GenApi::IsWritable(usb_cam_->SequencerMode))
                 {
                     usb_cam_->SequencerMode.SetValue(Basler_UsbCameraParams::SequencerMode_Off);
@@ -567,8 +604,9 @@ bool PylonOpenCVInterface::grab(const PylonCameraParameter &params, cv::Mat &ima
         case GIGE:
             try
             {
+                // Tobias: Reduced timeout. With GetMax() it would wait around 10 minutes.
                 gige_cam_->ExecuteSoftwareTrigger();
-                gige_cam_->RetrieveResult(gige_cam_->ExposureTimeAbs.GetMax() * 1.05,
+                gige_cam_->RetrieveResult(gige_cam_->ExposureTimeAbs.GetValue() * 1.05,
                                           ptr_grab_result_,
                                           TimeoutHandling_ThrowException);
             }

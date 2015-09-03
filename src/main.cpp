@@ -66,8 +66,10 @@ int main(int argc, char **argv)
             else
             {
 #endif
-
-                pylon_camera_node.checkForPylonAutoFunctionRunning();
+                try {
+                    pylon_camera_node.checkForPylonAutoFunctionRunning();
+                } catch (GenICam::AccessException &e) 
+                { }
 
 #ifdef WITH_OPENCV
             }

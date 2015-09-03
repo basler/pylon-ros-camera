@@ -32,7 +32,7 @@ void PylonCameraOpenCVNode::getInitialCameraParameter()
     nh_.param<bool>("use_sequencer", params_.use_sequencer_, false);
     if (params_.use_sequencer_)
     {
-        nh_.getParam("desired_brightness_seq", params_.desired_seq_exp_times_);
+        nh_.getParam("desired_seq_exp_times", params_.desired_seq_exp_times_);
         assert(params_.desired_seq_exp_times_.size() == 3);
 
 #if CV_MAJOR_VERSION > 2   // If you are using OpenCV 3
