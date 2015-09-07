@@ -6,10 +6,13 @@ set(CMAKE_CXX_FLAGS "-g -Wall -Wno-unknown-pragmas -Wno-delete-non-virtual-dtor 
 
 option(WITH_OPENCV "Build Pylon Camera with Rectification, Extended Auto Brightness and Sequencer (needs OpenCV)" ON)
 
-find_package(OpenCV)
+find_package(OpenCV 3)
 if(NOT OpenCV_FOUND)
-	MESSAGE(STATUS "--- Could not find OpenCV!")
-	set(WITH_OPENCV OFF)
+	MESSAGE(STATUS "--- Could not find OpenCV 3.0! Searching for OpenCV 2")
+	find_package(OpenCV 2)
+	if(NOT OpenCV_FOUND)
+		set(WITH_OPENCV OFF)
+	endif()
 endif()
 
 if (WITH_OPENCV)
