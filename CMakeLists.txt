@@ -151,7 +151,7 @@ endif()
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(pylon_camera_node pylon_camera_generate_messages_cpp)
 
-add_dependencies(pylon_camera_node ${catkin_EXPORTED_TARGETS})
+add_dependencies(pylon_camera_node ${catkin_EXPORTED_TARGETS} ${pylon_camera_msgs_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 if(${ARCHITECTURE} MATCHES "arm")
