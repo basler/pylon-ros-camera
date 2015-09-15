@@ -302,6 +302,10 @@ bool PylonInterface::registerCameraConfiguration(const PylonCameraParameter &par
                 // UserSetSelector_Default overrides Software Trigger Mode !!
                 dart_cam_->TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
                 dart_cam_->TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_On);
+                // Deactivate auto gain
+                dart_cam_->GainAuto.SetValue(Basler_UsbCameraParams::GainAuto_Off);
+                dart_cam_->Gain.SetValue(0.0);
+                dart_cam_->Gamma.SetValue(1.0);
                 break;
             default:
                 cerr << "Unknown Camera Type" << endl;
