@@ -6,8 +6,8 @@
   <param name="use_sequencer" value="false" type="bool" />
   <param name="desired_framerate" value="100.0" type="double" />
   <param name="use_brightness" value="true" type="bool" />
-  <param name="magazino_cam_id"  value="TORU_WIDE_ANGLE"  type="string" />
+  <param name="magazino_cam_id"  value="TORU_0001_SPECTRE"  type="string" />
 
-  <param name="intrinsic_yaml_string" command="cat $(find pylon_camera)/calib/dart_wide.yaml"/>
+  <param name="intrinsic_yaml_string" command="cat $(find pylon_camera)/calib/toru_spectral_dart.yaml"/>
  </node>
 </launch>
