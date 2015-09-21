@@ -3,6 +3,7 @@ project(pylon_camera)
 
 SET(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS "-g -Wall -Wno-unknown-pragmas -Wno-delete-non-virtual-dtor -Wno-unused-variable")
+set(CATKIN_COMPONENTS roscpp image_transport pylon_camera_msgs)
 
 option(WITH_OPENCV "Build Pylon Camera with Rectification, Extended Auto Brightness and Sequencer (needs OpenCV)" ON)
 
@@ -22,12 +23,13 @@ endif()
 if (WITH_OPENCV)
 	MESSAGE(STATUS "+++ Building with OpenCV support")
 	add_definitions(-DWITH_OPENCV)
+        list(APPEND CATKIN_COMPONENTS cv_bridge)
 	# OpenCV is not a catkin pkg
 else ()
 	MESSAGE(STATUS "--- Building WITHOUT OpenCV support")
 endif ()
 
-find_package(catkin REQUIRED COMPONENTS roscpp image_transport pylon_camera_msgs)
+find_package(catkin REQUIRED COMPONENTS ${CATKIN_COMPONENTS})
 
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
