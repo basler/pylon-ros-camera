@@ -23,13 +23,13 @@ public:
     IntrinsicCalibLoader();
     virtual ~IntrinsicCalibLoader();
 
-    bool init(const std::string yaml_file);
+    bool init(const std::string& yaml_file);
     bool loadCalib();
 
-    cv::Mat D();
-    cv::Mat K();
-    int img_rows();
-    int img_cols();
+    const cv::Mat& D() const;
+    const cv::Mat& K() const;
+    const int& img_rows() const;
+    const int& img_cols() const;
 
 private:
 

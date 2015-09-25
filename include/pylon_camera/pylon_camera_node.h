@@ -43,14 +43,14 @@ public:
     void createPylonInterface();
     void getInitialCameraParameter();
     void updateAquisitionSettings();
-    uint32_t getNumSubscribers();
+    uint32_t getNumSubscribers() const;
     bool grabImage();
     bool setExposureCallback(pylon_camera_msgs::SetExposureSrv::Request &req,
-        pylon_camera_msgs::SetExposureSrv::Response &res);
+                             pylon_camera_msgs::SetExposureSrv::Response &res);
     bool setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
-        pylon_camera_msgs::SetBrightnessSrv::Response &res);
+                               pylon_camera_msgs::SetBrightnessSrv::Response &res);
     bool setSleepingCallback(pylon_camera_msgs::SetSleepingSrv::Request &req,
-        pylon_camera_msgs::SetSleepingSrv::Response &res);
+                             pylon_camera_msgs::SetSleepingSrv::Response &res);
     bool have_intrinsic_data();
     bool is_sleeping();
     void checkForPylonAutoFunctionRunning();

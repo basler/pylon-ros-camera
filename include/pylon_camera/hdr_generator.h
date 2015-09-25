@@ -27,8 +27,12 @@ public:
     HDRGenerator();
     virtual ~HDRGenerator();
 
-    bool mergeMertens(vector<Mat> img_sequence, vector<float> exp_times, Mat &hdr_img);
-    void loadExposureSeq(String, vector<Mat>&, vector<float>&);
+    bool merge(const vector<Mat>& img_sequence, const vector<float>& exp_times, Mat &hdr_img);
+    void loadExposureSeq(const String&, const vector<Mat>&, vector<float>&);
+
+private:
+    Mat fusion_;
+    Mat weight_map_;
 };
 
 } /* namespace pylon_camera */

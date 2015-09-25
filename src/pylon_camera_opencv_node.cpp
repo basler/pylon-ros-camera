@@ -23,6 +23,7 @@ PylonCameraOpenCVNode::PylonCameraOpenCVNode() :
                     calib_loader_(),
                     img_raw_()
 {
+    image_sequence_.resize(3);
 }
 
 void PylonCameraOpenCVNode::getInitialCameraParameter()
@@ -66,27 +67,27 @@ void PylonCameraOpenCVNode::createPylonInterface()
     ROS_INFO("Created PylonOpenCVInterface");
 }
 
-uint32_t PylonCameraOpenCVNode::getNumSubscribers()
+uint32_t PylonCameraOpenCVNode::getNumSubscribers() const
 {
     return img_raw_pub_.getNumSubscribers() + img_rect_pub_.getNumSubscribers()
            + img_seq_pub_.getNumSubscribers()
            + img_hdr_pub_.getNumSubscribers();
 }
 
-uint32_t PylonCameraOpenCVNode::getNumSubscribersRaw()
+uint32_t PylonCameraOpenCVNode::getNumSubscribersRaw() const
 {
     return img_raw_pub_.getNumSubscribers();
 }
 
-uint32_t PylonCameraOpenCVNode::getNumSubscribersRect()
+uint32_t PylonCameraOpenCVNode::getNumSubscribersRect() const
 {
     return img_rect_pub_.getNumSubscribers();
 }
-uint32_t PylonCameraOpenCVNode::getNumSubscribersSeq()
+uint32_t PylonCameraOpenCVNode::getNumSubscribersSeq() const
 {
     return img_seq_pub_.getNumSubscribers();
 }
-uint32_t PylonCameraOpenCVNode::getNumSubscribersHdr()
+uint32_t PylonCameraOpenCVNode::getNumSubscribersHdr() const
 {
     return img_hdr_pub_.getNumSubscribers();
 }
@@ -117,6 +118,14 @@ bool PylonCameraOpenCVNode::init()
     cv_img_rect_.encoding = pylon_interface_->img_encoding();
     cv_img_seq_.encoding = sensor_msgs::image_encodings::BGR8;
     cv_img_hdr_.encoding = pylon_interface_->img_encoding();
+
+    cv_img_hdr_.image = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1);
+    cv_img_seq_.image = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC3);
+    cv_img_rect_.image = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1);
+
+
+    for (std::size_t i = 0; i < 3; ++i)
+        image_sequence_[i] = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1);
 
     calib_loader_.init(params_.intrinsic_yaml_file_);
 
@@ -200,8 +209,12 @@ bool PylonCameraOpenCVNode::grabImage()
     if (!PylonCameraNode::grabImage())
         return false;
 
-    img_raw_ = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1);
-    memcpy(img_raw_.ptr(), img_raw_msg_.data.data(), pylon_interface_->image_size());
+    //img_raw_ = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1);
+
+    //memcpy(img_raw_.ptr(), img_raw_msg_.data.data(), pylon_interface_->image_size());
+
+    img_raw_ = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1, img_raw_msg_.data.data());
+
     if (pylon_opencv_interface_.own_brightness_search_running_)
     {
 //        int c = pylon_interface_->img_cols(), r = pylon_interface_->img_rows();
@@ -209,6 +222,7 @@ bool PylonCameraOpenCVNode::grabImage()
 //                        .rowRange(0.25 * r,
 //                                  0.75 * r))
 //                                            .val[0];
+        ROS_INFO("Calculating MEAN - maybe unnecessary?");
         pylon_opencv_interface_.exp_search_params_.current_brightness_ = cv::mean(img_raw_).val[0];
 //        .colRange(0.25 * c, 0.75 * c)
 //                        .rowRange(0.25 * r,
@@ -219,25 +233,16 @@ bool PylonCameraOpenCVNode::grabImage()
     if (params_.have_intrinsic_data_)
     {
         cv_img_rect_.header = img_raw_msg_.header;
-
-        cv::Mat img_rect = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(),
-        CV_8UC1);
-
-        img_rectifier_.rectify(img_raw_, img_rect);
-        cv_img_rect_.image = img_rect;
+        img_rectifier_.rectify(img_raw_, cv_img_rect_.image);
     }
 
     return true;
 }
 bool PylonCameraOpenCVNode::grabSequence()
 {
-    std::vector<cv::Mat> img_sequence;
-    img_sequence.clear();
-
     for (int i = 0; i < 3; ++i)
     {
-        cv::Mat img;
-        if (!(pylon_opencv_interface_.grab(params_, img)))
+        if (!(pylon_opencv_interface_.grab(params_, image_sequence_[i])))
         {
             if (pylon_interface_->is_cam_removed())
             {
@@ -250,18 +255,19 @@ bool PylonCameraOpenCVNode::grabSequence()
             }
             return false;
         }
-        img_sequence.push_back(img);
         if (i == 1)
         {
-            img_raw_msg_.data = std::vector<uint8_t>(img.data, img.data + pylon_interface_->image_size());
+            if (getNumSubscribersRaw())
+            {
+                img_raw_msg_.data = std::vector<uint8_t>(image_sequence_[i].data,
+                                                         image_sequence_[i].data + pylon_interface_->image_size());
+            }
             if (params_.have_intrinsic_data_)
             {
-
-                cv::Mat img_rect = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(),
-                CV_8UC1);
-
-                img_rectifier_.rectify(img, img_rect);
-                cv_img_rect_.image = img_rect;
+                if (getNumSubscribersRect())
+                {
+                    img_rectifier_.rectify(image_sequence_[i], cv_img_rect_.image);
+                }
             }
         }
     }
@@ -272,27 +278,38 @@ bool PylonCameraOpenCVNode::grabSequence()
     cv_img_seq_.header.stamp = img_raw_msg_.header.stamp;
     exp_times_.header.stamp = img_raw_msg_.header.stamp;
 
+
 #if CV_MAJOR_VERSION > 2   // If you are using OpenCV 3
     if (params_.output_hdr_)
     {
-        cv_img_hdr_.header.stamp = img_raw_msg_.header.stamp;
-        HDRGenerator hdr_generator;
-        cv_img_hdr_.image = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC1);
-        Mat hdr_img;
-        if (!hdr_generator.mergeMertens(img_sequence, pylon_opencv_interface_.seq_exp_times_, hdr_img))
+        if (getNumSubscribersHdr())
         {
-            cerr << "Error while generating HDR image" << endl;
+            //ros::Time now = ros::Time::now();
+            cv_img_hdr_.header.stamp = img_raw_msg_.header.stamp;
+            if (!hdr_generator_.merge(image_sequence_, pylon_opencv_interface_.seq_exp_times_, hdr_img_))
+            {
+                cerr << "Error while generating HDR image" << endl;
+            }
+            //ROS_INFO_STREAM("HDR TOOK " << (ros::Time::now() - now).toSec());
+            img_rectifier_.rectify(hdr_img_, cv_img_hdr_.image);
         }
-        img_rectifier_.rectify(hdr_img, cv_img_hdr_.image);
     }
+    else
+    {
 #endif
 
-    cv::Mat img_seq_bgr;
-    cv::Mat img_seq_123[] = {img_sequence.at(0), img_sequence.at(1), img_sequence.at(2)};
-    cv::merge(img_seq_123, 3, img_seq_bgr);
+        // I put this into the else clause of hdr as I don't think it makes sense to produce a psoido BGR image out of three grayscale images
+        if (getNumSubscribersSeq())
+        {
+            cv::Mat img_seq_bgr;
+            cv::merge(image_sequence_.data(), 3, img_seq_bgr);
 
-    cv_img_seq_.image = cv::Mat(pylon_interface_->img_rows(), pylon_interface_->img_cols(), CV_8UC3);
-    img_rectifier_.rectify(img_seq_bgr, cv_img_seq_.image);
+            img_rectifier_.rectify(img_seq_bgr, cv_img_seq_.image);
+        }
+
+#if CV_MAJOR_VERSION > 2   // If you are using OpenCV 3
+    }
+#endif
 
     return true;
 }

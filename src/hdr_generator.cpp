@@ -5,11 +5,43 @@
  *      Author: md
  */
 
+#include <ros/ros.h>
 #include <pylon_camera/hdr_generator.h>
+
+#define NPERFORMANCE_TEST
 
 namespace pylon_camera {
 
-HDRGenerator::HDRGenerator()
+Mat weightedFusion(const std::vector<Mat>& images, const Mat& wm)
+{
+    Mat fused = Mat::zeros(images[0].size(), CV_32FC1);
+    Mat transformed(images[0].size(), CV_32FC1);
+    for (std::vector<Mat>::const_iterator it = images.begin(); it != images.end(); ++it)
+    {
+        LUT(*it, wm, transformed);
+        fused += transformed;
+    }
+    return fused;
+}
+
+Mat createWeightMap()
+{
+    Mat weight(LDR_SIZE, 1, CV_32FC1);
+    const float sigma = 0.2;
+    const float mu = 0.5;
+
+    const float b = 2 * std::pow((sigma * 255), 2);
+
+    for (int i = 0; i < LDR_SIZE; i++)
+    {
+        weight.at<float>(i) = std::exp( - std::pow(i / 255. - mu * 255, 2) / b) / 255.;
+    }
+    return weight;
+}
+
+
+HDRGenerator::HDRGenerator() :
+    weight_map_(createWeightMap())
 {
     // TODO Auto-generated constructor stub
 
@@ -20,57 +52,55 @@ HDRGenerator::~HDRGenerator()
     // TODO Auto-generated destructor stub
 }
 
-bool HDRGenerator::mergeMertens(vector<Mat> img_sequence, vector<float> exp_times, Mat &hdr_img)
+#ifdef PERFORMANCE_TEST
+static int frame = 0;
+#endif
+
+bool HDRGenerator::merge(const vector<Mat>& img_sequence, const vector<float>& exp_times, Mat& hdr_img)
 {
-//    cout << "CHECK 01" << endl;
-//
-//    imwrite("00input.png", img_sequence.at(0));
-//    imwrite("01input.png", img_sequence.at(1));
-//    imwrite("02input.png", img_sequence.at(2));
-//
-//    cout << "CHECK 01a" << endl;
-//    cout << "exp times size = " << exp_times.size() << endl;
-//    cout << exp_times.at(0) << endl;
-//    cout << "CHECK 01b" << endl;
-
-//    Mat response;
-//    Ptr<CalibrateDebevec> calibrate = createCalibrateDebevec();
-//    cout << "CHECK 02" << endl;
-//    calibrate->process(img_sequence, response, exp_times);
-//    cout << "CHECK 03" << endl;
-//    Mat hdr;
-//    Ptr<MergeDebevec> merge_debevec = createMergeDebevec();
-//    cout << "CHECK 04" << endl;
-//    merge_debevec->process(img_sequence, hdr, exp_times, response);
-//    Mat ldr;
-//    cout << "CHECK 05" << endl;
-//    Ptr<TonemapDurand> tonemap = createTonemapDurand(2.2f);
-//    cout << "CHECK 06" << endl;
-//    tonemap->process(hdr, ldr);
-//    Mat fusion;
-//    cout << "CHECK 07" << endl;
-//    Ptr<MergeMertens> merge_mertens = createMergeMertens();
-//    cout << "CHECK 08" << endl;
-//    merge_mertens->process(img_sequence, fusion);
-//    imwrite("fusion.png", fusion * 255);
-
-    Mat fusion;
-    Ptr<MergeMertens> merge_mertens = createMergeMertens();
-    merge_mertens->process(img_sequence, fusion);
-
     double min, max;
     Point min_loc, max_loc;
-    minMaxLoc(fusion, &min, &max, &min_loc, &max_loc);
+#ifdef PERFORMANCE_TEST
+    Ptr<MergeMertens> merge_mertens = createMergeMertens();
+    ros::Time now;
+    std::stringstream ss;
 
-//    cout << "min = " << min << ", max = " << max << endl;
-    fusion.convertTo(hdr_img,CV_8U,255.0/(max-min),-255.0*min/(max-min));
-//    cout << hdr_img.type() << endl;
-//    hdr_img *= 255;
+    now = ros::Time::now();
+    merge_mertens->process(img_sequence, fusion_);
+    std::cout << "mertens took " << (ros::Time::now() - now).toSec() << std::endl;
 
-//    imwrite("fusion.png", hdr_img);
-//    imwrite("ldr.png", ldr * 255);
-//    imwrite("hdr.hdr", hdr);
+    minMaxLoc(fusion_, &min, &max, &min_loc, &max_loc);
+    fusion_.convertTo(hdr_img, CV_8U, 255.0 / (max-min), -255.0 * min / (max - min));
+    ss << "/tmp/hdrtest-" << frame << "-mertens.jpg";
+    cv::imwrite(ss.str(), hdr_img);
+
+
+    now = ros::Time::now();
+#endif
+    fusion_ = weightedFusion(img_sequence, weight_map_);
+#ifdef PERFORMANCE_TEST
+    std::cout << "weighted Fusion took " << (ros::Time::now() - now).toSec() << std::endl;
+
+    ss.str("");
+#endif
+    minMaxLoc(fusion_, &min, &max, &min_loc, &max_loc);
+    fusion_.convertTo(hdr_img, CV_8U, 255.0 / (max-min), -255.0 * min / (max - min));
+#ifdef PERFORMANCE_TEST
+    ss << "/tmp/hdrtest-" << frame << "-expfusion.jpg";
+    cv::imwrite(ss.str(), hdr_img);
+
+    for (std::size_t i = 0; i < img_sequence.size(); ++i)
+    {
+        ss.str("");
+        ss << "/tmp/hdrtest-" << frame << "-exposure-" << i << ".jpg";
+        cv::imwrite(ss.str(), img_sequence[i]);
+    }
+
+    ++frame;
+#endif
+
     return true;
 }
+
 
 } /* namespace pylon_camera */

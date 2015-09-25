@@ -21,8 +21,8 @@ public:
     ImageRectifier();
     virtual ~ImageRectifier();
 
-    void setupRectifyingMap(const Mat& cam_matrix, const Mat& dist_coefficients, int img_width,
-        int img_height);
+    void setupRectifyingMap(const Mat& cam_matrix, const Mat& dist_coefficients, const int& img_width,
+        const int& img_height);
     void rectify(const Mat& src, Mat& dst);
 
 private:

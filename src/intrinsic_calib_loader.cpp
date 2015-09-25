@@ -23,7 +23,7 @@ IntrinsicCalibLoader::~IntrinsicCalibLoader()
 {
     // TODO Auto-generated destructor stub
 }
-bool IntrinsicCalibLoader::init(const std::string yaml_file)
+bool IntrinsicCalibLoader::init(const std::string& yaml_file)
 {
     intrinsic_yaml_file_ = yaml_file;
     return true;
@@ -89,19 +89,22 @@ bool IntrinsicCalibLoader::loadCalib()
 
     return true;
 }
-cv::Mat IntrinsicCalibLoader::D()
+
+const cv::Mat& IntrinsicCalibLoader::D() const
 {
     return D_;
 }
-cv::Mat IntrinsicCalibLoader::K()
+
+const cv::Mat& IntrinsicCalibLoader::K() const
 {
     return K_;
 }
-int IntrinsicCalibLoader::img_rows()
+
+const int& IntrinsicCalibLoader::img_rows() const
 {
     return img_rows_;
 }
-int IntrinsicCalibLoader::img_cols()
+const int& IntrinsicCalibLoader::img_cols() const
 {
     return img_cols_;
 }

@@ -78,7 +78,7 @@ void PylonCameraNode::getInitialCameraParameter()
     nh_.param<int>("start_brightness", params_.start_brightness_, 128);
 }
 
-uint32_t PylonCameraNode::getNumSubscribers()
+uint32_t PylonCameraNode::getNumSubscribers() const
 {
     return img_raw_pub_.getNumSubscribers();
 }

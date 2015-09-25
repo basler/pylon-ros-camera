@@ -39,7 +39,7 @@ public:
     bool first_time_;
 
     void updateBinarySearch();
-    void initialize(double goal, double left_lim, double right_lim, double current_exp, double current_brightness);
+    void initialize(const double& goal, const double& left_lim, const double& right_lim, const double& current_exp, const double& current_brightness);
 
 };
 

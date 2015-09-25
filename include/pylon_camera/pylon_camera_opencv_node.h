@@ -35,11 +35,11 @@ public:
     void createPylonInterface();
     void getInitialCameraParameter();
     void setupCameraInfoMsg();
-    uint32_t getNumSubscribers();
-    uint32_t getNumSubscribersRaw();
-    uint32_t getNumSubscribersRect();
-    uint32_t getNumSubscribersSeq();
-    uint32_t getNumSubscribersHdr();
+    uint32_t getNumSubscribers() const;
+    uint32_t getNumSubscribersRaw() const;
+    uint32_t getNumSubscribersRect() const;
+    uint32_t getNumSubscribersSeq() const;
+    uint32_t getNumSubscribersHdr() const;
     bool grabImage();
     bool grabSequence();
 
@@ -61,6 +61,14 @@ private:
     IntrinsicCalibLoader calib_loader_;
 
     cv::Mat img_raw_;
+
+    std::vector<cv::Mat> image_sequence_;
+
+#if CV_MAJOR_VERSION > 2   // If you are using OpenCV 3
+    HDRGenerator hdr_generator_;
+    Mat hdr_img_;
+#endif
+
 };
 } /* namespace pylon_camera */
 #endif /* PYLON_CAMERA_OPENCV_NODE_H_ */

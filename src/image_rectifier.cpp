@@ -23,8 +23,8 @@ ImageRectifier::~ImageRectifier()
 }
 
 void ImageRectifier::setupRectifyingMap(const Mat& cam_matrix, const Mat& dist_coefficients,
-    int img_width,
-    int img_height)
+    const int& img_width,
+    const int&img_height)
 {
     cv::Mat I = cv::Mat_<double>::eye(3, 3);
     // md 20.05.15
