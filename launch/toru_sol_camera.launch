@@ -11,4 +11,5 @@
   <param name="intrinsic_yaml_string" command="cat $(find pylon_camera)/calib/TORU_0001_SOL_intrinsic_calib.yml"/>
   <param name="magazino_cam_id"  value="TORU_0001_SOL"  type="string" />
   </node>
+  <node pkg="topic_tools" type="throttle" name="throttle_sol" args="messages /sol_camera/image_hdr 0.5 /sol_camera/image_hdr_throttled" />
 </launch>
