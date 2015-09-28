@@ -222,7 +222,6 @@ bool PylonCameraOpenCVNode::grabImage()
 //                        .rowRange(0.25 * r,
 //                                  0.75 * r))
 //                                            .val[0];
-        ROS_INFO("Calculating MEAN - maybe unnecessary?");
         pylon_opencv_interface_.exp_search_params_.current_brightness_ = cv::mean(img_raw_).val[0];
 //        .colRange(0.25 * c, 0.75 * c)
 //                        .rowRange(0.25 * r,

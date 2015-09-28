@@ -12,6 +12,9 @@
 
 namespace pylon_camera {
 
+// See: Multi-exposure Imaging on Mobile Devices
+// N. Gelfand, A. Adams, S.H. Park, K. Pulli
+// URL: http://graphics.stanford.edu/~shpark7/projects/hdr_gelfand_mm10.pdf
 Mat weightedFusion(const std::vector<Mat>& images, const Mat& wm)
 {
     Mat fused = Mat::zeros(images[0].size(), CV_32FC1);
