@@ -13,10 +13,11 @@
   <build_depend>pylon_camera_msgs</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
-  
+
   <run_depend>pylon4</run_depend>
   <run_depend>pylon_camera_msgs</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
+  <run_depend>rand</run_depend>
 
 </package>
