@@ -1,13 +1,9 @@
-/*
- * pylon_camera_opencv_node.cpp
- *
- *  Created on: Jun 10, 2015
- *      Author: md
- */
-
 #include <pylon_camera/pylon_camera_opencv_node.h>
 
-namespace pylon_camera {
+using namespace std;
+
+namespace pylon_camera
+{
 
 PylonCameraOpenCVNode::PylonCameraOpenCVNode() :
                     pylon_opencv_interface_(),
@@ -23,7 +19,6 @@ PylonCameraOpenCVNode::PylonCameraOpenCVNode() :
                     calib_loader_(),
                     img_raw_()
 {
-    image_sequence_.resize(3);
 }
 
 void PylonCameraOpenCVNode::getInitialCameraParameter()
@@ -34,11 +29,10 @@ void PylonCameraOpenCVNode::getInitialCameraParameter()
     if (params_.use_sequencer_)
     {
         nh_.getParam("desired_seq_exp_times", params_.desired_seq_exp_times_);
-        assert(params_.desired_seq_exp_times_.size() == 3);
+        image_sequence_.resize(params_.desired_seq_exp_times_.size());
+        //assert(params_.desired_seq_exp_times_.size() == 3);
 
-#if CV_MAJOR_VERSION > 2   // If you are using OpenCV 3
        nh_.param<bool>("output_hdr_img", params_.output_hdr_, false);
-#endif
     }
 
     nh_.param<std::string>("intrinsic_yaml_string",
@@ -70,8 +64,8 @@ void PylonCameraOpenCVNode::createPylonInterface()
 uint32_t PylonCameraOpenCVNode::getNumSubscribers() const
 {
     return img_raw_pub_.getNumSubscribers() + img_rect_pub_.getNumSubscribers()
-           + img_seq_pub_.getNumSubscribers()
-           + img_hdr_pub_.getNumSubscribers();
+         + img_seq_pub_.getNumSubscribers()
+         + img_hdr_pub_.getNumSubscribers();
 }
 
 uint32_t PylonCameraOpenCVNode::getNumSubscribersRaw() const
@@ -239,7 +233,8 @@ bool PylonCameraOpenCVNode::grabImage()
 }
 bool PylonCameraOpenCVNode::grabSequence()
 {
-    for (int i = 0; i < 3; ++i)
+    image_sequence_.resize(params_.desired_seq_exp_times_.size());
+    for (std::size_t i = 0; i < params_.desired_seq_exp_times_.size(); ++i)
     {
         if (!(pylon_opencv_interface_.grab(params_, image_sequence_[i])))
         {
@@ -277,8 +272,6 @@ bool PylonCameraOpenCVNode::grabSequence()
     cv_img_seq_.header.stamp = img_raw_msg_.header.stamp;
     exp_times_.header.stamp = img_raw_msg_.header.stamp;
 
-
-#if CV_MAJOR_VERSION > 2   // If you are using OpenCV 3
     if (params_.output_hdr_)
     {
         if (getNumSubscribersHdr())
@@ -295,24 +288,21 @@ bool PylonCameraOpenCVNode::grabSequence()
     }
     else
     {
-#endif
-
         // I put this into the else clause of hdr as I don't think it makes sense to produce a psoido BGR image out of three grayscale images
-        if (getNumSubscribersSeq())
+        if (getNumSubscribersSeq() && image_sequence_.size() == 3)
         {
             cv::Mat img_seq_bgr;
             cv::merge(image_sequence_.data(), 3, img_seq_bgr);
 
             img_rectifier_.rectify(img_seq_bgr, cv_img_seq_.image);
         }
-
-#if CV_MAJOR_VERSION > 2   // If you are using OpenCV 3
     }
-#endif
 
     return true;
 }
+
 PylonCameraOpenCVNode::~PylonCameraOpenCVNode()
 {
 }
-} /* namespace pylon_camera */
+
+}

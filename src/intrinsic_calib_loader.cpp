@@ -1,11 +1,9 @@
-/*
- * intrinsic_calib_loader.cpp
- *
- *  Created on: Jun 10, 2015
- *      Author: md
- */
-
 #include <pylon_camera/intrinsic_calib_loader.h>
+
+#include <iostream>
+
+using namespace cv;
+using namespace std;
 
 namespace pylon_camera
 {
@@ -21,13 +19,14 @@ IntrinsicCalibLoader::IntrinsicCalibLoader() :
 
 IntrinsicCalibLoader::~IntrinsicCalibLoader()
 {
-    // TODO Auto-generated destructor stub
 }
+
 bool IntrinsicCalibLoader::init(const std::string& yaml_file)
 {
     intrinsic_yaml_file_ = yaml_file;
     return true;
 }
+
 bool IntrinsicCalibLoader::loadCalib()
 {
     if (intrinsic_yaml_file_ == "INVALID_YAML_FILE")
@@ -104,8 +103,10 @@ const int& IntrinsicCalibLoader::img_rows() const
 {
     return img_rows_;
 }
+
 const int& IntrinsicCalibLoader::img_cols() const
 {
     return img_cols_;
 }
-} /* namespace pylon_camera */
+
+}

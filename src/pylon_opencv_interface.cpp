@@ -1,11 +1,7 @@
-/*
- * pylon_opencv_interface.cpp
- *
- *  Created on: May 26, 2015
- *      Author: md
- */
-
 #include <pylon_camera/pylon_opencv_interface.h>
+
+using namespace std;
+using namespace Pylon;
 
 namespace pylon_camera
 {
@@ -71,38 +67,19 @@ bool PylonOpenCVInterface::setupSequencer(const PylonCameraParameter &params)
                 }
                  
                 gige_cam_->SequenceAdvanceMode = Basler_GigECameraParams::SequenceAdvanceMode_Auto;
-                gige_cam_->SequenceSetTotalNumber = 3;
+                gige_cam_->SequenceSetTotalNumber = params.desired_seq_exp_times_.size();
                 
-                // Set parameters for step 0
-                gige_cam_->SequenceSetIndex = 0;
-                PylonInterface::setExposure(params.desired_seq_exp_times_.at(0));
-                seq_exp_times_.push_back(1.0 / (gige_cam_->ExposureTimeAbs.GetValue() * 1000000));
-                gige_cam_->SequenceSetStore.Execute();
-                
-                // Set parameters for step 1
-                gige_cam_->SequenceSetIndex = 1;
-                PylonInterface::setExposure(params.desired_seq_exp_times_.at(1));
-                seq_exp_times_.push_back(1.0 / (gige_cam_->ExposureTimeAbs.GetValue() * 1000000));
-                gige_cam_->SequenceSetStore.Execute();
-                
-                // Set parameters for step 2
-                gige_cam_->SequenceSetIndex = 2;
-                PylonInterface::setExposure(params.desired_seq_exp_times_.at(2));
-                seq_exp_times_.push_back(1.0 / (gige_cam_->ExposureTimeAbs.GetValue() * 1000000));
-                gige_cam_->SequenceSetStore.Execute();
-                
+                for (std::size_t i = 0; i < params.desired_seq_exp_times_.size(); ++i)
+                {
+                    // Set parameters for each step
+                    gige_cam_->SequenceSetIndex = i;
+                    PylonInterface::setExposure(params.desired_seq_exp_times_.at(i));
+                    seq_exp_times_.push_back(gige_cam_->ExposureTimeAbs.GetValue() / 1000000.);
+                    gige_cam_->SequenceSetStore.Execute();
+                }
+
                 // config finished
                 gige_cam_->SequenceEnable.SetValue(true);
-                
-                cout << "Initialized sequencer with the following inverse exposure-times [1/s]: ";
-                for (size_t i = 0; i < seq_exp_times_.size(); ++i)
-                {
-                    cout << seq_exp_times_.at(i);
-                    if (i != seq_exp_times_.size() - 1)
-                        cout << ", ";
-                    else
-                        cout << endl;
-                }
             }
             catch (GenICam::GenericException &e)
             {
@@ -135,37 +112,31 @@ bool PylonOpenCVInterface::setupSequencer(const PylonCameraParameter &params)
                 usb_cam_->SequencerTriggerSource.SetValue(Basler_UsbCameraParams::SequencerTriggerSource_FrameStart);
                 // ********************************************************
 
-                // Set the parameters for step 0: Exp1
-                usb_cam_->SequencerSetNext.SetValue(1);
-                PylonInterface::setExposure(params.desired_seq_exp_times_.at(0));
-                seq_exp_times_.push_back(1.0 / (usb_cam_->ExposureTime.GetValue() * 1000000));
-                usb_cam_->SequencerSetSave.Execute();
+                for (std::size_t i = 0; i < params.desired_seq_exp_times_.size(); ++i)
+                {
+                    if (i > 0)
+                    {
+                        usb_cam_->SequencerSetSelector.SetValue(i);
+                    }
 
-                usb_cam_->SequencerSetSelector.SetValue(1);
-                usb_cam_->SequencerSetNext.SetValue(2);
-                PylonInterface::setExposure(params.desired_seq_exp_times_.at(1));
-                seq_exp_times_.push_back(1.0 / (usb_cam_->ExposureTime.GetValue() * 1000000));
-                usb_cam_->SequencerSetSave.Execute();
+                    if (i == params.desired_seq_exp_times_.size() - 1) // last frame
+                    {
+                        usb_cam_->SequencerSetNext.SetValue(0);
+                    }
+                    else
+                    {
+                        usb_cam_->SequencerSetNext.SetValue(i + 1);
+                    }
 
-                usb_cam_->SequencerSetSelector.SetValue(2);
-                usb_cam_->SequencerSetNext.SetValue(0);
-                PylonInterface::setExposure(params.desired_seq_exp_times_.at(2));
-                seq_exp_times_.push_back(1.0 / (usb_cam_->ExposureTime.GetValue() * 1000000));
-                usb_cam_->SequencerSetSave.Execute();
+                    PylonInterface::setExposure(params.desired_seq_exp_times_.at(i));
+                    seq_exp_times_.push_back(usb_cam_->ExposureTime.GetValue() / 1000000.);
+                    usb_cam_->SequencerSetSave.Execute();
+                }
 
                 // config finished
                 usb_cam_->SequencerConfigurationMode.SetValue(Basler_UsbCameraParams::SequencerConfigurationMode_Off);
                 usb_cam_->SequencerMode.SetValue(Basler_UsbCameraParams::SequencerMode_On);
 
-                cout << "Initialized sequencer with the following inverse exposure-times [1/s]: ";
-                for (size_t i = 0; i < seq_exp_times_.size(); ++i)
-                {
-                    cout << seq_exp_times_.at(i);
-                    if (i != seq_exp_times_.size() - 1)
-                        cout << ", ";
-                    else
-                        cout << endl;
-                }
             }
             catch (GenICam::GenericException &e)
             {
@@ -189,6 +160,17 @@ bool PylonOpenCVInterface::setupSequencer(const PylonCameraParameter &params)
             cerr << "Unknown Camera Type" << endl;
             break;
     }
+
+    cout << "Initialized sequencer with the following inverse exposure-times [1/s]: ";
+    for (size_t i = 0; i < seq_exp_times_.size(); ++i)
+    {
+        cout << seq_exp_times_.at(i);
+        if (i != seq_exp_times_.size() - 1)
+            cout << ", ";
+        else
+            cout << endl;
+    }
+
 //    }
     return true;
 

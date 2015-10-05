@@ -1,11 +1,6 @@
-/*
- * image_rectifier.cpp
- *
- *  Created on: May 26, 2015
- *      Author: md
- */
-
 #include <pylon_camera/image_rectifier.h>
+
+using namespace cv;
 
 namespace pylon_camera
 {
@@ -14,12 +9,10 @@ ImageRectifier::ImageRectifier() :
                     rect_map_x_(),
                     rect_map_y_()
 {
-    // TODO Auto-generated constructor stub
 }
 
 ImageRectifier::~ImageRectifier()
 {
-    // TODO Auto-generated destructor stub
 }
 
 void ImageRectifier::setupRectifyingMap(const Mat& cam_matrix, const Mat& dist_coefficients,

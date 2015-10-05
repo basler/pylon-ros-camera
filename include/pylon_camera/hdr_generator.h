@@ -1,25 +1,12 @@
-/*
- * hdr_generator.h
- *
- *  Created on: Jul 13, 2015
- *      Author: md
- */
-
 #ifndef HDRGENERATOR_H_
 #define HDRGENERATOR_H_
 
-#include <opencv2/photo.hpp>
-#include "opencv2/imgcodecs.hpp"
-#include <opencv2/highgui.hpp>
-#include <vector>
-#include <iostream>
-#include <fstream>
+#include <opencv2/core.hpp>
 
-namespace pylon_camera {
+namespace pylon_camera
+{
 
-
-using namespace cv;
-using namespace std;
+class MergeMertensC1;
 
 class HDRGenerator
 {
@@ -27,14 +14,19 @@ public:
     HDRGenerator();
     virtual ~HDRGenerator();
 
-    bool merge(const vector<Mat>& img_sequence, const vector<float>& exp_times, Mat &hdr_img);
-    void loadExposureSeq(const String&, const vector<Mat>&, vector<float>&);
+    bool merge(const std::vector<cv::Mat>& img_sequence,
+               const std::vector<float>& exp_times,
+               cv::Mat &hdr_img);
+    void loadExposureSeq(const cv::String&,
+                         const std::vector<cv::Mat>&,
+                         std::vector<float>&);
 
 private:
-    Mat fusion_;
-    Mat weight_map_;
+    cv::Mat fusion_;
+
+    MergeMertensC1* merge_mertens_;
 };
 
-} /* namespace pylon_camera */
+}
 
-#endif /* HDRGENERATOR_H_ */
+#endif
