@@ -11,6 +11,8 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>pylon4</build_depend>
   <build_depend>pylon_camera_msgs</build_depend>
+  <build_depend>image_transport</build_depend>
+  <build_depend>cv_bridge</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
 
