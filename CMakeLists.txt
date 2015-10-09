@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(pylon_camera)
 
+add_definitions("-std=gnu++11")
 SET(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS "-g -Wall -Wno-unknown-pragmas -Wno-delete-non-virtual-dtor -Wno-unused-variable")
 set(CATKIN_COMPONENTS roscpp image_transport pylon_camera_msgs)
@@ -100,9 +101,9 @@ if (WITH_OPENCV)
 else (WITH_OPENCV)
 	add_executable(pylon_camera_node 
 		src/main.cpp
+    	src/pylon_camera.cpp
 		src/pylon_camera_node.cpp
     	src/pylon_camera_parameter.cpp
-    	src/pylon_interface.cpp
 	)
 endif (WITH_OPENCV)
 

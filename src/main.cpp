@@ -9,6 +9,7 @@
 
 #include <ros/ros.h>
 #include <boost/thread.hpp>
+#include <GenApi/GenApi.h>
 
 #ifdef WITH_OPENCV
 #include <pylon_camera/pylon_camera_opencv_node.h>
@@ -36,9 +37,6 @@ int main(int argc, char **argv)
     // TODO: Reihenfolge wichtig!
     pylon_camera_node.getInitialCameraParameter();
 
-    // Parameter: Sequencer or not
-    pylon_camera_node.createPylonInterface();
-
     if (!pylon_camera_node.init())
     {
         ROS_ERROR("Error while initializing the pylon node!");
@@ -59,9 +57,9 @@ int main(int argc, char **argv)
         {
 
 #ifdef WITH_OPENCV
-            if (pylon_camera_node.pylon_opencv_interface_.own_brightness_search_running_)
+            if (pylon_camera_node.pylon_camera_->isOwnBrightnessFunctionRunning())
             {
-                pylon_camera_node.pylon_opencv_interface_.setExtendedBrightness(pylon_camera_node.target_brightness_);
+                pylon_camera_node.pylon_camera_->setExtendedBrightness(pylon_camera_node.target_brightness_);
             }
             else
             {

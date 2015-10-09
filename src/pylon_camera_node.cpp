@@ -1,12 +1,10 @@
 #include <pylon_camera/pylon_camera_node.h>
 
-#include <numeric>
-
 namespace pylon_camera
 {
 
 PylonCameraNode::PylonCameraNode() :
-                    pylon_interface_(NULL),
+                    pylon_camera_(NULL),
                     params_(),
                     target_brightness_(-42),
                     set_exposure_service_(),
@@ -18,10 +16,9 @@ PylonCameraNode::PylonCameraNode() :
                     params_update_counter_(0),
                     brightness_service_running_(false),
                     nh_("~"),
-                    it_(NULL),
+                    it_(new image_transport::ImageTransport(nh_)),
                     is_sleeping_(false)
 {
-    it_ = new image_transport::ImageTransport(nh_);
     img_raw_pub_ = it_->advertiseCamera("image_raw", 10);
 
     set_sleeping_service_ = nh_.advertiseService("set_sleeping_srv",
@@ -79,13 +76,7 @@ uint32_t PylonCameraNode::getNumSubscribers() const
 }
 void PylonCameraNode::checkForPylonAutoFunctionRunning()
 {
-    brightness_service_running_ = pylon_interface_->isAutoBrightnessFunctionRunning();
-}
-
-// Using OpenCV -> creates PylonOpenCVNode (with sequencer and rectification), else: only image_raw
-void PylonCameraNode::createPylonInterface()
-{
-    pylon_interface_ = new PylonInterface();
+    brightness_service_running_ = pylon_camera_->isAutoBrightnessFunctionRunning();
 }
 
 bool PylonCameraNode::init()
@@ -116,7 +107,9 @@ bool PylonCameraNode::initAndRegister()
                                                        this);
     }
 
-    if (!pylon_interface_->initialize(params_))
+    pylon_camera_ = PylonCamera::create(params_.magazino_cam_id_);
+
+    if (pylon_camera_ == NULL)
     {
         ROS_ERROR("Error while initializing the Pylon Interface");
         return false;
@@ -124,7 +117,7 @@ bool PylonCameraNode::initAndRegister()
 
 //    cout << "BASE CAM NODE INIT FINISHED" << endl;
 
-    if (!pylon_interface_->registerCameraConfiguration(params_))
+    if (!pylon_camera_->registerCameraConfiguration(params_))
     {
         ROS_ERROR("Error while registering the camera configuration");
         return false;
@@ -135,25 +128,25 @@ bool PylonCameraNode::initAndRegister()
 
 bool PylonCameraNode::startGrabbing()
 {
-    if (!pylon_interface_->startGrabbing(params_))
+    if (!pylon_camera_->startGrabbing(params_))
     {
         ROS_ERROR("Error while start grabbing");
         return false;
     }
 
     // Framrate Settings
-    if (pylon_interface_->max_possible_framerate() < params_.desired_frame_rate_)
+    if (pylon_camera_->maxPossibleFramerate() < params_.desired_frame_rate_)
     {
         ROS_INFO("Desired framerate %.2f is higher than max possible. Will limit framerate to: %.2f Hz",
                  params_.desired_frame_rate_,
-                 pylon_interface_->max_possible_framerate());
-        params_.desired_frame_rate_ = pylon_interface_->max_possible_framerate();
-        nh_.setParam("desired_framerate", pylon_interface_->max_possible_framerate());
+                 pylon_camera_->maxPossibleFramerate());
+        params_.desired_frame_rate_ = pylon_camera_->maxPossibleFramerate();
+        nh_.setParam("desired_framerate", pylon_camera_->maxPossibleFramerate());
     }
     else if (params_.desired_frame_rate_ == -1)
     {
-        params_.desired_frame_rate_ = pylon_interface_->max_possible_framerate();
-        ROS_INFO("Max possible framerate is %.2f Hz", pylon_interface_->max_possible_framerate());
+        params_.desired_frame_rate_ = pylon_camera_->maxPossibleFramerate();
+        ROS_INFO("Max possible framerate is %.2f Hz", pylon_camera_->maxPossibleFramerate());
     }
 
     std_msgs::Header header;
@@ -162,29 +155,29 @@ bool PylonCameraNode::startGrabbing()
     header.stamp = ros::Time::now();
 
     cam_info_msg_.header = header;
-    cam_info_msg_.height = pylon_interface_->img_rows();
-    cam_info_msg_.width = pylon_interface_->img_cols();
+    cam_info_msg_.height = pylon_camera_->imageRows();
+    cam_info_msg_.width = pylon_camera_->imageCols();
     cam_info_msg_.distortion_model = "plumb_bob";
 
     img_raw_msg_.header = header;
     // Encoding of pixels -- channel meaning, ordering, size
     // taken from the list of strings in include/sensor_msgs/image_encodings.h
-    img_raw_msg_.encoding = pylon_interface_->img_encoding();
-    img_raw_msg_.height = pylon_interface_->img_rows();
-    img_raw_msg_.width = pylon_interface_->img_cols();
+    img_raw_msg_.encoding = pylon_camera_->imageEncoding();
+    img_raw_msg_.height = pylon_camera_->imageRows();
+    img_raw_msg_.width = pylon_camera_->imageCols();
     // step = full row length in bytes
-    img_raw_msg_.step = img_raw_msg_.width * pylon_interface_->img_pixel_depth();
+    img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
     // img_raw_msg_.data // actual matrix data, size is (step * rows)
-    pylon_interface_->set_image_size(img_raw_msg_.step * img_raw_msg_.height);
+    pylon_camera_->setImageSize(img_raw_msg_.step * img_raw_msg_.height);
 
     return true;
 }
 
 bool PylonCameraNode::grabImage()
 {
-    if (!pylon_interface_->grab(params_, img_raw_msg_.data))
+    if (!pylon_camera_->grab(img_raw_msg_.data))
     {
-        if (pylon_interface_->is_cam_removed())
+        if (pylon_camera_->isCamRemoved())
         {
             ROS_ERROR("Pylon Camera has been removed!");
             ros::shutdown();
@@ -206,14 +199,14 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
     float current_exposure = getCurrenCurrentExposure();
 //    ROS_INFO("New exposure request for exposure %.f, current exposure = %.f", req.target_exposure, current_exposure);
 
-    if (!pylon_interface_->is_ready_)
+    if (!pylon_camera_->isReady())
     {
         res.success = false;
         return true;
     }
     if (current_exposure != req.target_exposure)
     {
-        pylon_interface_->setExposure(req.target_exposure);
+        pylon_camera_->setExposure(req.target_exposure);
     }
 
     // wait for 2 cycles till the cam has updated the exposure
@@ -250,11 +243,11 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
 {
 
     // Brightness Service can only work, if an image has already been grabbed (calc mean on current img)
-    if (!pylon_interface_->is_ready_)
+    if (!pylon_camera_->isReady())
     {
         ros::Rate r(2.0);
         ros::Time start = ros::Time::now();
-        while (ros::ok() && !pylon_interface_->is_ready_)
+        while (ros::ok() && !pylon_camera_->isReady())
         {
             if (ros::Time::now() - start > ros::Duration(3.0))
             {
@@ -280,7 +273,7 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
 
     if (current_brightness != target_brightness_)
     {
-        pylon_interface_->setBrightness(target_brightness_);
+        pylon_camera_->setBrightness(target_brightness_);
     } else
     {
         res.success = true;
@@ -311,16 +304,10 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
         r.sleep();
     }
 
-    if (pylon_interface_->is_opencv_interface_)
-    {
-        if (!brightnessValidation(req.target_brightness))
-            res.success = false;
-        else
-            res.success = true;
-        return true;
-    }
-
-    res.success = true;
+    if (!brightnessValidation(req.target_brightness))
+        res.success = false;
+    else
+        res.success = true;
     return true;
 }
 
@@ -344,7 +331,7 @@ int PylonCameraNode::calcCurrentBrightness()
 
 float PylonCameraNode::getCurrenCurrentExposure()
 {
-    return pylon_interface_->getCurrentExposure();
+    return pylon_camera_->currentExposure();
 }
 
 /// Warum Service, wenn sofort immer true zurueckgegeben wird?
@@ -377,11 +364,8 @@ bool PylonCameraNode::have_intrinsic_data()
 
 PylonCameraNode::~PylonCameraNode()
 {
-    if (!pylon_interface_->is_opencv_interface_)
-    {
-        delete pylon_interface_;
-        pylon_interface_ = NULL;
-    }
+    delete pylon_camera_;
+    pylon_camera_ = NULL;
     delete it_;
     it_ = NULL;
 }

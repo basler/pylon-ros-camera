@@ -7,7 +7,7 @@
 #include <image_transport/image_transport.h>
 
 #include <pylon_camera/pylon_camera_parameter.h>
-#include <pylon_camera/pylon_interface.h>
+#include <pylon_camera/pylon_camera.h>
 #include <pylon_camera_msgs/SetExposureSrv.h>
 #include <pylon_camera_msgs/SetBrightnessSrv.h>
 #include <pylon_camera_msgs/SetSleepingSrv.h>
@@ -24,7 +24,6 @@ public:
     bool init();
     bool initAndRegister();
     bool startGrabbing();
-    void createPylonInterface();
     void getInitialCameraParameter();
     void updateAquisitionSettings();
     uint32_t getNumSubscribers() const;
@@ -43,7 +42,7 @@ public:
     virtual int calcCurrentBrightness();
     virtual float getCurrenCurrentExposure();
 
-    PylonInterface *pylon_interface_;
+    PylonCamera* pylon_camera_;
     PylonCameraParameter params_;
 
     int target_brightness_;

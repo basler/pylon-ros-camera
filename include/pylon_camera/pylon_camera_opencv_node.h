@@ -8,7 +8,6 @@
 
 #include <pylon_camera/pylon_camera_node.h>
 #include <pylon_camera/image_rectifier.h>
-#include <pylon_camera/pylon_opencv_interface.h>
 #include <pylon_camera/intrinsic_calib_loader.h>
 #include <pylon_camera/hdr_generator.h>
 
@@ -22,7 +21,6 @@ public:
     virtual ~PylonCameraOpenCVNode();
 
     bool init();
-    void createPylonInterface();
     void getInitialCameraParameter();
     void setupCameraInfoMsg();
     uint32_t getNumSubscribers() const;
@@ -32,8 +30,6 @@ public:
     uint32_t getNumSubscribersHdr() const;
     bool grabImage();
     bool grabSequence();
-
-    PylonOpenCVInterface pylon_opencv_interface_;
 
     cv_bridge::CvImage cv_img_rect_;
     cv_bridge::CvImage cv_img_seq_;
