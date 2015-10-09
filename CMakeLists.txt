@@ -2,9 +2,8 @@ cmake_minimum_required(VERSION 2.8.3)
 project(pylon_camera)
 
 add_definitions("-std=gnu++11")
-SET(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS "-g -Wall -Wno-unknown-pragmas -Wno-delete-non-virtual-dtor -Wno-unused-variable")
-set(CATKIN_COMPONENTS roscpp image_transport pylon_camera_msgs)
+#set(CMAKE_CXX_FLAGS "-g -Wall -Wno-unknown-pragmas -Wno-delete-non-virtual-dtor -Wno-unused-variable")
+set(CATKIN_COMPONENTS roscpp image_transport pylon_camera_msgs sensor_msgs)
 
 option(WITH_OPENCV "Build Pylon Camera with Rectification, Extended Auto Brightness and Sequencer (needs OpenCV)" ON)
 
@@ -35,13 +34,12 @@ catkin_package(
 ## Build ##
 ###########
 
+MESSAGE(STATUS "$ENV{PYLON_ROOT}/include")
 ## Specify additional locations of header files
 include_directories(
   ${catkin_INCLUDE_DIRS}
   $ENV{PYLON_ROOT}/include
   $ENV{PYLON_ROOT}/genicam/library/CPP/include
-  
-  MESAGE(STATUS "$ENV{PYLON_ROOT}/include")
 )
 if (WITH_OPENCV)
 include_directories(
