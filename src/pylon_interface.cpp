@@ -1,11 +1,7 @@
-/*
- * pylon_interface.cpp
- *
- *  Created on: May 21, 2015
- *      Author: md
- */
-
 #include <pylon_camera/pylon_interface.h>
+
+using namespace Pylon;
+using namespace std;
 
 namespace pylon_camera
 {

@@ -1,29 +1,16 @@
-/*
- * pylon_interface.h
- *
- *  Created on: May 21, 2015
- *      Author: md
- */
-
 #ifndef PYLON_INTERFACE_H_
 #define PYLON_INTERFACE_H_
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 #include <ros/ros.h>
-#include <time.h>
-#include <iostream>
+
 #include <pylon/PylonIncludes.h>
-#include <GenApi/IEnumEntry.h>
 #include <pylon/usb/BaslerUsbInstantCamera.h>
 #include <pylon/gige/BaslerGigEInstantCamera.h>
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/exposure_search_parameter.h>
-
-using std::cout;
-using std::cerr;
-using std::endl;
-using namespace Pylon;
+#include <GenApi/IEnumEntry.h>
 
 namespace pylon_camera
 {
@@ -71,7 +58,7 @@ protected:
 
     std::string pylonCamTypeToString(const PYLON_CAM_TYPE type);
     bool findDesiredCam(const PylonCameraParameter &params);
-    PYLON_CAM_TYPE detectPylonCamType(const CInstantCamera* cam);
+    PYLON_CAM_TYPE detectPylonCamType(const Pylon::CInstantCamera* cam);
 
     Basler_GigECameraParams::PixelFormatEnums gige_img_encoding_;
     Basler_GigECameraParams::PixelSizeEnums gige_img_pixel_depth_;
@@ -87,11 +74,11 @@ protected:
     PYLON_CAM_TYPE cam_type_;
 
     // This smart pointer will receive the grab result data.
-    CGrabResultPtr ptr_grab_result_;
+    Pylon::CGrabResultPtr ptr_grab_result_;
 
-    CBaslerGigEInstantCamera* gige_cam_;
-    CBaslerUsbInstantCamera* usb_cam_;
-    CBaslerUsbInstantCamera* dart_cam_;
+    Pylon::CBaslerGigEInstantCamera* gige_cam_;
+    Pylon::CBaslerUsbInstantCamera* usb_cam_;
+    Pylon::CBaslerUsbInstantCamera* dart_cam_;
 
     double last_exposure_val_;
     int last_brightness_val_;
@@ -103,6 +90,6 @@ private:
     virtual void setupExtendedBrightnessSearch(int &brightness);
 };
 
-} /* namespace pylon_camera */
+}
 
-#endif /* PYLON_INTERFACE_H_ */
+#endif

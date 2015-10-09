@@ -1,10 +1,3 @@
-/*
- * pylon_camera_parameter.cpp
- *
- *  Created on: May 21, 2015
- *      Author: md
- */
-
 #include <pylon_camera/pylon_camera_parameter.h>
 
 namespace pylon_camera
@@ -26,12 +19,10 @@ PylonCameraParameter::PylonCameraParameter() :
                     desired_seq_exp_times_(),
                     mtu_size_(3000)
 {
-    desired_seq_exp_times_.clear();
 }
 
 PylonCameraParameter::~PylonCameraParameter()
 {
-    // TODO Auto-generated destructor stub
 }
 
-} /* namespace pylon_camera */
+}

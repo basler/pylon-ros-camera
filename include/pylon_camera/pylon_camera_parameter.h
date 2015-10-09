@@ -1,22 +1,8 @@
-/*
- * pylon_camera_parameter.h
- *
- *  Created on: May 21, 2015
- *      Author: md
- */
-
 #ifndef PYLON_CAMERA_PARAMETER_H_
 #define PYLON_CAMERA_PARAMETER_H_
 
 #include <string>
-
-
-#ifdef WITH_OPENCV
-#include <opencv2/opencv.hpp>
-#else
 #include <vector>
-#endif
-
 
 namespace pylon_camera
 {
@@ -43,6 +29,6 @@ public:
     int mtu_size_;
 };
 
-} /* namespace pylon_camera */
+}
 
-#endif /* PYLON_CAMERA_PARAMETER_H_ */
+#endif

@@ -1,19 +1,8 @@
-/*
- * exposure_search_parameter.h
- *
- *  Created on: Jun 24, 2015
- *      Author: md
- */
-
 #ifndef EXPOSURE_SEARCH_PARAMETER_H_
 #define EXPOSURE_SEARCH_PARAMETER_H_
 
-#include <iostream>
-
-using std::cout;
-using std::endl;
-
-namespace pylon_camera {
+namespace pylon_camera
+{
 
 class ExposureSearchParameter
 {
@@ -43,6 +32,6 @@ public:
 
 };
 
-} /* namespace pylon_camera */
+}
 
-#endif /* EXPOSURE_SEARCH_PARAMETER_H_ */
+#endif

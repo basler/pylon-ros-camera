@@ -1,11 +1,6 @@
-/*
- * pylon_camera_node.cpp
- *
- *  Created on: Jun 10, 2015
- *      Author: md
- */
-
 #include <pylon_camera/pylon_camera_node.h>
+
+#include <numeric>
 
 namespace pylon_camera
 {
@@ -391,4 +386,4 @@ PylonCameraNode::~PylonCameraNode()
     it_ = NULL;
 }
 
-} /* namespace pylon_camera */
+}

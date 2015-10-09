@@ -1,23 +1,16 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(pylon_camera)
 
-SET(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS "-g -Wall -Wno-unknown-pragmas -Wno-delete-non-virtual-dtor -Wno-unused-variable")
-set(CATKIN_COMPONENTS roscpp image_transport pylon_camera_msgs)
+#set(CMAKE_CXX_FLAGS "-g -Wall -Wno-unknown-pragmas -Wno-delete-non-virtual-dtor -Wno-unused-variable")
+set(CATKIN_COMPONENTS roscpp image_transport pylon_camera_msgs sensor_msgs)
 
 option(WITH_OPENCV "Build Pylon Camera with Rectification, Extended Auto Brightness and Sequencer (needs OpenCV)" ON)
 
-find_package(OpenCV 3)
+find_package(OpenCV)
 if(NOT OpenCV_FOUND)
-	MESSAGE(STATUS "--- Could not find OpenCV 3.0! Searching for OpenCV 2")
-	find_package(OpenCV 2)
-	if(NOT OpenCV_FOUND)
-		set(WITH_OPENCV OFF)
-	else()
-		MESSAGE(STATUS "+++ Found OpenCV 2!")
-	endif()
+    set(WITH_OPENCV OFF)
 else()
-	MESSAGE(STATUS "+++ Found OpenCV 3.0!")
+    MESSAGE(STATUS "+++ Found OpenCV!")
 endif()
 
 if (WITH_OPENCV)
@@ -40,13 +33,12 @@ catkin_package(
 ## Build ##
 ###########
 
+MESSAGE(STATUS "$ENV{PYLON_ROOT}/include")
 ## Specify additional locations of header files
 include_directories(
   ${catkin_INCLUDE_DIRS}
   $ENV{PYLON_ROOT}/include
   $ENV{PYLON_ROOT}/genicam/library/CPP/include
-  
-  MESAGE(STATUS "$ENV{PYLON_ROOT}/include")
 )
 if (WITH_OPENCV)
 include_directories(
@@ -100,11 +92,6 @@ if (WITH_OPENCV)
         # it would even fail) all files, we want to use GLOB recurse and
         # exclude just the not used files.
         list(REMOVE_ITEM ${PROJECT_NAME}_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/write_magazino_id_to_camera.cpp")
-        if(${OpenCV_VERSION_MAJOR} LESS 3)
-        	# HDR only availbale for OpenCV 3.0
-        	MESSAGE(STATUS "OpenCV Major Version is ${OpenCV_VERSION_MAJOR}. Need Major Version > 3 for HDR support. Will not compile hdr_generator.cpp")
-        	list(REMOVE_ITEM ${PROJECT_NAME}_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/hdr_generator.cpp")
-        endif(${OpenCV_VERSION_MAJOR} LESS 3)
             
 	MESSAGE(STATUS "FILES " ${${PROJECT_NAME}_FILES})
 	add_executable(pylon_camera_node src/pylon_camera_node.cpp ${${PROJECT_NAME}_FILES})

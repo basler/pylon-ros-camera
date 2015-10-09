@@ -14,8 +14,10 @@
 
 // Include files to use the PYLON API.
 #include <pylon/PylonIncludes.h>
+
 #include <unistd.h>
 #include <algorithm>
+
 using namespace Pylon;
 using namespace GenApi;
 using namespace std;

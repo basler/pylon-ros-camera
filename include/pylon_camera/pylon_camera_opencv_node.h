@@ -1,10 +1,3 @@
-/*
- * pylon_camera_opencv_node.h
- *
- *  Created on: Jun 10, 2015
- *      Author: md
- */
-
 #ifndef PYLON_CAMERA_OPENCV_NODE_H_
 #define PYLON_CAMERA_OPENCV_NODE_H_
 
@@ -17,10 +10,7 @@
 #include <pylon_camera/image_rectifier.h>
 #include <pylon_camera/pylon_opencv_interface.h>
 #include <pylon_camera/intrinsic_calib_loader.h>
-
-#if CV_MAJOR_VERSION > 2   // If you are using OpenCV 3
-    #include <pylon_camera/hdr_generator.h>
-#endif
+#include <pylon_camera/hdr_generator.h>
 
 namespace pylon_camera
 {
@@ -64,12 +54,11 @@ private:
 
     std::vector<cv::Mat> image_sequence_;
 
-#if CV_MAJOR_VERSION > 2   // If you are using OpenCV 3
     HDRGenerator hdr_generator_;
-    Mat hdr_img_;
-#endif
+    cv::Mat hdr_img_;
 
 };
-} /* namespace pylon_camera */
-#endif /* PYLON_CAMERA_OPENCV_NODE_H_ */
 
+}
+
+#endif
