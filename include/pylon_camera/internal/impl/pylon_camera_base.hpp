@@ -191,26 +191,27 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
 {
     try
     {
-        double timeout = std::min(std::max(getFrameTimeout(), 200.0), 1000.0);
-        if (cam_->WaitForFrameTriggerReady((int)timeout, Pylon::TimeoutHandling_ThrowException))
-        {
+        //double timeout = std::min(std::max(getFrameTimeout(), 200.0), 1000.0);
+        double timeout = getFrameTimeout();
+        //if (cam_->WaitForFrameTriggerReady((int)timeout, Pylon::TimeoutHandling_ThrowException))
+        //{
             cam_->ExecuteSoftwareTrigger();
-        }
-        else
-        {
-            return false;
-        }
+        //}
+        //else
+        //{
+        //    return false;
+        //}
 
-        if (cam_->GetGrabResultWaitObject().Wait((int)timeout))
-        {
+        //if (cam_->GetGrabResultWaitObject().Wait((int)timeout))
+        //{
             cam_->RetrieveResult((int)timeout,
                                  grab_result,
                                  Pylon::TimeoutHandling_ThrowException);
-        }
-        else
-        {
-            return false;
-        }
+        //}
+        //else
+        //{
+        //    return false;
+        //}
     }
     catch (const GenICam::GenericException &e)
     {

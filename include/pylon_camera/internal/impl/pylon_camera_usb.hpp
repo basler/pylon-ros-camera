@@ -125,7 +125,8 @@ GenApi::IFloat& PylonUSBCamera::resultingFrameRate()
 template <>
 double PylonUSBCamera::getFrameTimeout()
 {
-    return 1.0 / cam_->ResultingFrameRate.GetValue() * 1000;
+    return cam_->ExposureTime.GetMax() * 1.05;
+    //return 1.0 / cam_->ResultingFrameRate.GetValue() * 1000;
 }
 
 template <>
