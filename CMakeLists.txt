@@ -7,7 +7,7 @@ set(CATKIN_COMPONENTS roscpp image_transport pylon_camera_msgs sensor_msgs)
 
 option(WITH_OPENCV "Build Pylon Camera with Rectification, Extended Auto Brightness and Sequencer (needs OpenCV)" ON)
 
-find_package(OpenCV)
+find_package(OpenCV QUIET)
 if(NOT OpenCV_FOUND)
     set(WITH_OPENCV OFF)
 else()
@@ -15,12 +15,12 @@ else()
 endif()
 
 if (WITH_OPENCV)
-	MESSAGE(STATUS "+++ Building with OpenCV support")
-	add_definitions(-DWITH_OPENCV)
+    MESSAGE(STATUS "+++ Building with OpenCV support")
+    add_definitions(-DWITH_OPENCV)
         list(APPEND CATKIN_COMPONENTS cv_bridge)
-	# OpenCV is not a catkin pkg
+    # OpenCV is not a catkin pkg
 else ()
-	MESSAGE(STATUS "--- Building WITHOUT OpenCV support")
+    MESSAGE(STATUS "--- Building WITHOUT OpenCV support")
 endif ()
 
 find_package(catkin REQUIRED COMPONENTS ${CATKIN_COMPONENTS})
@@ -34,7 +34,7 @@ catkin_package(
 ## Build ##
 ###########
 
-MESSAGE(STATUS "$ENV{PYLON_ROOT}/include")
+MESSAGE(STATUS "Using Pylon root $ENV{PYLON_ROOT}")
 ## Specify additional locations of header files
 include_directories(
   ${catkin_INCLUDE_DIRS}
@@ -42,10 +42,10 @@ include_directories(
   $ENV{PYLON_ROOT}/genicam/library/CPP/include
 )
 if (WITH_OPENCV)
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
-)
+    include_directories(
+        ${catkin_INCLUDE_DIRS}
+        ${OpenCV_INCLUDE_DIRS}
+    )
 endif (WITH_OPENCV)
 
 
@@ -56,29 +56,28 @@ endif (WITH_OPENCV)
 
 EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
 if(${ARCHITECTURE} MATCHES "arm")
-	MESSAGE(STATUS "+++ Found ARM Architecture: ${ARCHITECTURE}" )
-	link_directories(
-		$ENV{PYLON_ROOT}/lib
-		$ENV{PYLON_ROOT}/genicam/bin/Linux32_ARM
-		$ENV{PYLON_ROOT}/genicam/bin/Linux32_ARM/GenApi/Generic
-	)
+    MESSAGE(STATUS "+++ Found ARM Architecture: ${ARCHITECTURE}" )
+    link_directories(
+        $ENV{PYLON_ROOT}/lib
+        $ENV{PYLON_ROOT}/genicam/bin/Linux32_ARM
+        $ENV{PYLON_ROOT}/genicam/bin/Linux32_ARM/GenApi/Generic
+    )
 elseif(${ARCHITECTURE} STREQUAL "x86_64")
-    	MESSAGE(STATUS "+++ Found x86_64 Architecture")
-	link_directories(
-		$ENV{PYLON_ROOT}/lib64
-		$ENV{PYLON_ROOT}/genicam/bin/Linux64_x64
-		$ENV{PYLON_ROOT}/genicam/bin/Linux64_x64/GenApi/Generic
-	)
-
+    MESSAGE(STATUS "+++ Found x86_64 Architecture")
+    link_directories(
+        $ENV{PYLON_ROOT}/lib64
+        $ENV{PYLON_ROOT}/genicam/bin/Linux64_x64
+        $ENV{PYLON_ROOT}/genicam/bin/Linux64_x64/GenApi/Generic
+    )
 elseif(${ARCHITECTURE} STREQUAL "i686")
-        MESSAGE(STATUS "+++ Found i686 Architecture")
-        link_directories( 
-                $ENV{PYLON_ROOT}/lib
-                $ENV{PYLON_ROOT}/genicam/bin/Linux32_i86
-                $ENV{PYLON_ROOT}/genicam/bin/Linux32_i86/GenApi/Generic
-        )
+    MESSAGE(STATUS "+++ Found i686 Architecture")
+    link_directories(
+        $ENV{PYLON_ROOT}/lib
+        $ENV{PYLON_ROOT}/genicam/bin/Linux32_i86
+        $ENV{PYLON_ROOT}/genicam/bin/Linux32_i86/GenApi/Generic
+    )
 else()
-	MESSAGE(WARNING "+++ Unknown Architecture: ${ARCHITECTURE}!")
+    MESSAGE(WARNING "+++ Unknown Architecture: ${ARCHITECTURE}!")
 endif()
 
 ###################################
@@ -86,55 +85,53 @@ endif()
 ###################################
 
 if (WITH_OPENCV)
-	file(GLOB_RECURSE ${PROJECT_NAME}_FILES
-	    src/*.cpp
-	)
-        # We are too lazy to list all files, so even if we dont need (and
-        # it would even fail) all files, we want to use GLOB recurse and
-        # exclude just the not used files.
-        list(REMOVE_ITEM ${PROJECT_NAME}_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/write_magazino_id_to_camera.cpp")
-            
-	MESSAGE(STATUS "FILES " ${${PROJECT_NAME}_FILES})
-	add_executable(pylon_camera_node src/pylon_camera_node.cpp ${${PROJECT_NAME}_FILES})
+    file(GLOB_RECURSE ${PROJECT_NAME}_FILES
+        src/*.cpp
+    )
+    # We are too lazy to list all files, so even if we dont need (and
+    # it would even fail) all files, we want to use GLOB recurse and
+    # exclude just the not used files.
+    list(REMOVE_ITEM ${PROJECT_NAME}_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/write_magazino_id_to_camera.cpp")
+    add_executable(pylon_camera_node src/pylon_camera_node.cpp ${${PROJECT_NAME}_FILES})
 else (WITH_OPENCV)
-	add_executable(pylon_camera_node 
-		src/main.cpp
-    	src/pylon_camera.cpp
-		src/pylon_camera_node.cpp
-    	src/pylon_camera_parameter.cpp
-	)
+    add_executable(pylon_camera_node
+        src/main.cpp
+        src/pylon_camera.cpp
+        src/pylon_camera_node.cpp
+        src/pylon_camera_parameter.cpp
+    )
 endif (WITH_OPENCV)
 
 add_executable(write_magazino_id_to_camera src/write_magazino_id_to_camera.cpp)
 if(${ARCHITECTURE} MATCHES "arm")
-	target_link_libraries(write_magazino_id_to_camera 
-						  GenApi_gcc43_v2_3
-						  GCBase_gcc43_v2_3
-						  pylonbase
-						  pylongigesupp
-						  pylonbase
-						  Log_gcc43_v2_3
-						  MathParser_gcc43_v2_3
-						  Xerces-C_gcc43_v2_7_1
-						  log4cpp_gcc43_v2_3
-	)
+    target_link_libraries(write_magazino_id_to_camera
+                          GenApi_gcc43_v2_3
+                          GCBase_gcc43_v2_3
+                          pylonbase
+                          pylongigesupp
+                          pylonbase
+                          Log_gcc43_v2_3
+                          MathParser_gcc43_v2_3
+                          Xerces-C_gcc43_v2_7_1
+                          log4cpp_gcc43_v2_3
+    )
 elseif(${ARCHITECTURE} STREQUAL "x86_64")
-	target_link_libraries(write_magazino_id_to_camera 
-						  GenApi_gcc40_v2_3
-						  GCBase_gcc40_v2_3
-						  pylonbase
-						  pylongigesupp
-	)
+    target_link_libraries(write_magazino_id_to_camera
+                          GenApi_gcc40_v2_3
+                          GCBase_gcc40_v2_3
+                          pylonbase
+                          pylongigesupp
+    )
 elseif(${ARCHITECTURE} STREQUAL "i686")
-        target_link_libraries(write_magazino_id_to_camera 
-                                                  GenApi_gcc40_v2_3
-                                                  GCBase_gcc40_v2_3
-                                                  pylonbase
-                                                  pylongigesupp
-        )
+    target_link_libraries(write_magazino_id_to_camera
+                                                GenApi_gcc40_v2_3
+                                                GCBase_gcc40_v2_3
+                                                pylonbase
+                                                pylongigesupp
+    )
 
 else()
-	MESSAGE(WARNING "+++ Unknown Architecture: ${ARCHITECTURE}!")
+    MESSAGE(WARNING "+++ Unknown Architecture: ${ARCHITECTURE}!")
 endif()
 
 ## Add cmake target dependencies of the executable/library
@@ -145,41 +142,39 @@ add_dependencies(pylon_camera_node ${catkin_EXPORTED_TARGETS} ${pylon_camera_msg
 
 ## Specify libraries to link a library or executable target against
 if(${ARCHITECTURE} MATCHES "arm")
-	target_link_libraries(pylon_camera_node 
-						  ${catkin_LIBRARIES}
-						  GenApi_gcc43_v2_3
-						  GCBase_gcc43_v2_3
-						  pylonbase
-						  pylongigesupp
-	)
+    target_link_libraries(pylon_camera_node 
+                          ${catkin_LIBRARIES}
+                          GenApi_gcc43_v2_3
+                          GCBase_gcc43_v2_3
+                          pylonbase
+                          pylongigesupp
+    )
 elseif(${ARCHITECTURE} STREQUAL "x86_64")
-	target_link_libraries(pylon_camera_node 
-						  ${catkin_LIBRARIES}
-						  GenApi_gcc40_v2_3
-						  GCBase_gcc40_v2_3
-						  pylonbase
-					  	  pylongigesupp
-	)
+    target_link_libraries(pylon_camera_node 
+                          ${catkin_LIBRARIES}
+                          GenApi_gcc40_v2_3
+                          GCBase_gcc40_v2_3
+                          pylonbase
+                          pylongigesupp
+    )
 elseif(${ARCHITECTURE} STREQUAL "i686")
         target_link_libraries(pylon_camera_node 
-                                                  ${catkin_LIBRARIES}
-                                                  GenApi_gcc40_v2_3
-                                                  GCBase_gcc40_v2_3
-                                                  pylonbase
-                                                  pylongigesupp
+                              ${catkin_LIBRARIES}
+                              GenApi_gcc40_v2_3
+                              GCBase_gcc40_v2_3
+                              pylonbase
+                              pylongigesupp
         )
-
-
 else()
-	MESSAGE(WARNING "+++ Unknown Architecture: ${ARCHITECTURE}!")
+    MESSAGE(WARNING "+++ Unknown Architecture: ${ARCHITECTURE}!")
 endif()
 
 
 if(WITH_OPENCV)
-	target_link_libraries(pylon_camera_node 
-						  ${OpenCV_LIBS}
-	)
-endif(WITH_OPENCV)	
+    target_link_libraries(pylon_camera_node
+                          ${OpenCV_LIBS}
+    )
+endif(WITH_OPENCV)
 
 catkin_python_setup()
 
@@ -187,12 +182,13 @@ catkin_python_setup()
 install(TARGETS pylon_camera_node write_magazino_id_to_camera RUNTIME DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 install(DIRECTORY calib/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/calib)
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/calib)
 FILE(GLOB py_files "scripts/*.py")
 install(PROGRAMS ${py_files}
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} )
+
 #############
 ## Testing ##
 #############
@@ -255,48 +251,48 @@ set_tests_properties(${PROJECT_NAME}_smoke_test        PROPERTIES TIMEOUT 10)
 #)
 #MESSAGE(STATUS "WITHCV_HEADERS " ${${PROJECT_NAME}_WITHCV_HEADERS})
 #if (WITH_OPENCV)
-#	file(GLOB_RECURSE ${PROJECT_NAME}_FILES
-#		${${PROJECT_NAME}_COMMON_SRCS}
-#		${${PROJECT_NAME}_WITHCV_SRCS}
-#		# add headers so that QT shows them in project view:
-#		${${PROJECT_NAME}_COMMON_HEADERS} 
-#		${${PROJECT_NAME}_WITHCV_HEADERS}
-#	)
+#   file(GLOB_RECURSE ${PROJECT_NAME}_FILES
+#       ${${PROJECT_NAME}_COMMON_SRCS}
+#       ${${PROJECT_NAME}_WITHCV_SRCS}
+#       # add headers so that QT shows them in project view:
+#       ${${PROJECT_NAME}_COMMON_HEADERS} 
+#       ${${PROJECT_NAME}_WITHCV_HEADERS}
+#   )
 #elseif (WITH_OPENCV)
-#	file(GLOB_RECURSE ${PROJECT_NAME}_FILES
-#		${${PROJECT_NAME}_COMMON_SRCS}
-#		# add headers so that QT shows them in project view:
-#		${${PROJECT_NAME}_COMMON_HEADERS} 
-#	)
+#   file(GLOB_RECURSE ${PROJECT_NAME}_FILES
+#       ${${PROJECT_NAME}_COMMON_SRCS}
+#       # add headers so that QT shows them in project view:
+#       ${${PROJECT_NAME}_COMMON_HEADERS} 
+#   )
 #endif (WITH_OPENCV) 
 
 #MESSAGE(STATUS "FILES ${PROJECT_NAME}_FILES")
 
 #+++++++++++++++++++++++++++++++++++
 #if (PYLON_CAMERA_WITH_RECTIFICATION)
-#	MESSAGE(STATUS "+++ With RECTIFICATION")
+#   MESSAGE(STATUS "+++ With RECTIFICATION")
 #else (PYLON_CAMERA_WITH_RECTIFICATION)
-#	MESSAGE(STATUS "--- WITHOUT RECTIFICATION")
+#   MESSAGE(STATUS "--- WITHOUT RECTIFICATION")
 #endif (PYLON_CAMERA_WITH_RECTIFICATION)
 #
 #if (PYLON_CAMERA_WITH_SEQUENCER)
-#	MESSAGE(STATUS "+++ With SEQUENCER")
+#   MESSAGE(STATUS "+++ With SEQUENCER")
 #else (PYLON_CAMERA_WITH_SEQUENCER)
-#	MESSAGE(STATUS "--- WITHOUT SEQUENCER")	
+#   MESSAGE(STATUS "--- WITHOUT SEQUENCER") 
 #endif (PYLON_CAMERA_WITH_SEQUENCER)
 #
 #if (PYLON_CAMERA_WITH_RECTIFICATION OR PYLON_CAMERA_WITH_SEQUENCER)
-#	MESSAGE(STATUS "+++ Building with OpenCV support")
-#	option(WITH_OPENCV "Using OpenCV" ON)
-#	add_definitions(-DWITH_OPENCV)
-#	# OpenCV is not a catkin pkg
-#	find_package(OpenCV REQUIRED)
-#	if(OpenCV_VERSION VERSION_LESS "3.0")
-#		MESSAGE(STATUS "+++ OpenCV Version less then 3.0")
-#	else()
-#		MESSAGE(STATUS "+++ OpenCV Version greater 3.0")
-#	endif()
+#   MESSAGE(STATUS "+++ Building with OpenCV support")
+#   option(WITH_OPENCV "Using OpenCV" ON)
+#   add_definitions(-DWITH_OPENCV)
+#   # OpenCV is not a catkin pkg
+#   find_package(OpenCV REQUIRED)
+#   if(OpenCV_VERSION VERSION_LESS "3.0")
+#       MESSAGE(STATUS "+++ OpenCV Version less then 3.0")
+#   else()
+#       MESSAGE(STATUS "+++ OpenCV Version greater 3.0")
+#   endif()
 #else (PYLON_CAMERA_WITH_RECTIFICATION OR PYLON_CAMERA_WITH_SEQUENCER)
-#	MESSAGE(STATUS "--- -> Building WITHOUT OpenCV support")
-#	option(WITH_OPENCV "Using OpenCV" OFF)
+#   MESSAGE(STATUS "--- -> Building WITHOUT OpenCV support")
+#   option(WITH_OPENCV "Using OpenCV" OFF)
 #endif (PYLON_CAMERA_WITH_RECTIFICATION OR PYLON_CAMERA_WITH_SEQUENCER)
