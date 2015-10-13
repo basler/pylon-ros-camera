@@ -6,21 +6,18 @@
        value="gdb -ex run --args" />
  
  <node pkg="pylon_camera" name="sol_camera" type="pylon_camera_node" output="screen" launch-prefix="$(arg launch_prefix)">
- 
   <param name="camera_frame" value="/sol_camera" type="string" /> <!-- frame to which the camera is attached -->
-  <param name="start_exposure" value="5000" type="int" />
+  <param name="start_exposure" value="2000" type="int" />
   <param name="use_sequencer" value="true" type="bool" />
   <param name="output_hdr_img" value="true" type="bool" />
-  <param name="desired_framerate" value="20.0" type="double" />
+  <param name="desired_framerate" value="15.0" type="double" />
   <rosparam param="desired_seq_exp_times"> [1000, 5000, 25000] </rosparam>
   <param name="use_brightness" value="true" type="bool" />
-  <param name="magazino_cam_id"  value="SOL_0001_SO"  type="string" />
-  <param name="intrinsic_yaml_string" command="cat $(find pylon_camera)/calib/SOL_0001_SO.yml"/>
+  <param name="magazino_cam_id"  value="TORU_0002_SOL"  type="string" />
+  <param name="intrinsic_yaml_string" command="cat $(find pylon_camera)/calib/TORU_0002_SOL.yml"/>
  </node>
- <!--
  <node name="image_view" pkg="image_view" type="image_view" respawn="false" output="screen">
   <remap from="image" to="/sol_camera/image_hdr"/>
  </node>
- -->
 </launch>
 
