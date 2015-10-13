@@ -77,9 +77,9 @@ public:
             }
 
             pyrUp(weights, weights_[i], images_[i].size());
-            //weight_sum_mutex_.lock();
+            weight_sum_mutex_.lock();
             weight_sum_ += weights_[i];
-            //weight_sum_mutex_.unlock();
+            weight_sum_mutex_.unlock();
         }
     }
 };
@@ -133,14 +133,12 @@ public:
                 if(res_pyr_[lvl].empty())
                 {
                     res_pyr_[lvl] = up.mul(weight_pyr[lvl]);
-                    mutexes_[lvl].unlock();
                 }
                 else
                 {
-                    // we can unlock here as matrix operations are thread safe
-                    mutexes_[lvl].unlock();
                     accumulateProduct(up, weight_pyr[lvl], res_pyr_[lvl]);
                 }
+                mutexes_[lvl].unlock();
             }
 
             // Uppest level is without substraction of upscaled image.
@@ -148,14 +146,12 @@ public:
             if(res_pyr_[maxlevel].empty())
             {
                 res_pyr_[maxlevel] = img_pyr[maxlevel].mul(weight_pyr[maxlevel]);
-                mutexes_[maxlevel].unlock();
             }
             else
             {
-                // we can unlock here as matrix operations are thread safe
-                mutexes_[maxlevel].unlock();
                 accumulateProduct(img_pyr[maxlevel], weight_pyr[maxlevel], res_pyr_[maxlevel]);
             }
+            mutexes_[maxlevel].unlock();
         }
     }
 };
@@ -193,7 +189,6 @@ void MergeMertensC1::process(InputArrayOfArrays src, OutputArray dst)
     Mutex weight_sum_mutex;
 
     parallel_for_(Range(0, images.size()), Parallel_computeWeights(images, float_images, weights, weight_sum, weight_sum_mutex, wcon_, wexp_));
-
 
     parallel_for_(Range(0, images.size()), Parallel_computeImagePyramid(float_images, weights, weight_sum, res_pyr, mutexes));
 
