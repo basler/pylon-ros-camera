@@ -31,7 +31,7 @@ void PylonCameraOpenCVNode::getInitialCameraParameter()
         image_sequence_.resize(params_.desired_seq_exp_times_.size());
         //assert(params_.desired_seq_exp_times_.size() == 3);
 
-       nh_.param<bool>("output_hdr_img", params_.output_hdr_, false);
+        nh_.param<bool>("output_hdr_img", params_.output_hdr_, false);
     }
 
     nh_.param<std::string>("intrinsic_yaml_string",
@@ -226,6 +226,8 @@ bool PylonCameraOpenCVNode::grabImage()
 bool PylonCameraOpenCVNode::grabSequence()
 {
     image_sequence_.resize(params_.desired_seq_exp_times_.size());
+    bool success = true;
+    std::size_t mid = params_.desired_seq_exp_times_.size() / 2;
     for (std::size_t i = 0; i < params_.desired_seq_exp_times_.size(); ++i)
     {
         if (!(pylon_camera_->grab(image_sequence_[i])))
@@ -239,9 +241,9 @@ bool PylonCameraOpenCVNode::grabSequence()
             {
                 ROS_ERROR("Pylon Interface returned NULL-Pointer!");
             }
-            return false;
+            success = false;
         }
-        if (i == 1)
+        if (i == mid && success)
         {
             if (getNumSubscribersRaw())
             {
@@ -257,6 +259,8 @@ bool PylonCameraOpenCVNode::grabSequence()
             }
         }
     }
+    if (!success)
+        return false;
 
     img_raw_msg_.header.stamp = ros::Time::now();
     cam_info_msg_.header.stamp = img_raw_msg_.header.stamp;

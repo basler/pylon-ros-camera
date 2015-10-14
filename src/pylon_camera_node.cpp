@@ -34,7 +34,8 @@ void PylonCameraNode::getInitialCameraParameter()
     if (params_.magazino_cam_id_ != "x")
     {
         ROS_INFO("Using Camera: %s", params_.magazino_cam_id_.c_str());
-    } else
+    }
+    else
     {
         ROS_INFO("No Magazino Cam ID set -> Will use the camera device found fist");
     }

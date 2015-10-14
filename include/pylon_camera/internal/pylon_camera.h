@@ -11,7 +11,7 @@
 #include <pylon_camera/pylon_camera.h>
 
 #ifdef WITH_OPENCV
-#include <opencv2/core.hpp>
+#include <opencv2/opencv.hpp>
 #endif
 
 namespace pylon_camera
