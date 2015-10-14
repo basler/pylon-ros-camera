@@ -1,7 +1,7 @@
 #ifndef PYLON_CAMERA_MERGE_MERTENS_H_
 #define PYLON_CAMERA_MERGE_MERTENS_H_
 
-#include <opencv2/core.hpp>
+#include <opencv2/opencv.hpp>
 
 namespace pylon_camera
 {

@@ -1,7 +1,7 @@
 #ifndef HDRGENERATOR_H_
 #define HDRGENERATOR_H_
 
-#include <opencv2/core.hpp>
+#include <opencv2/opencv.hpp>
 
 namespace pylon_camera
 {

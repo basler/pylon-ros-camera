@@ -185,7 +185,7 @@ install(DIRECTORY launch/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 install(DIRECTORY calib/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/calib)
-FILE(GLOB py_files "scripts/*.py")
+FILE(GLOB py_files "scripts/*")
 install(PROGRAMS ${py_files}
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} )
 

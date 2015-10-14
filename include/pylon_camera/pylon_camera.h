@@ -5,7 +5,7 @@
 #include <pylon_camera/exposure_search_parameter.h>
 
 #ifdef WITH_OPENCV
-#include <opencv2/core.hpp>
+#include <opencv2/opencv.hpp>
 #endif
 
 namespace pylon_camera

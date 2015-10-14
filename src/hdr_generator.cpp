@@ -1,4 +1,5 @@
-#include <opencv2/imgproc.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include <pylon_camera/hdr_generator.h>
 #include <pylon_camera/merge_mertens.h>
@@ -71,6 +72,12 @@ bool HDRGenerator::merge(const std::vector<cv::Mat>& img_sequence, const std::ve
 
     cv::minMaxLoc(fusion_, &min, &max, &min_loc, &max_loc);
     fusion_.convertTo(hdr_img, CV_8U, 255.0 / (max-min), -255.0 * min);
+    for (std::size_t i = 0; i < img_sequence.size(); ++i)
+    {
+        std::stringstream ss;
+        ss << "/tmp/exposure-" << i << ".jpg";
+        cv::imwrite(ss.str(), img_sequence[i]);
+    }
     return true;
 }
 

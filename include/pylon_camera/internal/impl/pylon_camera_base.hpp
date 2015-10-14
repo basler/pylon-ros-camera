@@ -1,6 +1,8 @@
 #ifndef PYLON_CAMERA_INTERNAL_BASE_HPP_
 #define PYLON_CAMERA_INTERNAL_BASE_HPP_
 
+#include <cmath>
+
 #include <pylon_camera/internal/pylon_camera.h>
 
 namespace pylon_camera
@@ -162,6 +164,9 @@ bool PylonCameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image)
 
     const uint8_t *pImageBuffer = (uint8_t *)ptr_grab_result->GetBuffer();
     image = std::vector<uint8_t>(pImageBuffer, pImageBuffer + img_size_byte_);
+
+    if (!is_ready_)
+        is_ready_ = true;
 
     return true;
 }
