@@ -52,6 +52,8 @@ public:
 
     virtual std::string typeName() const = 0;
 
+    virtual float exposureStep() = 0;
+
     const int& imageRows() const;
     const int& imageCols() const;
     const bool& isReady() const;

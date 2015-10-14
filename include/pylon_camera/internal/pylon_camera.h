@@ -56,6 +56,8 @@ public:
 
     virtual std::string typeName() const;
 
+    virtual float exposureStep();
+
 protected:
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
     typedef typename CameraTraitT::ExposureAutoEnums ExposureAutoEnums;

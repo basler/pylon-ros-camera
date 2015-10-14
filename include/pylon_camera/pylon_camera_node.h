@@ -2,6 +2,7 @@
 #define PYLON_CAMERA_NODE_H_
 
 #include <ros/ros.h>
+#include <boost/thread.hpp>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
 #include <image_transport/image_transport.h>
@@ -64,6 +65,7 @@ protected:
     ros::NodeHandle nh_;
     image_transport::ImageTransport* it_;
     bool is_sleeping_;
+    boost::recursive_mutex grab_mutex_;
 
 };
 

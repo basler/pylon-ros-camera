@@ -199,6 +199,7 @@ bool PylonCameraOpenCVNode::grabImage()
 
     //memcpy(img_raw_.ptr(), img_raw_msg_.data.data(), pylon_camera_->image_size());
 
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     img_raw_ = cv::Mat(pylon_camera_->imageRows(), pylon_camera_->imageCols(), CV_8UC1, img_raw_msg_.data.data());
 
     if (pylon_camera_->isOwnBrightnessFunctionRunning())
@@ -225,6 +226,7 @@ bool PylonCameraOpenCVNode::grabImage()
 }
 bool PylonCameraOpenCVNode::grabSequence()
 {
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     image_sequence_.resize(params_.desired_seq_exp_times_.size());
     bool success = true;
     std::size_t mid = params_.desired_seq_exp_times_.size() / 2;

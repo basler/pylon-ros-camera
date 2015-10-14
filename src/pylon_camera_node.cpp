@@ -1,4 +1,5 @@
 #include <pylon_camera/pylon_camera_node.h>
+#include <cmath>
 
 namespace pylon_camera
 {
@@ -176,6 +177,7 @@ bool PylonCameraNode::startGrabbing()
 
 bool PylonCameraNode::grabImage()
 {
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     if (!pylon_camera_->grab(img_raw_msg_.data))
     {
         if (pylon_camera_->isCamRemoved())
@@ -197,14 +199,15 @@ bool PylonCameraNode::grabImage()
 bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Request &req,
     pylon_camera_msgs::SetExposureSrv::Response &res)
 {
-    float current_exposure = getCurrenCurrentExposure();
-//    ROS_INFO("New exposure request for exposure %.f, current exposure = %.f", req.target_exposure, current_exposure);
-
     if (!pylon_camera_->isReady())
     {
         res.success = false;
         return true;
     }
+
+    float current_exposure = getCurrenCurrentExposure();
+//    ROS_INFO("New exposure request for exposure %.f, current exposure = %.f", req.target_exposure, current_exposure);
+
     if (current_exposure != req.target_exposure)
     {
         pylon_camera_->setExposure(req.target_exposure);
@@ -229,7 +232,7 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
 
     current_exposure = getCurrenCurrentExposure();
 
-    if (current_exposure == req.target_exposure)
+    if (fabs(current_exposure - req.target_exposure) < pylon_camera_->exposureStep())
     {
         res.success = true;
     } else
@@ -275,7 +278,8 @@ bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv:
     if (current_brightness != target_brightness_)
     {
         pylon_camera_->setBrightness(target_brightness_);
-    } else
+    }
+    else
     {
         res.success = true;
         return true;
@@ -324,6 +328,7 @@ bool PylonCameraNode::brightnessValidation(int target)
 
 int PylonCameraNode::calcCurrentBrightness()
 {
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     int sum = std::accumulate(img_raw_msg_.data.begin(), img_raw_msg_.data.end(), 0);
     assert(img_raw_msg_.data.size() > 0);
     float mean = sum / img_raw_msg_.data.size();

@@ -32,7 +32,7 @@ float PylonCameraImpl<CameraTraitT>::currentExposure()
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::isAutoBrightnessFunctionRunning()
 {
-    return !(cam_->ExposureAuto.GetValue() == ExposureAutoEnums::ExposureAuto_Off);
+    return (cam_->ExposureAuto.GetValue() != ExposureAutoEnums::ExposureAuto_Off);
 }
 
 template <typename CameraTraitT>
@@ -371,7 +371,6 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(int& brightness)
         exp_search_params_.is_initialized_ = false;
         brightness = exp_search_params_.current_brightness_;
         std::cout << "Own Auto Function: Success! Reached: " << brightness << std::endl;
-        is_own_brightness_function_running_ = true;
         return true;
     }
     if (exp_search_params_.last_unchanged_exposure_counter_ > 2)
@@ -381,7 +380,6 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(int& brightness)
         exp_search_params_.last_unchanged_exposure_counter_ = 0;
         brightness = exp_search_params_.current_brightness_;
         std::cout << "Own Auto Function: Fail! Last brightness = " << brightness << std::endl;
-        is_own_brightness_function_running_ = false;
         return false;
     }
 
@@ -415,7 +413,6 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(int& brightness)
         exp_search_params_.is_initialized_ = false;
         std::cout << "WILL USE SMALLES EXP POSSIBLE!!!" << std::endl;
         brightness = exp_search_params_.current_brightness_;
-        is_own_brightness_function_running_ = true;
         return true;
     }
 
@@ -520,6 +517,13 @@ int PylonCameraImpl<CameraTraitT>::imagePixelDepth() const
             std::cerr << "Image Pixel Depth not yet implemented!" << std::endl;
             return -1;
     }
+}
+
+
+template <typename CameraTraitT>
+float PylonCameraImpl<CameraTraitT>::exposureStep()
+{
+    return (float) exposureTime().GetMin();
 }
 
 }
