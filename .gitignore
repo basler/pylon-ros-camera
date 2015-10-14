@@ -12,3 +12,4 @@ build
 *.autosave
 CATKIN_IGNORE
 *.orig
+*~
