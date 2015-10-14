@@ -23,11 +23,11 @@ public:
     bool init();
     void getInitialCameraParameter();
     void setupCameraInfoMsg();
-    uint32_t getNumSubscribers() const;
-    uint32_t getNumSubscribersRaw() const;
-    uint32_t getNumSubscribersRect() const;
-    uint32_t getNumSubscribersSeq() const;
-    uint32_t getNumSubscribersHdr() const;
+    std::uint32_t getNumSubscribers() const;
+    std::uint32_t getNumSubscribersRaw() const;
+    std::uint32_t getNumSubscribersRect() const;
+    std::uint32_t getNumSubscribersSeq() const;
+    std::uint32_t getNumSubscribersHdr() const;
     bool grabImage();
     bool grabSequence();
 
