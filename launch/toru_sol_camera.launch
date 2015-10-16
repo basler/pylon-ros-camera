@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <launch>
- <node pkg="pylon_camera" name="sol_camera" type="pylon_camera_node" output="screen" respawn="true" respawn_delay="30" >
+  <arg name="camera_name" value="TORU_0002_SOL" /> 
+
+ <node pkg="pylon_camera" name="sol_camera" type="pylon_camera_node" output="screen" respawn="true" respawn_delay="30">
+
   <param name="camera_frame" value="/sol_camera" type="string" /> <!-- frame to which the camera is attached -->
   <param name="start_exposure" value="20000" type="int" />
   <param name="use_sequencer" value="true" type="bool" />
@@ -9,15 +12,11 @@
   <param name="desired_framerate" value="10.0" type="double" />
   <param name="use_brightness" value="true" type="bool" />
 
-  <!--param name="intrinsic_yaml_string" command="cat $(find pylon_camera)/calib/TORU_0001_SOL_intrinsic_calib.yml"/-->
+  <param name="intrinsic_yaml_string" command="rosrun pylon_camera load_calib $(arg camera_name)"/>
+  <param name="magazino_cam_id"  value="$(arg camera_name)"  type="string" />
 
-  <param name="intrinsic_yaml_string" command="rosrun pylon_camera load_calib TORU_0002_SOL" />
-
-<!--param name="intrinsic_yaml_string" command="python -c 'import django;  from toru_db_definition.models import IntrinsicCalibration; print IntrinsicCalibration.objects.get(CamID=1).data'" /-->
-
-
-  <param name="magazino_cam_id"  value="TORU_0002_SOL"  type="string" />
   </node>
+  
   <node pkg="topic_tools" type="throttle" name="throttle_hdr" args="messages /sol_camera/image_hdr 0.3 /sol_camera/image_hdr_throttled" />
   <node pkg="topic_tools" type="throttle" name="throttle_rect" args="messages /sol_camera/image_rect 0.3 /sol_camera/image_rect_throttled" />
 </launch>
