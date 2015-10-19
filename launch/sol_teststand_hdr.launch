@@ -13,8 +13,8 @@
   <param name="desired_framerate" value="15.0" type="double" />
   <rosparam param="desired_seq_exp_times"> [500, 5000, 25000] </rosparam>
   <param name="use_brightness" value="true" type="bool" />
-  <param name="magazino_cam_id"  value="TORU_0004_SOL"  type="string" />
-  <param name="intrinsic_yaml_string" command="cat $(find pylon_camera)/calib/TORU_0004_SOL.yml"/>
+  <param name="magazino_cam_id"  value="TORU_0002_SOL"  type="string" />
+  <param name="intrinsic_yaml_string" command="cat $(find pylon_camera)/calib/TORU_0002_SOL.yml"/>
  </node>
  <node name="hdr_image_view" pkg="image_view" type="image_view" respawn="false" output="screen">
   <remap from="image" to="/sol_camera/image_hdr"/>
