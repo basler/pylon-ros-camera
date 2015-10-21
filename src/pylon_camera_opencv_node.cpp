@@ -241,7 +241,7 @@ bool PylonCameraOpenCVNode::grabSequence()
             }
             else
             {
-                ROS_ERROR("Pylon Interface returned NULL-Pointer!");
+                ROS_INFO("Pylon Interface returned NULL-Pointer!");
             }
             success = false;
         }

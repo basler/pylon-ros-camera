@@ -4,7 +4,7 @@
   <param name="camera_frame" value="test_cam" type="string" /> <!-- frame to which the camera is attached -->
   <param name="start_exposure" value="2000" type="int" />
   <param name="use_sequencer" value="false" type="bool" />
-  <param name="desired_framerate" value="100.0" type="double" />
+  <param name="desired_framerate" value="13.0" type="double" />
   <param name="use_brightness" value="true" type="bool" />
   <param name="magazino_cam_id"  value="TORU_0001_SPECTRE"  type="string" />
   <param name="intrinsic_yaml_string" command="cat $(find pylon_camera)/calib/toru_spectral_dart.yaml"/>
