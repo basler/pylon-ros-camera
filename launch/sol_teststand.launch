@@ -2,7 +2,7 @@
 <launch>
  <node pkg="pylon_camera" name="sol_camera" type="pylon_camera_node" output="screen">
   <param name="camera_frame" value="/sol_camera" type="string" /> <!-- frame to which the camera is attached -->
-  <param name="start_exposure" value="2000" type="int" />
+  <param name="start_exposure" value="10000" type="int" />
   <param name="use_sequencer" value="false" type="bool" />
   <param name="desired_framerate" value="10.0" type="double" />
   <param name="use_brightness" value="true" type="bool" />
