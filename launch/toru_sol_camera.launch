@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="camera_name" value="TORU_0002_SOL" /> 
+  <arg name="camera_name" value="TORU_0003_SOL" /> 
 
  <node pkg="pylon_camera" name="sol_camera" type="pylon_camera_node" output="screen" respawn="true" respawn_delay="30">
 
@@ -8,8 +8,8 @@
   <param name="start_exposure" value="20000" type="int" />
   <param name="use_sequencer" value="true" type="bool" />
   <param name="output_hdr_img" value="true" type="bool" />
-  <rosparam param="desired_seq_exp_times"> [1000, 3000, 10000, 20000] </rosparam>
-  <param name="desired_framerate" value="10.0" type="double" />
+  <rosparam param="desired_seq_exp_times"> [200, 7000, 75000] </rosparam>
+  <param name="desired_framerate" value="5.0" type="double" />
   <param name="use_brightness" value="true" type="bool" />
 
   <param name="intrinsic_yaml_string" command="rosrun pylon_camera load_calib $(arg camera_name)"/>
