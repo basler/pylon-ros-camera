@@ -5,6 +5,12 @@ add_definitions("-std=gnu++11")
 #set(CMAKE_CXX_FLAGS "-g -Wall -Wno-unknown-pragmas -Wno-delete-non-virtual-dtor -Wno-unused-variable")
 set(CATKIN_COMPONENTS roscpp image_transport pylon_camera_msgs sensor_msgs)
 
+find_package(PkgConfig)
+pkg_check_modules(PYLON4 pylon4)
+if(NOT PYLON4_FOUND)
+    message(FATAL_ERROR "Could not find Pylon4 pkg-config files. Maybe you are not using the most recent version of Pylon4 from rosdep. Please run 'rosdep update' and 'rosdep install --from-path pylon_camera --ignore-src --rosdistro=indigo -y' inside your catkin_ws and try again.")
+endif()
+
 option(WITH_OPENCV "Build Pylon Camera with Rectification, Extended Auto Brightness and Sequencer (needs OpenCV)" ON)
 
 find_package(OpenCV QUIET)
@@ -27,6 +33,8 @@ find_package(catkin REQUIRED COMPONENTS ${CATKIN_COMPONENTS})
 
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
+link_directories(${PYLON4_LIBRARY_DIRS})
+
 catkin_package(
 )
 
@@ -34,13 +42,12 @@ catkin_package(
 ## Build ##
 ###########
 
-MESSAGE(STATUS "Using Pylon root $ENV{PYLON_ROOT}")
 ## Specify additional locations of header files
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  $ENV{PYLON_ROOT}/include
-  $ENV{PYLON_ROOT}/genicam/library/CPP/include
+  ${PYLON4_INCLUDE_DIRS}
 )
+
 if (WITH_OPENCV)
     include_directories(
         ${catkin_INCLUDE_DIRS}
@@ -54,31 +61,31 @@ endif (WITH_OPENCV)
 ####### Architecture Check ########
 ###################################
 
-EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
-if(${ARCHITECTURE} MATCHES "arm")
-    MESSAGE(STATUS "+++ Found ARM Architecture: ${ARCHITECTURE}" )
-    link_directories(
-        $ENV{PYLON_ROOT}/lib
-        $ENV{PYLON_ROOT}/genicam/bin/Linux32_ARM
-        $ENV{PYLON_ROOT}/genicam/bin/Linux32_ARM/GenApi/Generic
-    )
-elseif(${ARCHITECTURE} STREQUAL "x86_64")
-    MESSAGE(STATUS "+++ Found x86_64 Architecture")
-    link_directories(
-        $ENV{PYLON_ROOT}/lib64
-        $ENV{PYLON_ROOT}/genicam/bin/Linux64_x64
-        $ENV{PYLON_ROOT}/genicam/bin/Linux64_x64/GenApi/Generic
-    )
-elseif(${ARCHITECTURE} STREQUAL "i686")
-    MESSAGE(STATUS "+++ Found i686 Architecture")
-    link_directories(
-        $ENV{PYLON_ROOT}/lib
-        $ENV{PYLON_ROOT}/genicam/bin/Linux32_i86
-        $ENV{PYLON_ROOT}/genicam/bin/Linux32_i86/GenApi/Generic
-    )
-else()
-    MESSAGE(WARNING "+++ Unknown Architecture: ${ARCHITECTURE}!")
-endif()
+#EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
+#if(${ARCHITECTURE} MATCHES "arm")
+#    MESSAGE(STATUS "+++ Found ARM Architecture: ${ARCHITECTURE}" )
+#    link_directories(
+#        $ENV{PYLON_ROOT}/lib
+#        $ENV{PYLON_ROOT}/genicam/bin/Linux32_ARM
+#        $ENV{PYLON_ROOT}/genicam/bin/Linux32_ARM/GenApi/Generic
+#    )
+#elseif(${ARCHITECTURE} STREQUAL "x86_64")
+#    MESSAGE(STATUS "+++ Found x86_64 Architecture")
+#    link_directories(
+#        $ENV{PYLON_ROOT}/lib64
+#        $ENV{PYLON_ROOT}/genicam/bin/Linux64_x64
+#        $ENV{PYLON_ROOT}/genicam/bin/Linux64_x64/GenApi/Generic
+#    )
+#elseif(${ARCHITECTURE} STREQUAL "i686")
+#    MESSAGE(STATUS "+++ Found i686 Architecture")
+#    link_directories(
+#        $ENV{PYLON_ROOT}/lib
+#        $ENV{PYLON_ROOT}/genicam/bin/Linux32_i86
+#        $ENV{PYLON_ROOT}/genicam/bin/Linux32_i86/GenApi/Generic
+#    )
+#else()
+#    MESSAGE(WARNING "+++ Unknown Architecture: ${ARCHITECTURE}!")
+#endif()
 
 ###################################
 #### Declare a cpp executable #####
@@ -103,71 +110,76 @@ else (WITH_OPENCV)
 endif (WITH_OPENCV)
 
 add_executable(write_magazino_id_to_camera src/write_magazino_id_to_camera.cpp)
-if(${ARCHITECTURE} MATCHES "arm")
-    target_link_libraries(write_magazino_id_to_camera
-                          GenApi_gcc43_v2_3
-                          GCBase_gcc43_v2_3
-                          pylonbase
-                          pylongigesupp
-                          pylonbase
-                          Log_gcc43_v2_3
-                          MathParser_gcc43_v2_3
-                          Xerces-C_gcc43_v2_7_1
-                          log4cpp_gcc43_v2_3
-    )
-elseif(${ARCHITECTURE} STREQUAL "x86_64")
-    target_link_libraries(write_magazino_id_to_camera
-                          GenApi_gcc40_v2_3
-                          GCBase_gcc40_v2_3
-                          pylonbase
-                          pylongigesupp
-    )
-elseif(${ARCHITECTURE} STREQUAL "i686")
-    target_link_libraries(write_magazino_id_to_camera
-                                                GenApi_gcc40_v2_3
-                                                GCBase_gcc40_v2_3
-                                                pylonbase
-                                                pylongigesupp
-    )
 
-else()
-    MESSAGE(WARNING "+++ Unknown Architecture: ${ARCHITECTURE}!")
-endif()
+target_link_libraries(write_magazino_id_to_camera ${catkin_LIBRARIES} ${PYLON4_LIBRARIES})
 
+#if(${ARCHITECTURE} MATCHES "arm")
+#    target_link_libraries(write_magazino_id_to_camera
+#                          GenApi_gcc43_v2_3
+#                          GCBase_gcc43_v2_3
+#                          pylonbase
+#                          pylongigesupp
+#                          pylonbase
+#                          Log_gcc43_v2_3
+#                          MathParser_gcc43_v2_3
+#                          Xerces-C_gcc43_v2_7_1
+#                          log4cpp_gcc43_v2_3
+#    )
+#elseif(${ARCHITECTURE} STREQUAL "x86_64")
+#    target_link_libraries(write_magazino_id_to_camera
+#                          GenApi_gcc40_v2_3
+#                          GCBase_gcc40_v2_3
+#                          pylonbase
+#                          pylongigesupp
+#    )
+#elseif(${ARCHITECTURE} STREQUAL "i686")
+#    target_link_libraries(write_magazino_id_to_camera
+#                                                GenApi_gcc40_v2_3
+#                                                GCBase_gcc40_v2_3
+#                                                pylonbase
+#                                                pylongigesupp
+#    )
+#
+#else()
+#    MESSAGE(WARNING "+++ Unknown Architecture: ${ARCHITECTURE}!")
+#endif()
+#
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(pylon_camera_node pylon_camera_generate_messages_cpp)
 
 add_dependencies(pylon_camera_node ${catkin_EXPORTED_TARGETS} ${pylon_camera_msgs_EXPORTED_TARGETS})
 
+target_link_libraries(pylon_camera_node ${catkin_LIBRARIES} ${PYLON4_LIBRARIES})
+
 ## Specify libraries to link a library or executable target against
-if(${ARCHITECTURE} MATCHES "arm")
-    target_link_libraries(pylon_camera_node 
-                          ${catkin_LIBRARIES}
-                          GenApi_gcc43_v2_3
-                          GCBase_gcc43_v2_3
-                          pylonbase
-                          pylongigesupp
-    )
-elseif(${ARCHITECTURE} STREQUAL "x86_64")
-    target_link_libraries(pylon_camera_node 
-                          ${catkin_LIBRARIES}
-                          GenApi_gcc40_v2_3
-                          GCBase_gcc40_v2_3
-                          pylonbase
-                          pylongigesupp
-    )
-elseif(${ARCHITECTURE} STREQUAL "i686")
-        target_link_libraries(pylon_camera_node 
-                              ${catkin_LIBRARIES}
-                              GenApi_gcc40_v2_3
-                              GCBase_gcc40_v2_3
-                              pylonbase
-                              pylongigesupp
-        )
-else()
-    MESSAGE(WARNING "+++ Unknown Architecture: ${ARCHITECTURE}!")
-endif()
+#if(${ARCHITECTURE} MATCHES "arm")
+#    target_link_libraries(pylon_camera_node 
+#                          ${catkin_LIBRARIES}
+#                          GenApi_gcc43_v2_3
+#                          GCBase_gcc43_v2_3
+#                          pylonbase
+#                          pylongigesupp
+#    )
+#elseif(${ARCHITECTURE} STREQUAL "x86_64")
+#    target_link_libraries(pylon_camera_node 
+#                          ${catkin_LIBRARIES}
+#                          GenApi_gcc40_v2_3
+#                          GCBase_gcc40_v2_3
+#                          pylonbase
+#                          pylongigesupp
+#    )
+#elseif(${ARCHITECTURE} STREQUAL "i686")
+#        target_link_libraries(pylon_camera_node 
+#                              ${catkin_LIBRARIES}
+#                              GenApi_gcc40_v2_3
+#                              GCBase_gcc40_v2_3
+#                              pylonbase
+#                              pylongigesupp
+#        )
+#else()
+#    MESSAGE(WARNING "+++ Unknown Architecture: ${ARCHITECTURE}!")
+#endif()
 
 
 if(WITH_OPENCV)
