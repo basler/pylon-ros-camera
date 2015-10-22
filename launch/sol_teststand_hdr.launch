@@ -10,8 +10,8 @@
   <param name="start_exposure" value="1000" type="int" />
   <param name="use_sequencer" value="true" type="bool" />
   <param name="output_hdr_img" value="true" type="bool" />
-  <param name="desired_framerate" value="15.0" type="double" />
-  <rosparam param="desired_seq_exp_times"> [200, 7000, 75000] </rosparam>
+  <param name="desired_framerate" value="6.0" type="double" />
+  <rosparam param="desired_seq_exp_times"> [200, 12000, 90000] </rosparam>
   <param name="use_brightness" value="true" type="bool" />
   <param name="magazino_cam_id"  value="TORU_0004_SOL"  type="string" />
   <param name="intrinsic_yaml_string" command="cat $(find pylon_camera)/calib/TORU_0004_SOL.yml"/>
