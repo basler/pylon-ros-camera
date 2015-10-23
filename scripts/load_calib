@@ -15,6 +15,9 @@ if __name__ == "__main__":
     try:
         print IntrinsicCalibration.objects.get(device_name=sys.argv[1]).data
     except Exception as e:
-        print "Fail for name '"+sys.argv[1]+"': ", e
+        try:
+            print IntrinsicCalibration.objects.filter(device_name__contains=sys.argv[1])[0].data
+        except Exception as e:
+            print "Fail for name '"+sys.argv[1]+"': ", e
     exit(0)
 
