@@ -10,10 +10,6 @@
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/pylon_camera.h>
 
-#ifdef WITH_OPENCV
-#include <opencv2/opencv.hpp>
-#endif
-
 namespace pylon_camera
 {
 
@@ -32,9 +28,7 @@ public:
 
     virtual bool grab(std::vector<uint8_t>& image);
 
-#ifdef WITH_OPENCV
-    virtual bool grab(cv::Mat& image);
-#endif
+    virtual bool grab(uint8_t* image);
 
     virtual bool setupSequencer(const std::vector<float>& exposure_times);
 

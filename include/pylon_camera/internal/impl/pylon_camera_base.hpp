@@ -171,10 +171,8 @@ bool PylonCameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image)
     return true;
 }
 
-#ifdef WITH_OPENCV
-
 template <typename CameraTrait>
-bool PylonCameraImpl<CameraTrait>::grab(cv::Mat& image)
+bool PylonCameraImpl<CameraTrait>::grab(uint8_t* image)
 {
     Pylon::CGrabResultPtr ptr_grab_result;
     if (!grab(ptr_grab_result))
@@ -183,13 +181,11 @@ bool PylonCameraImpl<CameraTrait>::grab(cv::Mat& image)
         return false;
     }
 
-    image = cv::Mat(img_rows_, img_cols_, CV_8UC1);
-    memcpy(image.ptr(), ptr_grab_result->GetBuffer(), img_size_byte_);
+    //image = cv::Mat(img_rows_, img_cols_, CV_8UC1);
+    memcpy(image, ptr_grab_result->GetBuffer(), img_size_byte_);
 
     return true;
 }
-
-#endif
 
 template <typename CameraTrait>
 bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)

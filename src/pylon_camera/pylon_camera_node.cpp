@@ -1,30 +1,28 @@
 #include <pylon_camera/pylon_camera_node.h>
+#include <GenApi/GenApi.h>
 #include <cmath>
 
 namespace pylon_camera
 {
 
 PylonCameraNode::PylonCameraNode() :
-                    pylon_camera_(NULL),
-                    params_(),
-                    target_brightness_(-42),
-                    set_exposure_service_(),
-                    set_brightness_service_(),
-                    set_sleeping_service_(),
-                    img_raw_msg_(),
-                    cam_info_msg_(),
-                    img_raw_pub_(),
-                    params_update_counter_(0),
-                    brightness_service_running_(false),
-                    nh_("~"),
-                    it_(new image_transport::ImageTransport(nh_)),
-                    is_sleeping_(false)
+        nh_("~"),
+        pylon_camera_(NULL),
+        it_(new image_transport::ImageTransport(nh_)),
+		img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
+        exp_times_pub_(nh_.advertise<pylon_camera_msgs::SequenceExposureTimes>("seq_exp_times", 10)),
+        sequence_raw_as_(nh_, "grab_sequence_raw", boost::bind(&PylonCameraNode::sequenceRawActionExecuteCB, this, _1), false),
+		set_sleeping_service_(nh_.advertiseService("set_sleeping_srv", &PylonCameraNode::setSleepingCallback, this)),
+        target_brightness_(-42),
+        brightness_service_running_(false),
+        is_sleeping_(false)
 {
-    img_raw_pub_ = it_->advertiseCamera("image_raw", 10);
+}
 
-    set_sleeping_service_ = nh_.advertiseService("set_sleeping_srv",
-                                                 &PylonCameraNode::setSleepingCallback,
-                                                 this);
+
+const double& PylonCameraNode::desiredFrameRate() const
+{
+	return params_.desired_frame_rate_;
 }
 
 // Set parameter to open the desired camera
@@ -41,9 +39,6 @@ void PylonCameraNode::getInitialCameraParameter()
         ROS_INFO("No Magazino Cam ID set -> Will use the camera device found fist");
     }
 
-//    nh_.param<int>("parameter_update_frequency", params_.param_update_frequency_, 100);
-//    params_update_counter_ = params_.param_update_frequency_ - 1;
-
     nh_.param<double>("desired_framerate", params_.desired_frame_rate_, 10.0);
     if (params_.desired_frame_rate_ < 0 && params_.desired_frame_rate_ != -1)
     {
@@ -54,9 +49,6 @@ void PylonCameraNode::getInitialCameraParameter()
     }
     nh_.param<std::string>("camera_frame", params_.camera_frame_, "pylon_camera");
     nh_.param<int>("mtu_size", params_.mtu_size_, 3000);
-
-//    nh_.param<int>("parameter_update_frequency", params_.param_update_frequency_, 100);
-//    params_update_counter_ = params_.param_update_frequency_ - 1;
 
 // -2: AutoExposureOnce
 // -1: AutoExposureContinuous
@@ -70,6 +62,12 @@ void PylonCameraNode::getInitialCameraParameter()
     //  0: AutoExposureOff
     // > 0: Intensity Value (0-255)
     nh_.param<int>("start_brightness", params_.start_brightness_, 128);
+
+    nh_.param<bool>("use_sequencer", params_.use_sequencer_, false);
+    if (params_.use_sequencer_)
+    {
+        nh_.getParam("desired_seq_exp_times", params_.desired_seq_exp_times_);
+    }
 }
 
 uint32_t PylonCameraNode::getNumSubscribers() const
@@ -83,7 +81,6 @@ void PylonCameraNode::checkForPylonAutoFunctionRunning()
 
 bool PylonCameraNode::init()
 {
-
     if (!initAndRegister())
     {
         ros::shutdown();
@@ -97,6 +94,7 @@ bool PylonCameraNode::init()
     }
     return true;
 }
+
 bool PylonCameraNode::initAndRegister()
 {
     if (!params_.use_sequencer_)
@@ -117,14 +115,16 @@ bool PylonCameraNode::initAndRegister()
         return false;
     }
 
-//    cout << "BASE CAM NODE INIT FINISHED" << endl;
-
     if (!pylon_camera_->registerCameraConfiguration(params_))
     {
         ROS_ERROR("Error while registering the camera configuration");
         return false;
     }
-//    cout << "BASE CAM NODE REGISTER FINISHED" << endl;
+
+    if (params_.use_sequencer_)
+    {
+        sequence_raw_as_.start();
+    }
     return true;
 }
 
@@ -153,7 +153,6 @@ bool PylonCameraNode::startGrabbing()
 
     std_msgs::Header header;
     header.frame_id = params_.camera_frame_;
-    //header.seq =
     header.stamp = ros::Time::now();
 
     cam_info_msg_.header = header;
@@ -171,6 +170,12 @@ bool PylonCameraNode::startGrabbing()
     img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
     // img_raw_msg_.data // actual matrix data, size is (step * rows)
     pylon_camera_->setImageSize(img_raw_msg_.step * img_raw_msg_.height);
+    exp_times_.header = img_raw_msg_.header;
+
+    if (params_.use_sequencer_)
+    {
+    	exp_times_.exp_times.data = params_.desired_seq_exp_times_;
+    }
 
     return true;
 }
@@ -196,8 +201,95 @@ bool PylonCameraNode::grabImage()
     return true;
 }
 
+bool PylonCameraNode::grabSequence()
+{
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    bool success = true;
+    std::size_t mid = params_.desired_seq_exp_times_.size() / 2;
+    std::vector<uint8_t> tmp_image;
+    for (std::size_t i = 0; i < params_.desired_seq_exp_times_.size(); ++i)
+    {
+        if (!(pylon_camera_->grab(tmp_image)))
+        {
+            if (pylon_camera_->isCamRemoved())
+            {
+                ROS_ERROR("Pylon Camera has been removed!");
+                ros::shutdown();
+            }
+            else
+            {
+                ROS_INFO("Pylon Interface returned NULL-Pointer!");
+            }
+            success = false;
+        }
+        if (i == mid && success)
+        {
+        	img_raw_msg_.data = tmp_image;
+            img_raw_msg_.header.stamp = ros::Time::now();
+        }
+    }
+    if (!success)
+        return false;
+
+    cam_info_msg_.header.stamp = img_raw_msg_.header.stamp;
+    exp_times_.header.stamp = img_raw_msg_.header.stamp;
+    return true;
+}
+
+void PylonCameraNode::spin()
+{
+    if (getNumSubscribers() > 0 && ! is_sleeping())
+    {
+        try
+        {
+            checkForPylonAutoFunctionRunning();
+        }
+        catch (GenICam::AccessException &e)
+        {
+        }
+
+        if (grabImage())
+        {
+            img_raw_pub_.publish(img_raw_msg_, cam_info_msg_);
+        }
+    }
+}
+
+
+void PylonCameraNode::sequenceRawActionExecuteCB(const pylon_camera_msgs::GrabSequenceGoal::ConstPtr& goal)
+{
+    pylon_camera_msgs::GrabSequenceResult result;
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    result.images.resize(params_.desired_seq_exp_times_.size());
+    result.exposureTimes = params_.desired_seq_exp_times_;
+    result.success = true;
+    for (std::size_t i = 0; i < params_.desired_seq_exp_times_.size(); ++i)
+    {
+        sensor_msgs::Image& img = result.images[i];
+        img.encoding = pylon_camera_->imageEncoding();
+        img.height = pylon_camera_->imageRows();
+        img.width = pylon_camera_->imageCols();
+        // step = full row length in bytes
+        img.step = img.width * pylon_camera_->imagePixelDepth();
+
+        if (!(pylon_camera_->grab(img.data)))
+        {
+            result.success = false;
+        }
+        img.header.stamp = ros::Time::now();
+    }
+
+    if (!result.success)
+    {
+        result.images.clear();
+    }
+
+    sequence_raw_as_.setSucceeded(result);
+}
+
+
 bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Request &req,
-    pylon_camera_msgs::SetExposureSrv::Response &res)
+										  pylon_camera_msgs::SetExposureSrv::Response &res)
 {
     if (!pylon_camera_->isReady())
     {

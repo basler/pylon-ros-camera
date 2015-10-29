@@ -4,10 +4,6 @@
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/exposure_search_parameter.h>
 
-#ifdef WITH_OPENCV
-#include <opencv2/opencv.hpp>
-#endif
-
 namespace pylon_camera
 {
 
@@ -28,9 +24,8 @@ public:
 
     virtual bool grab(std::vector<uint8_t>& image) = 0;
 
-#ifdef WITH_OPENCV
-    virtual bool grab(cv::Mat& image) = 0;
-#endif
+    // Caution, make sure the array is initialized correctly!
+    virtual bool grab(uint8_t* image) = 0;
 
     virtual float currentExposure() = 0;
 
