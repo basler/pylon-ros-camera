@@ -50,6 +50,7 @@ def select_images(file_map_, req_list):
         img = cv2.imread(best_file, 0)
         as_sensor_msg = bridge.cv2_to_imgmsg(img, "mono8")
         res.result.images.append(as_sensor_msg)
+    res.result.success = True
     return res
 
 
@@ -58,6 +59,10 @@ def grab_sequence_callback(goal):
     # folder = rospy.get_param("~data_folder")
     if not os.path.isdir(folder):
         rospy.logerr("'"+folder+"' is no directory")
+        res = GrabSequenceActionResult()
+        res.result.success = False
+        server.set_succeeded(res)
+        return
 
     file_map = load_folder(folder)
     print file_map
