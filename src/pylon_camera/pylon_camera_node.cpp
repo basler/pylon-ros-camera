@@ -261,7 +261,7 @@ void PylonCameraNode::sequenceRawActionExecuteCB(const pylon_camera_msgs::GrabSe
     pylon_camera_msgs::GrabSequenceResult result;
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     result.images.resize(params_.desired_seq_exp_times_.size());
-    result.exposureTimes = params_.desired_seq_exp_times_;
+    result.exposure_times = params_.desired_seq_exp_times_;
     result.success = true;
     for (std::size_t i = 0; i < params_.desired_seq_exp_times_.size(); ++i)
     {
