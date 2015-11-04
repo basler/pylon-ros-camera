@@ -174,7 +174,7 @@ bool PylonCameraNode::startGrabbing()
 
     if (params_.use_sequencer_)
     {
-    	exp_times_.exp_times.data = params_.desired_seq_exp_times_;
+    	exp_times_.exp_times = params_.desired_seq_exp_times_;
     }
 
     return true;
