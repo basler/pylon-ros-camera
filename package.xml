@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>camera_camera_msgs</name>
+  <name>camera_control_msgs </name>
   <version>0.0.1</version>
   <description>Pylon Camera Trigger Msgs</description>
 
