@@ -1,0 +1,6 @@
+float32[] desired_exposure_times
+---
+sensor_msgs/Image[] images
+float32[] exposure_times
+bool success
+---
