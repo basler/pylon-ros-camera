@@ -6,7 +6,7 @@ add_definitions("-std=gnu++11")
 set(CATKIN_COMPONENTS
     actionlib
     image_transport
-    pylon_camera_msgs
+    camera_control_msgs
     roscpp
     sensor_msgs)
 

@@ -10,7 +10,7 @@ PylonCameraNode::PylonCameraNode() :
         pylon_camera_(NULL),
         it_(new image_transport::ImageTransport(nh_)),
 		img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
-        exp_times_pub_(nh_.advertise<pylon_camera_msgs::SequenceExposureTimes>("seq_exp_times", 10)),
+        exp_times_pub_(nh_.advertise<camera_control_msgs::SequenceExposureTimes>("seq_exp_times", 10)),
         sequence_raw_as_(nh_, "grab_sequence_raw", boost::bind(&PylonCameraNode::sequenceRawActionExecuteCB, this, _1), false),
 		set_sleeping_service_(nh_.advertiseService("set_sleeping_srv", &PylonCameraNode::setSleepingCallback, this)),
         target_brightness_(-42),
@@ -256,9 +256,9 @@ void PylonCameraNode::spin()
 }
 
 
-void PylonCameraNode::sequenceRawActionExecuteCB(const pylon_camera_msgs::GrabSequenceGoal::ConstPtr& goal)
+void PylonCameraNode::sequenceRawActionExecuteCB(const camera_control_msgs::GrabSequenceGoal::ConstPtr& goal)
 {
-    pylon_camera_msgs::GrabSequenceResult result;
+    camera_control_msgs::GrabSequenceResult result;
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     result.images.resize(params_.desired_seq_exp_times_.size());
     result.exposure_times = params_.desired_seq_exp_times_;
@@ -288,8 +288,8 @@ void PylonCameraNode::sequenceRawActionExecuteCB(const pylon_camera_msgs::GrabSe
 }
 
 
-bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Request &req,
-										  pylon_camera_msgs::SetExposureSrv::Response &res)
+bool PylonCameraNode::setExposureCallback(camera_control_msgs::SetExposureSrv::Request &req,
+										  camera_control_msgs::SetExposureSrv::Response &res)
 {
     if (!pylon_camera_->isReady())
     {
@@ -334,8 +334,8 @@ bool PylonCameraNode::setExposureCallback(pylon_camera_msgs::SetExposureSrv::Req
     return true;
 }
 
-bool PylonCameraNode::setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
-    pylon_camera_msgs::SetBrightnessSrv::Response &res)
+bool PylonCameraNode::setBrightnessCallback(camera_control_msgs::SetBrightnessSrv::Request &req,
+    camera_control_msgs::SetBrightnessSrv::Response &res)
 {
 
     // Brightness Service can only work, if an image has already been grabbed (calc mean on current img)
@@ -433,8 +433,8 @@ float PylonCameraNode::getCurrenCurrentExposure()
 }
 
 /// Warum Service, wenn sofort immer true zurueckgegeben wird?
-bool PylonCameraNode::setSleepingCallback(pylon_camera_msgs::SetSleepingSrv::Request &req,
-    pylon_camera_msgs::SetSleepingSrv::Response &res)
+bool PylonCameraNode::setSleepingCallback(camera_control_msgs::SetSleepingSrv::Request &req,
+    camera_control_msgs::SetSleepingSrv::Response &res)
 {
     is_sleeping_ = req.set_sleeping;
 

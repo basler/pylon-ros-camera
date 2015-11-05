@@ -9,7 +9,7 @@ import rospy
 from cv_bridge import CvBridge
 import actionlib
 
-from pylon_camera_msgs.msg import GrabSequenceAction, GrabSequenceGoal
+from camera_control_msgs.msg import GrabSequenceAction, GrabSequenceGoal
 
 server = None
 

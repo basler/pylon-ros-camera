@@ -8,7 +8,7 @@ import cv2
 from cv_bridge import CvBridge
 import actionlib
 
-from pylon_camera_msgs.msg import GrabSequenceAction, GrabSequenceResult
+from camera_control_msgs.msg import GrabSequenceAction, GrabSequenceResult
 
 server = None
 bridge = CvBridge()

@@ -2,7 +2,7 @@
 from django.template.defaultfilters import last
 
 import cv2
-from pylon_camera_msgs.srv import SetBrightnessSrv
+from camera_control_msgs.srv import SetBrightnessSrv
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import rospy

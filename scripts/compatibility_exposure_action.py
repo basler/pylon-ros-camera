@@ -5,7 +5,7 @@ import rospy
 import actionlib
 import sys
 import maru_msgs.msg
-import pylon_camera_msgs.srv
+import camera_control_msgs.srv
 from math import pi
 
 class CompAction():

@@ -11,11 +11,11 @@
 
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/pylon_camera.h>
-#include <pylon_camera_msgs/SetExposureSrv.h>
-#include <pylon_camera_msgs/SetBrightnessSrv.h>
-#include <pylon_camera_msgs/SetSleepingSrv.h>
-#include <pylon_camera_msgs/GrabSequenceAction.h>
-#include <pylon_camera_msgs/SequenceExposureTimes.h>
+#include <camera_control_msgs/SetExposureSrv.h>
+#include <camera_control_msgs/SetBrightnessSrv.h>
+#include <camera_control_msgs/SetSleepingSrv.h>
+#include <camera_control_msgs/GrabSequenceAction.h>
+#include <camera_control_msgs/SequenceExposureTimes.h>
 
 namespace pylon_camera
 {
@@ -40,12 +40,12 @@ protected:
     virtual bool grabImage();
     virtual bool grabSequence();
 
-    bool setExposureCallback(pylon_camera_msgs::SetExposureSrv::Request &req,
-                             pylon_camera_msgs::SetExposureSrv::Response &res);
-    bool setBrightnessCallback(pylon_camera_msgs::SetBrightnessSrv::Request &req,
-                               pylon_camera_msgs::SetBrightnessSrv::Response &res);
-    bool setSleepingCallback(pylon_camera_msgs::SetSleepingSrv::Request &req,
-                             pylon_camera_msgs::SetSleepingSrv::Response &res);
+    bool setExposureCallback(camera_control_msgs::SetExposureSrv::Request &req,
+                             camera_control_msgs::SetExposureSrv::Response &res);
+    bool setBrightnessCallback(camera_control_msgs::SetBrightnessSrv::Request &req,
+                               camera_control_msgs::SetBrightnessSrv::Response &res);
+    bool setSleepingCallback(camera_control_msgs::SetSleepingSrv::Request &req,
+                             camera_control_msgs::SetSleepingSrv::Response &res);
     bool have_intrinsic_data();
     bool is_sleeping();
     void checkForPylonAutoFunctionRunning();
@@ -54,7 +54,7 @@ protected:
     virtual int calcCurrentBrightness();
     virtual float getCurrenCurrentExposure();
 
-    void sequenceRawActionExecuteCB(const pylon_camera_msgs::GrabSequenceGoal::ConstPtr& goal);
+    void sequenceRawActionExecuteCB(const camera_control_msgs::GrabSequenceGoal::ConstPtr& goal);
 
     ros::NodeHandle nh_;
 
@@ -65,7 +65,7 @@ protected:
     image_transport::CameraPublisher img_raw_pub_;
     ros::Publisher exp_times_pub_;
 
-    actionlib::SimpleActionServer<pylon_camera_msgs::GrabSequenceAction> sequence_raw_as_;
+    actionlib::SimpleActionServer<camera_control_msgs::GrabSequenceAction> sequence_raw_as_;
 
     ros::ServiceServer set_exposure_service_;
     ros::ServiceServer set_brightness_service_;
@@ -73,7 +73,7 @@ protected:
 
     sensor_msgs::Image img_raw_msg_;
     sensor_msgs::CameraInfo cam_info_msg_;
-    pylon_camera_msgs::SequenceExposureTimes exp_times_;
+    camera_control_msgs::SequenceExposureTimes exp_times_;
 
     bool brightness_service_running_;
     int target_brightness_;
