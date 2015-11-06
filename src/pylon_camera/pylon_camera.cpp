@@ -43,7 +43,6 @@ PYLON_CAM_TYPE detectPylonCamType(CInstantCamera* cam)
 
 PylonCamera* createFromDevice(PYLON_CAM_TYPE cam_type, IPylonDevice* device)
 {
-
     switch (cam_type)
     {
         case GIGE:

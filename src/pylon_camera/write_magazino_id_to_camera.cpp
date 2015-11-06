@@ -25,7 +25,6 @@ using namespace std;
 //TODO: Smoke-Test with Signal Handler
 int main(int argc, char* argv[])
 {
-
     if (argc < 2)
     {
         cerr << "ERROR: No Magazino Cam ID set!" << endl;
