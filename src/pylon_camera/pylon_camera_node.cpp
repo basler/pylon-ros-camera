@@ -305,25 +305,30 @@ bool PylonCameraNode::setExposureCallback(camera_control_msgs::SetExposureSrv::R
         pylon_camera_->setExposure(req.target_exposure);
     }
 
-    // wait for 2 cycles till the cam has updated the exposure
+    // wait for max 5s till the cam has updated the exposure
     ros::Rate r(5.0);
     ros::Time start = ros::Time::now();
-    int ctr = 0;
-    while (ros::ok() && ctr < 2)
+    while (ros::ok())
     {
+		current_exposure = getCurrentExposure();
+
+		res.success = fabs(current_exposure - req.target_exposure) < pylon_camera_->exposureStep();
+
+		if(res.success)
+		{
+			return true;
+		}
+
         if (ros::Time::now() - start > ros::Duration(5.0))
         {
             ROS_ERROR("Did not reach the required brightness in time");
             res.success = false;
             return true;
         }
-        ros::spinOnce();
-        r.sleep();
-        ctr++;
-    }
 
-    current_exposure = getCurrentExposure();
-	res.success = fabs(current_exposure - req.target_exposure) < pylon_camera_->exposureStep();
+		ros::spinOnce();
+        r.sleep();
+    }
 
     return true;
 }
@@ -395,10 +400,7 @@ bool PylonCameraNode::setBrightnessCallback(camera_control_msgs::SetBrightnessSr
         r.sleep();
     }
 
-    if (!brightnessValidation(req.target_brightness))
-        res.success = false;
-    else
-        res.success = true;
+    res.success = brightnessValidation(req.target_brightness);
     return true;
 }
 
