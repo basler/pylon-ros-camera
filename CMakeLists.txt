@@ -36,10 +36,9 @@ catkin_package(
     #DEPENDS Pylon4
 )
 
-include_directories(
-    ${catkin_INCLUDE_DIRS}
-    ${PYLON4_INCLUDE_DIRS}
-)
+
+include_directories(SYSTEM ${PYLON4_INCLUDE_DIRS} )
+include_directories( ${catkin_INCLUDE_DIRS} )
 
 # Add library
 add_library(${PROJECT_NAME}
