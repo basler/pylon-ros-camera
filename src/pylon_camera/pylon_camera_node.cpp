@@ -297,7 +297,7 @@ bool PylonCameraNode::setExposureCallback(camera_control_msgs::SetExposureSrv::R
         return true;
     }
 
-    float current_exposure = getCurrenCurrentExposure();
+    float current_exposure = getCurrentExposure();
 //    ROS_INFO("New exposure request for exposure %.f, current exposure = %.f", req.target_exposure, current_exposure);
 
     if (current_exposure != req.target_exposure)
@@ -322,15 +322,9 @@ bool PylonCameraNode::setExposureCallback(camera_control_msgs::SetExposureSrv::R
         ctr++;
     }
 
-    current_exposure = getCurrenCurrentExposure();
+    current_exposure = getCurrentExposure();
+	res.success = fabs(current_exposure - req.target_exposure) < pylon_camera_->exposureStep();
 
-    if (fabs(current_exposure - req.target_exposure) < pylon_camera_->exposureStep())
-    {
-        res.success = true;
-    } else
-    {
-        res.success = false;
-    }
     return true;
 }
 
@@ -427,7 +421,7 @@ int PylonCameraNode::calcCurrentBrightness()
     return (int)mean;
 }
 
-float PylonCameraNode::getCurrenCurrentExposure()
+float PylonCameraNode::getCurrentExposure()
 {
     return pylon_camera_->currentExposure();
 }

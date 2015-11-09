@@ -52,7 +52,7 @@ protected:
 
     virtual bool brightnessValidation(int target);
     virtual int calcCurrentBrightness();
-    virtual float getCurrenCurrentExposure();
+    virtual float getCurrentExposure();
 
     void sequenceRawActionExecuteCB(const camera_control_msgs::GrabSequenceGoal::ConstPtr& goal);
 
