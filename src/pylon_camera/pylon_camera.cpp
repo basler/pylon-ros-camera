@@ -1,6 +1,8 @@
 #include <pylon_camera/internal/pylon_camera.h>
 
 using namespace Pylon;
+//using namespace std;
+
 
 namespace pylon_camera
 {
@@ -60,6 +62,7 @@ PylonCamera* createFromDevice(PYLON_CAM_TYPE cam_type, IPylonDevice* device)
 
 PylonCamera* PylonCamera::create()
 {
+    std::cout << "Using first device" << std::endl;
     try
     {
         CInstantCamera* cam = new CInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
@@ -80,6 +83,7 @@ PylonCamera* PylonCamera::create()
     }
     catch (const GenICam::GenericException &e)
     {
+        std::cout << "failed to open: " << e.what() << std::endl;
         return NULL;
     }
 }

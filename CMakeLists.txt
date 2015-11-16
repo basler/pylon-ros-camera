@@ -101,3 +101,15 @@ install(
 add_test(${PROJECT_NAME}_smoke_test           bash -c "(sleep 4 && sleep `rand -M 4` && rosnode kill ${PROJECT_NAME} ) & rosrun ${PROJECT_NAME} pylon_camera_node  __name:=${PROJECT_NAME}")
 
 set_tests_properties(${PROJECT_NAME}_smoke_test        PROPERTIES TIMEOUT 10)
+
+
+
+
+file(GLOB children ${CMAKE_SOURCE_DIR}/*)
+foreach(child ${children})
+  IF(IS_DIRECTORY ${child})
+    file(GLOB_RECURSE dir_files "${child}/*")
+    LIST(APPEND extra_files ${dir_files})
+  ENDIF()
+endforeach()
+add_custom_target(dummy_${PROJECT_NAME} SOURCES ${extra_files})
