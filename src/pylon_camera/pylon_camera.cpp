@@ -126,8 +126,11 @@ PylonCamera* PylonCamera::create(const std::string& name)
 
                 camera_array[i].Close();
 
-                if (device_user_id.compare(name) == 0 || 
-                    device_user_id.compare(device_user_id.length() - name.length(), name.length(), name))
+//                std::cout << "device_user_id " << device_user_id << std::endl;
+//                std::cout << "length " << device_user_id.size() << std::endl;
+
+                if (device_user_id.compare(name) == 0) // ||
+//                    device_user_id.compare(device_user_id.length() - name.length(), name.length(), name))
                 {
                     found_desired_device = true;
                     cam_pos = i;
