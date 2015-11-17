@@ -1,15 +1,10 @@
 #include <ros/ros.h>
 #include <boost/thread.hpp>
-
+// #include <signal.h>
 #include <pylon_camera/pylon_camera_node.h>
-
-
 
 void mySigintHandler(int sig)
 {
-    // Do some custom action.
-    // For example, publish a stop message to some other nodes.
-
     // All the default sigint handler does is call shutdown()
     ROS_WARN("CTRL-C");
     ros::shutdown();
@@ -18,7 +13,9 @@ void mySigintHandler(int sig)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "pylon_camera_node", ros::init_options::NoSigintHandler);
+	ros::init(argc, argv, "pylon_camera_node");
+    // ros::init(argc, argv, "pylon_camera_node", ros::init_options::NoSigintHandler);
+    //signal(SIGINT, mySigintHandler);
 
     pylon_camera::PylonCameraNode pylon_camera_node;
     pylon_camera_node.getInitialCameraParameter();
@@ -42,7 +39,7 @@ int main(int argc, char **argv)
         pylon_camera_node.spin();
         // will now be called from the boost thread
         // ros::spinOnce();
-        //        r.expectedCycleTime().toSec()
+        // r.expectedCycleTime().toSec()
         r.sleep();
     }
 
