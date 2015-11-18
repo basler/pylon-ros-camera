@@ -132,16 +132,20 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         {
         	// BaslerDebugDay: hard coded timeout of 5s makes most sense for all applications
         	float timeout = 5000; // ms -> 5s timeout
+
+        	// WaitForFrameTriggerReady to prevent trigger signal to get lost
+        	// this could happen, if 2xExecuteSoftwareTrigger() is only followed by 1xgrabResult()
+        	// -> 2nd trigger might get lost
             if (cam_->WaitForFrameTriggerReady((int)timeout, Pylon::TimeoutHandling_ThrowException))
             {
                 cam_->ExecuteSoftwareTrigger();
             }
-
         }
         catch (const GenICam::GenericException &e)
         {
             std::cerr << "Error while executing initial software trigger" << std::endl;
             std::cerr << e.GetDescription() << std::endl;
+            return false;
         }
     }
     catch (const GenICam::GenericException &e)

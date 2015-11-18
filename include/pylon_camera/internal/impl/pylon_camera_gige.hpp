@@ -35,6 +35,7 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
                                     Pylon::Cleanup_Delete);
 
         // Dasler-Debug Day:  Read- & Write Retry-Counter should stay default (=2)
+        // Linux does only support 1
         cam_->Open();
 
         // Remove all previous settings (sequencer etc.)
