@@ -65,7 +65,10 @@ bool PylonDARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
     {
         // /!\ The dart camera device does not support waiting for frame trigger ready
         cam_->ExecuteSoftwareTrigger();
-        float timeout = 1.0 / cam_->ResultingFrameRate.GetValue() * 3000;
+
+    	// BaslerDebugDay: hard coded timeout of 5s makes most sense for all applications
+    	float timeout = 5000; // ms -> 5s timeout
+
         cam_->RetrieveResult((int)timeout,
                              grab_result,
                              Pylon::TimeoutHandling_ThrowException);

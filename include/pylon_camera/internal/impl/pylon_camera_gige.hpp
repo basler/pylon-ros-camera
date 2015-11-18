@@ -116,13 +116,6 @@ GenApi::IFloat& PylonGigECamera::resultingFrameRate()
 }
 
 template <>
-double PylonGigECamera::getFrameTimeout()
-{
-    //return cam_->ResultingFramePeriodAbs.GetValue() * 0.01;
-    return cam_->ExposureTimeAbs.GetValue() * 1.05;
-}
-
-template <>
 GigECameraTrait::AutoTargetBrightnessType& PylonGigECamera::autoTargetBrightness()
 {
     return cam_->AutoTargetValue;

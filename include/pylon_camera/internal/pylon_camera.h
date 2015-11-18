@@ -66,8 +66,6 @@ protected:
 
     virtual bool grab(Pylon::CGrabResultPtr& grab_result);
 
-    virtual double getFrameTimeout();
-
     virtual bool setupSequencer(const std::vector<float>& exposure_times, std::vector<float>& exposure_times_set);
 
     CBaslerInstantCameraT* cam_;

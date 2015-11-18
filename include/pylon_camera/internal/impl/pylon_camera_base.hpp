@@ -130,7 +130,8 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         max_framerate_ = resultingFrameRate().GetValue();
         try
         {
-            float timeout = getFrameTimeout();
+        	// BaslerDebugDay: hard coded timeout of 5s makes most sense for all applications
+        	float timeout = 5000; // ms -> 5s timeout
             if (cam_->WaitForFrameTriggerReady((int)timeout, Pylon::TimeoutHandling_ThrowException))
             {
                 cam_->ExecuteSoftwareTrigger();
@@ -193,7 +194,10 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
     try
     {
         //double timeout = std::min(std::max(getFrameTimeout(), 200.0), 1000.0);
-        double timeout = getFrameTimeout();
+
+    	// BaslerDebugDay: hard coded timeout of 5s makes most sense for all applications
+    	float timeout = 5000; // ms -> 5s timeout
+
         //if (cam_->WaitForFrameTriggerReady((int)timeout, Pylon::TimeoutHandling_ThrowException))
         //{
             cam_->ExecuteSoftwareTrigger();
