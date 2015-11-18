@@ -33,12 +33,12 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
         cam_->RegisterConfiguration(new Pylon::CSoftwareTriggerConfiguration,
                                     Pylon::RegistrationMode_ReplaceAll,
                                     Pylon::Cleanup_Delete);
+
         // Dasler-Debug Day:  Read- & Write Retry-Counter should stay default (=2)
-        // cam_->GetTLParams().MaxRetryCountRead.SetValue(6);
-        // cam_->GetTLParams().MaxRetryCountWrite.SetValue(6);
         cam_->Open();
 
         // Remove all previous settings (sequencer etc.)
+        // Default Setting = Free-Running
         cam_->UserSetSelector.SetValue(Basler_GigECameraParams::UserSetSelector_Default);
         cam_->UserSetLoad.Execute();
         // UserSetSelector_Default overrides Software Trigger Mode !!
@@ -46,16 +46,17 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
         cam_->TriggerMode.SetValue(Basler_GigECameraParams::TriggerMode_On);
 
         // raise inter-package delay (GevSCPD) for solving error: 'the image buffer was incompletely grabbed'
-        // also in ubuntu settings -> network -> options -> MTU Size from 'automatic' to 9000 (if card supports it, else 3000)
-        cam_->GevStreamChannelSelector.SetValue(Basler_GigECameraParams::GevStreamChannelSelector_StreamChannel0);
-
-        // TODO: Sinnvolle Werte ermitteln! Ideal: Maximum = 9000
+        // also in ubuntu settings -> network -> options -> MTU Size from 'automatic' to 3000 if card supports it
+        // Raspberry PI has MTU = 1500, max value for some cards: 9000
         cam_->GevSCPSPacketSize.SetValue(params.mtu_size_);
 
         // http://www.baslerweb.com/media/documents/AW00064902000%20Control%20Packet%20Timing%20With%20Delays.pdf
-        // inter package delay in ticks -> prevent lost frames
-        // package size * n_cams + overhead = inter package size
-        cam_->GevSCPD.SetValue(500);
+        // inter package delay in ticks (? -> mathi said in nanosec) -> prevent lost frames
+        // package size * n_cams + 5% overhead = inter package size
+		// int n_cams = 1;
+		// int inter_package_delay_in_ticks = n_cams * imageSize() * 1.05;
+		// std::cout << "Inter-Package Delay" << inter_package_delay_in_ticks << std::endl;
+        cam_->GevSCPD.SetValue(1000);
     }
     catch (const GenICam::GenericException &e)
     {

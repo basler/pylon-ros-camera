@@ -34,7 +34,9 @@ bool PylonUSBCamera::registerCameraConfiguration(const PylonCameraParameter& par
                                         Pylon::RegistrationMode_ReplaceAll,
                                         Pylon::Cleanup_Delete);
         cam_->Open();
+
         // Remove all previous settings (sequencer etc.)
+        // Default Setting = Free-Running
         cam_->UserSetSelector.SetValue(Basler_UsbCameraParams::UserSetSelector_Default);
         cam_->UserSetLoad.Execute();
         // UserSetSelector_Default overrides Software Trigger Mode !!
