@@ -50,14 +50,12 @@ void PylonCameraNode::getInitialCameraParameter()
     nh_.param<std::string>("camera_frame", params_.camera_frame_, "pylon_camera");
     nh_.param<int>("mtu_size", params_.mtu_size_, 3000);
 
-    // -2: AutoExposureOnce
     // -1: AutoExposureContinuous
     //  0: AutoExposureOff
     // > 0: Exposure in micro-seconds
     nh_.param<double>("start_exposure", params_.start_exposure_, 35000.0);
 
     nh_.param<bool>("use_brightness", params_.use_brightness_, false); // Using exposure or brightness
-    // -2: AutoExposureOnce
     // -1: AutoExposureContinuous
     //  0: AutoExposureOff
     // > 0: Intensity Value (0-255)

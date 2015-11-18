@@ -259,31 +259,26 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const double& exposure)
     // Exposure Auto is the 'automatic' counterpart to manually setting the Exposure Time Abs parameter.
     // It adjusts the Exposure Time Abs parameter value automatically within set limits until a target
     // average gray value for the pixel data of the related Auto Function AOI is reached
-    // -2: AutoExposureOnce //!<Sets operation mode to 'once'.
     // -1: AutoExposureContinuous //!<Sets operation mode to 'continuous'.
     //  0: AutoExposureOff //!<Disables the Exposure Auto function.
 
-    if ((exposure == -1.0 || exposure == -2.0 || exposure == 0.0) && !has_auto_exposure_)
+    if ((exposure == -1.0 || exposure == 0.0) && !has_auto_exposure_)
     {
         std::cerr << "Error while trying to set auto exposure properties: camera has no auto exposure function!"
                   << std::endl;
         return false;
     }
-    else if (!(exposure == -1.0 || exposure == -2.0 || exposure == 0.0) && exposure < 0.0)
+    else if (!(exposure == -1.0 || exposure == 0.0) && exposure < 0.0)
     {
         std::cerr << "Target Exposure " << exposure << " not in the allowed range:" << std::endl;
-        std::cerr << "-2: AutoExposureOnce, -1: AutoExposureContinuous, 0: AutoExposureOff, else: exposure in mus"
+        std::cerr << "-1: AutoExposureContinuous, 0: AutoExposureOff, else: exposure in mus"
                   << std::endl;
         return false;
     }
 
     try
     {
-        if (exposure == -2.0)
-        {
-            cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
-        }
-        else if (exposure == -1.0)
+    	if (exposure == -1.0)
         {
             cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Continuous);
         }
@@ -314,6 +309,7 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const double& exposure)
                           << std::endl;
             }
             exposureTime().SetValue(exposure_to_set, false);
+            //cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
         }
 
         // Basler Debug Day: cam_->GetNodeMap().InvalidateAll(); would be better here
@@ -437,27 +433,23 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(int& brightness)
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& brightness)
 {
-    if ((brightness == -1 || brightness == -2 || brightness == 0) && !has_auto_exposure_)
+    if ((brightness == -1 || brightness == 0) && !has_auto_exposure_)
     {
         std::cerr << "Error while trying to set auto brightness properties: camera has no auto exposure function!"
                   << std::endl;
         return false;
     }
-    else if (!(brightness == -1 || brightness == -2 || brightness == 0) && brightness < 0)
+    else if (!(brightness == -1 || brightness == 0) && brightness < 0)
     {
         std::cerr << "Target brightness " << brightness << " not in the allowed range:" << std::endl;
-        std::cerr << "-2: AutoExposureOnce, -1: AutoExposureContinuous, 0: AutoExposureOff, else: brightness 0-> black to 255 -> white"
+        std::cerr << "-1: AutoExposureContinuous, 0: AutoExposureOff, else: brightness 0-> black to 255 -> white"
                   << std::endl;
         return false;
     }
 
     try
     {
-        if (brightness == -2)
-        {
-            cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
-        }
-        else if (brightness == -1)
+        if (brightness == -1)
         {
             cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Continuous);
         }
@@ -467,6 +459,7 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& brightness)
         }
         else
         {
+        	//cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
             typename CameraTraitT::AutoTargetBrightnessValueType brightness_value = CameraTraitT::convertBrightness(brightness);
             // Set the target value for luminance control. The value is always expressed
             // as an float value regardless of the current pixel data output format,
