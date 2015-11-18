@@ -62,6 +62,9 @@ PylonCamera* PylonCamera::create()
 {
     try
     {
+    	// BaslerDebugDay: It is possible to detect the correct camera without opening it first
+    	// Hence use CDeviceInfo info; to detect the name
+
         CInstantCamera* cam = new CInstantCamera(CTlFactory::GetInstance().CreateFirstDevice());
         cam->Open();
 

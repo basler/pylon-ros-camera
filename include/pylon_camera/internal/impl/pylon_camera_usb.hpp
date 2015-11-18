@@ -54,6 +54,7 @@ bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times, st
 {
     try
     {
+    	// Runtime Sequencer: cam_->IsGrabbing() ? cam_->StopGrabbing(); //10ms
         if (GenApi::IsWritable(cam_->SequencerMode))
         {
             cam_->SequencerMode.SetValue(Basler_UsbCameraParams::SequencerMode_Off);

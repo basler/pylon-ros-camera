@@ -307,6 +307,8 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const double& exposure)
             }
             exposureTime().SetValue(exposure_to_set, false);
         }
+
+        // Basler Debug Day: cam_->GetNodeMap().InvalidateAll(); would be better here
         cam_->GetNodeMap().InvalidateNodes();
 
         last_exposure_val_ = exposure;
