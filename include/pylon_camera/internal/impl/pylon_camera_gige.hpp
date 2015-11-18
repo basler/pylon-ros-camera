@@ -33,9 +33,9 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
         cam_->RegisterConfiguration(new Pylon::CSoftwareTriggerConfiguration,
                                     Pylon::RegistrationMode_ReplaceAll,
                                     Pylon::Cleanup_Delete);
-        // TODO: Sinnvolle Werte ermitteln! -> default = 2
-        cam_->GetTLParams().MaxRetryCountRead.SetValue(6);
-        cam_->GetTLParams().MaxRetryCountWrite.SetValue(6);
+        // Dasler-Debug Day:  Read- & Write Retry-Counter should stay default (=2)
+        // cam_->GetTLParams().MaxRetryCountRead.SetValue(6);
+        // cam_->GetTLParams().MaxRetryCountWrite.SetValue(6);
         cam_->Open();
 
         // Remove all previous settings (sequencer etc.)
