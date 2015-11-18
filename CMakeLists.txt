@@ -105,11 +105,11 @@ set_tests_properties(${PROJECT_NAME}_smoke_test        PROPERTIES TIMEOUT 10)
 
 
 
-file(GLOB children ${CMAKE_SOURCE_DIR}/*)
+file(GLOB children ${CMAKE_CURRENT_SOURCE_DIR}/*)
 foreach(child ${children})
   IF(IS_DIRECTORY ${child})
     file(GLOB_RECURSE dir_files "${child}/*")
-    LIST(APPEND extra_files ${dir_files})
+    LIST(APPEND ${PROJECT_NAME}_extra_files ${dir_files})
   ENDIF()
 endforeach()
-add_custom_target(dummy_${PROJECT_NAME} SOURCES ${extra_files})
+add_custom_target(dummy_${PROJECT_NAME} SOURCES ${${PROJECT_NAME}_extra_files})
