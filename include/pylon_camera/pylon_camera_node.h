@@ -15,10 +15,12 @@
 #include <camera_control_msgs/SetBrightnessSrv.h>
 #include <camera_control_msgs/SetSleepingSrv.h>
 #include <camera_control_msgs/GrabSequenceAction.h>
-#include <camera_control_msgs/SequenceExposureTimes.h>
+#include <camera_control_msgs/GrabImagesAction.h>
 
 namespace pylon_camera
 {
+
+typedef actionlib::SimpleActionServer<camera_control_msgs::GrabImagesAction> GrabImagesAction;
 
 class PylonCameraNode
 {
@@ -39,8 +41,10 @@ protected:
     virtual bool grabImage();
     virtual bool grabSequence();
 
+    bool setExposure(const float& target_exposure, float& reached_exposure);
     bool setExposureCallback(camera_control_msgs::SetExposureSrv::Request &req,
                              camera_control_msgs::SetExposureSrv::Response &res);
+    bool setBrightness(const int& target_brightness, int& reached_brightness);
     bool setBrightnessCallback(camera_control_msgs::SetBrightnessSrv::Request &req,
                                camera_control_msgs::SetBrightnessSrv::Response &res);
     bool setSleepingCallback(camera_control_msgs::SetSleepingSrv::Request &req,
@@ -52,7 +56,7 @@ protected:
     virtual int calcCurrentBrightness();
     virtual float getCurrentExposure();
 
-    void sequenceRawActionExecuteCB(const camera_control_msgs::GrabSequenceGoal::ConstPtr& goal);
+    void grabImagesRawActionExecuteCB(const camera_control_msgs::GrabImagesGoal::ConstPtr& goal);
 
     ros::NodeHandle nh_;
 
@@ -61,9 +65,8 @@ protected:
 
     image_transport::ImageTransport* it_;
     image_transport::CameraPublisher img_raw_pub_;
-    ros::Publisher exp_times_pub_;
 
-    actionlib::SimpleActionServer<camera_control_msgs::GrabSequenceAction> sequence_raw_as_;
+    GrabImagesAction grab_images_raw_action_server_;
 
     ros::ServiceServer set_exposure_service_;
     ros::ServiceServer set_brightness_service_;
@@ -71,7 +74,6 @@ protected:
 
     sensor_msgs::Image img_raw_msg_;
     sensor_msgs::CameraInfo cam_info_msg_;
-    camera_control_msgs::SequenceExposureTimes exp_times_;
 
     bool brightness_service_running_;
     int target_brightness_;

@@ -8,7 +8,7 @@ PylonCameraParameter::PylonCameraParameter() :
                     camera_frame_(""),
                     desired_frame_rate_(-1.0),
                     target_exposure_(3000),
-                    use_sequencer_(false),
+//                    use_sequencer_(false),
                     param_update_frequency_(50),
                     start_exposure_(2000.0),
                     use_brightness_(false),
@@ -59,11 +59,11 @@ bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
 	// > 0: Intensity Value (0-255)
 	nh.param<int>("start_brightness", start_brightness_, 128);
 
-	nh.param<bool>("use_sequencer", use_sequencer_, false);
-	if (use_sequencer_)
-	{
+//	nh.param<bool>("use_sequencer", use_sequencer_, false);
+//	if (use_sequencer_)
+//	{
 		nh.getParam("desired_seq_exp_times", desired_seq_exp_times_);
-	}
+//	}
 
 	bool is_valid = validateParameterSet(nh);
 	if(is_valid)

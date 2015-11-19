@@ -105,8 +105,8 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
             std::cout << "Color Image support not yet implemented! Will switch to 8-Bit Mono" << std::endl;
         }
 
-        if (!params.use_sequencer_)
-        {
+//        if (!params.use_sequencer_)
+//        {
             cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
 
             double truncated_start_exposure = params.start_exposure_;
@@ -125,7 +125,7 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
                           << std::endl;
             }
             exposureTime().SetValue(truncated_start_exposure, false);
-        }
+//        }
 
         max_framerate_ = resultingFrameRate().GetValue();
         try
@@ -139,6 +139,10 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
             if (cam_->WaitForFrameTriggerReady((int)timeout, Pylon::TimeoutHandling_ThrowException))
             {
                 cam_->ExecuteSoftwareTrigger();
+            }
+            if(!is_ready_)
+            {
+            	is_ready_ = true;
             }
         }
         catch (const GenICam::GenericException &e)
