@@ -27,7 +27,6 @@ public:
     virtual ~PylonCameraNode();
 
     bool init();
-    void getInitialCameraParameter();
     virtual void spin();
     const double& desiredFrameRate() const;
 
@@ -46,7 +45,6 @@ protected:
                                camera_control_msgs::SetBrightnessSrv::Response &res);
     bool setSleepingCallback(camera_control_msgs::SetSleepingSrv::Request &req,
                              camera_control_msgs::SetSleepingSrv::Response &res);
-    bool have_intrinsic_data();
     bool is_sleeping();
     void checkForPylonAutoFunctionRunning();
 

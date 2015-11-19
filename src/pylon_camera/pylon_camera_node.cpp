@@ -8,6 +8,7 @@ namespace pylon_camera
 PylonCameraNode::PylonCameraNode() :
         nh_("~"),
         pylon_camera_(NULL),
+        params_(),
         it_(new image_transport::ImageTransport(nh_)),
 		img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
         exp_times_pub_(nh_.advertise<camera_control_msgs::SequenceExposureTimes>("seq_exp_times", 10)),
@@ -17,55 +18,14 @@ PylonCameraNode::PylonCameraNode() :
         brightness_service_running_(false),
         is_sleeping_(false)
 {
+	// Set parameter to open the desired camera
+	params_.readFromRosParameterServer(nh_);
 }
 
 
 const double& PylonCameraNode::desiredFrameRate() const
 {
 	return params_.desired_frame_rate_;
-}
-
-// Set parameter to open the desired camera
-void PylonCameraNode::getInitialCameraParameter()
-{
-    // Write Magazino cam id to the camera using write_magazino_id_2_camera
-    nh_.param<std::string>("magazino_cam_id", params_.magazino_cam_id_, "x");
-    if (params_.magazino_cam_id_ != "x")
-    {
-        ROS_INFO("Using Camera: %s", params_.magazino_cam_id_.c_str());
-    }
-    else
-    {
-        ROS_INFO("No Magazino Cam ID set -> Will use the camera device found fist");
-    }
-
-    nh_.param<double>("desired_framerate", params_.desired_frame_rate_, 10.0);
-    if (params_.desired_frame_rate_ < 0 && params_.desired_frame_rate_ != -1)
-    {
-        params_.desired_frame_rate_ = -1.0;
-        nh_.setParam("desired_framerate", params_.desired_frame_rate_);
-        ROS_ERROR("Unexpected framerate (%f). Setting to -1 (max possible)",
-                  params_.desired_frame_rate_);
-    }
-    nh_.param<std::string>("camera_frame", params_.camera_frame_, "pylon_camera");
-    nh_.param<int>("mtu_size", params_.mtu_size_, 3000);
-
-    // -1: AutoExposureContinuous
-    //  0: AutoExposureOff
-    // > 0: Exposure in micro-seconds
-    nh_.param<double>("start_exposure", params_.start_exposure_, 35000.0);
-
-    nh_.param<bool>("use_brightness", params_.use_brightness_, false); // Using exposure or brightness
-    // -1: AutoExposureContinuous
-    //  0: AutoExposureOff
-    // > 0: Intensity Value (0-255)
-    nh_.param<int>("start_brightness", params_.start_brightness_, 128);
-
-    nh_.param<bool>("use_sequencer", params_.use_sequencer_, false);
-    if (params_.use_sequencer_)
-    {
-        nh_.getParam("desired_seq_exp_times", params_.desired_seq_exp_times_);
-    }
 }
 
 uint32_t PylonCameraNode::getNumSubscribers() const
@@ -447,11 +407,6 @@ bool PylonCameraNode::setSleepingCallback(camera_control_msgs::SetSleepingSrv::R
 bool PylonCameraNode::is_sleeping()
 {
     return is_sleeping_;
-}
-
-bool PylonCameraNode::have_intrinsic_data()
-{
-    return params_.have_intrinsic_data_;
 }
 
 PylonCameraNode::~PylonCameraNode()
