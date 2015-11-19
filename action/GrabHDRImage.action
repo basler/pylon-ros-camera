@@ -1,0 +1,28 @@
+# GOAL
+uint8 BRIGHTNESS = 1
+uint8 EXPOSURE = 2
+
+# select between desired mean brightness or exposure
+uint8 target_type
+
+# list of desired exposures / brightness -> resulting image list has same size
+float32[] target_values
+
+# desired value for gamma correction (default = 1)
+float32 gamma
+
+# desired camera gain (high gain -> noise)
+float32 gain
+
+# RESULT
+---
+# generate one HDR image out of several single exp / brightness images
+sensor_msgs/Image hdr_image
+
+# desired values can not always be reached
+float32[] reached_values
+
+bool success
+
+# FEEDBACK
+---

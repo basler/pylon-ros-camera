@@ -1,3 +1,6 @@
+# target brightness
 int32 target_brightness
 ---
+# target value can not always be reached
+int32 reached_brightness
 bool success

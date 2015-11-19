@@ -1,0 +1,28 @@
+# GOAL
+uint8 BRIGHTNESS = 1
+uint8 EXPOSURE = 2
+
+# select between desired mean brightness or exposure
+uint8 target_type
+
+# list of target exposures / brightness -> resulting image list has same size
+float32[] target_values
+
+# desired value for gamma correction (default = 1)
+float32 gamma
+
+# desired camera gain (high gain -> noise)
+float32 gain
+
+# RESULT
+---
+sensor_msgs/Image[] images
+
+# target values can not always be reached
+float32[] reached_values
+
+bool success
+
+# FEEDBACK
+---
+int32 curr_nr_images_taken
