@@ -1,4 +1,4 @@
-Magazino Pylon_Camera powered by Basler
+Magazino PylonCamera powered by Basler
 =====
 
 This package offers many functions of the Basler-PylonAPI in the ROS-Framwork.
@@ -35,6 +35,3 @@ Installation
 Usage
 ---
      roslaunch pylon_camera default_camera.launch
-
-
-
