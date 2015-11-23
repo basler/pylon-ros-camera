@@ -43,6 +43,25 @@ bool PylonCameraNode::init()
     }
     return true;
 }
+void PylonCameraNode::spin()
+{
+	// images were published if subscribers are available or if someone calls the GrabImages Action
+    if (getNumSubscribers() > 0 && ! is_sleeping())
+    {
+        try
+        {
+            checkForPylonAutoFunctionRunning();
+        }
+        catch (GenICam::AccessException &e)
+        {
+        }
+
+        if (grabImage())
+        {
+            img_raw_pub_.publish(img_raw_msg_, cam_info_msg_);
+        }
+    }
+}
 
 const double& PylonCameraNode::desiredFrameRate() const
 {
@@ -53,11 +72,11 @@ uint32_t PylonCameraNode::getNumSubscribers() const
 {
     return img_raw_pub_.getNumSubscribers();
 }
+
 void PylonCameraNode::checkForPylonAutoFunctionRunning()
 {
     brightness_service_running_ = pylon_camera_->isAutoBrightnessFunctionRunning();
 }
-
 
 bool PylonCameraNode::initAndRegister()
 {
@@ -72,7 +91,7 @@ bool PylonCameraNode::initAndRegister()
 
     if (pylon_camera_ == NULL)
     {
-        ROS_ERROR("Error while initializing the Pylon Interface");
+        ROS_ERROR("Error while creating the PylonCamera, resulting Pointer is NULL");
         return false;
     }
 
@@ -185,26 +204,6 @@ bool PylonCameraNode::grabSequence()
 
     cam_info_msg_.header.stamp = img_raw_msg_.header.stamp;
     return true;
-}
-
-void PylonCameraNode::spin()
-{
-	// images were published if subscribers are available or if someone calls the GrabImages Action
-    if (getNumSubscribers() > 0 && ! is_sleeping())
-    {
-        try
-        {
-            checkForPylonAutoFunctionRunning();
-        }
-        catch (GenICam::AccessException &e)
-        {
-        }
-
-        if (grabImage())
-        {
-            img_raw_pub_.publish(img_raw_msg_, cam_info_msg_);
-        }
-    }
 }
 
 void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::GrabImagesGoal::ConstPtr& goal)
@@ -428,4 +427,4 @@ PylonCameraNode::~PylonCameraNode()
     it_ = NULL;
 }
 
-}
+} /* namespace pylon_camera */
