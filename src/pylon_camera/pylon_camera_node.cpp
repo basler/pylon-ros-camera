@@ -8,7 +8,7 @@ namespace pylon_camera
 PylonCameraNode::PylonCameraNode() :
         nh_("~"),
         pylon_camera_(NULL),
-        params_(),
+        pylon_camera_parameter_set_(),
         it_(new image_transport::ImageTransport(nh_)),
 		img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
         grab_images_raw_action_server_(nh_, "grab_images_raw", boost::bind(&PylonCameraNode::grabImagesRawActionExecuteCB, this, _1), false),
@@ -17,26 +17,19 @@ PylonCameraNode::PylonCameraNode() :
         brightness_service_running_(false),
         is_sleeping_(false)
 {
-	// Set parameter to open the desired camera
-	params_.readFromRosParameterServer(nh_);
-}
-
-const double& PylonCameraNode::desiredFrameRate() const
-{
-	return params_.desired_frame_rate_;
-}
-
-uint32_t PylonCameraNode::getNumSubscribers() const
-{
-    return img_raw_pub_.getNumSubscribers();
-}
-void PylonCameraNode::checkForPylonAutoFunctionRunning()
-{
-    brightness_service_running_ = pylon_camera_->isAutoBrightnessFunctionRunning();
+	init();
 }
 
 bool PylonCameraNode::init()
 {
+	// Set parameter to open the desired camera
+	if(!pylon_camera_parameter_set_.readFromRosParameterServer(nh_))
+	{
+		ROS_ERROR("Error reading PylonCameraParameterSet from ROS-Parameter-Server");
+		ros::shutdown();
+		return false;
+	}
+
     if (!initAndRegister())
     {
         ros::shutdown();
@@ -51,6 +44,21 @@ bool PylonCameraNode::init()
     return true;
 }
 
+const double& PylonCameraNode::desiredFrameRate() const
+{
+	return pylon_camera_parameter_set_.desired_frame_rate_;
+}
+
+uint32_t PylonCameraNode::getNumSubscribers() const
+{
+    return img_raw_pub_.getNumSubscribers();
+}
+void PylonCameraNode::checkForPylonAutoFunctionRunning()
+{
+    brightness_service_running_ = pylon_camera_->isAutoBrightnessFunctionRunning();
+}
+
+
 bool PylonCameraNode::initAndRegister()
 {
 	set_exposure_service_ = nh_.advertiseService("set_exposure_srv",
@@ -60,7 +68,7 @@ bool PylonCameraNode::initAndRegister()
     											   &PylonCameraNode::setBrightnessCallback,
     											   this);
 
-    pylon_camera_ = PylonCamera::create(params_.magazino_cam_id_);
+    pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.magazino_cam_id_);
 
     if (pylon_camera_ == NULL)
     {
@@ -68,7 +76,7 @@ bool PylonCameraNode::initAndRegister()
         return false;
     }
 
-    if (!pylon_camera_->registerCameraConfiguration(params_))
+    if (!pylon_camera_->registerCameraConfiguration(pylon_camera_parameter_set_))
     {
         ROS_ERROR("Error while registering the camera configuration");
         return false;
@@ -80,29 +88,29 @@ bool PylonCameraNode::initAndRegister()
 
 bool PylonCameraNode::startGrabbing()
 {
-    if (!pylon_camera_->startGrabbing(params_))
+    if (!pylon_camera_->startGrabbing(pylon_camera_parameter_set_))
     {
         ROS_ERROR("Error while start grabbing");
         return false;
     }
 
     // Framrate Settings
-    if (pylon_camera_->maxPossibleFramerate() < params_.desired_frame_rate_)
+    if (pylon_camera_->maxPossibleFramerate() < pylon_camera_parameter_set_.desired_frame_rate_)
     {
         ROS_INFO("Desired framerate %.2f is higher than max possible. Will limit framerate to: %.2f Hz",
-                 params_.desired_frame_rate_,
+                 pylon_camera_parameter_set_.desired_frame_rate_,
                  pylon_camera_->maxPossibleFramerate());
-        params_.desired_frame_rate_ = pylon_camera_->maxPossibleFramerate();
+        pylon_camera_parameter_set_.desired_frame_rate_ = pylon_camera_->maxPossibleFramerate();
         nh_.setParam("desired_framerate", pylon_camera_->maxPossibleFramerate());
     }
-    else if (params_.desired_frame_rate_ == -1)
+    else if (pylon_camera_parameter_set_.desired_frame_rate_ == -1)
     {
-        params_.desired_frame_rate_ = pylon_camera_->maxPossibleFramerate();
+        pylon_camera_parameter_set_.desired_frame_rate_ = pylon_camera_->maxPossibleFramerate();
         ROS_INFO("Max possible framerate is %.2f Hz", pylon_camera_->maxPossibleFramerate());
     }
 
     std_msgs::Header header;
-    header.frame_id = params_.camera_frame_;
+    header.frame_id = pylon_camera_parameter_set_.camera_frame_;
     header.stamp = ros::Time::now();
 
     cam_info_msg_.header = header;
@@ -149,9 +157,9 @@ bool PylonCameraNode::grabSequence()
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     bool success = true;
-    std::size_t mid = params_.desired_seq_exp_times_.size() / 2;
+    std::size_t mid = pylon_camera_parameter_set_.desired_seq_exp_times_.size() / 2;
     std::vector<uint8_t> tmp_image;
-    for (std::size_t i = 0; i < params_.desired_seq_exp_times_.size(); ++i)
+    for (std::size_t i = 0; i < pylon_camera_parameter_set_.desired_seq_exp_times_.size(); ++i)
     {
         if (!(pylon_camera_->grab(tmp_image)))
         {
@@ -181,6 +189,7 @@ bool PylonCameraNode::grabSequence()
 
 void PylonCameraNode::spin()
 {
+	// images were published if subscribers are available or if someone calls the GrabImages Action
     if (getNumSubscribers() > 0 && ! is_sleeping())
     {
         try

@@ -25,7 +25,6 @@ public:
     std::string camera_frame_;
     double desired_frame_rate_;
     double target_exposure_;
-//    bool use_sequencer_;
     int param_update_frequency_;
     double start_exposure_;
     bool use_brightness_;

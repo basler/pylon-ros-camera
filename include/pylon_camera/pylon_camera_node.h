@@ -14,7 +14,6 @@
 #include <camera_control_msgs/SetExposureSrv.h>
 #include <camera_control_msgs/SetBrightnessSrv.h>
 #include <camera_control_msgs/SetSleepingSrv.h>
-#include <camera_control_msgs/GrabSequenceAction.h>
 #include <camera_control_msgs/GrabImagesAction.h>
 
 namespace pylon_camera
@@ -61,7 +60,7 @@ protected:
     ros::NodeHandle nh_;
 
     PylonCamera* pylon_camera_;
-    PylonCameraParameter params_;
+    PylonCameraParameter pylon_camera_parameter_set_;
 
     image_transport::ImageTransport* it_;
     image_transport::CameraPublisher img_raw_pub_;

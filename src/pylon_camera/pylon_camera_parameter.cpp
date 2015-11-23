@@ -8,28 +8,25 @@ PylonCameraParameter::PylonCameraParameter() :
                     camera_frame_(""),
                     desired_frame_rate_(-1.0),
                     target_exposure_(3000),
-//                    use_sequencer_(false),
                     param_update_frequency_(50),
                     start_exposure_(2000.0),
                     use_brightness_(false),
                     start_brightness_(128),
                     desired_seq_exp_times_(),
                     mtu_size_(3000)
-{
-}
+{}
 
 PylonCameraParameter::~PylonCameraParameter()
-{
-}
+{}
 
 bool PylonCameraParameter::writeToYamlFile(std::string& yaml_string)
 {
-	ROS_ERROR("PylonCameraParameter::writeToYamlFile() nor yet implemented!");
+	ROS_ERROR("PylonCameraParameter::writeToYamlFile() not yet implemented!");
 	return true;
 }
 bool PylonCameraParameter::readFromYamlFile(const std::string& yaml_string)
 {
-	ROS_ERROR("PylonCameraParameter::readFromYamlFile() nor yet implemented!");
+	ROS_ERROR("PylonCameraParameter::readFromYamlFile() not yet implemented!");
 	return true;
 }
 
