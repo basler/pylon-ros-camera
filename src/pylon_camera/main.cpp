@@ -1,3 +1,11 @@
+/* Copyright 2015 <Magazino GmbH>
+ *
+ * main.cpp
+ *
+ *      Author: debout@magazino.eu
+ *      		grimm@magazino.eu
+ */
+
 #include <ros/ros.h>
 #include <boost/thread.hpp>
 #include <pylon_camera/pylon_camera_node.h>
@@ -8,12 +16,6 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "pylon_camera_node");
 
     pylon_camera::PylonCameraNode pylon_camera_node;
-
-    if (!pylon_camera_node.init())
-    {
-        ROS_ERROR("Error while initializing the pylon node!");
-        ros::shutdown();
-    }
 
     ros::Rate r(pylon_camera_node.desiredFrameRate());
 
@@ -26,12 +28,9 @@ int main(int argc, char **argv)
     while (ros::ok())
     {
         pylon_camera_node.spin();
-        // will now be called from the boost thread
-        // ros::spinOnce();
-        // r.expectedCycleTime().toSec()
         r.sleep();
     }
 
-    ROS_INFO("Terminate pylon node");
+    ROS_INFO("Terminate PylonCameraNode");
     return 0;
 }
