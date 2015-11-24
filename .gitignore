@@ -13,3 +13,4 @@ build
 CATKIN_IGNORE
 *.orig
 *~
+*.idea
