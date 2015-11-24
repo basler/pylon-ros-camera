@@ -77,10 +77,12 @@ catkin_python_setup()
 
 install(DIRECTORY launch/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
+install(DIRECTORY config/
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
 
 file(GLOB py_files "scripts/*")
-install(PROGRAMS ${py_files}
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} )
+catkin_install_python(PROGRAMS ${py_files}
+                      DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} )
 install(
     TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node write_magazino_id_to_camera
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

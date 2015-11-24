@@ -27,7 +27,6 @@ public:
     double target_exposure_;
     int param_update_frequency_;
     double start_exposure_;
-    bool use_brightness_;
     int start_brightness_;
     std::vector<float> desired_seq_exp_times_;
     int mtu_size_;

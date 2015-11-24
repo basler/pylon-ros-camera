@@ -10,7 +10,6 @@ PylonCameraParameter::PylonCameraParameter() :
                     target_exposure_(3000),
                     param_update_frequency_(50),
                     start_exposure_(2000.0),
-                    use_brightness_(false),
                     start_brightness_(128),
                     desired_seq_exp_times_(),
                     mtu_size_(3000)
@@ -48,8 +47,6 @@ bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
 	//  0: AutoExposureOff
 	// > 0: Exposure in micro-seconds
 	nh.param<double>("start_exposure", start_exposure_, 35000.0);
-
-	nh.param<bool>("use_brightness", use_brightness_, false); // Using exposure or brightness
 
 	// -1: AutoExposureContinuous
 	//  0: AutoExposureOff
