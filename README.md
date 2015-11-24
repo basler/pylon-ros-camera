@@ -27,9 +27,15 @@ Installation
 # Using HDR
  - Install OpenCV 3
  - Use these parameters in launch-file:
+
+```
+#!bash
+
 <param name="output_hdr_img" value="true" type="bool" />
 <param name="use_sequencer" value="true" type="bool" />
 <rosparam param="desired_seq_exp_times">[1000, 2000, 3000]</rosparam> <!-- 1000,2000,3000 exposure times for HDR -->
+```
+
 
 
 Usage
