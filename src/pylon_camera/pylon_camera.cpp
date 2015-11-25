@@ -135,7 +135,7 @@ PylonCamera* PylonCamera::create(const std::string& name)
                 {
                     found_desired_device = true;
                     cam_pos = i;
-                    std::cout << "Found the desired Camera with Magazino ID: " << name
+                    std::cout << "Found the desired Camera with DeviceUserId: " << name
                               << ": "
                               << camera_array[cam_pos].GetDeviceInfo().GetModelName()
                               << std::endl;
@@ -150,9 +150,9 @@ PylonCamera* PylonCamera::create(const std::string& name)
 
         if (!found_desired_device)
         {
-            std::cerr << "Maybe the given magazino_cam_id ("
+            std::cerr << "Maybe the given DeviceUserId ("
                       << name
-                      << ") is wrong or has not yet been written to the camera using 'write_magazino_id_to_camera' ?!"
+                      << ") is wrong or has not yet been written to the camera using 'write_device_user_id' ?!"
                       << std::endl;
             return NULL;
         }
@@ -169,7 +169,7 @@ PylonCamera* PylonCamera::create(const std::string& name)
     }
     catch (GenICam::GenericException &e)
     {
-        std::cerr << "An exception while opening the desired camera with Magazino ID: "
+        std::cerr << "An exception while opening the desired camera with DeviceUserId: "
                   << name
                   << " occurred:"
                   << std::endl;

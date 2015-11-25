@@ -87,7 +87,7 @@ bool PylonCameraNode::initAndRegister()
                                                    &PylonCameraNode::setBrightnessCallback,
                                                    this);
 
-    pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.magazino_cam_id_);
+    pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.device_user_id);
 
     if (pylon_camera_ == NULL)
     {

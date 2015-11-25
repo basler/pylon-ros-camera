@@ -2,7 +2,7 @@
 <package>
   <name>pylon_camera</name>
   <version>0.0.1</version>
-  <description>Proprietary Package for the Pylon Camera. Supports DART, USB3 and GigE camera.s</description>
+  <description>Proprietary Package for the Pylon Camera. Supports DART, USB3 and GigE cameras.</description>
 
   <maintainer email="engelhard@magazino.eu">Nikolas Engelhard</maintainer>
 
