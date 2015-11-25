@@ -99,8 +99,13 @@ install(
 #############
 
 add_test(${PROJECT_NAME}_smoke_test           bash -c "(sleep 4 && sleep `rand -M 4` && rosnode kill ${PROJECT_NAME} ) & rosrun ${PROJECT_NAME} pylon_camera_node  __name:=${PROJECT_NAME}")
-
 set_tests_properties(${PROJECT_NAME}_smoke_test        PROPERTIES TIMEOUT 10)
+
+
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+  add_rostest(test/open_random_camera.test)
+endif()
 
 
 

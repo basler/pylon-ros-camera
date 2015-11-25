@@ -10,25 +10,25 @@ PylonCameraNode::PylonCameraNode() :
         pylon_camera_(NULL),
         pylon_camera_parameter_set_(),
         it_(new image_transport::ImageTransport(nh_)),
-		img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
+        img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
         grab_images_raw_action_server_(nh_, "grab_images_raw", boost::bind(&PylonCameraNode::grabImagesRawActionExecuteCB, this, _1), false),
-		set_sleeping_service_(nh_.advertiseService("set_sleeping_srv", &PylonCameraNode::setSleepingCallback, this)),
+        set_sleeping_service_(nh_.advertiseService("set_sleeping_srv", &PylonCameraNode::setSleepingCallback, this)),
         target_brightness_(-42),
         brightness_service_running_(false),
         is_sleeping_(false)
 {
-	init();
+    init();
 }
 
 bool PylonCameraNode::init()
 {
-	// Set parameter to open the desired camera
-	if(!pylon_camera_parameter_set_.readFromRosParameterServer(nh_))
-	{
-		ROS_ERROR("Error reading PylonCameraParameterSet from ROS-Parameter-Server");
-		ros::shutdown();
-		return false;
-	}
+    // Set parameter to open the desired camera
+    if(!pylon_camera_parameter_set_.readFromRosParameterServer(nh_))
+    {
+        ROS_ERROR("Error reading PylonCameraParameterSet from ROS-Parameter-Server");
+        ros::shutdown();
+        return false;
+    }
 
     if (!initAndRegister())
     {
@@ -45,7 +45,7 @@ bool PylonCameraNode::init()
 }
 void PylonCameraNode::spin()
 {
-	// images were published if subscribers are available or if someone calls the GrabImages Action
+    // images were published if subscribers are available or if someone calls the GrabImages Action
     if (getNumSubscribers() > 0 && ! is_sleeping())
     {
         try
@@ -65,7 +65,7 @@ void PylonCameraNode::spin()
 
 const double& PylonCameraNode::desiredFrameRate() const
 {
-	return pylon_camera_parameter_set_.desired_frame_rate_;
+    return pylon_camera_parameter_set_.desired_frame_rate_;
 }
 
 uint32_t PylonCameraNode::getNumSubscribers() const
@@ -80,12 +80,12 @@ void PylonCameraNode::checkForPylonAutoFunctionRunning()
 
 bool PylonCameraNode::initAndRegister()
 {
-	set_exposure_service_ = nh_.advertiseService("set_exposure_srv",
-												 &PylonCameraNode::setExposureCallback,
-												 this);
+    set_exposure_service_ = nh_.advertiseService("set_exposure_srv",
+                                                 &PylonCameraNode::setExposureCallback,
+                                                 this);
     set_brightness_service_ = nh_.advertiseService("set_brightness_srv",
-    											   &PylonCameraNode::setBrightnessCallback,
-    											   this);
+                                                   &PylonCameraNode::setBrightnessCallback,
+                                                   this);
 
     pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.magazino_cam_id_);
 
@@ -195,7 +195,7 @@ bool PylonCameraNode::grabSequence()
         }
         if (i == mid && success)
         {
-        	img_raw_msg_.data = tmp_image;
+            img_raw_msg_.data = tmp_image;
             img_raw_msg_.header.stamp = ros::Time::now();
         }
     }
@@ -218,16 +218,16 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
     result.success = true;
     for (std::size_t i = 0; i < goal->target_values.size(); ++i)
     {
-    	// setGain(goal->gain);
-    	// setGamma(goal->gamma);
-    	if(goal->target_type == goal->EXPOSURE) {
-    		setExposure(goal->target_values[i], result.reached_values[i]);
-    	}
-    	if(goal->target_type == goal->BRIGHTNESS) {
-    		int reached_val;
-    		setBrightness(goal->target_values[i], reached_val);
-    		result.reached_values[i] = (float)reached_val;
-    	}
+        // setGain(goal->gain);
+        // setGamma(goal->gamma);
+        if(goal->target_type == goal->EXPOSURE) {
+            setExposure(goal->target_values[i], result.reached_values[i]);
+        }
+        if(goal->target_type == goal->BRIGHTNESS) {
+            int reached_val;
+            setBrightness(goal->target_values[i], reached_val);
+            result.reached_values[i] = (float)reached_val;
+        }
 
         sensor_msgs::Image& img = result.images[i];
         img.encoding = pylon_camera_->imageEncoding();
@@ -255,121 +255,121 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
 
 bool PylonCameraNode::setExposure(const float& target_exposure, float& reached_exposure)
 {
-	if (!pylon_camera_->isReady())
-	{
-		ROS_WARN("Error in setExposure(): pylon_camera_ is not ready!");
-		return false;
-	}
+    if (!pylon_camera_->isReady())
+    {
+        ROS_WARN("Error in setExposure(): pylon_camera_ is not ready!");
+        return false;
+    }
 
-	reached_exposure = getCurrentExposure();
+    reached_exposure = getCurrentExposure();
 
-	if (reached_exposure != target_exposure)
-	{
-		pylon_camera_->setExposure(target_exposure);
-	}
+    if (reached_exposure != target_exposure)
+    {
+        pylon_camera_->setExposure(target_exposure);
+    }
 
-	// wait for max 5s till the cam has updated the exposure
-	ros::Rate r(10.0);
-	ros::Time start = ros::Time::now();
-	while (ros::ok())
-	{
-		reached_exposure = getCurrentExposure();
+    // wait for max 5s till the cam has updated the exposure
+    ros::Rate r(10.0);
+    ros::Time start = ros::Time::now();
+    while (ros::ok())
+    {
+        reached_exposure = getCurrentExposure();
 
-		bool success = fabs(reached_exposure - target_exposure) < pylon_camera_->exposureStep();
+        bool success = fabs(reached_exposure - target_exposure) < pylon_camera_->exposureStep();
 
-		if(success)
-		{
-			return true;
-		}
+        if(success)
+        {
+            return true;
+        }
 
-		if (ros::Time::now() - start > ros::Duration(5.0))
-		{
-			ROS_ERROR("Error in setExposure(): Did not reach the desired brightness in time");
-			return false;
-	    }
-		r.sleep();
-	}
-	return true;
+        if (ros::Time::now() - start > ros::Duration(5.0))
+        {
+            ROS_ERROR("Error in setExposure(): Did not reach the desired brightness in time");
+            return false;
+        }
+        r.sleep();
+    }
+    return true;
 }
 
 bool PylonCameraNode::setExposureCallback(camera_control_msgs::SetExposureSrv::Request &req,
-										  camera_control_msgs::SetExposureSrv::Response &res)
+                                          camera_control_msgs::SetExposureSrv::Response &res)
 {
-	res.success = setExposure(req.target_exposure, res.reached_exposure);
-	return true;
+    res.success = setExposure(req.target_exposure, res.reached_exposure);
+    return true;
 }
 
 bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_brightness)
 {
-	// Brightness Service can only work, if an image has already been grabbed (calc mean on current img)
-	if (!pylon_camera_->isReady())
-	{
-		ros::Rate r(2.0);
-		ros::Time start = ros::Time::now();
-		while (ros::ok() && !pylon_camera_->isReady())
-		{
-			if (ros::Time::now() - start > ros::Duration(3.0))
-			{
-				ROS_ERROR("Pylon Interface has not yet grabbed an image, although waiting for 3 seconds!");
-				return false;
-	        }
-			ros::spinOnce();
-			r.sleep();
-		}
-	}
+    // Brightness Service can only work, if an image has already been grabbed (calc mean on current img)
+    if (!pylon_camera_->isReady())
+    {
+        ros::Rate r(2.0);
+        ros::Time start = ros::Time::now();
+        while (ros::ok() && !pylon_camera_->isReady())
+        {
+            if (ros::Time::now() - start > ros::Duration(3.0))
+            {
+                ROS_ERROR("Pylon Interface has not yet grabbed an image, although waiting for 3 seconds!");
+                return false;
+            }
+            ros::spinOnce();
+            r.sleep();
+        }
+    }
 
-	// Get actual image
-	ros::spinOnce();
+    // Get actual image
+    ros::spinOnce();
 
-	int current_brightness = calcCurrentBrightness();
-	ROS_INFO("New brightness request for brightness %i, current brightness = %i",
-			target_brightness,
-			current_brightness);
+    int current_brightness = calcCurrentBrightness();
+    ROS_INFO("New brightness request for brightness %i, current brightness = %i",
+            target_brightness,
+            current_brightness);
 
-	target_brightness_ = target_brightness;
-	brightness_service_running_ = true;
+    target_brightness_ = target_brightness;
+    brightness_service_running_ = true;
 
-	if (current_brightness != target_brightness_)
-	{
-		pylon_camera_->setBrightness(target_brightness_);
-	}
-	else
-	{
-		return true;
-	}
+    if (current_brightness != target_brightness_)
+    {
+        pylon_camera_->setBrightness(target_brightness_);
+    }
+    else
+    {
+        return true;
+    }
 
-	ros::Duration duration;
-	if (target_brightness_ > 205)
-	{
-		// Need more time for great exposure values
-		duration = ros::Duration(15.0);
-	}
-	else
-	{
-		duration = ros::Duration(5.0);
-	}
-	ros::Rate r(5.0);
-	ros::Time start = ros::Time::now();
-	while (ros::ok() && brightness_service_running_)
-	{
-		if (ros::Time::now() - start > duration)
-		{
-			ROS_ERROR("Did not reach the required brightness in time");
-			brightness_service_running_ = false;
-			return false;
-		}
-		ros::spinOnce();
-		r.sleep();
-	}
-	reached_brightness = calcCurrentBrightness();
-	return brightnessValidation(target_brightness);
+    ros::Duration duration;
+    if (target_brightness_ > 205)
+    {
+        // Need more time for great exposure values
+        duration = ros::Duration(15.0);
+    }
+    else
+    {
+        duration = ros::Duration(5.0);
+    }
+    ros::Rate r(5.0);
+    ros::Time start = ros::Time::now();
+    while (ros::ok() && brightness_service_running_)
+    {
+        if (ros::Time::now() - start > duration)
+        {
+            ROS_ERROR("Did not reach the required brightness in time");
+            brightness_service_running_ = false;
+            return false;
+        }
+        ros::spinOnce();
+        r.sleep();
+    }
+    reached_brightness = calcCurrentBrightness();
+    return brightnessValidation(target_brightness);
 }
 
 bool PylonCameraNode::setBrightnessCallback(camera_control_msgs::SetBrightnessSrv::Request &req,
     camera_control_msgs::SetBrightnessSrv::Response &res)
 {
-	res.success = setBrightness(req.target_brightness, res.reached_brightness);
-	return true;
+    res.success = setBrightness(req.target_brightness, res.reached_brightness);
+    return true;
 }
 
 bool PylonCameraNode::brightnessValidation(int target)
