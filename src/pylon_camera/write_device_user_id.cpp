@@ -24,7 +24,6 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-
     std::string camera_name((char *)argv[1]);
 
     // Automagically call PylonInitialize and PylonTerminate to ensure the pylon runtime system
@@ -32,14 +31,11 @@ int main(int argc, char* argv[])
     Pylon::PylonAutoInitTerm auto_init_term;
     try
     {
-        CDeviceInfo di;
-
-
         // Create an instant camera object with the camera device found first.
+        CDeviceInfo di;
         CInstantCamera camera(CTlFactory::GetInstance().CreateFirstDevice(di));
 
         camera.Open();
-
         while (!camera.IsOpen())
         {
             usleep(1000);
