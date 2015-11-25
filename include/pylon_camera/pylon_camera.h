@@ -84,7 +84,6 @@ public:
     virtual bool setExposure(const double& exposure) = 0;
 
     /**
-     *
      * Sets the target brightness
      * Setting the exposure time to -1 enables the AutoExposureContinuous mode.
      * Setting the exposure time to  0 disables the AutoExposure function.
@@ -140,8 +139,8 @@ public:
     virtual std::string typeName() const = 0;
 
     /**
-     * TODO
-     * @return
+     * Minimum possible increment between two possible exposure values
+     * @return the minimum possible increment between two possible exposure values
      */
     virtual float exposureStep() = 0;
 
@@ -193,6 +192,9 @@ public:
      */
     const std::vector<float>& sequencerExposureTimes() const;
 
+    /**
+     * Parameters for the extended brightness search
+     */
     ExposureSearchParameter exp_search_params_;
 
 protected:

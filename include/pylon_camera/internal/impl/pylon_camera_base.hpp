@@ -126,10 +126,10 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
 
         max_framerate_ = resultingFrameRate().GetValue();
 
-        //grab one image to be sure, that the desired exposure is set for the first image being sent
+        // grab one image to be sure, that the desired exposure is set for the first image being sent
         Pylon::CGrabResultPtr grab_result;
         grab(grab_result);
-        if(grab_result.IsValid())
+        if (grab_result.IsValid())
         {
             is_ready_ = true;
         }
