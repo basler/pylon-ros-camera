@@ -99,7 +99,7 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         img_cols_ = static_cast<int>(cam_->Width.GetValue());
         image_encoding_ = cam_->PixelFormat.GetValue();
         image_pixel_depth_ = cam_->PixelSize.GetValue();
-        img_size_byte_ =  img_cols_ * img_rows_ * image_pixel_depth_;
+        img_size_byte_ =  img_cols_ * img_rows_ * imagePixelDepth();
         has_auto_exposure_ = GenApi::IsAvailable(cam_->ExposureAuto);
 
         if (image_encoding_ != PixelFormatEnums::PixelFormat_Mono8)
