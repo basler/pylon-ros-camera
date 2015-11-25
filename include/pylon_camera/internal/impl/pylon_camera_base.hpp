@@ -136,14 +136,12 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         	// WaitForFrameTriggerReady to prevent trigger signal to get lost
         	// this could happen, if 2xExecuteSoftwareTrigger() is only followed by 1xgrabResult()
         	// -> 2nd trigger might get lost
-            if (cam_->WaitForFrameTriggerReady((int)timeout, Pylon::TimeoutHandling_ThrowException))
-            {
-                cam_->ExecuteSoftwareTrigger();
-            }
-            if(!is_ready_)
-            {
+		
+		//grab one image to be sure, that the desired exposure is set for the first image being sent
+		Pylon::CGrabResultPtr grab_result;
+            	grab(grab_result);
+                
             	is_ready_ = true;
-            }
         }
         catch (const GenICam::GenericException &e)
         {
@@ -206,27 +204,22 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
     	// BaslerDebugDay: hard coded timeout of 5s makes most sense for all applications
     	float timeout = 5000; // ms -> 5s timeout
 
+        // WaitForFrameTriggerReady to prevent trigger signal to get lost
+        // this could happen, if 2xExecuteSoftwareTrigger() is only followed by 1xgrabResult()
+        // -> 2nd trigger might get lost
         if (cam_->WaitForFrameTriggerReady((int)timeout, Pylon::TimeoutHandling_ThrowException))
         {
             cam_->ExecuteSoftwareTrigger();
         }
         else
         {
-            	std::cout << "ERROR GRABBING" << std::endl;
+            	std::cerr << "Error WaitForFrameTriggerReady() timed out, impossible to ExecuteSoftwareTrigger()" << std::endl;
 		return false;
         }
 
-        //if (cam_->GetGrabResultWaitObject().Wait((int)timeout))
-        //{
-std::cout << "retrieve" << std::endl;
-            cam_->RetrieveResult((int)timeout,
-                                 grab_result,
-                                 Pylon::TimeoutHandling_ThrowException);
-        //}
-        //else
-        //{
-        //    return false;
-        //}
+        cam_->RetrieveResult((int)timeout,
+                             grab_result,
+                             Pylon::TimeoutHandling_ThrowException);
     }
     catch (const GenICam::GenericException &e)
     {
