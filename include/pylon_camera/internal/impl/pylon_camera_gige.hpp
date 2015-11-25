@@ -49,7 +49,7 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
         // raise inter-package delay (GevSCPD) for solving error: 'the image buffer was incompletely grabbed'
         // also in ubuntu settings -> network -> options -> MTU Size from 'automatic' to 3000 if card supports it
         // Raspberry PI has MTU = 1500, max value for some cards: 9000
-        cam_->GevSCPSPacketSize.SetValue(params.mtu_size_);
+        cam_->GevSCPSPacketSize.SetValue(1500);
 
         // http://www.baslerweb.com/media/documents/AW00064902000%20Control%20Packet%20Timing%20With%20Delays.pdf
         // inter package delay in ticks (? -> mathi said in nanosec) -> prevent lost frames
@@ -57,7 +57,7 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
 		// int n_cams = 1;
 		// int inter_package_delay_in_ticks = n_cams * imageSize() * 1.05;
 		// std::cout << "Inter-Package Delay" << inter_package_delay_in_ticks << std::endl;
-        cam_->GevSCPD.SetValue(1000);
+        cam_->GevSCPD.SetValue(11772);
     }
     catch (const GenICam::GenericException &e)
     {

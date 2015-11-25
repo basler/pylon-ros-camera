@@ -206,17 +206,19 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
     	// BaslerDebugDay: hard coded timeout of 5s makes most sense for all applications
     	float timeout = 5000; // ms -> 5s timeout
 
-        //if (cam_->WaitForFrameTriggerReady((int)timeout, Pylon::TimeoutHandling_ThrowException))
-        //{
+        if (cam_->WaitForFrameTriggerReady((int)timeout, Pylon::TimeoutHandling_ThrowException))
+        {
             cam_->ExecuteSoftwareTrigger();
-        //}
-        //else
-        //{
-        //    return false;
-        //}
+        }
+        else
+        {
+            	std::cout << "ERROR GRABBING" << std::endl;
+		return false;
+        }
 
         //if (cam_->GetGrabResultWaitObject().Wait((int)timeout))
         //{
+std::cout << "retrieve" << std::endl;
             cam_->RetrieveResult((int)timeout,
                                  grab_result,
                                  Pylon::TimeoutHandling_ThrowException);
