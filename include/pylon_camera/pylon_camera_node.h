@@ -59,7 +59,7 @@ protected:
     bool startGrabbing();
 
     /**
-     * Returns the total number of subscribers on any adverties image topic.
+     * Returns the total number of subscribers on any advertised image topic.
      */
     uint32_t getNumSubscribers() const;
 
@@ -122,7 +122,7 @@ protected:
      * Returns true if the camera was put into sleep mode
      * @return true if in sleep mode
      */
-    bool is_sleeping();
+    bool isSleeping();
 
     /**
      * Checks if the auto brightness function is running

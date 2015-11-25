@@ -157,7 +157,7 @@ bool PylonCameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image)
         return false;
     }
 
-    const uint8_t *pImageBuffer = reinterpret_cast<uint8_t *>(ptr_grab_result->GetBuffer());
+    const uint8_t *pImageBuffer = reinterpret_cast<uint8_t*>(ptr_grab_result->GetBuffer());
     image = std::vector<uint8_t>(pImageBuffer, pImageBuffer + img_size_byte_);
 
     if (!is_ready_)

@@ -52,7 +52,7 @@ bool PylonCameraNode::init()
 void PylonCameraNode::spin()
 {
     // images were published if subscribers are available or if someone calls the GrabImages Action
-    if (getNumSubscribers() > 0 && !is_sleeping())
+    if (getNumSubscribers() > 0 && !isSleeping())
     {
         try
         {
@@ -423,7 +423,7 @@ bool PylonCameraNode::setSleepingCallback(camera_control_msgs::SetSleepingSrv::R
     return true;
 }
 
-bool PylonCameraNode::is_sleeping()
+bool PylonCameraNode::isSleeping()
 {
     return is_sleeping_;
 }
