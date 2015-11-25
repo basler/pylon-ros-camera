@@ -133,15 +133,17 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         	// BaslerDebugDay: hard coded timeout of 5s makes most sense for all applications
         	float timeout = 5000; // ms -> 5s timeout
 
-        	// WaitForFrameTriggerReady to prevent trigger signal to get lost
-        	// this could happen, if 2xExecuteSoftwareTrigger() is only followed by 1xgrabResult()
-        	// -> 2nd trigger might get lost
-		
-		//grab one image to be sure, that the desired exposure is set for the first image being sent
-		Pylon::CGrabResultPtr grab_result;
-            	grab(grab_result);
-                
-            	is_ready_ = true;
+        	//grab one image to be sure, that the desired exposure is set for the first image being sent
+        	Pylon::CGrabResultPtr grab_result;
+        	grab(grab_result);
+        	if(grab_result.IsValid())
+        	{
+        		is_ready_ = true;
+        	}
+        	else
+        	{
+        		std::cerr << "PylonCamera not ready because the result of the inital grab is invalid" << std::endl;
+        	}
         }
         catch (const GenICam::GenericException &e)
         {
