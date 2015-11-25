@@ -1,5 +1,9 @@
+// Copyright 2015 <Magazino GmbH>
 #ifndef PYLON_CAMERA_INTERNAL_GIGE_H_
 #define PYLON_CAMERA_INTERNAL_GIGE_H_
+
+#include <string>
+#include <vector>
 
 #include <pylon_camera/internal/pylon_camera.h>
 
@@ -34,7 +38,7 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
                                     Pylon::RegistrationMode_ReplaceAll,
                                     Pylon::Cleanup_Delete);
 
-        // Dasler-Debug Day:  Read- & Write Retry-Counter should stay default (=2)
+        // Basler-Debug Day:  Read- & Write Retry-Counter should stay default (=2)
         // Linux does only support 1
         cam_->Open();
 
@@ -54,9 +58,8 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
         // http://www.baslerweb.com/media/documents/AW00064902000%20Control%20Packet%20Timing%20With%20Delays.pdf
         // inter package delay in ticks (? -> mathi said in nanosec) -> prevent lost frames
         // package size * n_cams + 5% overhead = inter package size
-		// int n_cams = 1;
-		// int inter_package_delay_in_ticks = n_cams * imageSize() * 1.05;
-		// std::cout << "Inter-Package Delay" << inter_package_delay_in_ticks << std::endl;
+        // int n_cams = 1;
+        // int inter_package_delay_in_ticks = n_cams * imageSize() * 1.05;
         cam_->GevSCPD.SetValue(1000);
     }
     catch (const GenICam::GenericException &e)
@@ -129,6 +132,6 @@ std::string PylonGigECamera::typeName() const
     return "GigE";
 }
 
-}
+}  // namespace pylon_camera
 
-#endif
+#endif  // PYLON_CAMERA_INTERNAL_GIGE_H_

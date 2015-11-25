@@ -1,5 +1,9 @@
+// Copyright 2015 <Magazino GmbH>
 #ifndef PYLON_CAMERA_INTERNAL_USB_H_
 #define PYLON_CAMERA_INTERNAL_USB_H_
+
+#include <string>
+#include <vector>
 
 #include <pylon_camera/internal/pylon_camera.h>
 
@@ -56,11 +60,12 @@ bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times, st
 {
     try
     {
-    	// Runtime Sequencer: cam_->IsGrabbing() ? cam_->StopGrabbing(); //10ms
+        // Runtime Sequencer: cam_->IsGrabbing() ? cam_->StopGrabbing(); //10ms
         if (GenApi::IsWritable(cam_->SequencerMode))
         {
             cam_->SequencerMode.SetValue(Basler_UsbCameraParams::SequencerMode_Off);
-        } else
+        }
+        else
         {
             std::cerr << "Sequencer Mode not writable" << std::endl;
         }
@@ -86,7 +91,7 @@ bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times, st
                 cam_->SequencerSetSelector.SetValue(i);
             }
 
-            if (i == exposure_times.size() - 1) // last frame
+            if (i == exposure_times.size() - 1)  // last frame
             {
                 cam_->SequencerSetNext.SetValue(0);
             }
@@ -137,6 +142,6 @@ std::string PylonUSBCamera::typeName() const
     return "USB";
 }
 
-}
+}  // namespace pylon_camera
 
-#endif
+#endif  // PYLON_CAMERA_INTERNAL_USB_H_

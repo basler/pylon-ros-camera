@@ -18,7 +18,25 @@ endif()
 
 find_package(
     catkin REQUIRED
-    COMPONENTS ${CATKIN_COMPONENTS}
+    COMPONENTS ${CATKIN_COMPONENTS} roslint
+)
+set(ROSLINT_CPP_OPTS "--extensions=cpp,h,hpp" "--filter=-runtime/references,-readability/todo")
+roslint_cpp(
+    src/${PROJECT_NAME}/exposure_search_parameter.cpp
+    src/${PROJECT_NAME}/main.cpp
+    src/${PROJECT_NAME}/pylon_camera_node.cpp
+    src/${PROJECT_NAME}/pylon_camera_parameter.cpp
+    src/${PROJECT_NAME}/pylon_camera.cpp
+    src/${PROJECT_NAME}/write_magazino_id_to_camera.cpp
+    include/${PROJECT_NAME}/exposure_search_parameter.h
+    include/${PROJECT_NAME}/pylon_camera_node.h
+    include/${PROJECT_NAME}/pylon_camera_parameter.h
+    include/${PROJECT_NAME}/pylon_camera.h
+    include/${PROJECT_NAME}/internal/pylon_camera.h
+    include/${PROJECT_NAME}/internal/impl/pylon_camera_base.hpp
+    include/${PROJECT_NAME}/internal/impl/pylon_camera_dart.hpp
+    include/${PROJECT_NAME}/internal/impl/pylon_camera_gige.hpp
+    include/${PROJECT_NAME}/internal/impl/pylon_camera_usb.hpp
 )
 
 include_directories(

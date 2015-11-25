@@ -1,5 +1,6 @@
-#ifndef PYLON_CAMERA_NODE_H_
-#define PYLON_CAMERA_NODE_H_
+// Copyright 2015 <Magazino GmbH>
+#ifndef PYLON_CAMERA_PYLON_CAMERA_NODE_H
+#define PYLON_CAMERA_PYLON_CAMERA_NODE_H
 
 #include <boost/thread.hpp>
 
@@ -27,34 +28,130 @@ public:
     PylonCameraNode();
     virtual ~PylonCameraNode();
 
+    /**
+     * initialize the camera and the ros node.
+     * @return false if an error occurred.
+     */
     bool init();
+
+    /**
+     * spin the node
+     */
     virtual void spin();
+
+    /**
+     * Getter for the desired frame rate.
+     * @return the desired frame rate.
+     */
     const double& desiredFrameRate() const;
 
 protected:
-
+    /**
+     * Creates the camera instance and starts the services and action servers.
+     * @return false if an error occurred
+     */
     bool initAndRegister();
+
+    /**
+     * Start the camera and initialize the messages
+     * @return
+     */
     bool startGrabbing();
-    void updateAquisitionSettings();
+
+    /**
+     * Returns the total number of subscribers on any adverties image topic.
+     */
     uint32_t getNumSubscribers() const;
+
+    /**
+     * Grabs an image and stores the image in img_raw_msg_
+     * @return false if an error occurred.
+     */
     virtual bool grabImage();
+
+    /**
+     * Grabs an image sequence
+     * @return
+     */
     virtual bool grabSequence();
 
+    /**
+     * Update the exposure value on the camera
+     * @param target_exposure the targeted exposure
+     * @param reached_exposure the exposure that could be reached
+     * @return true if the targeted exposure could be reached
+     */
     bool setExposure(const float& target_exposure, float& reached_exposure);
+
+    /**
+     * Service callback for setting the exposure
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
     bool setExposureCallback(camera_control_msgs::SetExposureSrv::Request &req,
                              camera_control_msgs::SetExposureSrv::Response &res);
+
+    /**
+     * Set the target brightness value on the camera
+     * @param target_brightness
+     * @param reached_brightness
+     * @return true on success
+     */
     bool setBrightness(const int& target_brightness, int& reached_brightness);
+
+    /**
+     * Service callback for setting the brightness
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
     bool setBrightnessCallback(camera_control_msgs::SetBrightnessSrv::Request &req,
                                camera_control_msgs::SetBrightnessSrv::Response &res);
+
+    /**
+     * Callback that puts the camera to sleep
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
     bool setSleepingCallback(camera_control_msgs::SetSleepingSrv::Request &req,
                              camera_control_msgs::SetSleepingSrv::Response &res);
+
+    /**
+     * Returns true if the camera was put into sleep mode
+     * @return true if in sleep mode
+     */
     bool is_sleeping();
+
+    /**
+     * Checks if the auto brightness function is running
+     */
     void checkForPylonAutoFunctionRunning();
 
+    /**
+     * Check if the current brightness and the target brightness are similiar
+     * @param target
+     * @return
+     */
     virtual bool brightnessValidation(int target);
+
+    /**
+     * Calculates the mean brightness of the image
+     * @return the mean brightness of the image
+     */
     virtual int calcCurrentBrightness();
+
+    /**
+     * Getter for the current exposure
+     * @return the current exposure
+     */
     virtual float getCurrentExposure();
 
+    /**
+     * Callback for the grab images action
+     * @param goal the goal
+     */
     void grabImagesRawActionExecuteCB(const camera_control_msgs::GrabImagesGoal::ConstPtr& goal);
 
     ros::NodeHandle nh_;
@@ -78,9 +175,8 @@ protected:
     int target_brightness_;
     bool is_sleeping_;
     boost::recursive_mutex grab_mutex_;
-
 };
 
-}
+}  // namespace pylon_camera
 
-#endif
+#endif  // PYLON_CAMERA_PYLON_CAMERA_NODE_H

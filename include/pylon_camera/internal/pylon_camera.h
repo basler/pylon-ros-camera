@@ -1,11 +1,14 @@
-#ifndef PYLON_CAMERA_INTERNAL_H_
-#define PYLON_CAMERA_INTERNAL_H_
+// Copyright 2015 <Magazino GmbH>
+#ifndef PYLON_CAMERA_INTERNAL_PYLON_CAMERA_H
+#define PYLON_CAMERA_INTERNAL_PYLON_CAMERA_H
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #pragma GCC diagnostic ignored "-Wliteral-suffix"
 
 #include <pylon/PylonIncludes.h>
 #include <GenApi/IEnumEntry.h>
+#include <string>
+#include <vector>
 
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/pylon_camera.h>
@@ -17,8 +20,7 @@ template <typename CameraTraitT>
 class PylonCameraImpl : public PylonCamera
 {
 public:
-
-    PylonCameraImpl(Pylon::IPylonDevice* device);
+    explicit PylonCameraImpl(Pylon::IPylonDevice* device);
 
     virtual ~PylonCameraImpl();
 
@@ -75,11 +77,11 @@ protected:
     PixelSizeEnums image_pixel_depth_;
 };
 
-}
+}  // namespace pylon_camera
 
 #include <pylon_camera/internal/impl/pylon_camera_base.hpp>
 #include <pylon_camera/internal/impl/pylon_camera_usb.hpp>
 #include <pylon_camera/internal/impl/pylon_camera_dart.hpp>
 #include <pylon_camera/internal/impl/pylon_camera_gige.hpp>
 
-#endif
+#endif  // PYLON_CAMERA_INTERNAL_PYLON_CAMERA_H

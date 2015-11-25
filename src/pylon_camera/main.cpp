@@ -3,7 +3,7 @@
  * main.cpp
  *
  *      Author: debout@magazino.eu
- *      		grimm@magazino.eu
+ *              grimm@magazino.eu
  */
 
 #include <ros/ros.h>
@@ -13,7 +13,7 @@
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "pylon_camera_node");
+    ros::init(argc, argv, "pylon_camera_node");
 
     pylon_camera::PylonCameraNode pylon_camera_node;
 

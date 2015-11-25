@@ -1,5 +1,9 @@
+// Copyright 2015 <Magazino GmbH>
 #ifndef PYLON_CAMERA_INTERNAL_DART_H_
 #define PYLON_CAMERA_INTERNAL_DART_H_
+
+#include <string>
+#include <vector>
 
 #include <pylon_camera/internal/impl/pylon_camera_usb.hpp>
 
@@ -9,7 +13,7 @@ namespace pylon_camera
 class PylonDARTCamera : public PylonUSBCamera
 {
 public:
-    PylonDARTCamera(Pylon::IPylonDevice* device);
+    explicit PylonDARTCamera(Pylon::IPylonDevice* device);
     virtual ~PylonDARTCamera();
 
     virtual std::string typeName() const;
@@ -17,11 +21,9 @@ public:
     virtual bool registerCameraConfiguration(const PylonCameraParameter& params);
 
 protected:
-
     virtual bool setupSequencer(const std::vector<float>& exposure_times, std::vector<float>& exposure_times_set);
 
     virtual bool grab(Pylon::CGrabResultPtr& grab_result);
-
 };
 
 PylonDARTCamera::PylonDARTCamera(Pylon::IPylonDevice* device) :
@@ -46,7 +48,7 @@ bool PylonDARTCamera::registerCameraConfiguration(const PylonCameraParameter& pa
         }
         catch (const GenICam::GenericException &e)
         {
-            std::cerr << e.GetDescription() << std::endl;
+            ROS_ERROR(e.GetDescription());
             return false;
         }
     }
@@ -55,7 +57,7 @@ bool PylonDARTCamera::registerCameraConfiguration(const PylonCameraParameter& pa
 
 bool PylonDARTCamera::setupSequencer(const std::vector<float>& exposure_times, std::vector<float>& exposure_times_set)
 {
-    std::cerr << "SEQUENCER FOR DART CAMERAS NOT YET IMPLEMENTED!!!" << std::endl;
+    ROS_ERROR("SEQUENCER FOR DART CAMERAS NOT YET IMPLEMENTED!!!");
     return false;
 }
 
@@ -66,10 +68,8 @@ bool PylonDARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
         // /!\ The dart camera device does not support waiting for frame trigger ready
         cam_->ExecuteSoftwareTrigger();
 
-    	// BaslerDebugDay: hard coded timeout of 5s makes most sense for all applications
-    	float timeout = 5000; // ms -> 5s timeout
-
-        cam_->RetrieveResult((int)timeout,
+        // BaslerDebugDay: hard coded timeout of 5s makes most sense for all applications
+        cam_->RetrieveResult(5000,  // ms
                              grab_result,
                              Pylon::TimeoutHandling_ThrowException);
         return true;
@@ -82,8 +82,7 @@ bool PylonDARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
         }
         else
         {
-            std::cerr << "An image grabbing exception in pylon camera occurred: " << e.GetDescription()
-                      << std::endl;
+            ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: " << e.GetDescription());
         }
     }
     return false;
@@ -94,6 +93,6 @@ std::string PylonDARTCamera::typeName() const
     return "DART";
 }
 
-}
+}  // namespace pylon_camera
 
-#endif
+#endif  // PYLON_CAMERA_INTERNAL_DART_H_
