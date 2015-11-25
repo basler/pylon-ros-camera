@@ -53,11 +53,6 @@ public:
     double start_exposure_;
 
     /**
-     * The desired exposure times if in sequencer mode
-     */
-    std::vector<float> desired_seq_exp_times_;
-
-    /**
      * the MTU size. Only used for GigE cameras.
      */
     int mtu_size_;

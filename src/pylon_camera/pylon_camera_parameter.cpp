@@ -12,7 +12,6 @@ PylonCameraParameter::PylonCameraParameter() :
         desired_frame_rate_(-1.),
         target_exposure_(3000),
         start_exposure_(2000.0),
-        desired_seq_exp_times_(),
         mtu_size_(3000)
 {
 }
@@ -32,8 +31,6 @@ bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
     //  0: AutoExposureOff
     // > 0: Exposure in micro-seconds
     nh.param<double>("start_exposure", start_exposure_, 35000.0);
-
-    nh.getParam("desired_seq_exp_times", desired_seq_exp_times_);
 
     return validateParameterSet(nh);
 }

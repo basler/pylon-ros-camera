@@ -177,42 +177,6 @@ bool PylonCameraNode::grabImage()
     return true;
 }
 
-bool PylonCameraNode::grabSequence()
-{
-    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-    bool success = true;
-    std::size_t mid = pylon_camera_parameter_set_.desired_seq_exp_times_.size() / 2;
-    std::vector<uint8_t> tmp_image;
-    for (std::size_t i = 0; i < pylon_camera_parameter_set_.desired_seq_exp_times_.size(); ++i)
-    {
-        if (!(pylon_camera_->grab(tmp_image)))
-        {
-            if (pylon_camera_->isCamRemoved())
-            {
-                ROS_ERROR("Pylon Camera has been removed!");
-                ros::shutdown();
-            }
-            else
-            {
-                ROS_INFO("Pylon Interface returned NULL-Pointer!");
-            }
-            success = false;
-        }
-        if (i == mid && success)
-        {
-            img_raw_msg_.data = tmp_image;
-            img_raw_msg_.header.stamp = ros::Time::now();
-        }
-    }
-    if (!success)
-    {
-        return false;
-    }
-
-    cam_info_msg_.header.stamp = img_raw_msg_.header.stamp;
-    return true;
-}
-
 void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::GrabImagesGoal::ConstPtr& goal)
 {
     camera_control_msgs::GrabImagesResult result;
@@ -264,6 +228,7 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
 
 bool PylonCameraNode::setExposure(const float& target_exposure, float& reached_exposure)
 {
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     if (!pylon_camera_->isReady())
     {
         ROS_WARN("Error in setExposure(): pylon_camera_ is not ready!");
@@ -331,6 +296,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
     ros::spinOnce();
 
     int current_brightness = calcCurrentBrightness();
+
     ROS_INFO("New brightness request for brightness %i, current brightness = %i",
             target_brightness,
             current_brightness);
@@ -340,6 +306,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
 
     if (current_brightness != target_brightness_)
     {
+        boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
         pylon_camera_->setBrightness(target_brightness_);
     }
     else
@@ -370,7 +337,9 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
         ros::spinOnce();
         r.sleep();
     }
+
     reached_brightness = calcCurrentBrightness();
+
     return brightnessValidation(target_brightness);
 }
 

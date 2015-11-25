@@ -70,12 +70,6 @@ protected:
     virtual bool grabImage();
 
     /**
-     * Grabs an image sequence
-     * @return
-     */
-    virtual bool grabSequence();
-
-    /**
      * Update the exposure value on the camera
      * @param target_exposure the targeted exposure
      * @param reached_exposure the exposure that could be reached

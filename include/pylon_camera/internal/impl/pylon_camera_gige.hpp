@@ -64,7 +64,7 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
     }
     catch (const GenICam::GenericException &e)
     {
-        std::cerr << e.GetDescription() << std::endl;
+        ROS_ERROR(e.GetDescription());
         return false;
     }
     return true;
@@ -81,7 +81,7 @@ bool PylonGigECamera::setupSequencer(const std::vector<float>& exposure_times, s
         }
         else
         {
-            std::cerr << "Sequence mode not enabled." << std::endl;
+            ROS_ERROR("Sequence mode not enabled.");
             return false;
         }
 
@@ -102,7 +102,7 @@ bool PylonGigECamera::setupSequencer(const std::vector<float>& exposure_times, s
     }
     catch (const GenICam::GenericException &e)
     {
-        std::cerr << e.GetDescription() << std::endl;
+        ROS_ERROR(e.GetDescription());
         return false;
     }
     return true;

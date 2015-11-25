@@ -135,7 +135,7 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         }
         else
         {
-            std::cerr << "PylonCamera not ready because the result of the inital grab is invalid" << std::endl;
+            ROS_ERROR("PylonCamera not ready because the result of the inital grab is invalid");
         }
     }
     catch (const GenICam::GenericException &e)

@@ -49,7 +49,7 @@ bool PylonUSBCamera::registerCameraConfiguration(const PylonCameraParameter& par
     }
     catch (const GenICam::GenericException &e)
     {
-        std::cerr << e.GetDescription() << std::endl;
+        ROS_ERROR(e.GetDescription());
         return false;
     }
     return true;
@@ -67,7 +67,7 @@ bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times, st
         }
         else
         {
-            std::cerr << "Sequencer Mode not writable" << std::endl;
+            ROS_ERROR("Sequencer Mode not writable");
         }
 
         cam_->SequencerConfigurationMode.SetValue(Basler_UsbCameraParams::SequencerConfigurationMode_On);
@@ -111,8 +111,7 @@ bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times, st
     }
     catch (const GenICam::GenericException &e)
     {
-        std::cerr << "ERROR while initializing pylon sequencer:" << std::endl;
-        std::cerr << e.GetDescription() << std::endl;
+        ROS_ERROR_STREAM("ERROR while initializing pylon sequencer:" << e.GetDescription());
         return false;
     }
     return true;
