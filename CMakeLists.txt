@@ -65,11 +65,11 @@ target_link_libraries(${PROJECT_NAME}_node
 )
 
 # Add other executable
-add_executable(write_magazino_id_to_camera
-    src/${PROJECT_NAME}/write_magazino_id_to_camera.cpp
+add_executable(write_device_user_id
+    src/${PROJECT_NAME}/write_device_user_id
 )
 
-target_link_libraries(write_magazino_id_to_camera
+target_link_libraries(write_device_user_id
     ${PYLON4_LIBRARIES}
 )
 
@@ -82,7 +82,7 @@ file(GLOB py_files "scripts/*")
 install(PROGRAMS ${py_files}
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} )
 install(
-    TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node write_magazino_id_to_camera
+    TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node write_device_user_id
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
