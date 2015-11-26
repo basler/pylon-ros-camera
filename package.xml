@@ -2,7 +2,7 @@
 <package>
   <name>pylon_camera</name>
   <version>0.0.1</version>
-  <description>Proprietary Package for the Pylon Camera. Supports DART, USB3 and GigE camera.s</description>
+  <description>Proprietary Package for the Pylon Camera. Supports DART, USB3 and GigE cameras.</description>
 
   <maintainer email="engelhard@magazino.eu">Nikolas Engelhard</maintainer>
 
@@ -16,6 +16,7 @@
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>roslint</build_depend>
+  <build_depend>rostest</build_depend>
 
   <run_depend>actionlib</run_depend>
   <run_depend>pylon4</run_depend>
@@ -24,5 +25,6 @@
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>rand</run_depend>
+  <run_depend>rostest</run_depend>
 
 </package>

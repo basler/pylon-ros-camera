@@ -32,5 +32,5 @@ int main(int argc, char **argv)
     }
 
     ROS_INFO("Terminate PylonCameraNode");
-    return 0;
+    return EXIT_SUCCESS;
 }

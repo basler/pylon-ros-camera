@@ -8,7 +8,8 @@ set(CATKIN_COMPONENTS
     image_transport
     camera_control_msgs
     roscpp
-    sensor_msgs)
+    sensor_msgs
+)
 
 find_package(PkgConfig)
 pkg_check_modules(PYLON4 pylon4)
@@ -82,10 +83,10 @@ target_link_libraries(${PROJECT_NAME}_node
     ${PROJECT_NAME}
 )
 
-# Add other executable
 add_executable(write_magazino_id_to_camera
     src/${PROJECT_NAME}/write_magazino_id_to_camera.cpp
 )
+
 
 target_link_libraries(write_magazino_id_to_camera
     ${PYLON4_LIBRARIES}
@@ -98,9 +99,10 @@ install(DIRECTORY launch/
 install(DIRECTORY config/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
 
-file(GLOB py_files "scripts/*")
+file(GLOB py_files "scripts/*.py" "scripts/test_scripts/*.py")
 catkin_install_python(PROGRAMS ${py_files}
-                      DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} )
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} )
+
 install(
     TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node write_magazino_id_to_camera
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -119,8 +121,13 @@ install(
 #############
 
 add_test(${PROJECT_NAME}_smoke_test           bash -c "(sleep 4 && sleep `rand -M 4` && rosnode kill ${PROJECT_NAME} ) & rosrun ${PROJECT_NAME} pylon_camera_node  __name:=${PROJECT_NAME}")
-
 set_tests_properties(${PROJECT_NAME}_smoke_test        PROPERTIES TIMEOUT 10)
+
+
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+  add_rostest(test/open_random_camera.test)
+endif()
 
 
 
