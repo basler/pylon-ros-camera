@@ -8,7 +8,8 @@ set(CATKIN_COMPONENTS
     image_transport
     camera_control_msgs
     roscpp
-    sensor_msgs)
+    sensor_msgs
+)
 
 find_package(PkgConfig)
 pkg_check_modules(PYLON4 pylon4)
@@ -66,7 +67,7 @@ target_link_libraries(${PROJECT_NAME}_node
 
 # Add other executable
 add_executable(write_device_user_id
-    src/${PROJECT_NAME}/write_device_user_id
+    src/${PROJECT_NAME}/write_device_user_id.cpp
 )
 
 target_link_libraries(write_device_user_id
