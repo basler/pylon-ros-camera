@@ -4,7 +4,7 @@ namespace pylon_camera
 {
 
 PylonCameraParameter::PylonCameraParameter() :
-                    device_user_id("x"),
+                    magazino_cam_id_("x"),
                     camera_frame_(""),
                     desired_frame_rate_(-1.0),
                     target_exposure_(3000),
@@ -22,12 +22,12 @@ PylonCameraParameter::~PylonCameraParameter()
 bool PylonCameraParameter::writeToYamlFile(std::string& yaml_string)
 {
 	ROS_ERROR("PylonCameraParameter::writeToYamlFile() not yet implemented!");
-    return false;
+	return true;
 }
 bool PylonCameraParameter::readFromYamlFile(const std::string& yaml_string)
 {
 	ROS_ERROR("PylonCameraParameter::readFromYamlFile() not yet implemented!");
-    return false;
+	return true;
 }
 
 bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
@@ -36,7 +36,7 @@ bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
 	ss << "Reading PylonCameraParameter from ROS-Parameter-Server";
 
 	// Write Magazino cam id to the camera using write_magazino_id_2_camera
-    nh.param<std::string>("magazino_cam_id", device_user_id, "x");
+	nh.param<std::string>("magazino_cam_id", magazino_cam_id_, "x");
 
 	nh.param<double>("desired_framerate", desired_frame_rate_, 10.0);
 
@@ -74,13 +74,13 @@ bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
 
 bool PylonCameraParameter::validateParameterSet(ros::NodeHandle& nh)
 {
-    if (device_user_id != "x")
+	if (magazino_cam_id_ != "x")
 	{
-        ROS_INFO("Using Camera: %s", device_user_id.c_str());
+		ROS_INFO("Using Camera: %s", magazino_cam_id_.c_str());
 	}
 	else
 	{
-        ROS_INFO("No DeviceUserID set -> Will use the camera device found fist");
+		ROS_INFO("No Magazino Cam ID set -> Will use the camera device found fist");
 	}
 
 

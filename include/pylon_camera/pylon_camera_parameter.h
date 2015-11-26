@@ -21,7 +21,7 @@ public:
 
     bool validateParameterSet(ros::NodeHandle& nh);
 
-    std::string device_user_id;
+    std::string magazino_cam_id_;
     std::string camera_frame_;
     double desired_frame_rate_;
     double target_exposure_;
