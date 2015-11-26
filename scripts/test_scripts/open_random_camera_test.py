@@ -31,10 +31,9 @@ class CheckRandomCamera(unittest.TestCase):
         self.calibration_received_ = True
 
     # def test2(self):
-    #     self.assertFalse(False)
+    #     self.assertTrue(True)
 
-    def runTest(self):
-        print "RUNTEST"
+    def test_wait_for_data(self):
         all_topics = rospy.get_published_topics()
         self.assertTrue(len(all_topics) > 2, "No topics found")
         names = [t[0] for t in all_topics]
