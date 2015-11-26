@@ -12,7 +12,8 @@ PylonCameraParameter::PylonCameraParameter() :
         desired_frame_rate_(-1.),
         target_exposure_(3000),
         start_exposure_(2000.0),
-        mtu_size_(3000)
+        mtu_size_(3000),
+        binning_(1)
 {
 }
 
@@ -31,6 +32,7 @@ bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
     //  0: AutoExposureOff
     // > 0: Exposure in micro-seconds
     nh.param<double>("start_exposure", start_exposure_, 35000.0);
+    nh.param<int>("binning", binning_, 1);
 
     return validateParameterSet(nh);
 }
@@ -44,6 +46,11 @@ bool PylonCameraParameter::validateParameterSet(ros::NodeHandle& nh)
     else
     {
         ROS_INFO("No Device User ID set -> Will use the camera device found fist");
+    }
+    if (binning_ > 4 || binning_ < 1)
+    {
+        ROS_ERROR("Invalid binning settings!");
+        return false;
     }
 
     if (desired_frame_rate_ < 0 && desired_frame_rate_ != -1)

@@ -57,6 +57,11 @@ public:
      */
     int mtu_size_;
 
+    /**
+     * Binning size
+     */
+    int binning_;
+
 protected:
     /**
      * Validates the parameter set found on the parameter server

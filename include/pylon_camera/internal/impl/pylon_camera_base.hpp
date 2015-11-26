@@ -94,7 +94,11 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
 {
     try
     {
+        cam_->BinningHorizontal.SetValue(params.binning_);
+        cam_->BinningVertical.SetValue(params.binning_);
+
         cam_->StartGrabbing();
+
         img_rows_ = static_cast<int>(cam_->Height.GetValue());
         img_cols_ = static_cast<int>(cam_->Width.GetValue());
         image_encoding_ = cam_->PixelFormat.GetValue();
@@ -140,7 +144,7 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
     }
     catch (const GenICam::GenericException &e)
     {
-        ROS_ERROR(e.GetDescription());
+        ROS_ERROR_STREAM(e.GetDescription());
         return false;
     }
 

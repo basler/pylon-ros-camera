@@ -49,7 +49,7 @@ bool PylonUSBCamera::registerCameraConfiguration(const PylonCameraParameter& par
     }
     catch (const GenICam::GenericException &e)
     {
-        ROS_ERROR(e.GetDescription());
+        ROS_ERROR_STREAM(e.GetDescription());
         return false;
     }
     return true;
