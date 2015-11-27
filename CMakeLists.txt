@@ -5,9 +5,10 @@ add_definitions("-std=gnu++11")
 #set(CMAKE_CXX_FLAGS "-g -Wall -Wno-unknown-pragmas -Wno-delete-non-virtual-dtor -Wno-unused-variable")
 set(CATKIN_COMPONENTS
     actionlib
-    image_transport
     camera_control_msgs
+    image_transport
     roscpp
+    rostest
     sensor_msgs
 )
 
@@ -106,7 +107,7 @@ set_tests_properties(${PROJECT_NAME}_smoke_test        PROPERTIES TIMEOUT 10)
 
 
 if(CATKIN_ENABLE_TESTING)
-  find_package(rostest REQUIRED)
+  #find_package(rostest REQUIRED)
   add_rostest(test/open_random_camera.test)
 endif()
 
