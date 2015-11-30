@@ -20,7 +20,7 @@ class CheckRandomCamera(unittest.TestCase):
         self.sub_cam_info_ = rospy.Subscriber("/pylon_camera_node/camera_info", CameraInfo, self.cam_info_callback, queue_size=1)
 
         self.image_received_ = False
-        self.calibration_received_ = False
+        self.calibration_received_ = False 
 
     def image_callback(self, msg):
         assert isinstance(msg, Image)
@@ -36,6 +36,7 @@ class CheckRandomCamera(unittest.TestCase):
     def test_wait_for_data(self):
         all_topics = rospy.get_published_topics()
         self.assertTrue(len(all_topics) > 2, "No topics found")
+	print all_topics
         names = [t[0] for t in all_topics]
         self.assertTrue("/pylon_camera_node/image_raw" in names, names)
         self.assertTrue("/pylon_camera_node/camera_info" in names)
