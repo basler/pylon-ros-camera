@@ -81,7 +81,6 @@ install(DIRECTORY launch/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 
 file(GLOB py_files "scripts/*.py" "scripts/test_scripts/*.py")
-# MESSAGE(STATUS "PY1 @ ${py_files}")
 install(PROGRAMS ${py_files}
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} )
 
@@ -108,7 +107,7 @@ set_tests_properties(${PROJECT_NAME}_smoke_test        PROPERTIES TIMEOUT 10)
 
 if(CATKIN_ENABLE_TESTING)
   #find_package(rostest REQUIRED)
-  add_rostest(test/open_random_camera.test)
+  add_rostest(test/open_jira_test_camera.test)
 endif()
 
 
