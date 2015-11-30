@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="pylon_camera" type="pylon_camera_node" name="pylon_camera_node" clear_params="true" output="screen" >	
+      <param name="magazino_cam_id"  value="jira_000_a"  type="string" />
+      <!--param name="intrinsic_yaml_string" command="cat $(find pylon_camera_opencv)/test/test_calib.yaml"/-->
+    </node>
+
+    <test test-name="open_random_camera" pkg="pylon_camera" type="open_random_camera_test.py" time-limit="5.0"/>
+</launch>
+

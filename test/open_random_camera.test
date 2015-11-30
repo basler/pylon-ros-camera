@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-    <node pkg="pylon_camera" type="pylon_camera_node" name="pylon_camera_node" clear_params="true" output="screen" />
-    <test test-name="open_random_camera" pkg="pylon_camera" type="open_random_camera_test.py" time-limit="10.0"/>
-</launch>
-

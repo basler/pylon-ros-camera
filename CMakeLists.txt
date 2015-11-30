@@ -5,9 +5,10 @@ add_definitions("-std=gnu++11")
 #set(CMAKE_CXX_FLAGS "-g -Wall -Wno-unknown-pragmas -Wno-delete-non-virtual-dtor -Wno-unused-variable")
 set(CATKIN_COMPONENTS
     actionlib
-    image_transport
     camera_control_msgs
+    image_transport
     roscpp
+    rostest
     sensor_msgs
 )
 
@@ -100,7 +101,7 @@ install(DIRECTORY config/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
 
 file(GLOB py_files "scripts/*.py" "scripts/test_scripts/*.py")
-catkin_install_python(PROGRAMS ${py_files}
+install(PROGRAMS ${py_files}
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} )
 
 install(
@@ -125,8 +126,8 @@ set_tests_properties(${PROJECT_NAME}_smoke_test        PROPERTIES TIMEOUT 10)
 
 
 if(CATKIN_ENABLE_TESTING)
-  find_package(rostest REQUIRED)
-  add_rostest(test/open_random_camera.test)
+  #find_package(rostest REQUIRED)
+  add_rostest(test/open_jira_test_camera.test)
 endif()
 
 
