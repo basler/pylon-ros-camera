@@ -5,9 +5,10 @@ add_definitions("-std=gnu++11")
 #set(CMAKE_CXX_FLAGS "-g -Wall -Wno-unknown-pragmas -Wno-delete-non-virtual-dtor -Wno-unused-variable")
 set(CATKIN_COMPONENTS
     actionlib
-    image_transport
     camera_control_msgs
+    image_transport
     roscpp
+    rostest
     sensor_msgs
 )
 
@@ -100,8 +101,8 @@ install(DIRECTORY config/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
 
 file(GLOB py_files "scripts/*.py" "scripts/test_scripts/*.py")
-catkin_install_python(PROGRAMS ${py_files}
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION} )
+install(PROGRAMS ${py_files}
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 install(
     TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node write_magazino_id_to_camera
@@ -123,14 +124,10 @@ install(
 add_test(${PROJECT_NAME}_smoke_test           bash -c "(sleep 4 && sleep `rand -M 4` && rosnode kill ${PROJECT_NAME} ) & rosrun ${PROJECT_NAME} pylon_camera_node  __name:=${PROJECT_NAME}")
 set_tests_properties(${PROJECT_NAME}_smoke_test        PROPERTIES TIMEOUT 10)
 
-
 if(CATKIN_ENABLE_TESTING)
-  find_package(rostest REQUIRED)
-  add_rostest(test/open_random_camera.test)
+  #find_package(rostest REQUIRED)
+  add_rostest(test/open_jira_test_camera.test)
 endif()
-
-
-
 
 file(GLOB children ${CMAKE_CURRENT_SOURCE_DIR}/*)
 foreach(child ${children})
