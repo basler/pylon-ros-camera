@@ -58,8 +58,9 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
         // http://www.baslerweb.com/media/documents/AW00064902000%20Control%20Packet%20Timing%20With%20Delays.pdf
         // inter package delay in ticks (? -> mathi said in nanosec) -> prevent lost frames
         // package size * n_cams + 5% overhead = inter package size
-        // int n_cams = 1;
-        // int inter_package_delay_in_ticks = n_cams * imageSize() * 1.05;
+	// int n_cams = 1;
+	// int inter_package_delay_in_ticks = n_cams * imageSize() * 1.05;
+	// std::cout << "Inter-Package Delay" << inter_package_delay_in_ticks << std::endl;
         cam_->GevSCPD.SetValue(1000);
     }
     catch (const GenICam::GenericException &e)
