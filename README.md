@@ -39,4 +39,10 @@ Installation
 
 Usage
 ---
-     roslaunch pylon_camera default_camera.launch
+The Pylon Camera Node can be started over the launch file which includes a config file with desired Parameter as framerate or exposrue time
+
+     roslaunch pylon_camera pylon_camera.launch
+
+Images were only published if another node connects to the image topic. The published images can be seen using the image_view node from the image_pipeline stack:
+
+     rosrun image_view image_view image:=/pylon_camera/image_raw
