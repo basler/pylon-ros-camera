@@ -6,12 +6,9 @@ Magazino PylonCamera powered by Basler
 This package offers many functions of the Basler-PylonAPI inside the ROS-Framwork.
 
 The package supports Baslers USB 3.0, GigE as well as the DART cameras.
-
 Images can continuously be published over /image_raw topic. The camera-characteristic parameter such as hight, width and camera_frame were published over the /camera_info topic.
-
 Furthermore an action-based image grabbing with desired exposure/brightness, gain and gamma is provided.
 Hence one can grab a sequence of images with target exposure times each as well as a single image.
-
 The default node operates in Software-Trigger Mode.
 This means that the image acquisition is triggered with a certain rate and the camera is not running in the continuous mode.
 
