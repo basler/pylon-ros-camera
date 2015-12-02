@@ -15,26 +15,30 @@ This means that the image acquisition is triggered with a certain rate and the c
 
 The package opens either a predefined camera (using a given 'device_use_id' parameter) or, if no camera id is predefined the first camera device it can find.
 
-Installation
----
+# Installation
 Download and install the latest Version of the PylonAPI from
-    http://www.baslerweb.com/de/support/download-uebersicht/downloads-software
+     http://www.baslerweb.com/de/support/download-uebersicht/downloads-software
 Build the PylonCamera package as you would build a standard ROS-package unsing p.e.
-    catkin_make
+     catkin_make
 
-# Parameter in the config file
+# Parameter
+
+Default parameter in the config file
+---
 
  - camera_frame: frame to which the camera is attached
  - start_exposure: exposure which is set to the camera by starting
  - desired_framerate: if the desired framerate can't be reached, this value will be shrinked
  - target_type: Chose between 'BRIGHTNESS' or 'EXPOSURE'
 
-# Optional and device specific parameter
+Optional and device specific parameter
+---
+
  - gige/mtu_size: only available for GigE-Cameras.
 
 
-Usage
----
+# Usage
+
 The Pylon Camera Node can be started over the launch file which includes a config file with desired Parameter as framerate or exposrue time
 
      roslaunch pylon_camera pylon_camera.launch
