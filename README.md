@@ -17,8 +17,11 @@ The package opens either a predefined camera (using a given 'device_use_id' para
 
 # Installation
 Download and install the latest Version of the PylonAPI from
+
      http://www.baslerweb.com/de/support/download-uebersicht/downloads-software
+
 Build the PylonCamera package as you would build a standard ROS-package unsing p.e.
+
      catkin_make
 
 # Parameter
