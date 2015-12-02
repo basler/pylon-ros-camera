@@ -24,9 +24,9 @@ PylonCameraParameter::~PylonCameraParameter()
 bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
 {
     nh.param<std::string>("device_user_id", device_user_id_, "");
-    nh.param<double>("desired_framerate", desired_frame_rate_, 10.0);
+    nh.param<double>("desired_framerate", desired_frame_rate_, -1.);
     nh.param<std::string>("camera_frame", camera_frame_, "pylon_camera");
-    nh.param<int>("mtu_size", mtu_size_, 3000);
+    nh.param<int>("/gige/mtu_size", mtu_size_, 3000);
 
     // -1: AutoExposureContinuous
     //  0: AutoExposureOff
@@ -47,6 +47,7 @@ bool PylonCameraParameter::validateParameterSet(ros::NodeHandle& nh)
     {
         ROS_INFO("No Device User ID set -> Will use the camera device found fist");
     }
+
     if (binning_ > 4 || binning_ < 1)
     {
         ROS_ERROR("Invalid binning settings!");

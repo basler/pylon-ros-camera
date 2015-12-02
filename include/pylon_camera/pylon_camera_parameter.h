@@ -53,12 +53,14 @@ public:
     double start_exposure_;
 
     /**
-     * the MTU size. Only used for GigE cameras.
+     * The MTU size. Only used for GigE cameras.
+     * To prevent lost frames configure the camera has to be configured
+     * with the MTU size the network card supports
      */
     int mtu_size_;
 
     /**
-     * Binning size
+     * Binning factor to get downsampled images
      */
     int binning_;
 
