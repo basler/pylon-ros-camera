@@ -45,7 +45,7 @@ bool PylonCameraParameter::validateParameterSet(ros::NodeHandle& nh)
     }
     else
     {
-        ROS_INFO("No Device User ID set -> Will use the camera device found fist");
+        ROS_INFO("No Device User ID set -> Will use the camera device found first");
     }
 
     if (binning_ > 4 || binning_ < 1)
