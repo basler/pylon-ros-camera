@@ -49,13 +49,6 @@ link_directories(
     ${PYLON4_LIBRARY_DIRS}
 )
 
-catkin_package(
-    INCLUDE_DIRS include
-    LIBRARIES ${PROJECT_NAME}
-    CATKIN_DEPENDS ${CATKIN_COMPONENTS}
-    #DEPENDS Pylon4
-)
-
 
 include_directories(SYSTEM ${PYLON4_INCLUDE_DIRS} )
 include_directories( ${catkin_INCLUDE_DIRS} )
@@ -73,7 +66,6 @@ target_link_libraries(${PROJECT_NAME}
 )
 add_dependencies(${PROJECT_NAME}
     ${catkin_EXPORTED_TARGETS}
-    ${pylon_camera_msgs_EXPORTED_TARGETS}
 )
 
 # Add node
@@ -91,6 +83,17 @@ add_executable(write_magazino_id_to_camera
 
 target_link_libraries(write_magazino_id_to_camera
     ${PYLON4_LIBRARIES}
+)
+add_dependencies(${PROJECT_NAME}_node
+    ${catkin_EXPORTED_TARGETS}
+)
+
+
+catkin_package(
+    INCLUDE_DIRS include
+    LIBRARIES ${PROJECT_NAME}
+    CATKIN_DEPENDS ${CATKIN_COMPONENTS}
+    #DEPENDS Pylon4
 )
 
 catkin_python_setup()
