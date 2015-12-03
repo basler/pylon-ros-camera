@@ -45,6 +45,12 @@ public:
      */
     const double& desiredFrameRate() const;
 
+    /**
+     * Getter for the tf frame.
+     * @return the camera frame.
+     */
+    const std::string& cameraFrame() const;
+
 protected:
     /**
      * Creates the camera instance and starts the services and action servers.
