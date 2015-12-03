@@ -22,6 +22,14 @@ find_package(
     catkin REQUIRED
     COMPONENTS ${CATKIN_COMPONENTS} roslint
 )
+
+catkin_package(
+    INCLUDE_DIRS include
+    LIBRARIES ${PROJECT_NAME}
+    CATKIN_DEPENDS ${CATKIN_COMPONENTS}
+    #DEPENDS Pylon4
+)
+
 set(ROSLINT_CPP_OPTS "--extensions=cpp,h,hpp" "--filter=-runtime/references,-readability/todo")
 roslint_cpp(
     src/${PROJECT_NAME}/exposure_search_parameter.cpp
@@ -88,13 +96,6 @@ add_dependencies(${PROJECT_NAME}_node
     ${catkin_EXPORTED_TARGETS}
 )
 
-
-catkin_package(
-    INCLUDE_DIRS include
-    LIBRARIES ${PROJECT_NAME}
-    CATKIN_DEPENDS ${CATKIN_COMPONENTS}
-    #DEPENDS Pylon4
-)
 
 catkin_python_setup()
 
