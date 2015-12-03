@@ -217,6 +217,7 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
             result.success = false;
         }
         img.header.stamp = ros::Time::now();
+        img.header.frame_id = cameraFrame();
         feedback.curr_nr_images_taken = i+1;
         grab_images_raw_action_server_.publishFeedback(feedback);
     }
