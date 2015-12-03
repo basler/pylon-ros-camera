@@ -5,6 +5,6 @@
       <!--param name="intrinsic_yaml_string" command="cat $(find pylon_camera_opencv)/test/test_calib.yaml"/-->
     </node>
 
-    <test test-name="open_random_camera" pkg="pylon_camera" type="open_random_camera_test.py" time-limit="5.0"/>
+    <test test-name="open_random_camera" pkg="pylon_camera" type="open_random_camera_test.py" time-limit="20.0"/>
 </launch>
 
