@@ -50,7 +50,7 @@ bool PylonCameraParameter::validateParameterSet(ros::NodeHandle& nh)
 
     if (binning_ > 4 || binning_ < 1)
     {
-        ROS_ERROR("Invalid binning settings!");
+        ROS_ERROR("Invalid binning settings! Value is %i, but valid is [1,2,3,4]", binning_);
         return false;
     }
 

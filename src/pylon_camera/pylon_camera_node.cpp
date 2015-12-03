@@ -145,6 +145,7 @@ bool PylonCameraNode::startGrabbing()
     cam_info_msg_.height = pylon_camera_->imageRows();
     cam_info_msg_.width = pylon_camera_->imageCols();
     cam_info_msg_.distortion_model = "plumb_bob";
+    cam_info_msg_.binning_x = cam_info_msg_.binning_y = pylon_camera_parameter_set_.binning_;
 
     img_raw_msg_.header = header;
     // Encoding of pixels -- channel meaning, ordering, size
