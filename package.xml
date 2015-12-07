@@ -1,15 +1,23 @@
 <?xml version="1.0"?>
 <package>
   <name>camera_control_msgs</name>
-  <version>0.0.2</version>
-  <description>Camera Trigger Msgs</description>
-
+  
+  <author>Marcel Debout</author>
+  <author>Markus Grimm</author>
+  <author>Nikolas Engelhard</author>
   <maintainer email="debout@magazino.eu">Marcel Debout</maintainer>
+  <maintainer email="grimm@magazino.eu">Markus Grimm</maintainer>
+  <maintainer email="engelhard@magazino.eu">Nikolas Engelhard</maintainer>
 
+  <version>0.0.1</version>
+  <license>Apache2.0</license>
+  
+  <description>
+    Message Package for Pylon Camera
+  </description>
+  
   <license>Private</license>
 
-  <author email="debout@magazino.eu">Marcel Debout</author>
-  
   <buildtool_depend>catkin</buildtool_depend>
   
   <build_depend>message_generation</build_depend>
