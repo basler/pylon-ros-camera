@@ -1,4 +1,5 @@
 // Copyright 2015 <Magazino GmbH>
+
 #include <pylon_camera/exposure_search_parameter.h>
 
 namespace pylon_camera

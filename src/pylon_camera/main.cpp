@@ -4,6 +4,7 @@
  *
  *      Author: debout@magazino.eu
  *              grimm@magazino.eu
+ *              engelhard@magazino.eu
  */
 
 #include <ros/ros.h>

@@ -1,4 +1,5 @@
 // Copyright 2015 <Magazino GmbH>
+
 #ifndef PYLON_CAMERA_PYLON_CAMERA_H
 #define PYLON_CAMERA_PYLON_CAMERA_H
 

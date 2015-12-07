@@ -1,14 +1,25 @@
 <?xml version="1.0"?>
 <package>
   <name>pylon_camera</name>
-  <version>0.0.1</version>
-  <description>Proprietary Package for the Pylon Camera. Supports DART, USB3 and GigE cameras.</description>
 
+  <author>Marcel Debout</author>
+  <author>Markus Grimm</author>
+  <author>Nikolas Engelhard</author>
+  <maintainer email="debout@magazino.eu">Marcel Debout</maintainer>
+  <maintainer email="grimm@magazino.eu">Markus Grimm</maintainer>
   <maintainer email="engelhard@magazino.eu">Nikolas Engelhard</maintainer>
-
-  <license>proprietary</license>
+  
+  <version>0.0.1</version>
+  <license>Apache2.0</license>
+  
+  <description>
+  	Proprietary Package for Basler Cameras using the the Pylon API.
+  	- Supports DART, USB3 and GigE cameras.
+  	- Setting Brightness and Exposure using Services.
+  </description>
 
   <buildtool_depend>catkin</buildtool_depend>
+  
   <build_depend>actionlib</build_depend>
   <build_depend>pylon4</build_depend>
   <build_depend>camera_control_msgs</build_depend>
@@ -24,7 +35,6 @@
   <run_depend>image_transport</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
-  <run_depend>rand</run_depend>
-  <run_depend>rostest</run_depend>
 
+  <run_depend>rand</run_depend>
 </package>

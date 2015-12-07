@@ -1,4 +1,5 @@
 // Copyright 2015 <Magazino GmbH>
+
 #ifndef PYLON_CAMERA_INTERNAL_DART_H_
 #define PYLON_CAMERA_INTERNAL_DART_H_
 

@@ -8,7 +8,6 @@ set(CATKIN_COMPONENTS
     camera_control_msgs
     image_transport
     roscpp
-    rostest
     sensor_msgs
 )
 
@@ -20,14 +19,13 @@ endif()
 
 find_package(
     catkin REQUIRED
-    COMPONENTS ${CATKIN_COMPONENTS} roslint
+    COMPONENTS ${CATKIN_COMPONENTS} roslint rostest
 )
 
 catkin_package(
     INCLUDE_DIRS include
     LIBRARIES ${PROJECT_NAME}
     CATKIN_DEPENDS ${CATKIN_COMPONENTS}
-    #DEPENDS Pylon4
 )
 
 set(ROSLINT_CPP_OPTS "--extensions=cpp,h,hpp" "--filter=-runtime/references,-readability/todo")

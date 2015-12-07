@@ -1,4 +1,5 @@
 // Copyright 2015 <Magazino GmbH>
+
 #include <pylon_camera/internal/pylon_camera.h>
 #include <string>
 #include <vector>
