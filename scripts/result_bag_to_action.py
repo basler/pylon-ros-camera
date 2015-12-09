@@ -6,7 +6,6 @@ __author__ = 'klank'
 
 import rospy
 import camera_control_msgs.msg
-import canopen_interface.msg
 import actionlib
 import sensor_msgs.msg
 
