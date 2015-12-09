@@ -110,6 +110,8 @@ bool PylonCameraNode::initAndRegister()
         return false;
     }
 
+
+
     grab_images_raw_action_server_.start();
     return true;
 }

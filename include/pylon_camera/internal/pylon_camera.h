@@ -35,6 +35,8 @@ public:
 
     virtual bool setupSequencer(const std::vector<float>& exposure_times);
 
+    virtual bool setShutterMode(const pylon_camera::SHUTTER_MODE& mode);
+
     virtual float currentExposure();
 
     virtual bool setExposure(const double& exposure);
@@ -61,6 +63,7 @@ protected:
     typedef typename CameraTraitT::PixelFormatEnums PixelFormatEnums;
     typedef typename CameraTraitT::PixelSizeEnums PixelSizeEnums;
     typedef typename CameraTraitT::AutoTargetBrightnessType AutoTargetBrightnessType;
+    typedef typename CameraTraitT::ShutterModeEnums ShutterModeEnums;
 
     // Each camera has it's own getter for GenApi accessors that are named differently for USB and GigE
     GenApi::IFloat& exposureTime();

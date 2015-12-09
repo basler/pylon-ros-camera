@@ -47,6 +47,15 @@ public:
      */
     virtual bool setupSequencer(const std::vector<float>& exposure_times) = 0;
 
+
+    /**
+     * @brief sets shutter mode for the camera (rolling or global_reset)
+     * @param mode
+     * @return
+     */
+    virtual bool setShutterMode(const pylon_camera::SHUTTER_MODE& mode) = 0;
+
+
     /**
      * Initializes the internal parameters of the PylonCamera instance.
      * @param parameters The PylonCameraParameter set to use

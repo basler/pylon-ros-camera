@@ -38,10 +38,12 @@ PylonDARTCamera::~PylonDARTCamera()
 
 bool PylonDARTCamera::registerCameraConfiguration(const PylonCameraParameter& params)
 {
+
     if (PylonUSBCamera::registerCameraConfiguration(params))
     {
         try
         {
+//            cam_->SensorShutterMode.SetValue(ShutterModeEnums::SensorShutterMode_Rolling);
             cam_->GainAuto.SetValue(Basler_UsbCameraParams::GainAuto_Off);
             cam_->Gain.SetValue(0.0);
             cam_->Gamma.SetValue(1.0);

@@ -21,7 +21,7 @@ struct GigECameraTrait
     typedef Basler_GigECameraParams::PixelSizeEnums PixelSizeEnums;
     typedef GenApi::IInteger AutoTargetBrightnessType;
     typedef int64_t AutoTargetBrightnessValueType;
-
+    typedef Basler_GigECameraParams::ShutterModeEnums ShutterModeEnums;
     static inline AutoTargetBrightnessValueType convertBrightness(const int& value)
     {
         return value;
@@ -29,6 +29,7 @@ struct GigECameraTrait
 };
 
 typedef PylonCameraImpl<GigECameraTrait> PylonGigECamera;
+
 
 template <>
 bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& params)

@@ -13,7 +13,8 @@ PylonCameraParameter::PylonCameraParameter() :
         target_exposure_(3000),
         start_exposure_(2000.0),
         mtu_size_(3000),
-        binning_(1)
+        binning_(1),
+        shutter_mode_(SM_UNKNOWN)
 {
 }
 
@@ -27,6 +28,34 @@ bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
     nh.param<double>("desired_framerate", desired_frame_rate_, -1.);
     nh.param<std::string>("camera_frame", camera_frame_, "pylon_camera");
     nh.param<int>("gige/mtu_size", mtu_size_, 3000);
+
+    std::string shutter_param_string;
+    nh.param<std::string>("shutter_mode", shutter_param_string, "global_reset");
+
+    shutter_mode_ = SM_UNKNOWN;
+
+    if (shutter_param_string == "global")
+    {
+        shutter_mode_ = SM_GLOBAL;
+    }
+    else{
+        if (shutter_param_string == "rolling")
+        {
+            shutter_param_string = SM_ROLLING;
+        }
+        else
+        {
+            if (shutter_param_string == "global_reset")
+            {
+                shutter_mode_ = SM_GLOBAL_RESET_RELEASE;
+            }
+            else
+            {
+                ROS_ERROR("Unknown shutter mode %s, supported: 'global', 'global_reset' and 'rolling'", shutter_param_string.c_str());
+                return false;
+            }
+        }
+    }
 
     // -1: AutoExposureContinuous
     //  0: AutoExposureOff

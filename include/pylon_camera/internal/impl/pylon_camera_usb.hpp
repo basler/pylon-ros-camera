@@ -20,6 +20,7 @@ struct USBCameraTrait
     typedef Basler_UsbCameraParams::PixelSizeEnums PixelSizeEnums;
     typedef GenApi::IFloat AutoTargetBrightnessType;
     typedef double AutoTargetBrightnessValueType;
+    typedef Basler_UsbCameraParams::ShutterModeEnums ShutterModeEnums;
 
     static inline AutoTargetBrightnessValueType convertBrightness(const int& value)
     {

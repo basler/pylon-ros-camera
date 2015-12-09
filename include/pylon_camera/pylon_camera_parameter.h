@@ -10,6 +10,14 @@
 namespace pylon_camera
 {
 
+enum SHUTTER_MODE
+{
+    SM_ROLLING = 0,
+    SM_GLOBAL = 1,
+    SM_GLOBAL_RESET_RELEASE = 2,
+    SM_UNKNOWN =  -1,
+};
+
 /**
  * Parameter class for the PylonCamera
  */
@@ -63,6 +71,11 @@ public:
      * Binning factor to get downsampled images
      */
     int binning_;
+
+    /**
+      Shutter mode
+    */
+    SHUTTER_MODE shutter_mode_;
 
 protected:
     /**

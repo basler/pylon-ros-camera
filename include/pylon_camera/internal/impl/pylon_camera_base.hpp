@@ -34,6 +34,8 @@ float PylonCameraImpl<CameraTraitT>::currentExposure()
     return static_cast<float>(exposureTime().GetValue());
 }
 
+
+
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::isAutoBrightnessFunctionRunning()
 {
@@ -95,6 +97,8 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
 {
     try
     {
+        setShutterMode(params.shutter_mode_);
+
         cam_->BinningHorizontal.SetValue(params.binning_);
         cam_->BinningVertical.SetValue(params.binning_);
 
@@ -145,7 +149,7 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
     }
     catch (const GenICam::GenericException &e)
     {
-        ROS_ERROR_STREAM(e.GetDescription());
+        ROS_ERROR_STREAM("startGrabbing: " << e.GetDescription());
         return false;
     }
 
@@ -396,6 +400,33 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(int& brightness)
     return false;
 }
 
+template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::setShutterMode(const SHUTTER_MODE &mode)
+{
+    try{
+        switch (mode) {
+        case pylon_camera::SM_ROLLING:
+            cam_->ShutterMode.SetValue(ShutterModeEnums::ShutterMode_Rolling);
+            break;
+        case pylon_camera::SM_GLOBAL:
+            cam_->ShutterMode.SetValue(ShutterModeEnums::ShutterMode_Global);
+            break;
+        case pylon_camera::SM_GLOBAL_RESET_RELEASE:
+            cam_->ShutterMode.SetValue(ShutterModeEnums::ShutterMode_GlobalResetRelease);
+            break;
+        default:
+            break;
+        }
+    }    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("An exception while setting shutter mode to " << mode <<
+                         " occurred: " << e.GetDescription());
+        return false;
+    }
+
+    /// TODO: read back value
+    return true;
+}
 
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& brightness)
