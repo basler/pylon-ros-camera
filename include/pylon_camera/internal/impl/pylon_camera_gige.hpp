@@ -104,7 +104,7 @@ bool PylonGigECamera::setupSequencer(const std::vector<float>& exposure_times, s
     }
     catch (const GenICam::GenericException &e)
     {
-        ROS_ERROR(e.GetDescription());
+        ROS_ERROR("%s", e.GetDescription());
         return false;
     }
     return true;

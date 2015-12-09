@@ -49,7 +49,7 @@ bool PylonDARTCamera::registerCameraConfiguration(const PylonCameraParameter& pa
         }
         catch (const GenICam::GenericException &e)
         {
-            ROS_ERROR(e.GetDescription());
+            ROS_ERROR("%s", e.GetDescription());
             return false;
         }
     }
