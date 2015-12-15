@@ -34,8 +34,6 @@ float PylonCameraImpl<CameraTraitT>::currentExposure()
     return static_cast<float>(exposureTime().GetValue());
 }
 
-
-
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::isAutoBrightnessFunctionRunning()
 {
@@ -97,8 +95,14 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
 {
     try
     {
-        setShutterMode(params.shutter_mode_);
-
+    	if(GenApi::IsAvailable(cam_->ShutterMode))
+    	{
+    		setShutterMode(params.shutter_mode_);
+    	}
+    	else
+    	{
+    		ROS_INFO("Desired cam has no selectable ShutterMode, will keep the default setting.");
+    	}
         cam_->BinningHorizontal.SetValue(params.binning_);
         cam_->BinningVertical.SetValue(params.binning_);
 
@@ -415,6 +419,7 @@ bool PylonCameraImpl<CameraTraitT>::setShutterMode(const SHUTTER_MODE &mode)
             cam_->ShutterMode.SetValue(ShutterModeEnums::ShutterMode_GlobalResetRelease);
             break;
         default:
+        	// keep default setting
             break;
         }
     }    catch (const GenICam::GenericException &e)

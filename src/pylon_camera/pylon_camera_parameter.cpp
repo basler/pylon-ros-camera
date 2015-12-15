@@ -14,7 +14,7 @@ PylonCameraParameter::PylonCameraParameter() :
         start_exposure_(2000.0),
         mtu_size_(3000),
         binning_(1),
-        shutter_mode_(SM_UNKNOWN)
+        shutter_mode_(SM_DEFAULT)
 {
 }
 
@@ -30,31 +30,23 @@ bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
     nh.param<int>("gige/mtu_size", mtu_size_, 3000);
 
     std::string shutter_param_string;
-    nh.param<std::string>("shutter_mode", shutter_param_string, "global_reset");
-
-    shutter_mode_ = SM_UNKNOWN;
-
-    if (shutter_param_string == "global")
+    nh.param<std::string>("shutter_mode", shutter_param_string, "");
+    if(shutter_param_string == "rolling")
     {
-        shutter_mode_ = SM_GLOBAL;
+        shutter_mode_ = SM_ROLLING;
     }
-    else{
-        if (shutter_param_string == "rolling")
-        {
-            shutter_param_string = SM_ROLLING;
-        }
-        else
-        {
-            if (shutter_param_string == "global_reset")
-            {
-                shutter_mode_ = SM_GLOBAL_RESET_RELEASE;
-            }
-            else
-            {
-                ROS_ERROR("Unknown shutter mode %s, supported: 'global', 'global_reset' and 'rolling'", shutter_param_string.c_str());
-                return false;
-            }
-        }
+    else if(shutter_param_string == "global")
+    {
+    	shutter_mode_ = SM_GLOBAL;
+    }
+    else if(shutter_param_string == "global_reset")
+    {
+        shutter_mode_ = SM_GLOBAL_RESET_RELEASE;
+    }
+    else
+    {
+    	ROS_INFO("No ShutterMode given, will keep the default setting.");
+    	shutter_mode_ = SM_DEFAULT;
     }
 
     // -1: AutoExposureContinuous

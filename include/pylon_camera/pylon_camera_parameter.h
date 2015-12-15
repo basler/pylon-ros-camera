@@ -15,7 +15,7 @@ enum SHUTTER_MODE
     SM_ROLLING = 0,
     SM_GLOBAL = 1,
     SM_GLOBAL_RESET_RELEASE = 2,
-    SM_UNKNOWN =  -1,
+    SM_DEFAULT =  -1,
 };
 
 /**
