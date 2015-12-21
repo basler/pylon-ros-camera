@@ -130,8 +130,8 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
                 if (cam_device_user_id.compare(device_user_id_to_open) == 0 ||
                     (device_user_id_to_open.length() < cam_device_user_id.length() &&
                      0 == cam_device_user_id.compare(cam_device_user_id.length() - device_user_id_to_open.length(),
-                    		                         device_user_id_to_open.length(),
-                    		                         device_user_id_to_open)))
+                                                     device_user_id_to_open.length(),
+                                                     device_user_id_to_open)))
                 {
                     found_desired_device = true;
                     cam_pos = i;

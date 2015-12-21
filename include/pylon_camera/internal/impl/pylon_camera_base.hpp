@@ -95,14 +95,14 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
 {
     try
     {
-    	if(GenApi::IsAvailable(cam_->ShutterMode))
-    	{
-    	    setShutterMode(params.shutter_mode_);
-    	}
-    	else
-    	{
-    	    ROS_INFO("Desired cam has no selectable ShutterMode, will keep the default setting.");
-    	}
+        if (GenApi::IsAvailable(cam_->ShutterMode))
+        {
+            setShutterMode(params.shutter_mode_);
+        }
+        else
+        {
+            ROS_INFO("Desired cam has no selectable ShutterMode, will keep the default setting.");
+        }
 
         cam_->BinningHorizontal.SetValue(params.binning_);
         cam_->BinningVertical.SetValue(params.binning_);
@@ -408,8 +408,10 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(int& brightness)
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setShutterMode(const SHUTTER_MODE &mode)
 {
-    try{
-        switch (mode) {
+    try
+    {
+        switch (mode)
+        {
         case pylon_camera::SM_ROLLING:
             cam_->ShutterMode.SetValue(ShutterModeEnums::ShutterMode_Rolling);
             break;
@@ -423,7 +425,8 @@ bool PylonCameraImpl<CameraTraitT>::setShutterMode(const SHUTTER_MODE &mode)
             // keep default setting
             break;
         }
-    }    catch (const GenICam::GenericException &e)
+    }
+    catch (const GenICam::GenericException &e)
     {
         ROS_ERROR_STREAM("An exception while setting shutter mode to " << mode <<
                          " occurred: " << e.GetDescription());

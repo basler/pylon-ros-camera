@@ -28,7 +28,7 @@ catkin_package(
     CATKIN_DEPENDS ${CATKIN_COMPONENTS}
 )
 
-set(ROSLINT_CPP_OPTS "--extensions=cpp,h,hpp" "--filter=-runtime/references,-readability/todo")
+set(ROSLINT_CPP_OPTS "--extensions=cpp,h,hpp" "--filter=-runtime/references,-readability/todo,-build/include_what_you_use")
 roslint_cpp(
     src/${PROJECT_NAME}/exposure_search_parameter.cpp
     src/${PROJECT_NAME}/main.cpp

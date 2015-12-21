@@ -38,7 +38,6 @@ PylonDARTCamera::~PylonDARTCamera()
 
 bool PylonDARTCamera::registerCameraConfiguration(const PylonCameraParameter& params)
 {
-
     if (PylonUSBCamera::registerCameraConfiguration(params))
     {
         try

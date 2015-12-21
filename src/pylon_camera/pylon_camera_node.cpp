@@ -75,7 +75,7 @@ const double& PylonCameraNode::desiredFrameRate() const
 }
 const std::string& PylonCameraNode::cameraFrame() const
 {
-	return pylon_camera_parameter_set_.camera_frame_;
+    return pylon_camera_parameter_set_.camera_frame_;
 }
 uint32_t PylonCameraNode::getNumSubscribers() const
 {

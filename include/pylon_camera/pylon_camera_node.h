@@ -4,6 +4,7 @@
 #define PYLON_CAMERA_PYLON_CAMERA_NODE_H
 
 #include <boost/thread.hpp>
+#include <string>
 
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>

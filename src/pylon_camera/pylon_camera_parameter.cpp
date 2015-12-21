@@ -31,22 +31,22 @@ bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
 
     std::string shutter_param_string;
     nh.param<std::string>("shutter_mode", shutter_param_string, "");
-    if(shutter_param_string == "rolling")
+    if (shutter_param_string == "rolling")
     {
         shutter_mode_ = SM_ROLLING;
     }
-    else if(shutter_param_string == "global")
+    else if (shutter_param_string == "global")
     {
-    	shutter_mode_ = SM_GLOBAL;
+        shutter_mode_ = SM_GLOBAL;
     }
-    else if(shutter_param_string == "global_reset")
+    else if (shutter_param_string == "global_reset")
     {
         shutter_mode_ = SM_GLOBAL_RESET_RELEASE;
     }
     else
     {
-    	ROS_INFO("No ShutterMode given, will keep the default setting.");
-    	shutter_mode_ = SM_DEFAULT;
+        ROS_INFO("No ShutterMode given, will keep the default setting.");
+        shutter_mode_ = SM_DEFAULT;
     }
 
     // -1: AutoExposureContinuous
