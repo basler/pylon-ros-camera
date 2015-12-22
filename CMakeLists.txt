@@ -137,7 +137,6 @@ if(CATKIN_ENABLE_TESTING)
 #  add_rostest(test/open_gige.test)
 #  add_rostest(test/open_usb.test)
   
-  
   # test for acquisition of one image_raw and one_cam_info
   add_rostest(test/single_acquisition_dart.test)
   add_rostest(test/single_acquisition_gige.test)

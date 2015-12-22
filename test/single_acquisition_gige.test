@@ -11,7 +11,7 @@
   </node>
   
   
-  <!-- TEST -->  
+  <!-- TEST -->  				 
   <test pkg="pylon_camera" type="single_acquisition_test.py" test-name="single_acquisition_gige" time-limit="10.0">
     <param name="camera_frame" value="/$(arg node_name_gige)" type="string" />
   </test>
