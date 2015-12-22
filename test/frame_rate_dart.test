@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="node_name_dart" default="pylon_camera_test_dart_node" />
+
+  <!-- NODE -->
+  <node pkg="pylon_camera" type="pylon_camera_node" name="$(arg node_name_dart)" clear_params="true" output="screen">	
+    <param name="device_user_id"  value="jenkins_test_dart"  type="string" />
+    <param name="desired_framerate"  value="10.0"  type="double" />
+    <param name="camera_frame" value="/$(arg node_name_dart)" type="string" />
+  </node>
+  
+  
+  <!-- TEST -->  
+  <test pkg="rostest" type="hztest" test-name="pylon_camera_frame_rate_dart" >
+    <param name="topic" value="/$(arg node_name_dart)/image_raw" />  
+    <param name="hz" value="10.0" />
+    <param name="hzerror" value="2.0" />
+    <param name="test_duration" value="20.0" />
+    <param name="wait_time" value="5.0" type="double" />
+  </test>
+  
+</launch>

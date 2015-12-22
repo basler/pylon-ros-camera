@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="node_name_gige" default="pylon_camera_test_gige_node" />
+
+  <!-- NODE -->
+  <node pkg="pylon_camera" type="pylon_camera_node" name="$(arg node_name_gige)" clear_params="true" output="screen">	
+    <param name="device_user_id"  value="jenkins_test_gig"  type="string" />
+    <param name="desired_framerate"  value="10.0"  type="double" />
+    <param name="camera_frame" value="/$(arg node_name_gige)" type="string" />
+  </node>
+  
+  
+  <!-- TEST -->  
+  <test pkg="pylon_camera" type="single_acquisition_test.py" test-name="single_acquisition_gige" time-limit="10.0">
+    <param name="camera_frame" value="/$(arg node_name_gige)" type="string" />
+  </test>
+  
+</launch>

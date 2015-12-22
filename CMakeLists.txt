@@ -94,7 +94,6 @@ add_dependencies(${PROJECT_NAME}_node
     ${catkin_EXPORTED_TARGETS}
 )
 
-
 catkin_python_setup()
 
 install(DIRECTORY launch/
@@ -102,8 +101,11 @@ install(DIRECTORY launch/
 install(DIRECTORY config/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
 
-file(GLOB py_files "scripts/*.py" "scripts/test_scripts/*.py")
-install(PROGRAMS ${py_files}
+file(GLOB ${PROJECT_NAME}_SCRIPTS 
+        "scripts/*.py" 
+        "test/test_scripts/*.py"
+)
+install(PROGRAMS ${${PROJECT_NAME}_SCRIPTS}
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 install(
@@ -123,14 +125,35 @@ install(
 ## Testing ##
 #############
 
-add_test(${PROJECT_NAME}_smoke_test           bash -c "(sleep 4 && sleep `rand -M 4` && rosnode kill ${PROJECT_NAME} ) & rosrun ${PROJECT_NAME} pylon_camera_node  __name:=${PROJECT_NAME}")
-set_tests_properties(${PROJECT_NAME}_smoke_test        PROPERTIES TIMEOUT 10)
-
 if(CATKIN_ENABLE_TESTING)
-  #find_package(rostest REQUIRED)
-  add_rostest(test/open_jira_test_camera.test)
+  #add_rostest(test/open_various_camera_types.test)
+  
+  # smoke_test
+  add_test(${PROJECT_NAME}_smoke_test
+           /bin/bash "-c" "(sleep 4 && sleep `rand -M 16` && rosnode kill ${PROJECT_NAME} ) & rosrun ${PROJECT_NAME} pylon_camera_node  __name:=${PROJECT_NAME}")
+  set_tests_properties(${PROJECT_NAME}_smoke_test PROPERTIES TIMEOUT 20)
+  
+  # open_different_camera_types_tests
+#  add_rostest(test/open_gige.test)
+#  add_rostest(test/open_usb.test)
+  
+  
+  # test for acquisition of one image_raw and one_cam_info
+  add_rostest(test/single_acquisition_dart.test)
+  add_rostest(test/single_acquisition_gige.test)
+  add_rostest(test/single_acquisition_usb.test)
+   
+  # frame_rate_tests
+  add_rostest(test/frame_rate_dart.test)
+  add_rostest(test/frame_rate_gige.test)
+  add_rostest(test/frame_rate_usb.test)
 endif()
 
+
+###############
+## QtCreator ##
+###############
+# entry for QtCreator to show all files
 file(GLOB children ${CMAKE_CURRENT_SOURCE_DIR}/*)
 foreach(child ${children})
   if(IS_DIRECTORY ${child})
