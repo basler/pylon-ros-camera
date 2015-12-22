@@ -62,11 +62,11 @@ bool PylonCameraParameter::validateParameterSet(ros::NodeHandle& nh)
 {
     if (!device_user_id_.empty())
     {
-        ROS_INFO("Using Camera: %s", device_user_id_.c_str());
+        ROS_INFO("Trying to open the following camera: %s", device_user_id_.c_str());
     }
     else
     {
-        ROS_INFO("No Device User ID set -> Will use the camera device found first");
+        ROS_INFO("No Device User ID set -> Will open the camera device found first");
     }
 
     if (binning_ > 4 || binning_ < 1)
