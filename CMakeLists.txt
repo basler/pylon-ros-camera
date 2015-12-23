@@ -141,13 +141,13 @@ if(CATKIN_ENABLE_TESTING)
   
   # test for acquisition of one image_raw and one_cam_info
   add_rostest(test/single_acquisition_dart.test)
-#  add_rostest(test/single_acquisition_gige.test)
-#  add_rostest(test/single_acquisition_usb.test)
+  add_rostest(test/single_acquisition_gige.test)
+  add_rostest(test/single_acquisition_usb.test)
    
   # frame_rate_tests
   add_rostest(test/frame_rate_dart.test)
-#  add_rostest(test/frame_rate_gige.test)
-#  add_rostest(test/frame_rate_usb.test)
+  add_rostest(test/frame_rate_gige.test)
+  add_rostest(test/frame_rate_usb.test)
 endif()
 
 
