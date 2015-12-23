@@ -41,9 +41,8 @@ int main(int argc, char* argv[])
         return 2;
     }
 
-    // Automatically call PylonInitialize and PylonTerminate to ensure the pylon runtime system
-    // is initialized during the lifetime of this object.
-    Pylon::PylonAutoInitTerm auto_init_term;
+    // Before using any pylon methods, the pylon runtime must be initialized.
+    Pylon::PylonInitialize();
 
     try
     {
@@ -79,6 +78,9 @@ int main(int argc, char* argv[])
                   << std::endl;
         return 3;
     }
+
+    // Releases all pylon resources.
+    Pylon::PylonTerminate();
 
     return 0;
 }
