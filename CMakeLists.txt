@@ -11,12 +11,7 @@ set(CATKIN_COMPONENTS
     sensor_msgs
 )
 
-find_package(PkgConfig)
-pkg_check_modules(PYLON pylon)
-if(NOT PYLON_FOUND)
-    message(FATAL_ERROR "Could not find Pylon pkg-config files. Maybe you are not using the most recent version of Pylon from rosdep. Please run 'rosdep update' and 'rosdep install --from-path pylon_camera --ignore-src --rosdistro=indigo -y' inside your catkin_ws and try again.")
-endif()
-
+find_package(Pylon QUIET REQUIRED)
 find_package(
     catkin REQUIRED
     COMPONENTS ${CATKIN_COMPONENTS} roslint rostest
@@ -51,11 +46,7 @@ include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
-link_directories(
-    ${PYLON_LIBRARY_DIRS}
-)
-
-include_directories(SYSTEM ${PYLON_INCLUDE_DIRS} )
+include_directories(SYSTEM ${Pylon_INCLUDE_DIRS} )
 include_directories( ${catkin_INCLUDE_DIRS} )
 
 # Add library
@@ -68,7 +59,7 @@ add_library(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
     ${catkin_LIBRARIES}
-    ${PYLON_LIBRARIES}
+    ${Pylon_LIBRARIES}
 )
 
 add_dependencies(${PROJECT_NAME}
@@ -89,7 +80,7 @@ add_executable(write_magazino_id_to_camera
 )
 
 target_link_libraries(write_magazino_id_to_camera
-    ${PYLON_LIBRARIES}
+    ${Pylon_LIBRARIES}
 )
 
 add_dependencies(${PROJECT_NAME}_node
