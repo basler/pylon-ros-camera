@@ -12,9 +12,9 @@ set(CATKIN_COMPONENTS
 )
 
 find_package(PkgConfig)
-pkg_check_modules(PYLON4 pylon4)
-if(NOT PYLON4_FOUND)
-    message(FATAL_ERROR "Could not find Pylon4 pkg-config files. Maybe you are not using the most recent version of Pylon4 from rosdep. Please run 'rosdep update' and 'rosdep install --from-path pylon_camera --ignore-src --rosdistro=indigo -y' inside your catkin_ws and try again.")
+pkg_check_modules(PYLON pylon)
+if(NOT PYLON_FOUND)
+    message(FATAL_ERROR "Could not find Pylon pkg-config files. Maybe you are not using the most recent version of Pylon from rosdep. Please run 'rosdep update' and 'rosdep install --from-path pylon_camera --ignore-src --rosdistro=indigo -y' inside your catkin_ws and try again.")
 endif()
 
 find_package(
@@ -52,11 +52,10 @@ include_directories(
 )
 
 link_directories(
-    ${PYLON4_LIBRARY_DIRS}
+    ${PYLON_LIBRARY_DIRS}
 )
 
-
-include_directories(SYSTEM ${PYLON4_INCLUDE_DIRS} )
+include_directories(SYSTEM ${PYLON_INCLUDE_DIRS} )
 include_directories( ${catkin_INCLUDE_DIRS} )
 
 # Add library
@@ -66,10 +65,12 @@ add_library(${PROJECT_NAME}
     src/${PROJECT_NAME}/pylon_camera_node.cpp
     src/${PROJECT_NAME}/pylon_camera_parameter.cpp
 )
+
 target_link_libraries(${PROJECT_NAME}
     ${catkin_LIBRARIES}
-    ${PYLON4_LIBRARIES}
+    ${PYLON_LIBRARIES}
 )
+
 add_dependencies(${PROJECT_NAME}
     ${catkin_EXPORTED_TARGETS}
 )
@@ -78,6 +79,7 @@ add_dependencies(${PROJECT_NAME}
 add_executable(${PROJECT_NAME}_node
     src/${PROJECT_NAME}/main.cpp
 )
+
 target_link_libraries(${PROJECT_NAME}_node
     ${PROJECT_NAME}
 )
@@ -86,10 +88,10 @@ add_executable(write_magazino_id_to_camera
     src/${PROJECT_NAME}/write_magazino_id_to_camera.cpp
 )
 
-
 target_link_libraries(write_magazino_id_to_camera
-    ${PYLON4_LIBRARIES}
+    ${PYLON_LIBRARIES}
 )
+
 add_dependencies(${PROJECT_NAME}_node
     ${catkin_EXPORTED_TARGETS}
 )
@@ -139,13 +141,13 @@ if(CATKIN_ENABLE_TESTING)
   
   # test for acquisition of one image_raw and one_cam_info
   add_rostest(test/single_acquisition_dart.test)
-  add_rostest(test/single_acquisition_gige.test)
-  add_rostest(test/single_acquisition_usb.test)
+#  add_rostest(test/single_acquisition_gige.test)
+#  add_rostest(test/single_acquisition_usb.test)
    
   # frame_rate_tests
   add_rostest(test/frame_rate_dart.test)
-  add_rostest(test/frame_rate_gige.test)
-  add_rostest(test/frame_rate_usb.test)
+#  add_rostest(test/frame_rate_gige.test)
+#  add_rostest(test/frame_rate_usb.test)
 endif()
 
 
