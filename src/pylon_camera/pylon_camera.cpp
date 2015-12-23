@@ -64,7 +64,7 @@ PylonCamera* PylonCamera::create()
     try
     {
         // Before using any pylon methods, the pylon runtime must be initialized.
-    	Pylon::PylonInitialize();
+        Pylon::PylonInitialize();
 
         // BaslerDebugDay: It is possible to detect the correct camera without opening it first
         // Hence use CDeviceInfo info; to detect the name
@@ -101,7 +101,7 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
     try
     {
         // Before using any pylon methods, the pylon runtime must be initialized.
-    	Pylon::PylonInitialize();
+        Pylon::PylonInitialize();
 
         // Get the transport layer factory.
         Pylon::CTlFactory& transport_layer_factory = Pylon::CTlFactory::GetInstance();
