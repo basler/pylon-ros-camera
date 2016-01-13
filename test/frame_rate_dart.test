@@ -1,18 +1,20 @@
 <?xml version="1.0"?>
 <launch>
 
+  <!-- Skip this test if you are not on jenkins testrig and therefore no jenkins_test_*-cameras will be present -->
+  <arg name="on_jenkins_testrig" default="$(optenv ON_JENKINS_TESTRIG false)" />
+
   <arg name="node_name_dart" default="pylon_camera_test_dart_node" />
 
   <!-- NODE -->
-  <node pkg="pylon_camera" type="pylon_camera_node" name="$(arg node_name_dart)" clear_params="true" output="screen">	
+  <node if="$(arg on_jenkins_testrig)" pkg="pylon_camera" type="pylon_camera_node" name="$(arg node_name_dart)" clear_params="true" output="screen">	
     <param name="device_user_id"  value="jenkins_test_dart"  type="string" />
     <param name="desired_framerate"  value="10.0"  type="double" />
     <param name="camera_frame" value="/$(arg node_name_dart)" type="string" />
   </node>
   
-  
   <!-- TEST -->  
-  <test pkg="rostest" type="hztest" test-name="pylon_camera_frame_rate_dart" >
+  <test if="$(arg on_jenkins_testrig)" pkg="rostest" type="hztest" test-name="pylon_camera_frame_rate_dart" >
     <param name="topic" value="/$(arg node_name_dart)/image_raw" />  
     <param name="hz" value="10.0" />
     <param name="hzerror" value="2.0" />
