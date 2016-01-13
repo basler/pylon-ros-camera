@@ -3,12 +3,13 @@ project(pylon_camera)
 
 add_definitions("-std=gnu++11")
 #set(CMAKE_CXX_FLAGS "-g -Wall -Wno-unknown-pragmas -Wno-delete-non-virtual-dtor -Wno-unused-variable")
-set(CATKIN_COMPONENTS
-    actionlib
-    camera_control_msgs
-    image_transport
-    roscpp
-    sensor_msgs
+set(
+    CATKIN_COMPONENTS
+     actionlib
+     camera_control_msgs
+     image_transport
+     roscpp
+     sensor_msgs
 )
 
 find_package(Pylon QUIET REQUIRED)
@@ -18,12 +19,19 @@ find_package(
 )
 
 catkin_package(
-    INCLUDE_DIRS include
-    LIBRARIES ${PROJECT_NAME}
-    CATKIN_DEPENDS ${CATKIN_COMPONENTS}
+    INCLUDE_DIRS 
+     include
+    LIBRARIES 
+     ${PROJECT_NAME}
+    CATKIN_DEPENDS 
+     ${CATKIN_COMPONENTS}
 )
 
-set(ROSLINT_CPP_OPTS "--extensions=cpp,h,hpp" "--filter=-runtime/references,-readability/todo,-build/include_what_you_use")
+set(
+    ROSLINT_CPP_OPTS 
+     "--extensions=cpp,h,hpp" "--filter=-runtime/references,-readability/todo,-build/include_what_you_use"
+)
+
 roslint_cpp(
     src/${PROJECT_NAME}/exposure_search_parameter.cpp
     src/${PROJECT_NAME}/main.cpp
@@ -50,67 +58,103 @@ include_directories(SYSTEM ${Pylon_INCLUDE_DIRS} )
 include_directories( ${catkin_INCLUDE_DIRS} )
 
 # Add library
-add_library(${PROJECT_NAME}
-    src/${PROJECT_NAME}/exposure_search_parameter.cpp
-    src/${PROJECT_NAME}/pylon_camera.cpp
-    src/${PROJECT_NAME}/pylon_camera_node.cpp
-    src/${PROJECT_NAME}/pylon_camera_parameter.cpp
+add_library(
+    ${PROJECT_NAME}
+     src/${PROJECT_NAME}/exposure_search_parameter.cpp
+     src/${PROJECT_NAME}/pylon_camera.cpp
+     src/${PROJECT_NAME}/pylon_camera_node.cpp
+     src/${PROJECT_NAME}/pylon_camera_parameter.cpp
 )
 
-target_link_libraries(${PROJECT_NAME}
-    ${catkin_LIBRARIES}
-    ${Pylon_LIBRARIES}
+target_link_libraries(
+    ${PROJECT_NAME}
+     ${catkin_LIBRARIES}
+     ${Pylon_LIBRARIES}
 )
 
-add_dependencies(${PROJECT_NAME}
-    ${catkin_EXPORTED_TARGETS}
+add_dependencies(
+    ${PROJECT_NAME}
+     ${catkin_EXPORTED_TARGETS}
 )
 
-# Add node
-add_executable(${PROJECT_NAME}_node
-    src/${PROJECT_NAME}/main.cpp
+# Add pylon_camera_node
+add_executable(
+    ${PROJECT_NAME}_node
+     src/${PROJECT_NAME}/main.cpp
 )
 
-target_link_libraries(${PROJECT_NAME}_node
+target_link_libraries(
+    ${PROJECT_NAME}_node
     ${PROJECT_NAME}
 )
 
-add_executable(write_magazino_id_to_camera
-    src/${PROJECT_NAME}/write_magazino_id_to_camera.cpp
+add_executable(
+    write_magazino_id_to_camera
+     src/${PROJECT_NAME}/write_magazino_id_to_camera.cpp
 )
 
-target_link_libraries(write_magazino_id_to_camera
-    ${Pylon_LIBRARIES}
+target_link_libraries(
+    write_magazino_id_to_camera
+     ${Pylon_LIBRARIES}
 )
 
-add_dependencies(${PROJECT_NAME}_node
+add_dependencies(
+    ${PROJECT_NAME}_node
     ${catkin_EXPORTED_TARGETS}
 )
 
 catkin_python_setup()
 
-install(DIRECTORY launch/
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
-install(DIRECTORY config/
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
+install(
+    DIRECTORY 
+     launch/
+    DESTINATION 
+     ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+)
+
+install(
+    DIRECTORY 
+     config/
+    DESTINATION 
+     ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
+)
 
 file(GLOB ${PROJECT_NAME}_SCRIPTS 
         "scripts/*.py" 
-        "test/test_scripts/*.py"
-)
-install(PROGRAMS ${${PROJECT_NAME}_SCRIPTS}
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-install(
-    TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node write_magazino_id_to_camera
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 install(
-    DIRECTORY include/${PROJECT_NAME}/
-    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-    FILES_MATCHING PATTERN "*.h"
+	PROGRAMS
+	 scripts/brightness_evaluation.py
+	 scripts/brightness_publisher.py
+	 scripts/compatibility_exposure_action.py
+	 scripts/exp_caller.py
+	 scripts/file_sequencer.py
+	 scripts/result_bag_to_action.py
+	 scripts/sequence_to_file.py
+	 test/test_scripts/single_acquisition_test.py
+	DESTINATION 
+	 ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+install(
+    TARGETS 
+     ${PROJECT_NAME} 
+     ${PROJECT_NAME}_node 
+     write_magazino_id_to_camera
+    LIBRARY DESTINATION 
+     ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION 
+     ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(
+    DIRECTORY 
+     include/${PROJECT_NAME}/
+    DESTINATION 
+     ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+    FILES_MATCHING PATTERN 
+     "*.h"
     PATTERN "internal" EXCLUDE
 )
 
