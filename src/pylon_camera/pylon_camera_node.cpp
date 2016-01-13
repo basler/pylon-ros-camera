@@ -100,7 +100,6 @@ bool PylonCameraNode::initAndRegister()
 
     if (pylon_camera_ == NULL)
     {
-        ROS_ERROR("Error while creating the PylonCamera, resulting Pointer is NULL");
         return false;
     }
 
