@@ -6,6 +6,13 @@
 #include <cmath>
 #include <vector>
 
+
+//static bool laser = true;
+//ROS_INFO("user input");
+//setUserOutput(1, laser);
+//laser = !laser;
+
+
 namespace pylon_camera
 {
 
@@ -62,11 +69,19 @@ void PylonCameraNode::spin()
         {
         }
 
+
         if (grabImage())
         {
             img_raw_pub_.publish(img_raw_msg_, cam_info_msg_);
         }
     }
+}
+
+
+void PylonCameraNode::cb_digital_output(const std_msgs::BoolConstPtr &msg)
+{
+    ROS_INFO("Digital Io to %i", msg->data);
+    pylon_camera_->setUserOutput(1, msg->data);
 }
 
 const double& PylonCameraNode::desiredFrameRate() const
@@ -97,6 +112,12 @@ bool PylonCameraNode::initAndRegister()
                                                    this);
 
     pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.device_user_id_);
+
+
+    if (pylon_camera_->typeName() != "DART")
+    {
+        sub_digital_output_ = nh_.subscribe<std_msgs::Bool>("output_1", 1, &PylonCameraNode::cb_digital_output, this);
+    }
 
     if (pylon_camera_ == NULL)
     {

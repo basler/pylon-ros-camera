@@ -28,6 +28,15 @@ PylonCameraImpl<CameraTraitT>::~PylonCameraImpl()
     cam_ = NULL;
 }
 
+//template <typename CameraTraitT>
+//bool PylonCameraImpl<CameraTraitT>::setUserOutput(int output_id, bool value)
+//{
+//    ROS_ERROR("Executing PylonCameraImpl<CameraTraitT>::setUserOutput %i %i", output_id, value);
+//    return false;
+////    return static_cast<float>(exposureTime().GetValue());
+//}
+
+
 template <typename CameraTraitT>
 float PylonCameraImpl<CameraTraitT>::currentExposure()
 {

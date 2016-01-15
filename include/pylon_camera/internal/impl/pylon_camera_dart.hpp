@@ -21,6 +21,9 @@ public:
 
     virtual bool registerCameraConfiguration(const PylonCameraParameter& params);
 
+    virtual bool setUserOutput(int output_id, bool value);
+
+
 protected:
     virtual bool setupSequencer(const std::vector<float>& exposure_times, std::vector<float>& exposure_times_set);
 
@@ -87,6 +90,12 @@ bool PylonDARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
             ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: " << e.GetDescription());
         }
     }
+    return false;
+}
+
+bool PylonDARTCamera::setUserOutput(int output_id, bool value)
+{
+    ROS_ERROR("Dart camera has no digital output.");
     return false;
 }
 

@@ -57,6 +57,8 @@ public:
 
     virtual float exposureStep();
 
+    virtual bool setUserOutput(int output_id, bool value);
+
 protected:
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
     typedef typename CameraTraitT::ExposureAutoEnums ExposureAutoEnums;

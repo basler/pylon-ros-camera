@@ -155,6 +155,14 @@ public:
     virtual float exposureStep() = 0;
 
     /**
+     * @brief setUserOutput sets the digital output
+     * @param output_id
+     * @param value goal value for output
+     * @return true if value was set
+     */
+    virtual bool setUserOutput(int output_id, bool value) = 0;
+
+    /**
      * Getter for the image height
      * @return number of rows in the image
      */
@@ -206,6 +214,9 @@ public:
      * Parameters for the extended brightness search
      */
     ExposureSearchParameter exp_search_params_;
+
+
+
 
 protected:
     /**

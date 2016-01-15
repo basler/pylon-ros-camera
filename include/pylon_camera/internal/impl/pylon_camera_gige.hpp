@@ -22,6 +22,8 @@ struct GigECameraTrait
     typedef GenApi::IInteger AutoTargetBrightnessType;
     typedef int64_t AutoTargetBrightnessValueType;
     typedef Basler_GigECameraParams::ShutterModeEnums ShutterModeEnums;
+    typedef Basler_GigECamera::UserOutputSelectorEnums UserOutputSelectorEnums;
+
     static inline AutoTargetBrightnessValueType convertBrightness(const int& value)
     {
         return value;
@@ -128,6 +130,30 @@ GigECameraTrait::AutoTargetBrightnessType& PylonGigECamera::autoTargetBrightness
 {
     return cam_->AutoTargetValue;
 }
+
+template <>
+bool PylonGigECamera::setUserOutput(int output_id, bool value)
+{
+    ROS_INFO("PylonGigECamera: Setting output id %i to %i", output_id, value);
+
+    try{
+        cam_->UserOutputSelector.SetValue(Basler_GigECamera::UserOutputSelectorEnums(output_id));
+        cam_->UserOutputValue.SetValue(value);
+    } catch (std::exception& ex)
+    {
+        ROS_ERROR("Could not set user output %i: %s", output_id, ex.what());
+        return false;
+    }
+
+    if (value != cam_->UserOutputValue.GetValue())
+    {
+        ROS_ERROR("Value %i could not be set to output %i", value, output_id);
+        return false;
+    }
+
+    return true;
+}
+
 
 template <>
 std::string PylonGigECamera::typeName() const

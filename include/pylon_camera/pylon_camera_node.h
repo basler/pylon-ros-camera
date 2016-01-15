@@ -19,6 +19,8 @@
 #include <camera_control_msgs/SetSleepingSrv.h>
 #include <camera_control_msgs/GrabImagesAction.h>
 
+#include <std_msgs/Bool.h>
+
 namespace pylon_camera
 {
 
@@ -156,6 +158,12 @@ protected:
      */
     void grabImagesRawActionExecuteCB(const camera_control_msgs::GrabImagesGoal::ConstPtr& goal);
 
+    /**
+     * @brief cb_digital_output sets the digitial output
+     * @param msg
+     */
+    void cb_digital_output(const std_msgs::BoolConstPtr& msg);
+
     ros::NodeHandle nh_;
 
     PylonCamera* pylon_camera_;
@@ -169,6 +177,8 @@ protected:
     ros::ServiceServer set_exposure_service_;
     ros::ServiceServer set_brightness_service_;
     ros::ServiceServer set_sleeping_service_;
+
+    ros::Subscriber sub_digital_output_;
 
     sensor_msgs::Image img_raw_msg_;
     sensor_msgs::CameraInfo cam_info_msg_;

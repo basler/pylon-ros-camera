@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+
 namespace pylon_camera
 {
 
@@ -239,5 +240,6 @@ const bool& PylonCamera::isOwnBrightnessFunctionRunning() const
 {
     return is_own_brightness_function_running_;
 }
+
 
 }  // namespace pylon_camera
