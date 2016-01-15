@@ -28,14 +28,30 @@ PylonCameraImpl<CameraTraitT>::~PylonCameraImpl()
     cam_ = NULL;
 }
 
-//template <typename CameraTraitT>
-//bool PylonCameraImpl<CameraTraitT>::setUserOutput(int output_id, bool value)
-//{
-//    ROS_ERROR("Executing PylonCameraImpl<CameraTraitT>::setUserOutput %i %i", output_id, value);
-//    return false;
-////    return static_cast<float>(exposureTime().GetValue());
-//}
+template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::setUserOutput(const int& output_id, const bool& value)
+{
+    ROS_INFO("PylonGigECamera: Setting output id %i to %i", output_id, value);
 
+    try
+    {
+        cam_->UserOutputSelector.SetValue(static_cast<UserOutputSelectorEnums>(output_id));
+        cam_->UserOutputValue.SetValue(value);
+    }
+    catch (const std::exception& ex)
+    {
+        ROS_ERROR("Could not set user output %i: %s", output_id, ex.what());
+        return false;
+    }
+
+    if (value != cam_->UserOutputValue.GetValue())
+    {
+        ROS_ERROR("Value %i could not be set to output %i", value, output_id);
+        return false;
+    }
+
+    return true;
+}
 
 template <typename CameraTraitT>
 float PylonCameraImpl<CameraTraitT>::currentExposure()

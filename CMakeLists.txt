@@ -127,7 +127,6 @@ install(
 	PROGRAMS
 	 scripts/brightness_evaluation.py
 	 scripts/brightness_publisher.py
-	 scripts/compatibility_exposure_action.py
 	 scripts/exp_caller.py
 	 scripts/file_sequencer.py
 	 scripts/result_bag_to_action.py

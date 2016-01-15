@@ -160,7 +160,7 @@ public:
      * @param value goal value for output
      * @return true if value was set
      */
-    virtual bool setUserOutput(int output_id, bool value) = 0;
+    virtual bool setUserOutput(const int& output_id, const bool& value) = 0;
 
     /**
      * Getter for the image height

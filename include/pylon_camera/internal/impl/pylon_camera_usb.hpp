@@ -131,33 +131,6 @@ GenApi::IFloat& PylonUSBCamera::resultingFrameRate()
     return cam_->ResultingFrameRate;
 }
 
-
-template <>
-bool PylonUSBCamera::setUserOutput(int output_id, bool value)
-{
-    ROS_DEBUG("PylonUSB: Setting output id %i to %i", output_id, value);
-    try{
-        cam_->UserOutputSelector.SetValue(Basler_UsbCameraParams::UserOutputSelectorEnums(output_id));
-        cam_->UserOutputValue.SetValue(value);
-    } catch (std::exception& ex)
-    {
-        ROS_ERROR("Could not set user output %i: %s", output_id, ex.what());
-        return false;
-    }
-
-    if (value != cam_->UserOutputValue.GetValue())
-    {
-        ROS_ERROR("Value %i could not be set to output %i", value, output_id);
-        return false;
-    }
-
-    return true;
-}
-
-
-
-
-
 template <>
 USBCameraTrait::AutoTargetBrightnessType& PylonUSBCamera::autoTargetBrightness()
 {

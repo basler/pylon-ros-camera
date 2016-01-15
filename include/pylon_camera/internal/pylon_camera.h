@@ -57,7 +57,7 @@ public:
 
     virtual float exposureStep();
 
-    virtual bool setUserOutput(int output_id, bool value);
+    virtual bool setUserOutput(const int& output_id, const bool& value);
 
 protected:
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
@@ -66,6 +66,7 @@ protected:
     typedef typename CameraTraitT::PixelSizeEnums PixelSizeEnums;
     typedef typename CameraTraitT::AutoTargetBrightnessType AutoTargetBrightnessType;
     typedef typename CameraTraitT::ShutterModeEnums ShutterModeEnums;
+    typedef typename CameraTraitT::UserOutputSelectorEnums UserOutputSelectorEnums;
 
     // Each camera has it's own getter for GenApi accessors that are named differently for USB and GigE
     GenApi::IFloat& exposureTime();
@@ -74,7 +75,8 @@ protected:
 
     virtual bool grab(Pylon::CGrabResultPtr& grab_result);
 
-    virtual bool setupSequencer(const std::vector<float>& exposure_times, std::vector<float>& exposure_times_set);
+    virtual bool setupSequencer(const std::vector<float>& exposure_times,
+                                std::vector<float>& exposure_times_set);
 
     CBaslerInstantCameraT* cam_;
 
