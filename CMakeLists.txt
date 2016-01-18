@@ -15,7 +15,7 @@ set(
 find_package(Pylon QUIET REQUIRED)
 find_package(
     catkin REQUIRED
-    COMPONENTS ${CATKIN_COMPONENTS} roslint rostest
+    COMPONENTS ${CATKIN_COMPONENTS} roslint
 )
 
 catkin_package(
@@ -131,7 +131,6 @@ install(
 	 scripts/file_sequencer.py
 	 scripts/result_bag_to_action.py
 	 scripts/sequence_to_file.py
-	 test/test_scripts/single_acquisition_test.py
 	DESTINATION 
 	 ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
@@ -157,33 +156,9 @@ install(
     PATTERN "internal" EXCLUDE
 )
 
-#############
 ## Testing ##
-#############
-
-if(CATKIN_ENABLE_TESTING)
-  #add_rostest(test/open_various_camera_types.test)
-  
-  # smoke_test
-  add_test(${PROJECT_NAME}_smoke_test
-           /bin/bash "-c" "(sleep 4 && sleep `rand -M 16` && rosnode kill ${PROJECT_NAME} ) & rosrun ${PROJECT_NAME} pylon_camera_node  __name:=${PROJECT_NAME}")
-  set_tests_properties(${PROJECT_NAME}_smoke_test PROPERTIES TIMEOUT 20)
-  
-  # open_different_camera_types_tests
-#  add_rostest(test/open_gige.test)
-#  add_rostest(test/open_usb.test)
-  
-  # test for acquisition of one image_raw and one_cam_info
-  add_rostest(test/single_acquisition_dart.test)
-  add_rostest(test/single_acquisition_gige.test)
-  add_rostest(test/single_acquisition_usb.test)
-   
-  # frame_rate_tests
-  add_rostest(test/frame_rate_dart.test)
-  add_rostest(test/frame_rate_gige.test)
-  add_rostest(test/frame_rate_usb.test)
-endif()
-
+# All Jenkins-Tests are now in the pylon_camera_tests-pkg
+############
 
 ###############
 ## QtCreator ##
