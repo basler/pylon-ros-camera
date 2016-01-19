@@ -66,6 +66,9 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
         // int inter_package_delay_in_ticks = n_cams * imageSize() * 1.05;
         // std::cout << "Inter-Package Delay" << inter_package_delay_in_ticks << std::endl;
         cam_->GevSCPD.SetValue(1000);
+
+        cam_->GainAuto.SetValue(Basler_GigECameraParams::GainAuto_Off);
+        cam_->GainAbs.SetValue(100.0);
     }
     catch (const GenICam::GenericException &e)
     {
