@@ -113,15 +113,14 @@ bool PylonCameraNode::initAndRegister()
 
     pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.device_user_id_);
 
+    if (pylon_camera_ == NULL)
+    {
+        return false;
+    }
 
     if (pylon_camera_->typeName() != "DART")
     {
         sub_digital_output_ = nh_.subscribe<std_msgs::Bool>("output_1", 1, &PylonCameraNode::cb_digital_output, this);
-    }
-
-    if (pylon_camera_ == NULL)
-    {
-        return false;
     }
 
     if (!pylon_camera_->registerCameraConfiguration(pylon_camera_parameter_set_))
