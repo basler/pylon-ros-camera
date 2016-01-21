@@ -12,14 +12,11 @@ find_package(catkin REQUIRED COMPONENTS
 ################ MSG ################
 file(GLOB msg_files "msg/*.msg")
 foreach(file ${msg_files})
-    GET_FILENAME_COMPONENT(file_short ${file}  NAME)
-    list( APPEND msg_base_files ${file_short})
+    get_filename_component(file_short ${file} NAME)
+    list(APPEND msg_base_files ${file_short})
 endforeach()
 
-add_message_files(
-  FILES
-  ${msg_base_files}
-)
+add_message_files(FILES ${msg_base_files})
 message(STATUS "+++ Services: ${msg_base_files}")
 ################ MSG ################
 
@@ -27,8 +24,8 @@ message(STATUS "+++ Services: ${msg_base_files}")
 ################ ACTIONS ################
 file(GLOB action_files "action/*.action")
 foreach(file ${action_files})
-    GET_FILENAME_COMPONENT(file_short ${file}  NAME)
-    list( APPEND action_base_files ${file_short})
+    get_filename_component(file_short ${file} NAME)
+    list(APPEND action_base_files ${file_short})
 endforeach()
 
 add_action_files(DIRECTORY action FILES ${action_base_files})
@@ -38,8 +35,8 @@ message(STATUS "+++ Actions: ${action_base_files}")
 ################ SRV ################
 file(GLOB srv_files "srv/*.srv")
 foreach(file ${srv_files})
-    GET_FILENAME_COMPONENT(file_short ${file}  NAME)
-    list( APPEND srv_base_files ${file_short})
+    get_filename_component(file_short ${file} NAME)
+    list(APPEND srv_base_files ${file_short})
 endforeach()
 
 message(STATUS "+++ Services: ${srv_base_files}")
@@ -48,8 +45,7 @@ message(STATUS "+++ Services: ${srv_base_files}")
 
 add_service_files(
   DIRECTORY srv
-  FILES
-  ${srv_base_files}
+  FILES ${srv_base_files}
 )
 generate_messages(
   DEPENDENCIES
@@ -58,10 +54,10 @@ generate_messages(
   std_msgs
 )
 
-catkin_package(CATKIN_DEPENDS 
+catkin_package(CATKIN_DEPENDS
   actionlib_msgs
-  message_runtime 
-  sensor_msgs 
-  std_msgs 
+  message_runtime
+  sensor_msgs
+  std_msgs
 )
 
