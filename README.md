@@ -12,7 +12,7 @@ Hence one can grab a sequence of images with target exposure times each as well 
 The default node operates in Software-Trigger Mode.
 This means that the image acquisition is triggered with a certain rate and the camera is not running in the continuous mode.
 
-The package opens either a predefined camera (using a given 'device_use_id' parameter) or, if no camera id is predefined the first camera device it can find.
+The package opens either a predefined camera (using a given 'device_user_id' parameter) or, if no camera id is predefined the first camera device it can find.
 
 # Installation
 Download and install the latest Version of the PylonAPI from
