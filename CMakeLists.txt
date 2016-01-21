@@ -20,7 +20,6 @@ find_package(
      ${CATKIN_COMPONENTS}
      #std_srvs
      roslint
-     rostest
 )
 
 catkin_package(
