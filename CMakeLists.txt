@@ -10,25 +10,30 @@ set(
      image_transport
      roscpp
      sensor_msgs
+     #std_srvs
 )
 
 find_package(Pylon QUIET REQUIRED)
 find_package(
     catkin REQUIRED
-    COMPONENTS ${CATKIN_COMPONENTS} roslint
+    COMPONENTS
+     ${CATKIN_COMPONENTS}
+     #std_srvs
+     roslint
+     rostest
 )
 
 catkin_package(
-    INCLUDE_DIRS 
+    INCLUDE_DIRS
      include
-    LIBRARIES 
+    LIBRARIES
      ${PROJECT_NAME}
-    CATKIN_DEPENDS 
+    CATKIN_DEPENDS
      ${CATKIN_COMPONENTS}
 )
 
 set(
-    ROSLINT_CPP_OPTS 
+    ROSLINT_CPP_OPTS
      "--extensions=cpp,h,hpp" "--filter=-runtime/references,-readability/todo,-build/include_what_you_use"
 )
 
@@ -51,11 +56,10 @@ roslint_cpp(
 )
 
 include_directories(
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${catkin_INCLUDE_DIRS}
+    ${Pylon_INCLUDE_DIRS}
 )
-
-include_directories(SYSTEM ${Pylon_INCLUDE_DIRS} )
-include_directories( ${catkin_INCLUDE_DIRS} )
 
 # Add library
 add_library(
@@ -75,6 +79,7 @@ target_link_libraries(
 add_dependencies(
     ${PROJECT_NAME}
      ${catkin_EXPORTED_TARGETS}
+     camera_control_msgs
 )
 
 # Add pylon_camera_node
@@ -85,7 +90,7 @@ add_executable(
 
 target_link_libraries(
     ${PROJECT_NAME}_node
-    ${PROJECT_NAME}
+     ${PROJECT_NAME}
 )
 
 add_executable(
@@ -100,27 +105,27 @@ target_link_libraries(
 
 add_dependencies(
     ${PROJECT_NAME}_node
-    ${catkin_EXPORTED_TARGETS}
+     ${catkin_EXPORTED_TARGETS}
 )
 
 catkin_python_setup()
 
 install(
-    DIRECTORY 
+    DIRECTORY
      launch/
-    DESTINATION 
+    DESTINATION
      ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
 )
 
 install(
-    DIRECTORY 
+    DIRECTORY
      config/
-    DESTINATION 
+    DESTINATION
      ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
 )
 
-file(GLOB ${PROJECT_NAME}_SCRIPTS 
-        "scripts/*.py" 
+file(GLOB ${PROJECT_NAME}_SCRIPTS
+        "scripts/*.py"
 )
 
 install(
@@ -131,27 +136,27 @@ install(
 	 scripts/file_sequencer.py
 	 scripts/result_bag_to_action.py
 	 scripts/sequence_to_file.py
-	DESTINATION 
+	DESTINATION
 	 ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 install(
-    TARGETS 
-     ${PROJECT_NAME} 
-     ${PROJECT_NAME}_node 
+    TARGETS
+     ${PROJECT_NAME}
+     ${PROJECT_NAME}_node
      write_magazino_id_to_camera
-    LIBRARY DESTINATION 
+    LIBRARY DESTINATION
      ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION 
+    RUNTIME DESTINATION
      ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 install(
-    DIRECTORY 
+    DIRECTORY
      include/${PROJECT_NAME}/
-    DESTINATION 
+    DESTINATION
      ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-    FILES_MATCHING PATTERN 
+    FILES_MATCHING PATTERN
      "*.h"
     PATTERN "internal" EXCLUDE
 )

@@ -6,13 +6,6 @@
 #include <cmath>
 #include <vector>
 
-
-//static bool laser = true;
-//ROS_INFO("user input");
-//setUserOutput(1, laser);
-//laser = !laser;
-
-
 namespace pylon_camera
 {
 
@@ -23,7 +16,7 @@ PylonCameraNode::PylonCameraNode() :
         it_(new image_transport::ImageTransport(nh_)),
         img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
         grab_images_raw_action_server_(nh_, "grab_images_raw",
-        boost::bind(&PylonCameraNode::grabImagesRawActionExecuteCB, this, _1), false),
+            boost::bind(&PylonCameraNode::grabImagesRawActionExecuteCB, this, _1), false),
         set_sleeping_service_(nh_.advertiseService("set_sleeping_srv", &PylonCameraNode::setSleepingCallback, this)),
         target_brightness_(-42),
         brightness_service_running_(false),
@@ -77,11 +70,12 @@ void PylonCameraNode::spin()
     }
 }
 
-
-void PylonCameraNode::cb_digital_output(const std_msgs::BoolConstPtr &msg)
+bool PylonCameraNode::setDigitalOutputCB(const int& output_id,
+                                         camera_control_msgs::SetBool::Request &req,
+                                         camera_control_msgs::SetBool::Response &res)
 {
-    ROS_INFO("Digital Io to %i", msg->data);
-    pylon_camera_->setUserOutput(1, msg->data);
+    res.success = pylon_camera_->setUserOutput(output_id, req.data);
+    return true;
 }
 
 const double& PylonCameraNode::desiredFrameRate() const
@@ -118,15 +112,17 @@ bool PylonCameraNode::initAndRegister()
         return false;
     }
 
-    if (pylon_camera_->typeName() != "DART")
-    {
-        sub_digital_output_ = nh_.subscribe<std_msgs::Bool>("output_1", 1, &PylonCameraNode::cb_digital_output, this);
-    }
-
     if (!pylon_camera_->registerCameraConfiguration(pylon_camera_parameter_set_))
     {
         ROS_ERROR("Error while registering the camera configuration");
         return false;
+    }
+
+    if (pylon_camera_->typeName() != "DART")
+    {
+        set_digital_output_1_service_ = nh_.advertiseService<camera_control_msgs::SetBool::Request, camera_control_msgs::SetBool::Response>(
+                "set_output_1",
+                boost::bind(&PylonCameraNode::setDigitalOutputCB, this, 1, _1, _2));
     }
 
     grab_images_raw_action_server_.start();

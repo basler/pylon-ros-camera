@@ -11,6 +11,8 @@
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
+//#include <std_srvs/SetBool.h>
+#include <camera_control_msgs/SetBool.h>
 
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/pylon_camera.h>
@@ -18,8 +20,6 @@
 #include <camera_control_msgs/SetBrightnessSrv.h>
 #include <camera_control_msgs/SetSleepingSrv.h>
 #include <camera_control_msgs/GrabImagesAction.h>
-
-#include <std_msgs/Bool.h>
 
 namespace pylon_camera
 {
@@ -159,10 +159,15 @@ protected:
     void grabImagesRawActionExecuteCB(const camera_control_msgs::GrabImagesGoal::ConstPtr& goal);
 
     /**
-     * @brief cb_digital_output sets the digitial output
-     * @param msg
+     * Callback that sets the digital output
+     * @param output_id the ID of the output to set
+     * @param req request
+     * @param res response
+     * @return true on success
      */
-    void cb_digital_output(const std_msgs::BoolConstPtr& msg);
+    bool setDigitalOutputCB(const int& output_id,
+                            camera_control_msgs::SetBool::Request &req,
+                            camera_control_msgs::SetBool::Response &res);
 
     ros::NodeHandle nh_;
 
@@ -177,8 +182,7 @@ protected:
     ros::ServiceServer set_exposure_service_;
     ros::ServiceServer set_brightness_service_;
     ros::ServiceServer set_sleeping_service_;
-
-    ros::Subscriber sub_digital_output_;
+    ros::ServiceServer set_digital_output_1_service_;
 
     sensor_msgs::Image img_raw_msg_;
     sensor_msgs::CameraInfo cam_info_msg_;

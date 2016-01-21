@@ -8,10 +8,10 @@
   <maintainer email="debout@magazino.eu">Marcel Debout</maintainer>
   <maintainer email="grimm@magazino.eu">Markus Grimm</maintainer>
   <maintainer email="engelhard@magazino.eu">Nikolas Engelhard</maintainer>
-  
+
   <version>0.0.9</version>
   <license>Apache2.0</license>
-  
+
   <description>
   	Proprietary Package for Basler Cameras using the the Pylon API.
   	- Supports DART, USB3 and GigE cameras.
@@ -19,13 +19,14 @@
   </description>
 
   <buildtool_depend>catkin</buildtool_depend>
-  
+
   <build_depend>actionlib</build_depend>
   <build_depend>pylon</build_depend>
   <build_depend>camera_control_msgs</build_depend>
   <build_depend>image_transport</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
+  <!--build_depend>std_srvs</build_depend-->
   <build_depend>roslint</build_depend>
 
   <run_depend>actionlib</run_depend>
@@ -34,4 +35,7 @@
   <run_depend>image_transport</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
+  <!--run_depend>std_srvs</run_depend-->
+
+  <test_depend>rand</test_depend>
 </package>

@@ -215,9 +215,6 @@ public:
      */
     ExposureSearchParameter exp_search_params_;
 
-
-
-
 protected:
     /**
      * Protected default constructor.
