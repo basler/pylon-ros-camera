@@ -4,5 +4,8 @@ start_exposure: 35000
 # Set the desired output frame rate of the camera
 desired_framerate: 10.0
 
+# The target gain in percent of the maximal value the camera supports
+target_gain: 0.5
+
 # The frame under which the images were published 
 camera_frame: pylon_camera

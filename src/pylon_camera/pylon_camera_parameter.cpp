@@ -11,6 +11,7 @@ PylonCameraParameter::PylonCameraParameter() :
         camera_frame_(""),
         desired_frame_rate_(-1.),
         target_exposure_(3000),
+        target_gain_(0.5),
         start_exposure_(2000.0),
         mtu_size_(3000),
         binning_(1),
@@ -53,6 +54,12 @@ bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
     //  0: AutoExposureOff
     // > 0: Exposure in micro-seconds
     nh.param<double>("start_exposure", start_exposure_, 35000.0);
+
+    // -1: AutoGainContinuous
+    //  0: AutoGainOff
+    // [0-1]: Gain in percent
+    nh.param<double>("target_gain", target_gain_, 0.5);
+
     nh.param<int>("binning", binning_, 1);
 
     return validateParameterSet(nh);
