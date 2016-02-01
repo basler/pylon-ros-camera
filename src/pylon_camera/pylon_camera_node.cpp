@@ -63,7 +63,6 @@ void PylonCameraNode::spin()
         {
         }
 
-
         if (grabImage())
         {
             img_raw_pub_.publish(img_raw_msg_, cam_info_msg_);
@@ -374,7 +373,11 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
     }
 
     // Get actual image
-    ros::spinOnce();
+    if (!grabImage())
+    {
+        ROS_ERROR("Failed to grab image, can't calculate current brightness!");
+        return false;
+    }
 
     int current_brightness = calcCurrentBrightness();
 
