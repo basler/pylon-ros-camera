@@ -11,7 +11,6 @@
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
-//#include <std_srvs/SetBool.h>
 #include <camera_control_msgs/SetBool.h>
 
 #include <pylon_camera/pylon_camera_parameter.h>
@@ -102,7 +101,10 @@ protected:
                              camera_control_msgs::SetExposureSrv::Response &res);
 
     /**
-     * Set the target brightness value on the camera
+     * Set the target brightness value of the published images.
+     * This is the intensity-mean over all pixels.
+     * The autofunction of the Pylon-API supports values from [50 - 205].
+     * Using a binary search, this range will be extended up to [1 - 254].
      * @param target_brightness
      * @param reached_brightness
      * @return true on success

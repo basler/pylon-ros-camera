@@ -247,7 +247,7 @@ protected:
     bool has_auto_exposure_;
 
     /**
-     * Is the camera initialized?
+     * Flag which is set in case that the grab-result-pointer of the first acquisition contains valid data
      */
     bool is_ready_;
 

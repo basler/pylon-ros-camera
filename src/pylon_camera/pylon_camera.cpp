@@ -226,6 +226,10 @@ const bool& PylonCamera::isCamRemoved() const
     return is_cam_removed_;
 }
 
+/**
+ * Flag which is set in case that the grab-result-pointer of the first acquisition contains valid data
+ * From this point on, the interface is ready
+ */
 const bool& PylonCamera::isReady() const
 {
     return is_ready_;

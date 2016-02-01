@@ -364,7 +364,8 @@ bool PylonCameraNode::setExposureCallback(camera_control_msgs::SetExposureSrv::R
 
 bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_brightness)
 {
-    // Brightness Service can only work, if an image has already been grabbed (calc mean on current img)
+    // brightness service can only work, if an image has already been grabbed, because it calculates the mean on the
+    // current image. The interface is ready if the grab-result-pointer of the first acquisition contains valid data
     if (!pylon_camera_->isReady())
     {
         ros::Rate r(2.0);
