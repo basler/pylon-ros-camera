@@ -154,6 +154,7 @@ bool PylonCameraNode::startGrabbing()
         ROS_INFO("Max possible framerate is %.2f Hz", pylon_camera_->maxPossibleFramerate());
     }
 
+    // setting up the CameraInfo object with the data of the uncalibrated image
     setupCameraInfo(cam_info_msg_);
 
     img_raw_msg_.header.frame_id = cameraFrame();
@@ -162,6 +163,7 @@ bool PylonCameraNode::startGrabbing()
     img_raw_msg_.encoding = pylon_camera_->imageEncoding();
     img_raw_msg_.height = pylon_camera_->imageRows();
     img_raw_msg_.width = pylon_camera_->imageCols();
+
     // step = full row length in bytes
     // img_raw_msg_.data // actual matrix data, size is (step * rows)
     img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
