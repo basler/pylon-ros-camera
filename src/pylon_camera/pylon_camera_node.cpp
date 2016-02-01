@@ -444,8 +444,8 @@ bool PylonCameraNode::brightnessValidation(int target)
 int PylonCameraNode::calcCurrentBrightness()
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-    int sum = std::accumulate(img_raw_msg_.data.begin(), img_raw_msg_.data.end(), 0);
     assert(img_raw_msg_.data.size() > 0);
+    int sum = std::accumulate(img_raw_msg_.data.begin(), img_raw_msg_.data.end(), 0);
     float mean = sum / img_raw_msg_.data.size();
     return static_cast<int>(mean);
 }
