@@ -80,6 +80,11 @@ protected:
     virtual bool grabImage();
 
     /**
+     * Fills the ros CameraInfo-Object with the image dimensions
+     */
+    virtual void setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg);
+
+    /**
      * Update the exposure value on the camera
      * @param target_exposure the targeted exposure
      * @param reached_exposure the exposure that could be reached
