@@ -176,6 +176,12 @@ protected:
                             camera_control_msgs::SetBool::Request &req,
                             camera_control_msgs::SetBool::Response &res);
 
+    /**
+     * Waits till the pylon_camera_ isReady() observing a given timeout
+     * @return true when the camera's state toggles to 'isReady()'
+     */
+    bool waitForCamera(const ros::Duration& timeout) const;
+
     ros::NodeHandle nh_;
 
     PylonCamera* pylon_camera_;

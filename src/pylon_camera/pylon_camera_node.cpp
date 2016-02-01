@@ -244,6 +244,39 @@ void PylonCameraNode::setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
     cam_info_msg.roi.height = cam_info_msg.roi.width = 0;
 }
 
+/**
+ * Waits till the pylon_camera_ isReady() observing a given timeout
+ * @return true when the camera's state toggles to 'isReady()'
+ */
+bool PylonCameraNode::waitForCamera(const ros::Duration& timeout) const
+{
+    bool result = false;
+    ros::Time start_time = ros::Time::now();
+
+    while (ros::ok())
+    {
+        if(pylon_camera_->isReady())
+        {
+            result = true;
+            break;
+        }
+        else
+        {
+            if(timeout >= ros::Duration(0))
+            {
+                if (ros::Time::now() - start_time >= timeout)
+                {
+                    ROS_ERROR_STREAM("Setting brightness failed, because the interface is not ready." <<
+                        "This happens although waiting for " << timeout.sec << " seconds!");
+                    return false;
+                }
+            }
+            ros::Duration(0.02).sleep();
+        }
+    }
+    return result;
+}
+
 bool PylonCameraNode::grabImage()
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
@@ -374,7 +407,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
         {
             if (ros::Time::now() - start > ros::Duration(3.0))
             {
-                ROS_ERROR("Pylon Interface has not yet grabbed an image, although waiting for 3 seconds!");
+                ROS_ERROR("Setting brightness failed, because the interface is not ready, although waiting for 3 seconds!");
                 return false;
             }
             ros::spinOnce();
@@ -396,15 +429,16 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
             current_brightness);
 
     target_brightness_ = target_brightness;
-    brightness_service_running_ = true;
 
     if (current_brightness != target_brightness_)
     {
         boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+        brightness_service_running_ = true;
         pylon_camera_->setBrightness(target_brightness_);
     }
     else
     {
+        // target already reached
         return true;
     }
 
