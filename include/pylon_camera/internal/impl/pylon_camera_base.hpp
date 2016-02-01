@@ -87,7 +87,6 @@ void PylonCameraImpl<CameraTraitT>::setupExtendedBrightnessSearch(const int& bri
     {
         ROS_ERROR("ERROR unexpected brightness case");
     }
-    cam_->GetNodeMap().InvalidateNodes();
 }
 
 template <typename CameraTraitT>
@@ -290,9 +289,6 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const double& exposure)
             }
             exposureTime().SetValue(exposure_to_set, false);
         }
-
-        // Basler Debug Day: cam_->GetNodeMap().InvalidateAll(); would be better here
-        cam_->GetNodeMap().InvalidateNodes();
     }
     catch (const GenICam::GenericException &e)
     {
@@ -396,8 +392,7 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(int& brightness)
 
     // gige_cam_->ExposureAuto.SetValue(Basler_UsbCameraParams::ExposureAuto_Off);
     exposureTime().SetValue(exp_search_params_.target_exposure_);
-    // Update GeniCam Cache with GetNodeMap().InvalidateNodes()
-    cam_->GetNodeMap().InvalidateNodes();
+
     // Attention: Setting and Getting exposure not necessary the same: Difference of up to 35.0 ms
     exp_search_params_.last_exposure_ = exp_search_params_.current_exposure_;
     exp_search_params_.current_exposure_ = exposureTime().GetValue();
@@ -475,8 +470,6 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& brightness)
                 // Use Pylon Auto Function, whenever in possible range
                 cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
                 autoTargetBrightness().SetValue(brightness_value, false);
-                // cam_->GetNodeMap().InvalidateNodes();
-                // cam_->AutoTargetBrightness.InvalidateNode("AutoTargetBrightness");
             }
             else
             {
