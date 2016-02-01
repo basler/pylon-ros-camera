@@ -29,31 +29,6 @@ PylonCameraImpl<CameraTraitT>::~PylonCameraImpl()
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setUserOutput(const int& output_id, const bool& value)
-{
-    ROS_INFO("PylonGigECamera: Setting output id %i to %i", output_id, value);
-
-    try
-    {
-        cam_->UserOutputSelector.SetValue(static_cast<UserOutputSelectorEnums>(output_id));
-        cam_->UserOutputValue.SetValue(value);
-    }
-    catch (const std::exception& ex)
-    {
-        ROS_ERROR("Could not set user output %i: %s", output_id, ex.what());
-        return false;
-    }
-
-    if (value != cam_->UserOutputValue.GetValue())
-    {
-        ROS_ERROR("Value %i could not be set to output %i", value, output_id);
-        return false;
-    }
-
-    return true;
-}
-
-template <typename CameraTraitT>
 float PylonCameraImpl<CameraTraitT>::currentExposure()
 {
     return static_cast<float>(exposureTime().GetValue());
@@ -543,13 +518,36 @@ int PylonCameraImpl<CameraTraitT>::imagePixelDepth() const
     }
 }
 
-
 template <typename CameraTraitT>
 float PylonCameraImpl<CameraTraitT>::exposureStep()
 {
     return static_cast<float>(exposureTime().GetMin());
 }
 
+template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::setUserOutput(const int& output_id, const bool& value)
+{
+    ROS_INFO("PylonGigECamera: Setting output id %i to %i", output_id, value);
+
+    try
+    {
+        cam_->UserOutputSelector.SetValue(static_cast<UserOutputSelectorEnums>(output_id));
+        cam_->UserOutputValue.SetValue(value);
+    }
+    catch (const std::exception& ex)
+    {
+        ROS_ERROR("Could not set user output %i: %s", output_id, ex.what());
+        return false;
+    }
+
+    if (value != cam_->UserOutputValue.GetValue())
+    {
+        ROS_ERROR("Value %i could not be set to output %i", value, output_id);
+        return false;
+    }
+
+    return true;
+}
 }  // namespace pylon_camera
 
 #endif  // PYLON_CAMERA_INTERNAL_BASE_HPP_
