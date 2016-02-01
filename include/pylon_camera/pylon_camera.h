@@ -175,8 +175,8 @@ public:
     const int& imageCols() const;
 
     /**
-     * Returns true if the camera was initialized correctly
-     * @return true if the camera was initialized correctly
+     * Returns the current state of the interface
+     * @return true in case that the grab-result-pointer of the first acquisition contains valid data
      */
     const bool& isReady() const;
 
