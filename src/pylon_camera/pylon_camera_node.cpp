@@ -399,20 +399,10 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
 {
     // brightness service can only work, if an image has already been grabbed, because it calculates the mean on the
     // current image. The interface is ready if the grab-result-pointer of the first acquisition contains valid data
-    if (!pylon_camera_->isReady())
+    if(!waitForCamera(ros::Duration(3.0)))
     {
-        ros::Rate r(2.0);
-        ros::Time start = ros::Time::now();
-        while (ros::ok() && !pylon_camera_->isReady())
-        {
-            if (ros::Time::now() - start > ros::Duration(3.0))
-            {
-                ROS_ERROR("Setting brightness failed, because the interface is not ready, although waiting for 3 seconds!");
-                return false;
-            }
-            ros::spinOnce();
-            r.sleep();
-        }
+        ROS_ERROR("Setting brightness failed, because the interface is not ready, although waiting for 3 seconds!");
+        return false;
     }
 
     // Get actual image
