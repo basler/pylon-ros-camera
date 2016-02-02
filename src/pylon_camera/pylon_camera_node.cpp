@@ -122,9 +122,10 @@ bool PylonCameraNode::initAndRegister()
 
     if (pylon_camera_->typeName() != "DART")
     {
-        set_digital_output_1_service_ = nh_.advertiseService<camera_control_msgs::SetBool::Request, camera_control_msgs::SetBool::Response>(
-                "set_output_1",
-                boost::bind(&PylonCameraNode::setDigitalOutputCB, this, 1, _1, _2));
+        set_digital_output_1_service_ = nh_.advertiseService< camera_control_msgs::SetBool::Request,
+                                                              camera_control_msgs::SetBool::Response >(
+                                            "set_output_1",
+                                            boost::bind(&PylonCameraNode::setDigitalOutputCB, this, 1, _1, _2));
     }
 
     grab_images_raw_action_server_.start();
@@ -139,7 +140,7 @@ bool PylonCameraNode::startGrabbing()
         return false;
     }
 
-    // Framrate Settings
+    // Framerate Settings
     if (pylon_camera_->maxPossibleFramerate() < pylon_camera_parameter_set_.desired_frame_rate_)
     {
         ROS_INFO("Desired framerate %.2f is higher than max possible. Will limit framerate to: %.2f Hz",
@@ -255,14 +256,14 @@ bool PylonCameraNode::waitForCamera(const ros::Duration& timeout) const
 
     while (ros::ok())
     {
-        if(pylon_camera_->isReady())
+        if (pylon_camera_->isReady())
         {
             result = true;
             break;
         }
         else
         {
-            if(timeout >= ros::Duration(0))
+            if (timeout >= ros::Duration(0))
             {
                 if (ros::Time::now() - start_time >= timeout)
                 {
@@ -399,7 +400,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
 {
     // brightness service can only work, if an image has already been grabbed, because it calculates the mean on the
     // current image. The interface is ready if the grab-result-pointer of the first acquisition contains valid data
-    if(!waitForCamera(ros::Duration(3.0)))
+    if (!waitForCamera(ros::Duration(3.0)))
     {
         ROS_ERROR("Setting brightness failed, because the interface is not ready, although waiting for 3 seconds!");
         return false;
@@ -423,7 +424,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
     // Trying to regulate towards the desired brightness, even if goal and current values are close to each other
     if (fabs(current_brightness - static_cast<float>(target_brightness)) > 1.0)
     {
-        //boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+        // boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
         brightness_service_running_ = true;
         // the functionality to grab images, calculate the current mean and adapt the exposure can be found
         // in another thread
@@ -445,6 +446,14 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
     ros::Time start = ros::Time::now();
     while (ros::ok() && brightness_service_running_)
     {
+        if (pylon_camera_->isAutoBrightnessFunctionRunning())
+        {
+            ROS_INFO("AUTO-Function running");
+        }
+        else
+        {
+            ROS_INFO("AUTO-Function finished");
+        }
         if (ros::Time::now() - start > timeout)
         {
             brightness_service_running_ = false;

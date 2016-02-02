@@ -282,6 +282,61 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const double& exposure)
 }
 
 template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& brightness)
+{
+    if ((brightness == -1 || brightness == 0) && !has_auto_exposure_)
+    {
+        ROS_ERROR("Error while trying to set auto brightness properties: camera has no auto exposure function!");
+        return false;
+    }
+    else if (!(brightness == -1 || brightness == 0) && brightness < 0)
+    {
+        ROS_ERROR_STREAM("Target brightness " << brightness << " not in the allowed range");
+        return false;
+    }
+
+    try
+    {
+        if (brightness == -1)
+        {
+            cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Continuous);
+        }
+        else if (brightness == 0)
+        {
+            cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
+        }
+        else
+        {
+            // cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
+            typename CameraTraitT::AutoTargetBrightnessValueType brightness_value =
+                    CameraTraitT::convertBrightness(brightness);
+            // Set the target value for luminance control. The value is always expressed
+            // as an float value regardless of the current pixel data output format,
+            // i.e., 0.0 -> black, 1.0 -> white.
+            if (autoTargetBrightness().GetMin() <= brightness_value &&
+                autoTargetBrightness().GetMax() >= brightness_value)
+            {
+                // Use Pylon Auto Function, whenever in possible range
+                cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
+                autoTargetBrightness().SetValue(brightness_value, false);
+            }
+            else
+            {
+                // Extended brightness search only available in PylonOpenCVInterface
+                setupExtendedBrightnessSearch(brightness);
+            }
+        }
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("An exception while setting target brightness to " << brightness <<
+                         " occurred:" << e.GetDescription());
+        return false;
+    }
+    return true;
+}
+
+template <typename CameraTraitT>
 void PylonCameraImpl<CameraTraitT>::setupExtendedBrightnessSearch(const int& brightness)
 {
     const typename CameraTraitT::AutoTargetBrightnessValueType brightness_value =
@@ -338,7 +393,8 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(int& brightness)
         }
     }
 
-    if (fabs(exp_search_params_.target_brightness_ - exp_search_params_.current_brightness_) < max_brightness_tolerance_)
+    if (fabs(exp_search_params_.target_brightness_ - exp_search_params_.current_brightness_)
+                                                                                    < max_brightness_tolerance_)
     {
         is_own_brightness_function_running_ = false;
         exp_search_params_.is_initialized_ = false;
@@ -428,61 +484,6 @@ bool PylonCameraImpl<CameraTraitT>::setShutterMode(const SHUTTER_MODE &mode)
     }
 
     /// TODO: read back value
-    return true;
-}
-
-template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& brightness)
-{
-    if ((brightness == -1 || brightness == 0) && !has_auto_exposure_)
-    {
-        ROS_ERROR("Error while trying to set auto brightness properties: camera has no auto exposure function!");
-        return false;
-    }
-    else if (!(brightness == -1 || brightness == 0) && brightness < 0)
-    {
-        ROS_ERROR_STREAM("Target brightness " << brightness << " not in the allowed range");
-        return false;
-    }
-
-    try
-    {
-        if (brightness == -1)
-        {
-            cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Continuous);
-        }
-        else if (brightness == 0)
-        {
-            cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
-        }
-        else
-        {
-            // cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
-            typename CameraTraitT::AutoTargetBrightnessValueType brightness_value =
-                    CameraTraitT::convertBrightness(brightness);
-            // Set the target value for luminance control. The value is always expressed
-            // as an float value regardless of the current pixel data output format,
-            // i.e., 0.0 -> black, 1.0 -> white.
-            if (autoTargetBrightness().GetMin() <= brightness_value &&
-                autoTargetBrightness().GetMax() >= brightness_value)
-            {
-                // Use Pylon Auto Function, whenever in possible range
-                cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
-                autoTargetBrightness().SetValue(brightness_value, false);
-            }
-            else
-            {
-                // Extended brightness search only available in PylonOpenCVInterface
-                setupExtendedBrightnessSearch(brightness);
-            }
-        }
-    }
-    catch (const GenICam::GenericException &e)
-    {
-        ROS_ERROR_STREAM("An exception while setting target brightness to " << brightness <<
-                         " occurred:" << e.GetDescription());
-        return false;
-    }
     return true;
 }
 

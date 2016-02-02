@@ -88,7 +88,7 @@ PylonCamera* PylonCamera::create()
     }
     catch (const GenICam::GenericException &e)
     {
-        ROS_ERROR_STREAM("Error while PylonCamera::create(). Exception: " << e.what());
+        ROS_ERROR_STREAM("Error while PylonCamera::create(). \r\nException: " << e.what());
         return NULL;
     }
 }
@@ -193,7 +193,7 @@ PylonCamera::PylonCamera()
 
 PylonCamera::~PylonCamera()
 {
-    // Releases all pylon resources.
+    // Releases all Pylon resources.
     Pylon::PylonTerminate();
 }
 
