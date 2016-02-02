@@ -141,13 +141,6 @@ protected:
     void checkForPylonAutoFunctionRunning();
 
     /**
-     * Check if the current brightness and the target brightness are similiar
-     * @param target
-     * @return
-     */
-    virtual bool brightnessValidation(int target);
-
-    /**
      * Calculates the mean brightness of the image
      * @return the mean brightness of the image
      */

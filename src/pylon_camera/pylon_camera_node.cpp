@@ -458,23 +458,14 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
 
     reached_brightness = calcCurrentBrightness();
 
-    return brightnessValidation(target_brightness);
+    bool brightness_reached = abs(reached_brightness - target_brightness) < 2;
+    return brightness_reached;
 }
 
 bool PylonCameraNode::setBrightnessCallback(camera_control_msgs::SetBrightnessSrv::Request &req,
     camera_control_msgs::SetBrightnessSrv::Response &res)
 {
     res.success = setBrightness(req.target_brightness, res.reached_brightness);
-    return true;
-}
-
-bool PylonCameraNode::brightnessValidation(int target)
-{
-    int mean = calcCurrentBrightness();
-    if (abs(target - mean) > 2)
-    {
-        return false;
-    }
     return true;
 }
 
