@@ -67,29 +67,6 @@ bool PylonCameraImpl<CameraTraitT>::setupSequencer(const std::vector<float>& exp
 }
 
 template <typename CameraTraitT>
-void PylonCameraImpl<CameraTraitT>::setupExtendedBrightnessSearch(const int& brightness)
-{
-    const typename CameraTraitT::AutoTargetBrightnessValueType brightness_value =
-            CameraTraitT::convertBrightness(brightness);
-    if (autoTargetBrightness().GetMin() > brightness_value)
-    {
-        autoTargetBrightness().SetValue(autoTargetBrightness().GetMin(), false);
-        cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
-        is_own_brightness_function_running_ = true;
-    }
-    else if (autoTargetBrightness().GetMax() < brightness_value)
-    {
-        autoTargetBrightness().SetValue(autoTargetBrightness().GetMax(), false);
-        cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
-        is_own_brightness_function_running_ = true;
-    }
-    else
-    {
-        ROS_ERROR("ERROR unexpected brightness case");
-    }
-}
-
-template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& params)
 {
     try
@@ -304,6 +281,28 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const double& exposure)
     return true;
 }
 
+template <typename CameraTraitT>
+void PylonCameraImpl<CameraTraitT>::setupExtendedBrightnessSearch(const int& brightness)
+{
+    const typename CameraTraitT::AutoTargetBrightnessValueType brightness_value =
+            CameraTraitT::convertBrightness(brightness);
+    if (autoTargetBrightness().GetMin() > brightness_value)
+    {
+        autoTargetBrightness().SetValue(autoTargetBrightness().GetMin(), false);
+        cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
+        is_own_brightness_function_running_ = true;
+    }
+    else if (autoTargetBrightness().GetMax() < brightness_value)
+    {
+        autoTargetBrightness().SetValue(autoTargetBrightness().GetMax(), false);
+        cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
+        is_own_brightness_function_running_ = true;
+    }
+    else
+    {
+        ROS_ERROR("ERROR unexpected brightness case");
+    }
+}
 
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(int& brightness)
@@ -339,7 +338,7 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(int& brightness)
         }
     }
 
-    if (fabs(exp_search_params_.target_brightness_ - exp_search_params_.current_brightness_) < 2)
+    if (fabs(exp_search_params_.target_brightness_ - exp_search_params_.current_brightness_) < max_brightness_tolerance_)
     {
         is_own_brightness_function_running_ = false;
         exp_search_params_.is_initialized_ = false;

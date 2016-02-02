@@ -187,6 +187,7 @@ PylonCamera::PylonCamera()
     , is_ready_(false)
     , is_cam_removed_(false)
     , is_own_brightness_function_running_(false)
+    , max_brightness_tolerance_(2.5)
 {
 }
 
@@ -219,6 +220,15 @@ const float& PylonCamera::maxPossibleFramerate() const
 const bool& PylonCamera::hasAutoExposure() const
 {
     return has_auto_exposure_;
+}
+
+/**
+ * Max allowed delta between target and reached brightness
+ * @return the allowed tolerance.
+ */
+const float& PylonCamera::maxBrightnessTolerance() const
+{
+    return max_brightness_tolerance_;
 }
 
 const bool& PylonCamera::isCamRemoved() const

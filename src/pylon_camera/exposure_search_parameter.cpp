@@ -16,23 +16,11 @@ ExposureSearchParameter::ExposureSearchParameter() :
     right_limit_(0.0),
     success_(false),
     is_initialized_(false)
-{
-}
-
-ExposureSearchParameter::~ExposureSearchParameter()
-{
-}
+{}
 
 void ExposureSearchParameter::updateBinarySearch()
 {
-    if (current_brightness_ > target_brightness_)
-    {
-        right_limit_ = current_exposure_;
-    }
-    else
-    {
-        left_limit_ = current_exposure_;
-    }
+    current_brightness_ > target_brightness_ ? right_limit_ = current_exposure_ : left_limit_ = current_exposure_;
 
     target_exposure_ = (right_limit_ + left_limit_) / 2.0;
 
@@ -62,5 +50,8 @@ void ExposureSearchParameter::initialize(const double& target_brightness,
     last_unchanged_exposure_counter_ = 0;
     is_initialized_ = true;
 }
+
+ExposureSearchParameter::~ExposureSearchParameter()
+{}
 
 }  // namespace pylon_camera

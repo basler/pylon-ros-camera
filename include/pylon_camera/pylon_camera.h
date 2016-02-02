@@ -199,6 +199,12 @@ public:
     const bool& hasAutoExposure() const;
 
     /**
+     * Max allowed delta between target and reached brightness
+     * @return the allowed tolerance.
+     */
+    const float& maxBrightnessTolerance() const;
+
+    /**
      * Returns the connection state of the camera device.
      * @return true if the camera device removal from the PC has been detected.
      */
@@ -260,6 +266,11 @@ protected:
      * True if the extended brightness search is running.
      */
     bool is_own_brightness_function_running_;
+
+    /**
+     * Max allowed delta between target and reached brightness
+     */
+    const float max_brightness_tolerance_;
 
     /**
      * Exposure times to use when in sequencer mode.

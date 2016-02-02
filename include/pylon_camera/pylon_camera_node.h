@@ -144,7 +144,7 @@ protected:
      * Calculates the mean brightness of the image
      * @return the mean brightness of the image
      */
-    virtual int calcCurrentBrightness();
+    virtual float calcCurrentBrightness();
 
     /**
      * Getter for the current exposure

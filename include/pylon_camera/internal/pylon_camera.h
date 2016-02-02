@@ -43,9 +43,9 @@ public:
 
     virtual bool setBrightness(const int& brightness);
 
-    virtual bool setExtendedBrightness(int& brightness);
-
     virtual void setupExtendedBrightnessSearch(const int& brightness);
+
+    virtual bool setExtendedBrightness(int& brightness);
 
     virtual bool isAutoBrightnessFunctionRunning();
 
