@@ -284,12 +284,12 @@ bool PylonCameraNode::grabImage()
     {
         if (pylon_camera_->isCamRemoved())
         {
-            ROS_ERROR("Pylon Camera has been removed!");
+            ROS_ERROR("Pylon camera has been removed!");
             ros::shutdown();
         }
         else
         {
-            ROS_WARN("Pylon Interface returned invalid image! Skipping");
+            ROS_WARN("Pylon camera returned invalid image! Skipping");
         }
         return false;
     }
@@ -405,7 +405,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
         return false;
     }
 
-    // Get actual image
+    // get actual image -> fills img_raw_msg_.data vector
     if (!grabImage())
     {
         ROS_ERROR("Failed to grab image, can't calculate current brightness!");
@@ -448,7 +448,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
     {
         if (ros::Time::now() - start > duration)
         {
-            ROS_ERROR("Did not reach the required brightness in time");
+            ROS_ERROR_STREAM("Did not reach the target brightness before timeout " << duration.sec);
             brightness_service_running_ = false;
             return false;
         }
