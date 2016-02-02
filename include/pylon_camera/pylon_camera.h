@@ -118,6 +118,14 @@ public:
     virtual void setupExtendedBrightnessSearch(const int& brightness) = 0;
 
     /**
+     * Checks if the camera currently tries to regulate towards a target brightness.
+     * This can either be done by pylon for the range [50 - 205] or the own extendended binary search one
+     * for the ranges [1 - 49] and [206 - 254].
+     * @return true if the brightness-search is running
+     */
+    virtual bool isBrightnessSearchRunning() = 0;
+
+    /**
      * Checks if the auto brightness function is enabled.
      * @return true if AutoExposure is set to AutoExposureContinuous.
      */

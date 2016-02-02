@@ -41,6 +41,12 @@ bool PylonCameraImpl<CameraTraitT>::isAutoBrightnessFunctionRunning()
 }
 
 template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::isBrightnessSearchRunning()
+{
+    return is_own_brightness_function_running_ || (cam_->ExposureAuto.GetValue() != ExposureAutoEnums::ExposureAuto_Off);
+}
+
+template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setupSequencer(const std::vector<float>& exposure_times)
 {
     std::vector<float> exposure_times_set;
@@ -307,12 +313,18 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& brightness)
         }
         else
         {
-            // cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
             typename CameraTraitT::AutoTargetBrightnessValueType brightness_value =
                     CameraTraitT::convertBrightness(brightness);
+
             // Set the target value for luminance control. The value is always expressed
             // as an float value regardless of the current pixel data output format,
             // i.e., 0.0 -> black, 1.0 -> white.
+            std::cout << "in setBrightness(): " << std::endl;
+            std::cout << "brightness_value = " << brightness_value << std::endl;
+            std::cout << "autoTargetBrightness().GetMin(): " << autoTargetBrightness().GetMin() << std::endl;
+            std::cout << "autoTargetBrightness().GetMax(): " << autoTargetBrightness().GetMax() << std::endl;
+
+
             if (autoTargetBrightness().GetMin() <= brightness_value &&
                 autoTargetBrightness().GetMax() >= brightness_value)
             {

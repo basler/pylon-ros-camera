@@ -49,6 +49,8 @@ public:
 
     virtual bool isAutoBrightnessFunctionRunning();
 
+    virtual bool isBrightnessSearchRunning();
+
     virtual std::string imageEncoding() const;
 
     virtual int imagePixelDepth() const;

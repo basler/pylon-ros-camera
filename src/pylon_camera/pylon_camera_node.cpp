@@ -425,15 +425,14 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
     if (fabs(current_brightness - static_cast<float>(target_brightness)) > 1.0)
     {
         // boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-        brightness_service_running_ = true;
+        // brightness_service_running_ = true;
         // the functionality to grab images, calculate the current mean and adapt the exposure can be found
         // in another thread
         pylon_camera_->setBrightness(target_brightness);
     }
     else
     {
-        // target brightness already reached
-        return true;
+        return true;  // target brightness already reached
     }
 
     // Allowed timeout for the binary brightness search
@@ -441,23 +440,31 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
 
     // Need more time for great exposure values
     target_brightness > 205 ? timeout = ros::Duration(15.0) : timeout = ros::Duration(5.0);
+    if (pylon_camera_->isBrightnessSearchRunning())
+    {
+        ROS_INFO("Brightness Search running");
+    }
+    else
+    {
+        ROS_INFO("Brightness Search --- NOT --- running");
+    }
 
     ros::Rate r(5.0);
     ros::Time start = ros::Time::now();
-    while (ros::ok() && brightness_service_running_)
+    while (ros::ok() && pylon_camera_->isBrightnessSearchRunning())
     {
-        if (pylon_camera_->isAutoBrightnessFunctionRunning())
+        if (pylon_camera_->isBrightnessSearchRunning())
         {
-            ROS_INFO("AUTO-Function running");
+            ROS_INFO("Brightness Search running");
         }
         else
         {
-            ROS_INFO("AUTO-Function finished");
+            ROS_INFO("Brightness Search --- NOT --- running");
         }
         if (ros::Time::now() - start > timeout)
         {
             brightness_service_running_ = false;
-            ROS_ERROR_STREAM("Did not reach the target brightness before timeout " << timeout.sec);
+            ROS_ERROR_STREAM("Did not reach the target brightness before timeout " << timeout.sec << " sec");
             return false;
         }
         ros::spinOnce();
