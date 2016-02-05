@@ -329,12 +329,12 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& brightness)
                 autoTargetBrightness().GetMax() >= brightness_value)
             {
                 // Use Pylon Auto Function, whenever in possible range
+                autoTargetBrightness().SetValue(brightness_value, true);
                 cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
-                autoTargetBrightness().SetValue(brightness_value, false);
             }
             else
             {
-                // Extended brightness search only available in PylonOpenCVInterface
+                ROS_WARN("Target Brightness out of Pylon-Range! Own brightness function currently not working very well...");
                 setupExtendedBrightnessSearch(brightness);
             }
         }
