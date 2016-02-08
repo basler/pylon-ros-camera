@@ -57,14 +57,6 @@ void PylonCameraNode::spin()
     // images were published if subscribers are available or if someone calls the GrabImages Action
     if (getNumSubscribers() > 0 && !isSleeping())
     {
-        //try
-        //{
-        //    checkForPylonAutoFunctionRunning();
-        //}
-        //catch (GenICam::AccessException &e)
-        //{
-        //}
-
         if (grabImage())
         {
             img_raw_pub_.publish(img_raw_msg_, cam_info_msg_);
