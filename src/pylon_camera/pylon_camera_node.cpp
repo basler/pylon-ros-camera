@@ -57,13 +57,13 @@ void PylonCameraNode::spin()
     // images were published if subscribers are available or if someone calls the GrabImages Action
     if (getNumSubscribers() > 0 && !isSleeping())
     {
-        try
-        {
-            checkForPylonAutoFunctionRunning();
-        }
-        catch (GenICam::AccessException &e)
-        {
-        }
+        //try
+        //{
+        //    checkForPylonAutoFunctionRunning();
+        //}
+        //catch (GenICam::AccessException &e)
+        //{
+        //}
 
         if (grabImage())
         {
@@ -398,6 +398,7 @@ bool PylonCameraNode::setExposureCallback(camera_control_msgs::SetExposureSrv::R
 
 bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_brightness)
 {
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     // brightness service can only work, if an image has already been grabbed, because it calculates the mean on the
     // current image. The interface is ready if the grab-result-pointer of the first acquisition contains valid data
     if (!waitForCamera(ros::Duration(3.0)))
@@ -415,11 +416,11 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
 
     float current_brightness = calcCurrentBrightness();
 
-    ROS_INFO("New brightness request for brightness %i, current brightness = %.3f",
+    ROS_INFO("New brightness request for brightness %i, current brightness = %.2f",
             target_brightness,
             current_brightness);
 
-    target_brightness_ = target_brightness;
+    // target_brightness_ = target_brightness;
 
     // Trying to regulate towards the desired brightness, even if goal and current values are close to each other
     if (fabs(current_brightness - static_cast<float>(target_brightness)) > 1.0)
@@ -432,14 +433,15 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
     }
     else
     {
+        reached_brightness = static_cast<int>(current_brightness);
         return true;  // target brightness already reached
     }
 
     // Allowed timeout for the binary brightness search
-    ros::Duration timeout;
-
     // Need more time for great exposure values
+    ros::Duration timeout;
     target_brightness > 205 ? timeout = ros::Duration(15.0) : timeout = ros::Duration(5.0);
+
     if (pylon_camera_->isBrightnessSearchRunning())
     {
         ROS_INFO("Brightness Search running");
@@ -449,33 +451,63 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
         ROS_INFO("Brightness Search --- NOT --- running");
     }
 
-    ros::Rate r(5.0);
+    ROS_INFO("Now going into while loop...");
+    bool is_brightness_reached = false;
     ros::Time start = ros::Time::now();
-    while (ros::ok() && pylon_camera_->isBrightnessSearchRunning())
+    while (ros::ok()) // && pylon_camera_->isBrightnessSearchRunning())
     {
-        if (pylon_camera_->isBrightnessSearchRunning())
+        // pylon_camera_->setBrightness(target_brightness);
+        grabImage();
+
+        current_brightness = calcCurrentBrightness();
+        is_brightness_reached = fabs(current_brightness - target_brightness) < pylon_camera_->maxBrightnessTolerance();
+        if(is_brightness_reached)
         {
-            ROS_INFO("Brightness Search running");
+            pylon_camera_->setBrightness(0);
+            ROS_INFO("Brightness reached: %.3f", current_brightness);
+            reached_brightness = static_cast<int>(current_brightness);
+            break;
         }
-        else
-        {
-            ROS_INFO("Brightness Search --- NOT --- running");
-        }
+
         if (ros::Time::now() - start > timeout)
         {
-            brightness_service_running_ = false;
+            // cancel brightness search by deactivating ExposureAuto 
+            pylon_camera_->setBrightness(0);
+            ROS_INFO("TIMEOUT!");
+            if (pylon_camera_->isBrightnessSearchRunning())
+            {
+                ROS_INFO("Brightness Search running");
+            }
+            else
+            {
+                ROS_INFO("Brightness Search --- NOT --- running");
+            }
+            //brightness_service_running_ = false;
             ROS_ERROR_STREAM("Did not reach the target brightness before timeout " << timeout.sec << " sec");
             return false;
         }
-        ros::spinOnce();
-        r.sleep();
+
+
+        if (pylon_camera_->isBrightnessSearchRunning())
+        {
+            ROS_INFO("Brightness Search running CURRENT BRIGHTNESS = %.3f", current_brightness);
+            //ROS_INFO("cam auto value = %f", pylon_camera_->autoTargetBrightness().GetValue());
+        }
+        else
+        {
+            ROS_INFO("Brightness Search --- NOT --- running, FINAL BRIGHTNESS = %.3f", current_brightness);
+        }
     }
 
-    float reached_brightness_f = calcCurrentBrightness();
-    reached_brightness = static_cast<int>(reached_brightness_f);
+    reached_brightness = static_cast<int>(current_brightness);
 
-    bool brightness_reached = fabs(reached_brightness_f - target_brightness) < pylon_camera_->maxBrightnessTolerance();
-    return brightness_reached;
+    std::cout << "current_brightness = " << current_brightness << std::endl;
+    std::cout << "int reached = " << reached_brightness << std::endl;
+    std::cout << "fabs = " << fabs(current_brightness - target_brightness) << std::endl;
+    std::cout << "max tolerance = " << pylon_camera_->maxBrightnessTolerance() << std::endl;
+    std::cout << "bool = " << is_brightness_reached << std::endl;
+    img_raw_pub_.publish(img_raw_msg_, cam_info_msg_);
+    return is_brightness_reached;
 }
 
 bool PylonCameraNode::setBrightnessCallback(camera_control_msgs::SetBrightnessSrv::Request &req,
