@@ -1,0 +1,6 @@
+# target gain in percent
+float32 target_gain
+---
+# target value can not always be reached
+float32 reached_gain
+bool success
