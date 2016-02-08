@@ -54,6 +54,19 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
         cam_->TriggerSource.SetValue(Basler_GigECameraParams::TriggerSource_Software);
         cam_->TriggerMode.SetValue(Basler_GigECameraParams::TriggerMode_On);
 
+        /* Thresholds for the AutoExposure Funcitons:
+         *  - lower limit can be used to get rid of changing light conditions
+         *    due to 50Hz lamps (-> 20ms cycle duration)
+         *  - upper limit is to prevent motion blur
+         */
+        cam_->AutoExposureTimeAbsLowerLimit.SetValue(cam_->ExposureTimeAbs.GetMin());
+        cam_->AutoExposureTimeAbsUpperLimit.SetValue(cam_->ExposureTimeAbs.GetMax());
+
+        cam_->AutoGainRawLowerLimit.SetValue(cam_->GainRaw.GetMin());
+        cam_->AutoGainRawUpperLimit.SetValue(cam_->GainRaw.GetMax());
+
+        //cam_->AutoFunctionProfile.SetValue(Basler_GigECameraParams::AutoFunctionProfile_GainMinimum);
+
         // raise inter-package delay (GevSCPD) for solving error: 'the image buffer was incompletely grabbed'
         // also in ubuntu settings -> network -> options -> MTU Size from 'automatic' to 3000 if card supports it
         // Raspberry PI has MTU = 1500, max value for some cards: 9000
