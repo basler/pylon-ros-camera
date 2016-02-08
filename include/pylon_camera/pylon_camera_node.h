@@ -15,8 +15,9 @@
 
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/pylon_camera.h>
-#include <camera_control_msgs/SetExposureSrv.h>
 #include <camera_control_msgs/SetBrightnessSrv.h>
+#include <camera_control_msgs/SetExposureSrv.h>
+#include <camera_control_msgs/SetGain.h>
 #include <camera_control_msgs/SetSleepingSrv.h>
 #include <camera_control_msgs/GrabImagesAction.h>
 
@@ -121,6 +122,29 @@ protected:
                                camera_control_msgs::SetBrightnessSrv::Response &res);
 
     /**
+     * Getter for the current gain in percent independant of the camera type
+     * @return the current gain
+     */
+    float getCurrentGain();
+
+    /**
+     * Update the gain from the camera to a target gain in percent
+     * @param target_gain the targeted gain in percent
+     * @param reached_gain the gain that could be reached
+     * @return true if the targeted gain could be reached
+     */
+    bool setGain(const float& target_gain, float& reached_gain);
+
+    /**
+     * Service callback for setting the desired gain in percent
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setGainCallback(camera_control_msgs::SetGain::Request &req,
+                         camera_control_msgs::SetGain::Response &res);
+
+    /**
      * Callback that puts the camera to sleep
      * @param req request
      * @param res response
@@ -187,6 +211,7 @@ protected:
 
     ros::ServiceServer set_exposure_service_;
     ros::ServiceServer set_brightness_service_;
+    ros::ServiceServer set_gain_service_;
     ros::ServiceServer set_sleeping_service_;
     ros::ServiceServer set_digital_output_1_service_;
 

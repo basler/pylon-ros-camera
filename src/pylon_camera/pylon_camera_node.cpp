@@ -92,12 +92,15 @@ void PylonCameraNode::checkForPylonAutoFunctionRunning()
 
 bool PylonCameraNode::initAndRegister()
 {
-    set_exposure_service_ = nh_.advertiseService("set_exposure_srv",
-                                                 &PylonCameraNode::setExposureCallback,
-                                                 this);
     set_brightness_service_ = nh_.advertiseService("set_brightness_srv",
                                                    &PylonCameraNode::setBrightnessCallback,
                                                    this);
+    set_exposure_service_ = nh_.advertiseService("set_exposure_srv",
+                                                 &PylonCameraNode::setExposureCallback,
+                                                 this);
+    set_gain_service_ = nh_.advertiseService("set_gain_srv",
+                                             &PylonCameraNode::setGainCallback,
+                                             this);
 
     pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.device_user_id_);
 
@@ -521,6 +524,58 @@ float PylonCameraNode::calcCurrentBrightness()
 float PylonCameraNode::getCurrentExposure()
 {
     return pylon_camera_->currentExposure();
+}
+
+float PylonCameraNode::getCurrentGain()
+{
+    return pylon_camera_->currentGain();
+}
+
+bool PylonCameraNode::setGain(const float& target_gain, float& reached_gain)
+{
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if (!pylon_camera_->isReady())
+    {
+        ROS_WARN("Error in setGain(): pylon_camera_ is not ready!");
+        return false;
+    }
+
+    reached_gain = getCurrentGain();
+
+    if (reached_gain != target_gain)
+    {
+        pylon_camera_->setGain(target_gain);
+    }
+
+    // wait for max 5s till the cam has updated the gain
+    ros::Rate r(10.0);
+    ros::Time start = ros::Time::now();
+    while (ros::ok())
+    {
+        reached_gain = getCurrentGain();
+
+        bool success = fabs(reached_gain - target_gain) < 0.01; // Delta of 1% is allowed
+
+        if (success)
+        {
+            return true;
+        }
+
+        if (ros::Time::now() - start > ros::Duration(5.0))
+        {
+            ROS_ERROR("Error in setGain(): Did not reach the desired gain in time");
+            return false;
+        }
+        r.sleep();
+    }
+    return true;
+}
+
+bool PylonCameraNode::setGainCallback(camera_control_msgs::SetGain::Request &req,
+                                      camera_control_msgs::SetGain::Response &res)
+{
+    res.success = setGain(req.target_gain, res.reached_gain);
+    return true;
 }
 
 bool PylonCameraNode::setSleepingCallback(camera_control_msgs::SetSleepingSrv::Request &req,

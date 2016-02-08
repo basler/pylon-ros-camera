@@ -39,7 +39,11 @@ public:
 
     virtual float currentExposure();
 
-    virtual bool setExposure(const double& exposure);
+    virtual bool setExposure(const double& target_exposure);
+
+    virtual float currentGain();
+
+    virtual bool setGain(const double& target_gain_percent);
 
     virtual bool setBrightness(const int& brightness);
 
@@ -67,11 +71,13 @@ protected:
     typedef typename CameraTraitT::PixelFormatEnums PixelFormatEnums;
     typedef typename CameraTraitT::PixelSizeEnums PixelSizeEnums;
     typedef typename CameraTraitT::AutoTargetBrightnessType AutoTargetBrightnessType;
+    //typedef typename CameraTraitT::GainType GainType;
     typedef typename CameraTraitT::ShutterModeEnums ShutterModeEnums;
     typedef typename CameraTraitT::UserOutputSelectorEnums UserOutputSelectorEnums;
 
     // Each camera has it's own getter for GenApi accessors that are named differently for USB and GigE
     GenApi::IFloat& exposureTime();
+    GenApi::IFloat& gain();
     GenApi::IFloat& resultingFrameRate();
     AutoTargetBrightnessType& autoTargetBrightness();
 

@@ -28,6 +28,11 @@ struct GigECameraTrait
     {
         return value;
     }
+
+//    static inline GenApi::IFloat convertGain(const float& gain_percent)
+//    {
+//        return gain_percent * static_cast<float>(gain().GetMax());
+//    }
 };
 
 typedef PylonCameraImpl<GigECameraTrait> PylonGigECamera;
@@ -64,6 +69,9 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
 
         cam_->AutoGainRawLowerLimit.SetValue(cam_->GainRaw.GetMin());
         cam_->AutoGainRawUpperLimit.SetValue(cam_->GainRaw.GetMax());
+
+        std::cout << "GIGE has max gain: " << cam_->GainAbs.GetMax() << std::endl;
+        std::cout << "GIGE has min gain: " << cam_->GainAbs.GetMin() << std::endl;
 
         //cam_->AutoFunctionProfile.SetValue(Basler_GigECameraParams::AutoFunctionProfile_GainMinimum);
 
@@ -133,6 +141,12 @@ template <>
 GenApi::IFloat& PylonGigECamera::exposureTime()
 {
     return cam_->ExposureTimeAbs;
+}
+
+template <>
+GenApi::IFloat& PylonGigECamera::gain()
+{
+    return cam_->GainAbs;
 }
 
 template <>

@@ -27,6 +27,11 @@ struct USBCameraTrait
     {
         return value / 255.0;
     }
+
+//    static inline GenApi::IFloat convertGain(const float& gain_percent)
+//    {
+//        return gain_percent * gain().GetMax();
+//    }
 };
 
 typedef PylonCameraImpl<USBCameraTrait> PylonUSBCamera;
@@ -123,6 +128,12 @@ template <>
 GenApi::IFloat& PylonUSBCamera::exposureTime()
 {
     return cam_->ExposureTime;
+}
+
+template <>
+GenApi::IFloat& PylonUSBCamera::gain()
+{
+    return cam_->Gain;
 }
 
 template <>

@@ -91,7 +91,20 @@ public:
      * @param exposure exposure time in microseconds.
      * @return false if a communication error occurred or true otherwise.
      */
-    virtual bool setExposure(const double& exposure) = 0;
+    virtual bool setExposure(const double& target_exposure) = 0;
+
+    /**
+     * Returns the current gain in percent.
+     * @return the gain time percent.
+     */
+    virtual float currentGain() = 0;
+
+    /**
+     * Sets the gain in percent independent of the camera type
+     * @param gain gain in percent.
+     * @return false if a communication error occurred or true otherwise.
+     */
+    virtual bool setGain(const double& target_gain_percent) = 0;
 
     /**
      * Sets the target brightness

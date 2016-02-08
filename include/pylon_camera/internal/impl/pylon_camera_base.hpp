@@ -35,6 +35,12 @@ float PylonCameraImpl<CameraTraitT>::currentExposure()
 }
 
 template <typename CameraTraitT>
+float PylonCameraImpl<CameraTraitT>::currentGain()
+{
+    return gain().GetValue()/gain().GetMax();
+}
+
+template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::isAutoBrightnessFunctionRunning()
 {
     return (cam_->ExposureAuto.GetValue() != ExposureAutoEnums::ExposureAuto_Off);
@@ -227,26 +233,26 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setExposure(const double& exposure)
+bool PylonCameraImpl<CameraTraitT>::setExposure(const double& target_exposure)
 {
-    if ((exposure == -1.0 || exposure == 0.0) && !has_auto_exposure_)
+    if ((target_exposure == -1.0 || target_exposure == 0.0) && !has_auto_exposure_)
     {
         ROS_ERROR("Error while trying to set auto exposure properties: camera has no auto exposure function!");
         return false;
     }
-    else if (!(exposure == -1.0 || exposure == 0.0) && exposure < 0.0)
+    else if (!(target_exposure == -1.0 || target_exposure == 0.0) && target_exposure < 0.0)
     {
-        ROS_ERROR_STREAM("Target Exposure " << exposure << " not in the allowed range");
+        ROS_ERROR_STREAM("Target Exposure " << target_exposure << " not in the allowed range");
         return false;
     }
 
     try
     {
-        if (exposure == -1.0)
+        if (target_exposure == -1.0)
         {
             cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Continuous);
         }
-        else if (exposure == 0.0)
+        else if (target_exposure == 0.0)
         {
             cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
         }
@@ -257,7 +263,7 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const double& exposure)
                 cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
             }
 
-            double exposure_to_set = exposure;
+            double exposure_to_set = target_exposure;
             if (exposureTime().GetMin() > exposure_to_set)
             {
                 exposure_to_set = exposureTime().GetMin();
@@ -275,14 +281,36 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const double& exposure)
     }
     catch (const GenICam::GenericException &e)
     {
-        ROS_ERROR_STREAM("An exception while setting target exposure to " << exposure << " occurred:"
+        ROS_ERROR_STREAM("An exception while setting target exposure to " << target_exposure << " occurred:"
                          << e.GetDescription());
         return false;
     }
 
-    // pylon interface is ready, if it has already grabbed one image
-    if (!is_ready_)
-        is_ready_ = true;
+//    // pylon interface is ready, if it has already grabbed one image
+//    if (!is_ready_)
+//        is_ready_ = true;
+
+    return true;
+}
+
+template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::setGain(const double& target_gain_percent)
+{
+    try
+    {
+        //float gain_value = CameraTraitT::convertGain(target_gain);
+        gain().SetValue(target_gain_percent * gain().GetMax());
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("An exception while setting target gain to " << target_gain_percent << " occurred:"
+                         << e.GetDescription());
+        return false;
+    }
+
+//    // pylon interface is ready, if it has already grabbed one image
+//    if (!is_ready_)
+//        is_ready_ = true;
 
     return true;
 }
