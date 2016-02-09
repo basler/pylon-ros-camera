@@ -35,18 +35,10 @@ typedef PylonCameraImpl<GigECameraTrait> PylonGigECamera;
 
 
 template <>
-bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& params)
+bool PylonGigECamera::applyStartupSettings(const PylonCameraParameter& params)
 {
     try
     {
-        cam_->RegisterConfiguration(new Pylon::CSoftwareTriggerConfiguration,
-                                    Pylon::RegistrationMode_ReplaceAll,
-                                    Pylon::Cleanup_Delete);
-
-        // Basler-Debug Day:  Read- & Write Retry-Counter should stay default (=2)
-        // Linux does only support 1
-        cam_->Open();
-
         // Remove all previous settings (sequencer etc.)
         // Default Setting = Free-Running
         cam_->UserSetSelector.SetValue(Basler_GigECameraParams::UserSetSelector_Default);
@@ -78,6 +70,9 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
         ROS_INFO_STREAM("Cam has exposure time range: [" << cam_->ExposureTimeAbs.GetMin() << " - "
                 << cam_->ExposureTimeAbs.GetMax() << "] measured in microseconds. Initially setting to: "
                 << cam_->ExposureTimeAbs.GetValue());
+
+        // Basler-Debug Day:  Read- & Write Retry-Counter should stay default (=2)
+        // Linux does only support 1
 
         // raise inter-package delay (GevSCPD) for solving error: 'the image buffer was incompletely grabbed'
         // also in ubuntu settings -> network -> options -> MTU Size from 'automatic' to 3000 if card supports it

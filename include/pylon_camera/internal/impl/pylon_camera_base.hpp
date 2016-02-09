@@ -29,6 +29,38 @@ PylonCameraImpl<CameraTraitT>::~PylonCameraImpl()
 }
 
 template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::registerCameraConfiguration()
+{
+    try
+    {
+        cam_->RegisterConfiguration(new Pylon::CSoftwareTriggerConfiguration,
+                                        Pylon::RegistrationMode_ReplaceAll,
+                                        Pylon::Cleanup_Delete);
+        return true;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM(e.GetDescription());
+        return false;
+    }
+}
+
+template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::openCamera()
+{
+    try
+    {
+        cam_->Open();
+        return true;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM(e.GetDescription());
+        return false;
+    }
+}
+
+template <typename CameraTraitT>
 float PylonCameraImpl<CameraTraitT>::currentExposure()
 {
     return static_cast<float>(exposureTime().GetValue());

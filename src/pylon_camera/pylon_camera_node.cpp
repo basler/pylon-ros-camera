@@ -109,9 +109,21 @@ bool PylonCameraNode::initAndRegister()
         return false;
     }
 
-    if (!pylon_camera_->registerCameraConfiguration(pylon_camera_parameter_set_))
+    if (!pylon_camera_->registerCameraConfiguration())
     {
-        ROS_ERROR("Error while registering the camera configuration");
+        ROS_ERROR("Error while registering the camera configuration to software-trigger mode!");
+        return false;
+    }
+
+    if (!pylon_camera_->openCamera())
+    {
+        ROS_ERROR("Error while trying to open the desired camera!");
+        return false;
+    }
+
+    if (!pylon_camera_->applyStartupSettings(pylon_camera_parameter_set_))
+    {
+        ROS_ERROR("Error while applying the startup setting (gain, exposure, ...) to the camera!");
         return false;
     }
 

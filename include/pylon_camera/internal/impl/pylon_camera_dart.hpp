@@ -19,7 +19,7 @@ public:
 
     virtual std::string typeName() const;
 
-    virtual bool registerCameraConfiguration(const PylonCameraParameter& params);
+    virtual bool applyStartupSettings(const PylonCameraParameter& params);
 
     virtual bool setUserOutput(int output_id, bool value);
 
@@ -39,25 +39,21 @@ PylonDARTCamera::~PylonDARTCamera()
 {
 }
 
-bool PylonDARTCamera::registerCameraConfiguration(const PylonCameraParameter& params)
+bool PylonDARTCamera::applyStartupSettings(const PylonCameraParameter& params)
 {
-    if (PylonUSBCamera::registerCameraConfiguration(params))
+    try
     {
-        try
-        {
-            // cam_->GainSelector.SetValue(Basler_UsbCameraParams::GainSelector_All);
-            // cam_->GainAuto.SetValue(Basler_UsbCameraParams::GainAuto_Off);
-            // cam_->Gain.SetValue(params.target_gain_ * cam_->Gain.GetMax());
-            cam_->Gamma.SetValue(1.0);
-            return true;
-        }
-        catch (const GenICam::GenericException &e)
-        {
-            ROS_ERROR("%s", e.GetDescription());
-            return false;
-        }
+        // cam_->GainSelector.SetValue(Basler_UsbCameraParams::GainSelector_All);
+        // cam_->GainAuto.SetValue(Basler_UsbCameraParams::GainAuto_Off);
+        // cam_->Gain.SetValue(params.target_gain_ * cam_->Gain.GetMax());
+        cam_->Gamma.SetValue(1.0);
+        return true;
     }
-    return false;
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR("%s", e.GetDescription());
+        return false;
+    }
 }
 
 bool PylonDARTCamera::setupSequencer(const std::vector<float>& exposure_times, std::vector<float>& exposure_times_set)

@@ -25,9 +25,13 @@ public:
 
     virtual ~PylonCameraImpl();
 
-    virtual bool registerCameraConfiguration(const PylonCameraParameter& params);
+    virtual bool registerCameraConfiguration();
 
-    virtual bool startGrabbing(const PylonCameraParameter& params);
+    virtual bool openCamera();
+
+    virtual bool applyStartupSettings(const PylonCameraParameter& parameters);
+
+    virtual bool startGrabbing(const PylonCameraParameter& parameters);
 
     virtual bool grab(std::vector<uint8_t>& image);
 

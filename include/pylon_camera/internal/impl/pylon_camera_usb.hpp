@@ -32,15 +32,10 @@ struct USBCameraTrait
 typedef PylonCameraImpl<USBCameraTrait> PylonUSBCamera;
 
 template <>
-bool PylonUSBCamera::registerCameraConfiguration(const PylonCameraParameter& params)
+bool PylonUSBCamera::applyStartupSettings(const PylonCameraParameter& params)
 {
     try
     {
-        cam_->RegisterConfiguration(new Pylon::CSoftwareTriggerConfiguration,
-                                    Pylon::RegistrationMode_ReplaceAll,
-                                    Pylon::Cleanup_Delete);
-        cam_->Open();
-
         // Remove all previous settings (sequencer etc.)
         // Default Setting = Free-Running
         cam_->UserSetSelector.SetValue(Basler_UsbCameraParams::UserSetSelector_Default);

@@ -34,11 +34,23 @@ public:
     static PylonCamera* create(const std::string& device_user_id);
 
     /**
+     * Configures the camera according to the software trigger mode.
+     * @return true if all the configuration could be set up.
+     */
+    virtual bool registerCameraConfiguration() = 0;
+
+    /**
+     * Opens the desired camera, the communication starts from now on.
+     * @return true if the camera could be opend.
+     */
+    virtual bool openCamera() = 0;
+
+    /**
      * Configures the camera according to the provided ros parameters.
      * @param parameters The PylonCameraParameter set to use
      * @return true if all parameters could be sent to the camera.
      */
-    virtual bool registerCameraConfiguration(const PylonCameraParameter& parameters) = 0;
+    virtual bool applyStartupSettings(const PylonCameraParameter& parameters) = 0;
 
     /**
      * Configure the sequencer exposure times.
