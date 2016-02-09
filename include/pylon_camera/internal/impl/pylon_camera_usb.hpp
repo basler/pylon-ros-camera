@@ -27,11 +27,6 @@ struct USBCameraTrait
     {
         return value / 255.0;
     }
-
-//    static inline GenApi::IFloat convertGain(const float& gain_percent)
-//    {
-//        return gain_percent * gain().GetMax();
-//    }
 };
 
 typedef PylonCameraImpl<USBCameraTrait> PylonUSBCamera;
@@ -53,6 +48,32 @@ bool PylonUSBCamera::registerCameraConfiguration(const PylonCameraParameter& par
         // UserSetSelector_Default overrides Software Trigger Mode !!
         cam_->TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
         cam_->TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_On);
+
+         /* Thresholds for the AutoExposure Funcitons:
+          *  - lower limit can be used to get rid of changing light conditions
+          *    due to 50Hz lamps (-> 20ms cycle duration)
+          *  - upper limit is to prevent motion blur
+          */
+        cam_->AutoExposureTimeLowerLimit.SetValue(cam_->ExposureTime.GetMin());
+        cam_->AutoExposureTimeUpperLimit.SetValue(cam_->ExposureTime.GetMax());
+
+        cam_->AutoGainLowerLimit.SetValue(cam_->Gain.GetMin());
+        cam_->AutoGainUpperLimit.SetValue(cam_->Gain.GetMax());
+
+        std::cout << "CHECK" << std::endl;
+	// The gain auto function and the exposure auto function can be used at the same time. In this case,
+        // however, you must also set the Auto Function Profile feature.
+        cam_->AutoFunctionProfile.SetValue(Basler_UsbCameraParams::AutoFunctionProfile_MinimizeGain);
+        cam_->GainSelector.SetValue(Basler_UsbCameraParams::GainSelector_AnalogAll);
+        cam_->GainAuto.SetValue(Basler_UsbCameraParams::GainAuto_Off);
+        cam_->Gain.SetValue(cam_->Gain.GetMin() + params.target_gain_ * (cam_->Gain.GetMax() - cam_->Gain.GetMin()));
+
+        ROS_INFO_STREAM("Cam has gain range: [" << cam_->Gain.GetMin() << " - " << cam_->Gain.GetMax()
+                << "] measured in dB. Initially setting to: " << cam_->Gain.GetValue());
+        ROS_INFO_STREAM("Cam has exposure time range: [" << cam_->ExposureTime.GetMin() << " - "
+                << cam_->ExposureTime.GetMax() << "] measured in microseconds. Initially setting to: "
+                << cam_->ExposureTime.GetValue());
+
     }
     catch (const GenICam::GenericException &e)
     {

@@ -45,9 +45,9 @@ bool PylonDARTCamera::registerCameraConfiguration(const PylonCameraParameter& pa
     {
         try
         {
-            cam_->GainSelector.SetValue(Basler_UsbCameraParams::GainSelector_All);
-            cam_->GainAuto.SetValue(Basler_UsbCameraParams::GainAuto_Off);
-            cam_->Gain.SetValue(params.target_gain_ * cam_->Gain.GetMax());
+            // cam_->GainSelector.SetValue(Basler_UsbCameraParams::GainSelector_All);
+            // cam_->GainAuto.SetValue(Basler_UsbCameraParams::GainAuto_Off);
+            // cam_->Gain.SetValue(params.target_gain_ * cam_->Gain.GetMax());
             cam_->Gamma.SetValue(1.0);
             return true;
         }

@@ -29,10 +29,6 @@ struct GigECameraTrait
         return value;
     }
 
-//    static inline GenApi::IFloat convertGain(const float& gain_percent)
-//    {
-//        return gain_percent * static_cast<float>(gain().GetMax());
-//    }
 };
 
 typedef PylonCameraImpl<GigECameraTrait> PylonGigECamera;
@@ -70,10 +66,18 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
         cam_->AutoGainRawLowerLimit.SetValue(cam_->GainRaw.GetMin());
         cam_->AutoGainRawUpperLimit.SetValue(cam_->GainRaw.GetMax());
 
-        std::cout << "GIGE has max gain: " << cam_->GainAbs.GetMax() << std::endl;
-        std::cout << "GIGE has min gain: " << cam_->GainAbs.GetMin() << std::endl;
+        // The gain auto function and the exposure auto function can be used at the same time. In this case,
+        // however, you must also set the Auto Function Profile feature.
+        cam_->AutoFunctionProfile.SetValue(Basler_GigECameraParams::AutoFunctionProfile_GainMinimum);
+        cam_->GainSelector.SetValue(Basler_GigECameraParams::GainSelector_AnalogAll);
+        cam_->GainAuto.SetValue(Basler_GigECameraParams::GainAuto_Off);
+        cam_->GainRaw.SetValue(cam_->GainRaw.GetMin() + params.target_gain_ * (cam_->GainRaw.GetMax() - cam_->GainRaw.GetMin()));
 
-        //cam_->AutoFunctionProfile.SetValue(Basler_GigECameraParams::AutoFunctionProfile_GainMinimum);
+        ROS_INFO_STREAM("Cam has gain range: [" << cam_->GainRaw.GetMin() << " - " << cam_->GainRaw.GetMax()
+                << "] measured in decive specific units. Initialiy setting to: " << cam_->GainRaw.GetValue());
+        ROS_INFO_STREAM("Cam has exposure time range: [" << cam_->ExposureTimeAbs.GetMin() << " - "
+                << cam_->ExposureTimeAbs.GetMax() << "] measured in microseconds. Initially setting to: "
+                << cam_->ExposureTimeAbs.GetValue());
 
         // raise inter-package delay (GevSCPD) for solving error: 'the image buffer was incompletely grabbed'
         // also in ubuntu settings -> network -> options -> MTU Size from 'automatic' to 3000 if card supports it
@@ -87,9 +91,6 @@ bool PylonGigECamera::registerCameraConfiguration(const PylonCameraParameter& pa
         // int inter_package_delay_in_ticks = n_cams * imageSize() * 1.05;
         // std::cout << "Inter-Package Delay" << inter_package_delay_in_ticks << std::endl;
         cam_->GevSCPD.SetValue(1000);
-
-        cam_->GainAuto.SetValue(Basler_GigECameraParams::GainAuto_Off);
-        cam_->GainRaw.SetValue(params.target_gain_ * cam_->GainRaw.GetMax());
     }
     catch (const GenICam::GenericException &e)
     {
