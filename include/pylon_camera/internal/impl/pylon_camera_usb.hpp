@@ -58,7 +58,6 @@ bool PylonUSBCamera::applyStartupSettings(const PylonCameraParameter& params)
         // The gain auto function and the exposure auto function can be used at the same time. In this case,
         // however, you must also set the Auto Function Profile feature.
         cam_->AutoFunctionProfile.SetValue(Basler_UsbCameraParams::AutoFunctionProfile_MinimizeGain);
-        cam_->GainSelector.SetValue(Basler_UsbCameraParams::GainSelector_AnalogAll);
         cam_->GainAuto.SetValue(Basler_UsbCameraParams::GainAuto_Off);
         cam_->Gain.SetValue(cam_->Gain.GetMin() + params.target_gain_ * (cam_->Gain.GetMax() - cam_->Gain.GetMin()));
 
