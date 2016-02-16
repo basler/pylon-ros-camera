@@ -123,20 +123,21 @@ install(
      ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
 )
 
-file(GLOB ${PROJECT_NAME}_SCRIPTS
-        "scripts/*.py"
+file(
+    GLOB
+     ${PROJECT_NAME}_SCRIPTS "scripts/*.py"
 )
 
 install(
-	PROGRAMS
-	 scripts/brightness_evaluation.py
-	 scripts/brightness_publisher.py
-	 scripts/exp_caller.py
-	 scripts/file_sequencer.py
-	 scripts/result_bag_to_action.py
-	 scripts/sequence_to_file.py
-	DESTINATION
-	 ${CATKIN_PACKAGE_SHARE_DESTINATION}
+    PROGRAMS
+     scripts/brightness_evaluation.py
+     scripts/brightness_publisher.py
+     scripts/exp_caller.py
+     scripts/file_sequencer.py
+     scripts/result_bag_to_action.py
+     scripts/sequence_to_file.py
+    DESTINATION
+     ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 install(
