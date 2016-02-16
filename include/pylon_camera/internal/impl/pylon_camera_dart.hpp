@@ -41,19 +41,7 @@ PylonDARTCamera::~PylonDARTCamera()
 
 bool PylonDARTCamera::applyStartupSettings(const PylonCameraParameter& params)
 {
-    try
-    {
-        // cam_->GainSelector.SetValue(Basler_UsbCameraParams::GainSelector_All);
-        // cam_->GainAuto.SetValue(Basler_UsbCameraParams::GainAuto_Off);
-        // cam_->Gain.SetValue(params.target_gain_ * cam_->Gain.GetMax());
-        cam_->Gamma.SetValue(1.0);
-        return true;
-    }
-    catch (const GenICam::GenericException &e)
-    {
-        ROS_ERROR("%s", e.GetDescription());
-        return false;
-    }
+    return PylonUSBCamera::applyStartupSettings(params);
 }
 
 bool PylonDARTCamera::setupSequencer(const std::vector<float>& exposure_times, std::vector<float>& exposure_times_set)
