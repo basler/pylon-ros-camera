@@ -1,11 +1,11 @@
 // Copyright 2015 <Magazino GmbH>
 
-#include <pylon_camera/exposure_search_parameter.h>
+#include <pylon_camera/binary_exposure_search.h>
 
 namespace pylon_camera
 {
 
-ExposureSearchParameter::ExposureSearchParameter() :
+BinaryExposureSearch::BinaryExposureSearch() :
     target_brightness_(0.0),
     target_exposure_(0.0),
     current_exposure_(0.0),
@@ -18,8 +18,9 @@ ExposureSearchParameter::ExposureSearchParameter() :
     is_initialized_(false)
 {}
 
-void ExposureSearchParameter::updateBinarySearch()
+void BinaryExposureSearch::updateBinarySearch(const float& current_brightness)
 {
+    current_brightness_ = current_brightness;
     current_brightness_ > target_brightness_ ? right_limit_ = current_exposure_ : left_limit_ = current_exposure_;
 
     target_exposure_ = (right_limit_ + left_limit_) / 2.0;
@@ -34,7 +35,7 @@ void ExposureSearchParameter::updateBinarySearch()
     }
 }
 
-void ExposureSearchParameter::initialize(const double& target_brightness,
+void BinaryExposureSearch::initialize(const double& target_brightness,
                                          const double& left_lim,
                                          const double& right_lim,
                                          const double& current_exp,
@@ -51,7 +52,7 @@ void ExposureSearchParameter::initialize(const double& target_brightness,
     is_initialized_ = true;
 }
 
-ExposureSearchParameter::~ExposureSearchParameter()
+BinaryExposureSearch::~BinaryExposureSearch()
 {}
 
 }  // namespace pylon_camera

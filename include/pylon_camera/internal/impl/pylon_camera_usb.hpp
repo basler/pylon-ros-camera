@@ -141,25 +141,91 @@ bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times, st
 template <>
 GenApi::IFloat& PylonUSBCamera::exposureTime()
 {
-    return cam_->ExposureTime;
+    try
+    {
+        return cam_->ExposureTime;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("Err trying to access ExposureTime in PylonUSBCamera"
+                         << e.GetDescription());
+        throw;
+    }
 }
 
 template <>
 GenApi::IFloat& PylonUSBCamera::gain()
 {
-    return cam_->Gain;
+    try
+    {
+        return cam_->Gain;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("Err trying to access Gain in PylonUSBCamera"
+                         << e.GetDescription());
+        throw;
+    }
+}
+
+template <>
+GenApi::IFloat& PylonUSBCamera::autoExposureTimeLowerLimit()
+{
+    try
+    {
+        return cam_->AutoExposureTimeLowerLimit;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("Err trying to access AutoExposureTimeLowerLimit in PylonUSBCamera"
+                         << e.GetDescription());
+        throw;
+    }
+}
+
+template <>
+GenApi::IFloat& PylonUSBCamera::autoExposureTimeUpperLimit()
+{
+    try
+    {
+        return cam_->AutoExposureTimeUpperLimit;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("Err trying to access AutoExposureTimeUpperLimit in PylonUSBCamera"
+                         << e.GetDescription());
+        throw;
+    }
 }
 
 template <>
 GenApi::IFloat& PylonUSBCamera::resultingFrameRate()
 {
-    return cam_->ResultingFrameRate;
+    try
+    {
+        return cam_->ResultingFrameRate;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("Err trying to access ResultingFrameRate in PylonUSBCamera"
+                         << e.GetDescription());
+        throw;
+    }
 }
 
 template <>
 USBCameraTrait::AutoTargetBrightnessType& PylonUSBCamera::autoTargetBrightness()
 {
-    return cam_->AutoTargetBrightness;
+    try
+    {
+        return cam_->AutoTargetBrightness;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("Err trying to access AutoTargetBrightness in PylonUSBCamera"
+                         << e.GetDescription());
+        throw;
+    }
 }
 
 template <>

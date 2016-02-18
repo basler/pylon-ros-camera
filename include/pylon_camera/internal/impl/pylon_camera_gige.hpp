@@ -136,25 +136,91 @@ bool PylonGigECamera::setupSequencer(const std::vector<float>& exposure_times, s
 template <>
 GenApi::IFloat& PylonGigECamera::exposureTime()
 {
-    return cam_->ExposureTimeAbs;
+    try
+    {
+        return cam_->ExposureTimeAbs;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("Err trying to access ExposureTimeAbs in PylonGigECamera"
+               << e.GetDescription());
+        throw;
+    }
 }
 
 template <>
 GenApi::IFloat& PylonGigECamera::gain()
 {
-    return cam_->GainAbs;
+    try
+    {
+        // should be GainRaw!
+        return cam_->GainAbs;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("Err trying to access GainAbs in PylonGigECamera"
+               << e.GetDescription());
+    }
+}
+
+template <>
+GenApi::IFloat& PylonGigECamera::autoExposureTimeLowerLimit()
+{
+    try
+    {
+        return cam_->AutoExposureTimeAbsLowerLimit;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("Err trying to access AutoExposureTimeAbsLowerLimit in PylonGigECamera"
+               << e.GetDescription());
+        throw;
+    }
+}
+
+template <>
+GenApi::IFloat& PylonGigECamera::autoExposureTimeUpperLimit()
+{
+    try
+    {
+        return cam_->AutoExposureTimeAbsUpperLimit;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("Err trying to access AutoExposureTimeAbsUpperLimit in PylonGigECamera"
+               << e.GetDescription());
+        throw;
+    }
 }
 
 template <>
 GenApi::IFloat& PylonGigECamera::resultingFrameRate()
 {
-    return cam_->ResultingFrameRateAbs;
+    try
+    {
+        return cam_->ResultingFrameRateAbs;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("Err trying to access ResultingFrameRateAbs in PylonGigECamera"
+               << e.GetDescription());
+        throw;
+    }
 }
 
 template <>
 GigECameraTrait::AutoTargetBrightnessType& PylonGigECamera::autoTargetBrightness()
 {
-    return cam_->AutoTargetValue;
+    try
+    {
+        return cam_->AutoTargetValue;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("Err trying to access AutoTargetValue in PylonGigECamera"
+               << e.GetDescription());
+        throw;
+    }
 }
 
 template <>

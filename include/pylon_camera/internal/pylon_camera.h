@@ -29,6 +29,8 @@ public:
 
     virtual bool openCamera();
 
+    virtual bool setupSequencer(const std::vector<float>& exposure_times);
+
     virtual bool applyStartupSettings(const PylonCameraParameter& parameters);
 
     virtual bool startGrabbing(const PylonCameraParameter& parameters);
@@ -37,27 +39,31 @@ public:
 
     virtual bool grab(uint8_t* image);
 
-    virtual bool setupSequencer(const std::vector<float>& exposure_times);
-
     virtual bool setShutterMode(const pylon_camera::SHUTTER_MODE& mode);
-
-    virtual float currentExposure();
 
     virtual bool setExposure(const double& target_exposure);
 
-    virtual float currentGain();
-
     virtual bool setGain(const double& target_gain_percent);
 
-    virtual bool setBrightness(const int& brightness);
+    virtual bool setBrightness(const int& target_brightness, const float& current_brightness);
 
-    virtual void setupExtendedBrightnessSearch(const int& brightness);
+    virtual bool setExtendedBrightness(const int& target_brightness, const float& current_brightness);
 
-    virtual bool setExtendedBrightness(int& brightness);
+    virtual bool setUserOutput(const int& output_id, const bool& value);
 
-    virtual bool isAutoBrightnessFunctionRunning();
+    virtual float currentExposure();
+
+    virtual float currentGain();
+
+    virtual float currentAutoExposureTimeLowerLimit();
+
+    virtual float currentAutoExposureTimeUpperLimit();
+
+    virtual bool isPylonAutoBrightnessFunctionRunning();
 
     virtual bool isBrightnessSearchRunning();
+
+    virtual void disableAllRunningAutoBrightessFunctions();
 
     virtual std::string imageEncoding() const;
 
@@ -66,8 +72,6 @@ public:
     virtual std::string typeName() const;
 
     virtual float exposureStep();
-
-    virtual bool setUserOutput(const int& output_id, const bool& value);
 
 protected:
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
@@ -82,6 +86,8 @@ protected:
     // Each camera has it's own getter for GenApi accessors that are named differently for USB and GigE
     GenApi::IFloat& exposureTime();
     GenApi::IFloat& gain();
+    GenApi::IFloat& autoExposureTimeLowerLimit();
+    GenApi::IFloat& autoExposureTimeUpperLimit();
     GenApi::IFloat& resultingFrameRate();
     AutoTargetBrightnessType& autoTargetBrightness();
 

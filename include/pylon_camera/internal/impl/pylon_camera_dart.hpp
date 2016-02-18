@@ -57,24 +57,34 @@ bool PylonDARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
         // /!\ The dart camera device does not support waiting for frame trigger ready
         cam_->ExecuteSoftwareTrigger();
 
-        // BaslerDebugDay: hard coded timeout of 5s makes most sense for all applications
-        cam_->RetrieveResult(5000,  // ms
-                             grab_result,
-                             Pylon::TimeoutHandling_ThrowException);
-        return true;
+	cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException);
     }
     catch (const GenICam::GenericException &e)
     {
         if (cam_->IsCameraDeviceRemoved())
         {
             is_cam_removed_ = true;
+            ROS_ERROR("Camera was removed");
         }
         else
         {
             ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: " << e.GetDescription());
         }
+        return false;
     }
-    return false;
+    catch (...)
+    {
+        ROS_ERROR("An unspecified image grabbing exception in pylon camera occurred");
+        return false;
+    }
+
+    if (!grab_result->GrabSucceeded())
+    {
+        ROS_ERROR_STREAM("Error: " << grab_result->GetErrorCode() << " " << grab_result->GetErrorDescription());
+        return false;
+    }
+
+    return true;
 }
 
 bool PylonDARTCamera::setUserOutput(int output_id, bool value)

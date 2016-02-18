@@ -16,6 +16,20 @@ enum PYLON_CAM_TYPE
     UNKNOWN = -1,
 };
 
+PylonCamera::PylonCamera()
+    : img_rows_(-1)
+    , img_cols_(-1)
+    , img_size_byte_(-1)
+    , max_framerate_(-1.0)
+    , grab_timeout_(-1.0)
+    , has_auto_exposure_(false)
+    , is_ready_(false)
+    , is_cam_removed_(false)
+    , is_own_brightness_function_running_(false)
+    , max_brightness_tolerance_(2.5)
+    , binary_exp_search_(NULL)
+{}
+
 PYLON_CAM_TYPE detectPylonCamType(Pylon::CInstantCamera* cam)
 {
     Pylon::VersionInfo sfnc_version;
@@ -178,23 +192,16 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
     }
 }
 
-PylonCamera::PylonCamera()
-    : img_rows_(-1)
-    , img_cols_(-1)
-    , img_size_byte_(-1)
-    , max_framerate_(-1.0)
-    , has_auto_exposure_(false)
-    , is_ready_(false)
-    , is_cam_removed_(false)
-    , is_own_brightness_function_running_(false)
-    , max_brightness_tolerance_(2.5)
-{
-}
 
 PylonCamera::~PylonCamera()
 {
     // Releases all Pylon resources.
     Pylon::PylonTerminate();
+    if (binary_exp_search_)
+    {
+        delete binary_exp_search_;
+        binary_exp_search_ = NULL;
+    }
 }
 
 const int& PylonCamera::imageRows() const

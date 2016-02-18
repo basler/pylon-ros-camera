@@ -177,6 +177,18 @@ protected:
     virtual float getCurrentExposure();
 
     /**
+     * Getter for the current auto exposure time lower limit
+     * @return the current auto exposure time lower limit
+     */
+    virtual float getCurrentAutoExposureTimeLowerLimit();
+
+    /**
+     * Getter for the current auto exposure time upper limit
+     * @return the current auto exposure time upper limit
+     */
+    virtual float getCurrentAutoExposureTimeUpperLimit();
+
+    /**
      * Callback for the grab images action
      * @param goal the goal
      */

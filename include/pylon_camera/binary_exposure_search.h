@@ -1,19 +1,19 @@
 // Copyright 2015 <Magazino GmbH>
 
-#ifndef PYLON_CAMERA_EXPOSURE_SEARCH_PARAMETER_H
-#define PYLON_CAMERA_EXPOSURE_SEARCH_PARAMETER_H
+#ifndef PYLON_CAMERA_BINARY_EXPOSURE_SEARCH_H
+#define PYLON_CAMERA_BINARY_EXPOSURE_SEARCH_H
 
 namespace pylon_camera
 {
 
 /**
- * Parameter class for the extended exposure search function
+ * Class for the extended brighntess search using a binary exposure search method
  */
-class ExposureSearchParameter
+class BinaryExposureSearch
 {
 public:
-    ExposureSearchParameter();
-    virtual ~ExposureSearchParameter();
+    BinaryExposureSearch();
+    virtual ~BinaryExposureSearch();
 
     /**
      * The targeted brightness value
@@ -69,7 +69,7 @@ public:
     /**
      * Update the binary search based on the current brightness and exposure values
      */
-    void updateBinarySearch();
+    void updateBinarySearch(const float& current_brightness);
 
     /**
      * Initialize the exposure search
@@ -88,4 +88,4 @@ public:
 
 }  // namespace pylon_camera
 
-#endif  // PYLON_CAMERA_EXPOSURE_SEARCH_PARAMETER_H
+#endif  // PYLON_CAMERA_BINARY_EXPOSURE_SEARCH_H

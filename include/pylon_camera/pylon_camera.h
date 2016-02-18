@@ -7,7 +7,7 @@
 #include <vector>
 
 #include <pylon_camera/pylon_camera_parameter.h>
-#include <pylon_camera/exposure_search_parameter.h>
+#include <pylon_camera/binary_exposure_search.h>
 
 namespace pylon_camera
 {
@@ -96,6 +96,18 @@ public:
     virtual float currentExposure() = 0;
 
     /**
+     * Returns the current auto exposure time lower limit
+     * @return the current auto exposure time lower limit
+     */
+    virtual float currentAutoExposureTimeLowerLimit() = 0;
+
+    /**
+     * Returns the current auto exposure time upper limit
+     * @return the current auto exposure time upper limit
+     */
+    virtual float currentAutoExposureTimeUpperLimit() = 0;
+
+    /**
      * Sets the exposure time in microseconds
      * Setting the exposure time to -1.0 enables the AutoExposureContinuous mode.
      * Setting the exposure time to  0.0 disables the AutoExposure function.
@@ -127,20 +139,14 @@ public:
      * @param brightness target brightness. Range is [-1...255].
      * @return false if a communication error occurred or true otherwise.
      */
-    virtual bool setBrightness(const int& brightness) = 0;
+    virtual bool setBrightness(const int& target_brightness, const float& current_brightness) = 0;
 
     /**
      * Enables the extended brightness search.
      * @param brightness target brightness
      * @return true after reaching the target brightness. If false, recall the method until the method returns true.
      */
-    virtual bool setExtendedBrightness(int& brightness) = 0;
-
-    /**
-     * Initializes the extended brightness search.
-     * @param brightness target brightness.
-     */
-    virtual void setupExtendedBrightnessSearch(const int& brightness) = 0;
+    virtual bool setExtendedBrightness(const int& target_brightness, const float& current_brightness) = 0;
 
     /**
      * Checks if the camera currently tries to regulate towards a target brightness.
@@ -151,16 +157,22 @@ public:
     virtual bool isBrightnessSearchRunning() = 0;
 
     /**
-     * Checks if the auto brightness function is enabled.
-     * @return true if AutoExposure is set to AutoExposureContinuous.
+     * Checks if the auto brightness function from the Pylon API is enabled.
+     * @return true if AutoExposure is set to AutoExposureContinuous or AutoExposureOnce.
      */
-    virtual bool isAutoBrightnessFunctionRunning() = 0;
+    virtual bool isPylonAutoBrightnessFunctionRunning() = 0;
 
     /**
      * Check if the extended brightness search is running
      * @return true if the extended brightness search is running
      */
     const bool& isOwnBrightnessFunctionRunning() const;
+
+    /**
+     * Disables all currently running brightness search methods in case that
+     * the desired brightness is reached or a timeout occoured
+     */
+    virtual void disableAllRunningAutoBrightessFunctions() = 0;
 
     /**
      * Get the camera image encoding according to sensor_msgs::image_encodings
@@ -252,7 +264,7 @@ public:
     /**
      * Parameters for the extended brightness search
      */
-    ExposureSearchParameter exp_search_params_;
+    BinaryExposureSearch* binary_exp_search_;
 
 protected:
     /**
@@ -281,6 +293,13 @@ protected:
     float max_framerate_;
 
     /**
+     * The max time a single grab is allwed to take. This value should always
+     * be greater then the max possible exposure time of the camera
+     */
+    float grab_timeout_;
+
+    /**
+     *
      * Boolean to store if auto exposure is possible.
      */
     bool has_auto_exposure_;
