@@ -286,7 +286,7 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setExposure(const double& target_exposure)
+bool PylonCameraImpl<CameraTraitT>::setExposure(const float& target_exposure, float& reached_exposure)
 {
     if ((target_exposure == -1.0 || target_exposure == 0.0) && !has_auto_exposure_)
     {
@@ -330,19 +330,23 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const double& target_exposure)
                                   << exposure_to_set);
             }
             exposureTime().SetValue(exposure_to_set);
+            reached_exposure = exposureTime().GetValue();
+
+            if ( fabs(reached_exposure - exposure_to_set) > exposureStep() )
+            {
+                // no success if the delta between target and reached exposure
+                // is greater then the exposure step in ms
+                return false;
+            }
         }
     }
     catch (const GenICam::GenericException &e)
     {
-        ROS_ERROR_STREAM("An exception while setting target exposure to " << target_exposure << " occurred:"
+        ROS_ERROR_STREAM("An exception while setting target exposure to "
+                         << target_exposure << " occurred:"
                          << e.GetDescription());
         return false;
     }
-
-//    // pylon interface is ready, if it has already grabbed one image
-//    if (!is_ready_)
-//        is_ready_ = true;
-
     return true;
 }
 
@@ -489,26 +493,28 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brig
 
     binary_exp_search_->updateBinarySearch(current_brightness);
 
-    // truncate desired exposure if out of range
-    if (binary_exp_search_->target_exposure_ < exposureTime().GetMin() ||
-        binary_exp_search_->target_exposure_ > exposureTime().GetMax())
-    {
-        if (binary_exp_search_->target_exposure_ < exposureTime().GetMin())
-        {
-            ROS_WARN_STREAM("Desired mean brightness unreachable! Min possible exposure = "
-                            << exposureTime().GetMin()
-                            << ". Will limit to this value.");
-            binary_exp_search_->target_exposure_ = exposureTime().GetMin();
-        }
-        else if (binary_exp_search_->target_exposure_ > exposureTime().GetMax())
-        {
-            ROS_WARN_STREAM("Desired mean brightness unreachable! Max possible exposure = "
-                            << exposureTime().GetMax()
-                            << ". Will limit to this value.");
-
-            binary_exp_search_->target_exposure_ = exposureTime().GetMax();
-        }
-    }
+/*
+ *    // truncate desired exposure if out of range
+ *    if (binary_exp_search_->target_exposure_ < exposureTime().GetMin() ||
+ *        binary_exp_search_->target_exposure_ > exposureTime().GetMax())
+ *    {
+ *        if (binary_exp_search_->target_exposure_ < exposureTime().GetMin())
+ *        {
+ *            ROS_WARN_STREAM("Desired mean brightness unreachable! Min possible exposure = "
+ *                            << exposureTime().GetMin()
+ *                            << ". Will limit to this value.");
+ *            binary_exp_search_->target_exposure_ = exposureTime().GetMin();
+ *        }
+ *        else if (binary_exp_search_->target_exposure_ > exposureTime().GetMax())
+ *        {
+ *            ROS_WARN_STREAM("Desired mean brightness unreachable! Max possible exposure = "
+ *                            << exposureTime().GetMax()
+ *                            << ". Will limit to this value.");
+ *
+ *            binary_exp_search_->target_exposure_ = exposureTime().GetMax();
+ *        }
+ *    }
+ */
     // Current exposure  = min/max limit value -> auto function finished -> update brightness param
     if (binary_exp_search_->current_exposure_ == exposureTime().GetMin() ||
         binary_exp_search_->current_exposure_ == exposureTime().GetMax())
@@ -519,12 +525,17 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brig
     }
 
     ROS_INFO_STREAM("Setting Exposure: " << binary_exp_search_->target_exposure_);
-    cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
-    exposureTime().SetValue(binary_exp_search_->target_exposure_);
+    //cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
+    //exposureTime().SetValue(binary_exp_search_->target_exposure_);
+    float reached_exposure;
+    if (!setExposure(binary_exp_search_->target_exposure_, reached_exposure) )
+    {
+        return true;
+    }
 
     // Attention: Setting and Getting exposure not necessary the same: Difference of up to 35.0 ms
     binary_exp_search_->last_exposure_ = binary_exp_search_->current_exposure_;
-    binary_exp_search_->current_exposure_ = exposureTime().GetValue();
+    binary_exp_search_->current_exposure_ = reached_exposure;
 
     return false;
 }

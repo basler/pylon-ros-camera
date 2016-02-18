@@ -117,8 +117,9 @@ bool PylonGigECamera::setupSequencer(const std::vector<float>& exposure_times, s
         {
             // Set parameters for each step
             cam_->SequenceSetIndex = i;
-            setExposure(exposure_times.at(i));
-            exposure_times_set.push_back(cam_->ExposureTimeAbs.GetValue() / 1000000.);
+            float reached_exposure;
+            setExposure(exposure_times.at(i), reached_exposure);
+            exposure_times_set.push_back(reached_exposure / 1000000.);
             cam_->SequenceSetStore.Execute();
         }
 

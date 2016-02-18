@@ -59,14 +59,12 @@ public:
      */
     virtual bool setupSequencer(const std::vector<float>& exposure_times) = 0;
 
-
     /**
      * @brief sets shutter mode for the camera (rolling or global_reset)
      * @param mode
      * @return
      */
     virtual bool setShutterMode(const pylon_camera::SHUTTER_MODE& mode) = 0;
-
 
     /**
      * Initializes the internal parameters of the PylonCamera instance.
@@ -84,7 +82,8 @@ public:
 
     /**
      * Grab a camera frame and copy the result into image
-     * @param image pointer to the image buffer. Caution: Make sure the buffer is initialized correctly!
+     * @param image pointer to the image buffer.
+     *              Caution: Make sure the buffer is initialized correctly!
      * @return true if the image was grabbed successfully.
      */
     virtual bool grab(uint8_t* image) = 0;
@@ -107,21 +106,23 @@ public:
      */
     virtual float currentAutoExposureTimeUpperLimit() = 0;
 
-    /**
-     * Sets the exposure time in microseconds
-     * Setting the exposure time to -1.0 enables the AutoExposureContinuous mode.
-     * Setting the exposure time to  0.0 disables the AutoExposure function.
-     * Setting the exposure time to a value greater than zero disables the auto exposure feature.
-     * @param exposure exposure time in microseconds.
-     * @return false if a communication error occurred or true otherwise.
-     */
-    virtual bool setExposure(const double& target_exposure) = 0;
 
     /**
      * Returns the current gain in percent.
      * @return the gain time percent.
      */
     virtual float currentGain() = 0;
+
+    /**
+     * Sets the exposure time in microseconds
+     * Setting the exposure time to -1.0 enables the AutoExposureContinuous mode.
+     * Setting the exposure time to  0.0 disables the AutoExposure function.
+     * Setting the exposure time to a value greater than zero disables the auto exposure feature.
+     * @param target_exposure the desired exposure time to set in microseconds.
+     * @param reached_exposure time in microseconds
+     * @return false if a communication error occurred or true otherwise.
+     */
+    virtual bool setExposure(const float& target_exposure, float& reached_exposure) = 0;
 
     /**
      * Sets the gain in percent independent of the camera type
@@ -141,12 +142,6 @@ public:
      */
     virtual bool setBrightness(const int& target_brightness, const float& current_brightness) = 0;
 
-    /**
-     * Enables the extended brightness search.
-     * @param brightness target brightness
-     * @return true after reaching the target brightness. If false, recall the method until the method returns true.
-     */
-    virtual bool setExtendedBrightness(const int& target_brightness, const float& current_brightness) = 0;
 
     /**
      * Checks if the camera currently tries to regulate towards a target brightness.
@@ -271,6 +266,14 @@ protected:
      * Protected default constructor.
      */
     PylonCamera();
+
+
+    /**
+     * Enables the extended brightness search.
+     * @param brightness target brightness
+     * @return true after reaching the target brightness. If false, recall the method until the method returns true.
+     */
+    virtual bool setExtendedBrightness(const int& target_brightness, const float& current_brightness) = 0;
 
     /**
      * Number of image rows.

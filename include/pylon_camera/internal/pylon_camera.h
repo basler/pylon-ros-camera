@@ -41,13 +41,11 @@ public:
 
     virtual bool setShutterMode(const pylon_camera::SHUTTER_MODE& mode);
 
-    virtual bool setExposure(const double& target_exposure);
+    virtual bool setExposure(const float& target_exposure, float& reached_exposure);
 
     virtual bool setGain(const double& target_gain_percent);
 
     virtual bool setBrightness(const int& target_brightness, const float& current_brightness);
-
-    virtual bool setExtendedBrightness(const int& target_brightness, const float& current_brightness);
 
     virtual bool setUserOutput(const int& output_id, const bool& value);
 
@@ -90,6 +88,8 @@ protected:
     GenApi::IFloat& autoExposureTimeUpperLimit();
     GenApi::IFloat& resultingFrameRate();
     AutoTargetBrightnessType& autoTargetBrightness();
+
+    virtual bool setExtendedBrightness(const int& target_brightness, const float& current_brightness);
 
     virtual bool grab(Pylon::CGrabResultPtr& grab_result);
 

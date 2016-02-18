@@ -121,9 +121,9 @@ bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times, st
             {
                 cam_->SequencerSetNext.SetValue(i + 1);
             }
-
-            setExposure(exposure_times.at(i));
-            exposure_times_set.push_back(cam_->ExposureTime.GetValue() / 1000000.);
+            float reached_exposure;
+            setExposure(exposure_times.at(i), reached_exposure);
+            exposure_times_set.push_back(reached_exposure / 1000000.);
             cam_->SequencerSetSave.Execute();
         }
 

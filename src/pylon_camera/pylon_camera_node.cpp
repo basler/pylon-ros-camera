@@ -365,35 +365,49 @@ bool PylonCameraNode::setExposure(const float& target_exposure, float& reached_e
         return false;
     }
 
-    reached_exposure = getCurrentExposure();
+    // reached_exposure = getCurrentExposure();
 
-    if (reached_exposure != target_exposure)
+    //if (reached_exposure != target_exposure)
+    //{
+    //    pylon_camera_->setExposure(target_exposure);
+    //}
+
+    if ( pylon_camera_->setExposure(target_exposure, reached_exposure) )
     {
-        pylon_camera_->setExposure(target_exposure);
+        // success if the delta is smaller then the exposure step
+        return true;
     }
-
-    // wait for max 5s till the cam has updated the exposure
-    ros::Rate r(10.0);
-    ros::Time start = ros::Time::now();
-    while (ros::ok())
+    else // retry till timeout
     {
-        reached_exposure = getCurrentExposure();
-
-        bool success = fabs(reached_exposure - target_exposure) < pylon_camera_->exposureStep();
-
-        if (success)
+        // wait for max 5s till the cam has updated the exposure
+        ros::Rate r(10.0);
+        ros::Time timeout = ros::Time::now() + ros::Duration(5.0);
+        while (ros::ok())
         {
-            return true;
-        }
+            if ( pylon_camera_->setExposure(target_exposure, reached_exposure) )
+            {
+                // success if the delta is smaller then the exposure step
+                return true;
+            }
 
-        if (ros::Time::now() - start > ros::Duration(5.0))
-        {
-            ROS_ERROR("Error in setExposure(): Did not reach the desired brightness in time");
-            return false;
+            //pylon_camera_->setExposure(target_exposure, reached_exposure);
+            //reached_exposure = getCurrentExposure();
+
+            //bool success = fabs(reached_exposure - target_exposure) < pylon_camera_->exposureStep();
+
+            //if (success)
+            //{
+            //    return true;
+            // }
+
+            if (ros::Time::now() > timeout)
+            {
+                ROS_ERROR("Error in setExposure(): Unable to set target exposure before timeout");
+                return false;
+            }
+            r.sleep();
         }
-        r.sleep();
     }
-    return true;
 }
 
 bool PylonCameraNode::setExposureCallback(camera_control_msgs::SetExposureSrv::Request &req,
