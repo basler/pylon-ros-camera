@@ -442,7 +442,6 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
     if ( fabs(current_brightness - static_cast<float>(target_brightness)) <= 1.0)
     {
         reached_brightness = static_cast<int>(current_brightness);
-        ROS_INFO("Desired brightness already reached");
         return true;  // target brightness already reached
     }
 
@@ -450,7 +449,6 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
     ros::Duration timeout;
     target_brightness > 205 ? timeout = ros::Duration(15.0) : timeout = ros::Duration(5.0);
 
-    ROS_INFO("Now going into while loop...");
     bool is_brightness_reached = false;
     size_t fail_safe_ctr = 0;
     float last_brightness = std::numeric_limits<float>::max();
@@ -477,7 +475,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
         if (is_brightness_reached)
         {
             pylon_camera_->disableAllRunningAutoBrightessFunctions();
-            ROS_INFO("Brightness reached: %.3f", current_brightness);
+            ROS_INFO_STREAM("Brightness reached: " << current_brightness);
             break;
         }
 
@@ -490,10 +488,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
             break;
         }
 
-        if (fabs(last_brightness - current_brightness) <= 1.0)
-        {
-            fail_safe_ctr++;
-        }
+        fabs(last_brightness - current_brightness) <= 1.0 ? fail_safe_ctr++ : fail_safe_ctr = 0;
         last_brightness = current_brightness;
 
         if (fail_safe_ctr > 5)
@@ -527,7 +522,6 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
     std::cout << "max tolerance = " << pylon_camera_->maxBrightnessTolerance() << std::endl;
     std::cout << "bool = " << is_brightness_reached << std::endl;
     return is_brightness_reached;
-
 }
 
 bool PylonCameraNode::setBrightnessCallback(camera_control_msgs::SetBrightnessSrv::Request &req,
