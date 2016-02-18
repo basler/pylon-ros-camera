@@ -311,6 +311,8 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
     result.images.resize(goal->target_values.size());
     result.reached_values.resize(goal->target_values.size());
     result.success = true;
+    float_t previous_exp = pylon_camera_->exposureTime().GetValue();
+
     for (std::size_t i = 0; i < goal->target_values.size(); ++i)
     {
         // setGain(goal->gain);
@@ -347,7 +349,8 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
     {
         result.images.clear();
     }
-
+    float_t reached_exposure;
+    setExposure(previous_exp, reached_exposure);
     grab_images_raw_action_server_.setSucceeded(result);
 }
 
