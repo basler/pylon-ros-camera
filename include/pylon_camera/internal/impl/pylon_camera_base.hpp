@@ -423,8 +423,12 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
             ROS_WARN("Target Brightness out of Pylon-Range! Starting own brightness search...");
             if (is_own_brightness_function_running_)
             {
-                // pre-control using the possible limits of the pylon auto function range is finished
-                setExtendedBrightness(std::min(255, target_brightness), current_brightness);
+                // pre-control using the possible limits of the pylon auto function range
+                // if they were reached, we continue with the extended brightness search
+                if (!setExtendedBrightness(std::min(255, target_brightness), current_brightness) )
+                {
+                    return false;
+                }
             }
             else
             {
@@ -464,80 +468,53 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brig
 
     if (!binary_exp_search_)
     {
-        binary_exp_search_ = new BinaryExposureSearch();
 
         if (autoTargetBrightness().GetMin() > brightness_to_set)  // Range from [0 - 49]
         {
-            binary_exp_search_->initialize(target_brightness,
-                                          exposureTime().GetMin(),
-                                          exposureTime().GetValue(),
-                                          exposureTime().GetValue(),
-                                          current_brightness);
+            binary_exp_search_ = new BinaryExposureSearch(target_brightness,
+                                                          exposureTime().GetMin(),
+                                                          exposureTime().GetValue(),
+                                                          exposureTime().GetValue());
         }
         else  // Range from [206-255]
         {
-            binary_exp_search_->initialize(target_brightness,
-                                          exposureTime().GetValue(),
-                                          exposureTime().GetMax(),
-                                          exposureTime().GetValue(),
-                                          current_brightness);
+            binary_exp_search_ = new BinaryExposureSearch(target_brightness,
+                                                          exposureTime().GetValue(),
+                                                          exposureTime().GetMax(),
+                                                          exposureTime().GetValue());
         }
     }
 
-    if (binary_exp_search_->last_unchanged_exposure_counter_ > 2)
+    if (binary_exp_search_->isLimitReached())
     {
         disableAllRunningAutoBrightessFunctions();
-        ROS_WARN_STREAM("Own Auto Function: Fail because of unchanged counter! Last brightness = " << current_brightness);
+        ROS_ERROR_STREAM("BinaryExposureSearach reached the exposure limits that "
+                      << "the camera is able to set, but the target_brightness "
+                      << "was not yet reached.");
         return false;
     }
 
-    binary_exp_search_->updateBinarySearch(current_brightness);
-
-/*
- *    // truncate desired exposure if out of range
- *    if (binary_exp_search_->target_exposure_ < exposureTime().GetMin() ||
- *        binary_exp_search_->target_exposure_ > exposureTime().GetMax())
- *    {
- *        if (binary_exp_search_->target_exposure_ < exposureTime().GetMin())
- *        {
- *            ROS_WARN_STREAM("Desired mean brightness unreachable! Min possible exposure = "
- *                            << exposureTime().GetMin()
- *                            << ". Will limit to this value.");
- *            binary_exp_search_->target_exposure_ = exposureTime().GetMin();
- *        }
- *        else if (binary_exp_search_->target_exposure_ > exposureTime().GetMax())
- *        {
- *            ROS_WARN_STREAM("Desired mean brightness unreachable! Max possible exposure = "
- *                            << exposureTime().GetMax()
- *                            << ". Will limit to this value.");
- *
- *            binary_exp_search_->target_exposure_ = exposureTime().GetMax();
- *        }
- *    }
- */
-    // Current exposure  = min/max limit value -> auto function finished -> update brightness param
-    if (binary_exp_search_->current_exposure_ == exposureTime().GetMin() ||
-        binary_exp_search_->current_exposure_ == exposureTime().GetMax())
+    if ( !binary_exp_search_->update(current_brightness, exposureTime().GetValue()) )
     {
         disableAllRunningAutoBrightessFunctions();
-        ROS_WARN("WILL USE SMALLES EXP POSSIBLE!!!");
-        return true;
+        return false;
     }
 
-    ROS_INFO_STREAM("Setting Exposure: " << binary_exp_search_->target_exposure_);
-    //cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
-    //exposureTime().SetValue(binary_exp_search_->target_exposure_);
     float reached_exposure;
-    if (!setExposure(binary_exp_search_->target_exposure_, reached_exposure) )
+    if (!setExposure(binary_exp_search_->newExposure(), reached_exposure) )
     {
-        return true;
+        return false;
     }
 
-    // Attention: Setting and Getting exposure not necessary the same: Difference of up to 35.0 ms
-    binary_exp_search_->last_exposure_ = binary_exp_search_->current_exposure_;
-    binary_exp_search_->current_exposure_ = reached_exposure;
-
-    return false;
+    // failure if we reached min or max exposure limit
+    // but we return in the next cycle because maybe the current setting leads
+    // to the target brightness
+    if ( reached_exposure == exposureTime().GetMin() ||
+         reached_exposure == exposureTime().GetMax() )
+    {
+        binary_exp_search_->limitReached(true);
+    }
+    return true;
 }
 
 template <typename CameraTraitT>

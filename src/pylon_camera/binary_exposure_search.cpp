@@ -5,51 +5,52 @@
 namespace pylon_camera
 {
 
-BinaryExposureSearch::BinaryExposureSearch() :
-    target_brightness_(0.0),
-    target_exposure_(0.0),
-    current_exposure_(0.0),
-    last_exposure_(0.0),
-    last_unchanged_exposure_counter_(0),
-    current_brightness_(0),
-    left_limit_(0.0),
-    right_limit_(0.0),
-    success_(false),
-    is_initialized_(false)
+BinaryExposureSearch::BinaryExposureSearch(const float_t& target_brightness,
+                                           const float_t& left_lim,
+                                           const float_t& right_lim,
+                                           const float_t& current_exp)
+    : new_exposure_(0.0)
+    , last_exposure_(current_exp)
+    , last_unchanged_exposure_counter_(0)
+    , left_limit_(left_lim)
+    , right_limit_(right_lim)
+    , target_brightness_(target_brightness)
+    , limit_reached_(false)
 {}
 
-void BinaryExposureSearch::updateBinarySearch(const float& current_brightness)
+bool BinaryExposureSearch::update(const float_t& current_brightness,
+                                  const float_t& current_exposure)
 {
-    current_brightness_ = current_brightness;
-    current_brightness_ > target_brightness_ ? right_limit_ = current_exposure_ : left_limit_ = current_exposure_;
+    current_brightness > target_brightness_ ? right_limit_ = current_exposure : left_limit_ = current_exposure;
 
-    target_exposure_ = (right_limit_ + left_limit_) / 2.0;
+    new_exposure_ = (right_limit_ + left_limit_) / 2.0;
 
-    if (current_exposure_ == last_exposure_)
+    new_exposure_ == current_exposure ? ++last_unchanged_exposure_counter_ : last_exposure_ = current_exposure;
+
+    if (last_unchanged_exposure_counter_ > 2)
     {
-        ++last_unchanged_exposure_counter_;
+        ROS_ERROR("BinaryExposureSearch failed, trying three times to set the same new exposure value");
+        return false;
     }
     else
     {
-        last_exposure_ = current_exposure_;
+        return true;
     }
 }
 
-void BinaryExposureSearch::initialize(const double& target_brightness,
-                                         const double& left_lim,
-                                         const double& right_lim,
-                                         const double& current_exp,
-                                         const double& current_brightness)
+float_t& BinaryExposureSearch::newExposure()
 {
-    target_brightness_ = target_brightness;
-    left_limit_ = left_lim;
-    right_limit_ = right_lim;
-    current_exposure_ = current_exp;
-    current_brightness_ = current_brightness;
-    target_exposure_ = 0.0;
-    last_exposure_ = current_exp;
-    last_unchanged_exposure_counter_ = 0;
-    is_initialized_ = true;
+    return new_exposure_;
+}
+
+void BinaryExposureSearch::limitReached(bool reached)
+{
+    limit_reached_ = reached;
+}
+
+bool BinaryExposureSearch::isLimitReached()
+{
+    return limit_reached_;
 }
 
 BinaryExposureSearch::~BinaryExposureSearch()

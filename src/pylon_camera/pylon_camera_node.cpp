@@ -466,13 +466,12 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
         // brightness search. But for the case that the target brightness is out of the
         // pylon range which is from [50 - 205] a binary exposure search will be executed
         // where we have to update the search parameter in every cycle
-        //if (!
-        pylon_camera_->setBrightness(target_brightness, current_brightness);
-        //{
-        //    ROS_ERROR("Error while setting target brightness!");
-        //    pylon_camera_->disableAllRunningAutoBrightessFunctions();
-        //    break;
-        //}
+        if ( !pylon_camera_->setBrightness(target_brightness, current_brightness) )
+        {
+            ROS_ERROR("Error while setting target brightness!");
+            pylon_camera_->disableAllRunningAutoBrightessFunctions();
+            break;
+        }
 
         grabImage();
 
