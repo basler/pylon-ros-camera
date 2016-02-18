@@ -363,13 +363,6 @@ bool PylonCameraNode::setExposure(const float& target_exposure, float& reached_e
         return false;
     }
 
-    // reached_exposure = getCurrentExposure();
-
-    //if (reached_exposure != target_exposure)
-    //{
-    //    pylon_camera_->setExposure(target_exposure);
-    //}
-
     if ( pylon_camera_->setExposure(target_exposure, reached_exposure) )
     {
         // success if the delta is smaller then the exposure step
@@ -387,16 +380,6 @@ bool PylonCameraNode::setExposure(const float& target_exposure, float& reached_e
                 // success if the delta is smaller then the exposure step
                 return true;
             }
-
-            //pylon_camera_->setExposure(target_exposure, reached_exposure);
-            //reached_exposure = getCurrentExposure();
-
-            //bool success = fabs(reached_exposure - target_exposure) < pylon_camera_->exposureStep();
-
-            //if (success)
-            //{
-            //    return true;
-            // }
 
             if (ros::Time::now() > timeout)
             {
