@@ -79,13 +79,13 @@ protected:
     typedef typename CameraTraitT::PixelFormatEnums PixelFormatEnums;
     typedef typename CameraTraitT::PixelSizeEnums PixelSizeEnums;
     typedef typename CameraTraitT::AutoTargetBrightnessType AutoTargetBrightnessType;
-    //typedef typename CameraTraitT::GainType GainType;
+    typedef typename CameraTraitT::GainType GainType;
     typedef typename CameraTraitT::ShutterModeEnums ShutterModeEnums;
     typedef typename CameraTraitT::UserOutputSelectorEnums UserOutputSelectorEnums;
 
     // Each camera has it's own getter for GenApi accessors that are named differently for USB and GigE
     GenApi::IFloat& exposureTime();
-    GenApi::IFloat& gain();
+    GainType& gain();
     GenApi::IFloat& autoExposureTimeLowerLimit();
     GenApi::IFloat& autoExposureTimeUpperLimit();
     GenApi::IFloat& resultingFrameRate();

@@ -19,6 +19,7 @@ struct USBCameraTrait
     typedef Basler_UsbCameraParams::PixelFormatEnums PixelFormatEnums;
     typedef Basler_UsbCameraParams::PixelSizeEnums PixelSizeEnums;
     typedef GenApi::IFloat AutoTargetBrightnessType;
+    typedef GenApi::IFloat GainType;
     typedef double AutoTargetBrightnessValueType;
     typedef Basler_UsbCameraParams::ShutterModeEnums ShutterModeEnums;
     typedef Basler_UsbCameraParams::UserOutputSelectorEnums UserOutputSelectorEnums;
@@ -154,7 +155,7 @@ GenApi::IFloat& PylonUSBCamera::exposureTime()
 }
 
 template <>
-GenApi::IFloat& PylonUSBCamera::gain()
+USBCameraTrait::GainType& PylonUSBCamera::gain()
 {
     try
     {

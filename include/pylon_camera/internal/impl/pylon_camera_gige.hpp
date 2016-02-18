@@ -20,6 +20,7 @@ struct GigECameraTrait
     typedef Basler_GigECameraParams::PixelFormatEnums PixelFormatEnums;
     typedef Basler_GigECameraParams::PixelSizeEnums PixelSizeEnums;
     typedef GenApi::IInteger AutoTargetBrightnessType;
+    typedef GenApi::IInteger GainType;
     typedef int64_t AutoTargetBrightnessValueType;
     typedef Basler_GigECameraParams::ShutterModeEnums ShutterModeEnums;
     typedef Basler_GigECamera::UserOutputSelectorEnums UserOutputSelectorEnums;
@@ -32,7 +33,6 @@ struct GigECameraTrait
 };
 
 typedef PylonCameraImpl<GigECameraTrait> PylonGigECamera;
-
 
 template <>
 bool PylonGigECamera::applyStartupSettings(const PylonCameraParameter& params)
@@ -149,16 +149,15 @@ GenApi::IFloat& PylonGigECamera::exposureTime()
 }
 
 template <>
-GenApi::IFloat& PylonGigECamera::gain()
+GigECameraTrait::GainType& PylonGigECamera::gain()
 {
     try
     {
-        // should be GainRaw!
-        return cam_->GainAbs;
+        return cam_->GainRaw;
     }
     catch (const GenICam::GenericException &e)
     {
-        ROS_ERROR_STREAM("Err trying to access GainAbs in PylonGigECamera"
+        ROS_ERROR_STREAM("Err trying to access GainRaw in PylonGigECamera"
                << e.GetDescription());
     }
 }

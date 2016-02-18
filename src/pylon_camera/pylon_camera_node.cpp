@@ -498,12 +498,12 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
 
         if (pylon_camera_->isBrightnessSearchRunning())
         {
-            //ROS_INFO_STREAM("BS running: Current br = " << current_brightness
-            //        << ", Current Gain = " << getCurrentGain()
-            //        << ", Current Exp = " << getCurrentExposure()
-            //        << ", Current Limits = [" << getCurrentAutoExposureTimeLowerLimit()
-            //        << ", " << getCurrentAutoExposureTimeUpperLimit()
-            //        << "]");
+            ROS_INFO_STREAM("BS running: Current br = " << current_brightness
+                    << ", Current Gain = " << getCurrentGain()
+                    << ", Current Exp = " << getCurrentExposure()
+                    << ", Current Limits = [" << getCurrentAutoExposureTimeLowerLimit()
+                    << ", " << getCurrentAutoExposureTimeUpperLimit()
+                    << "]");
             //ROS_INFO("cam auto value = %f", pylon_camera_->autoTargetBrightness().GetValue());
         }
         else
