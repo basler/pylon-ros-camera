@@ -330,7 +330,7 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const float_t& target_exposure, 
                                   << exposure_to_set);
             }
             exposureTime().SetValue(exposure_to_set);
-            reached_exposure = exposureTime().GetValue();
+            reached_exposure = currentExposure();
 
             if ( fabs(reached_exposure - exposure_to_set) > exposureStep() )
             {
@@ -351,16 +351,16 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const float_t& target_exposure, 
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setGain(const double& target_gain_percent)
+bool PylonCameraImpl<CameraTraitT>::setGain(const float_t& target_gain, float_t& reached_gain)
 {
     try
     {
-        //float gain_value = CameraTraitT::convertGain(target_gain);
-        gain().SetValue(target_gain_percent * gain().GetMax());
+        gain().SetValue(target_gain * gain().GetMax());
+        reached_gain = currentGain();
     }
     catch (const GenICam::GenericException &e)
     {
-        ROS_ERROR_STREAM("An exception while setting target gain to " << target_gain_percent << " occurred:"
+        ROS_ERROR_STREAM("An exception while setting target gain to " << target_gain << " occurred:"
                          << e.GetDescription());
         return false;
     }
@@ -471,15 +471,15 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brig
         {
             binary_exp_search_ = new BinaryExposureSearch(target_brightness,
                                                           exposureTime().GetMin(),
-                                                          exposureTime().GetValue(),
-                                                          exposureTime().GetValue());
+                                                          currentExposure(),
+                                                          currentExposure());
         }
         else  // Range from [206-255]
         {
             binary_exp_search_ = new BinaryExposureSearch(target_brightness,
-                                                          exposureTime().GetValue(),
+                                                          currentExposure(),
                                                           exposureTime().GetMax(),
-                                                          exposureTime().GetValue());
+                                                          currentExposure());
         }
     }
 
@@ -492,7 +492,7 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brig
         return false;
     }
 
-    if ( !binary_exp_search_->update(current_brightness, exposureTime().GetValue()) )
+    if ( !binary_exp_search_->update(current_brightness, currentExposure()) )
     {
         disableAllRunningAutoBrightessFunctions();
         return false;

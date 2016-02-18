@@ -311,7 +311,7 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
     result.images.resize(goal->target_values.size());
     result.reached_values.resize(goal->target_values.size());
     result.success = true;
-    float_t previous_exp = pylon_camera_->exposureTime().GetValue();
+    float_t previous_exp = pylon_camera_->currentExposure();
 
     for (std::size_t i = 0; i < goal->target_values.size(); ++i)
     {
@@ -398,6 +398,48 @@ bool PylonCameraNode::setExposureCallback(camera_control_msgs::SetExposureSrv::R
     return true;
 }
 
+bool PylonCameraNode::setGain(const float& target_gain, float& reached_gain)
+{
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if (!pylon_camera_->isReady())
+    {
+        ROS_WARN("Error in setGain(): pylon_camera_ is not ready!");
+        return false;
+    }
+
+    if ( pylon_camera_->setGain(target_gain, reached_gain) )
+    {
+        return true;
+    }
+    else // retry till timeout
+    {
+        // wait for max 5s till the cam has updated the exposure
+        ros::Rate r(10.0);
+        ros::Time timeout = ros::Time::now() + ros::Duration(5.0);
+        while (ros::ok())
+        {
+            if ( pylon_camera_->setGain(target_gain, reached_gain) )
+            {
+                return true;
+            }
+
+            if (ros::Time::now() > timeout)
+            {
+                ROS_ERROR("Error in setGain(): Unable to set target gain before timeout");
+                return false;
+            }
+            r.sleep();
+        }
+   }
+   bool success = fabs(reached_gain - target_gain) < 0.01; // Delta of 1% is allowed
+}
+
+bool PylonCameraNode::setGainCallback(camera_control_msgs::SetGain::Request &req,
+                                      camera_control_msgs::SetGain::Response &res)
+{
+    res.success = setGain(req.target_gain, res.reached_gain);
+    return true;
+}
 bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_brightness)
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
@@ -480,7 +522,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
         if (fail_safe_ctr > 5)
         {
             ROS_ERROR_STREAM("Seems like the desired brightness (" << target_brightness
-                    << ") is not reachable with the current gain (" << getCurrentGain()
+                    << ") is not reachable with the current gain (" << pylon_camera_->currentGain()
                     << ")! Stuck at brighntness "<< current_brightness);
             break;
         }
@@ -488,12 +530,11 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
         if (pylon_camera_->isBrightnessSearchRunning())
         {
             ROS_INFO_STREAM("BS running: Current br = " << current_brightness
-                    << ", Current Gain = " << getCurrentGain()
-                    << ", Current Exp = " << getCurrentExposure()
-                    << ", Current Limits = [" << getCurrentAutoExposureTimeLowerLimit()
-                    << ", " << getCurrentAutoExposureTimeUpperLimit()
+                    << ", Current Gain = " << pylon_camera_->currentGain()
+                    << ", Current Exp = " << pylon_camera_->currentExposure()
+                    << ", Current Limits = [" << pylon_camera_->currentAutoExposureTimeLowerLimit()
+                    << ", " << pylon_camera_->currentAutoExposureTimeUpperLimit()
                     << "]");
-            //ROS_INFO("cam auto value = %f", pylon_camera_->autoTargetBrightness().GetValue());
         }
         else
         {
@@ -524,73 +565,6 @@ float PylonCameraNode::calcCurrentBrightness()
     int sum = std::accumulate(img_raw_msg_.data.begin(), img_raw_msg_.data.end(), 0);
     float mean = static_cast<int>(sum) / img_raw_msg_.data.size();
     return mean;
-}
-
-float PylonCameraNode::getCurrentExposure()
-{
-    return pylon_camera_->currentExposure();
-}
-
-float PylonCameraNode::getCurrentGain()
-{
-    return pylon_camera_->currentGain();
-}
-
-float PylonCameraNode::getCurrentAutoExposureTimeLowerLimit()
-{
-    return pylon_camera_->currentAutoExposureTimeLowerLimit();
-}
-
-float PylonCameraNode::getCurrentAutoExposureTimeUpperLimit()
-{
-    return pylon_camera_->currentAutoExposureTimeUpperLimit();
-}
-
-bool PylonCameraNode::setGain(const float& target_gain, float& reached_gain)
-{
-    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-    if (!pylon_camera_->isReady())
-    {
-        ROS_WARN("Error in setGain(): pylon_camera_ is not ready!");
-        return false;
-    }
-
-    reached_gain = getCurrentGain();
-
-    if (reached_gain != target_gain)
-    {
-        pylon_camera_->setGain(target_gain);
-    }
-
-    // wait for max 5s till the cam has updated the gain
-    ros::Rate r(10.0);
-    ros::Time start = ros::Time::now();
-    while (ros::ok())
-    {
-        reached_gain = getCurrentGain();
-
-        bool success = fabs(reached_gain - target_gain) < 0.01; // Delta of 1% is allowed
-
-        if (success)
-        {
-            return true;
-        }
-
-        if (ros::Time::now() - start > ros::Duration(5.0))
-        {
-            ROS_ERROR("Error in setGain(): Did not reach the desired gain in time");
-            return false;
-        }
-        r.sleep();
-    }
-    return true;
-}
-
-bool PylonCameraNode::setGainCallback(camera_control_msgs::SetGain::Request &req,
-                                      camera_control_msgs::SetGain::Response &res)
-{
-    res.success = setGain(req.target_gain, res.reached_gain);
-    return true;
 }
 
 bool PylonCameraNode::setSleepingCallback(camera_control_msgs::SetSleepingSrv::Request &req,

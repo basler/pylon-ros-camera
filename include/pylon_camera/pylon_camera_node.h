@@ -122,12 +122,6 @@ protected:
                                camera_control_msgs::SetBrightnessSrv::Response &res);
 
     /**
-     * Getter for the current gain in percent independant of the camera type
-     * @return the current gain
-     */
-    float getCurrentGain();
-
-    /**
      * Update the gain from the camera to a target gain in percent
      * @param target_gain the targeted gain in percent
      * @param reached_gain the gain that could be reached
@@ -164,24 +158,6 @@ protected:
      * @return the mean brightness of the image
      */
     float calcCurrentBrightness();
-
-    /**
-     * Getter for the current exposure
-     * @return the current exposure
-     */
-    virtual float getCurrentExposure();
-
-    /**
-     * Getter for the current auto exposure time lower limit
-     * @return the current auto exposure time lower limit
-     */
-    virtual float getCurrentAutoExposureTimeLowerLimit();
-
-    /**
-     * Getter for the current auto exposure time upper limit
-     * @return the current auto exposure time upper limit
-     */
-    virtual float getCurrentAutoExposureTimeUpperLimit();
 
     /**
      * Callback for the grab images action

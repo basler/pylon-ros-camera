@@ -43,7 +43,7 @@ public:
 
     virtual bool setExposure(const float_t& target_exposure, float_t& reached_exposure);
 
-    virtual bool setGain(const double& target_gain_percent);
+    virtual bool setGain(const float_t& target_gain, float_t& reached_gain);
 
     virtual bool setBrightness(const int& target_brightness, const float_t& current_brightness);
 

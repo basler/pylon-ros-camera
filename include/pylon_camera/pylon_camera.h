@@ -126,10 +126,11 @@ public:
 
     /**
      * Sets the gain in percent independent of the camera type
-     * @param gain gain in percent.
+     * @param target_gain the target gain in percent.
+     * @param reached_gain the reached gain in percent.
      * @return false if a communication error occurred or true otherwise.
      */
-    virtual bool setGain(const double& target_gain_percent) = 0;
+    virtual bool setGain(const float_t& target_gain, float_t& reached_gain) = 0;
 
     /**
      * Sets the target brightness
