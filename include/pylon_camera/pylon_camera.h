@@ -206,13 +206,13 @@ public:
      * Getter for the image height
      * @return number of rows in the image
      */
-    const int& imageRows() const;
+    const size_t& imageRows() const;
 
     /**
      * Getter for the image width
      * @return number of columns in the image
      */
-    const int& imageCols() const;
+    const size_t& imageCols() const;
 
     /**
      * Returns the current state of the interface
@@ -224,7 +224,7 @@ public:
      * Returns the image size in bytes
      * @return the image size in bytes
      */
-    const int& imageSize() const;
+    const size_t& imageSize() const;
 
     /**
      * Get the maximum achievable frame rate
@@ -277,17 +277,17 @@ protected:
     /**
      * Number of image rows.
      */
-    int img_rows_;
+    size_t img_rows_;
 
     /**
      * Number of image columns.
      */
-    int img_cols_;
+    size_t img_cols_;
 
     /**
      * The size of the image in number of bytes.
      */
-    int img_size_byte_;
+    size_t img_size_byte_;
 
     /**
      * The maximum achievable frame rate reported by the camera

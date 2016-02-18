@@ -160,11 +160,6 @@ protected:
     bool isSleeping();
 
     /**
-     * Checks if the auto brightness function is running
-     */
-    void checkForPylonAutoFunctionRunning();
-
-    /**
      * Calculates the mean brightness of the image
      * @return the mean brightness of the image
      */

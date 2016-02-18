@@ -150,8 +150,8 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
 
         cam_->StartGrabbing();
 
-        img_rows_ = static_cast<int>(cam_->Height.GetValue());
-        img_cols_ = static_cast<int>(cam_->Width.GetValue());
+        img_rows_ = static_cast<size_t>(cam_->Height.GetValue());
+        img_cols_ = static_cast<size_t>(cam_->Width.GetValue());
         image_encoding_ = cam_->PixelFormat.GetValue();
         image_pixel_depth_ = cam_->PixelSize.GetValue();
         img_size_byte_ =  img_cols_ * img_rows_ * imagePixelDepth();

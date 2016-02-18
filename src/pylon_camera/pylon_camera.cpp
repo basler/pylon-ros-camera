@@ -192,17 +192,17 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
     }
 }
 
-const int& PylonCamera::imageRows() const
+const size_t& PylonCamera::imageRows() const
 {
     return img_rows_;
 }
 
-const int& PylonCamera::imageCols() const
+const size_t& PylonCamera::imageCols() const
 {
     return img_cols_;
 }
 
-const int& PylonCamera::imageSize() const
+const size_t& PylonCamera::imageSize() const
 {
     return img_size_byte_;
 }
