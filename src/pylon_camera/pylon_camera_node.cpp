@@ -490,9 +490,9 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
 
         if (fail_safe_ctr > 5)
         {
-            //ROS_ERROR_STREAM("Seems like the desired brightness (" << target_brightness
-            //        << ") is not reachable with the current gain (" << getCurrentGain()
-            //        << ")! Stuck at brighntness "<< current_brightness);
+            ROS_ERROR_STREAM("Seems like the desired brightness (" << target_brightness
+                    << ") is not reachable with the current gain (" << getCurrentGain()
+                    << ")! Stuck at brighntness "<< current_brightness);
             break;
         }
 
