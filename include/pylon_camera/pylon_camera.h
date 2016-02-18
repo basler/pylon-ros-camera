@@ -122,7 +122,7 @@ public:
      * @param reached_exposure time in microseconds
      * @return false if a communication error occurred or true otherwise.
      */
-    virtual bool setExposure(const float& target_exposure, float& reached_exposure) = 0;
+    virtual bool setExposure(const float_t& target_exposure, float_t& reached_exposure) = 0;
 
     /**
      * Sets the gain in percent independent of the camera type
@@ -140,7 +140,7 @@ public:
      * @param brightness target brightness. Range is [-1...255].
      * @return false if a communication error occurred or true otherwise.
      */
-    virtual bool setBrightness(const int& target_brightness, const float& current_brightness) = 0;
+    virtual bool setBrightness(const int& target_brightness, const float_t& current_brightness) = 0;
 
 
     /**
@@ -158,10 +158,10 @@ public:
     virtual bool isPylonAutoBrightnessFunctionRunning() = 0;
 
     /**
-     * Check if the extended brightness search is running
-     * @return true if the extended brightness search is running
+     * Getter for is_binary_exposure_search_running_
+     * @return true if the extended exposure search is running
      */
-    const bool& isOwnBrightnessFunctionRunning() const;
+    const bool& isBinaryExposureSearchRunning() const;
 
     /**
      * Disables all currently running brightness search methods in case that
@@ -256,17 +256,11 @@ public:
      */
     const std::vector<float>& sequencerExposureTimes() const;
 
-    /**
-     * Parameters for the extended brightness search
-     */
-    BinaryExposureSearch* binary_exp_search_;
-
 protected:
     /**
      * Protected default constructor.
      */
     PylonCamera();
-
 
     /**
      * Enables the extended brightness search.
@@ -274,6 +268,11 @@ protected:
      * @return true after reaching the target brightness. If false, recall the method until the method returns true.
      */
     virtual bool setExtendedBrightness(const int& target_brightness, const float& current_brightness) = 0;
+
+    /**
+     * Parameters for the extended brightness search
+     */
+    BinaryExposureSearch* binary_exp_search_;
 
     /**
      * Number of image rows.
@@ -318,9 +317,9 @@ protected:
     bool is_cam_removed_;
 
     /**
-     * True if the extended brightness search is running.
+     * True if the extended binary exposure search is running.
      */
-    bool is_own_brightness_function_running_;
+    bool is_binary_exposure_search_running_;
 
     /**
      * Max allowed delta between target and reached brightness

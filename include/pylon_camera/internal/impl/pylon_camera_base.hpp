@@ -93,13 +93,13 @@ bool PylonCameraImpl<CameraTraitT>::isPylonAutoBrightnessFunctionRunning()
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::isBrightnessSearchRunning()
 {
-    return is_own_brightness_function_running_ || (cam_->ExposureAuto.GetValue() != ExposureAutoEnums::ExposureAuto_Off);
+    return isBinaryExposureSearchRunning() || (cam_->ExposureAuto.GetValue() != ExposureAutoEnums::ExposureAuto_Off);
 }
 
 template <typename CameraTraitT>
 void PylonCameraImpl<CameraTraitT>::disableAllRunningAutoBrightessFunctions()
 {
-    is_own_brightness_function_running_ = false;
+    is_binary_exposure_search_running_ = false;
     cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
     delete binary_exp_search_;
     binary_exp_search_ = NULL;
@@ -286,7 +286,7 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setExposure(const float& target_exposure, float& reached_exposure)
+bool PylonCameraImpl<CameraTraitT>::setExposure(const float_t& target_exposure, float_t& reached_exposure)
 {
     if ((target_exposure == -1.0 || target_exposure == 0.0) && !has_auto_exposure_)
     {
@@ -316,7 +316,7 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const float& target_exposure, fl
                 cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
             }
 
-            double exposure_to_set = target_exposure;
+            float_t exposure_to_set = target_exposure;
             if (exposureTime().GetMin() > exposure_to_set)
             {
                 exposure_to_set = exposureTime().GetMin();
@@ -368,8 +368,8 @@ bool PylonCameraImpl<CameraTraitT>::setGain(const double& target_gain_percent)
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness, 
-                                                  const float& current_brightness)
+bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
+                                                  const float_t& current_brightness)
 {
     try
     {
@@ -420,8 +420,7 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
         }
         else
         {
-            ROS_WARN("Target Brightness out of Pylon-Range! Starting own brightness search...");
-            if (is_own_brightness_function_running_)
+            if ( isBinaryExposureSearchRunning() )
             {
                 // pre-control using the possible limits of the pylon auto function range
                 // if they were reached, we continue with the extended brightness search
@@ -436,14 +435,13 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
                 {
                     autoTargetBrightness().SetValue(autoTargetBrightness().GetMin(), true);
                     cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
-                    is_own_brightness_function_running_ = true;
                 }
                 else  // autoTargetBrightness().GetMax() < brightness_to_set
                 {
                     autoTargetBrightness().SetValue(autoTargetBrightness().GetMax(), true);
                     cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
-                    is_own_brightness_function_running_ = true;
                 }
+                is_binary_exposure_search_running_ = true;
             }
         }
     }
@@ -459,7 +457,7 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
 
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brightness,
-                                                          const float& current_brightness)
+                                                          const float_t& current_brightness)
 {
     assert(target_brightness >= 0 && target_brightness <= 255);
 
@@ -500,7 +498,7 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brig
         return false;
     }
 
-    float reached_exposure;
+    float_t reached_exposure;
     if (!setExposure(binary_exp_search_->newExposure(), reached_exposure) )
     {
         return false;

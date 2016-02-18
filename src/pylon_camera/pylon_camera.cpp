@@ -25,7 +25,7 @@ PylonCamera::PylonCamera()
     , has_auto_exposure_(false)
     , is_ready_(false)
     , is_cam_removed_(false)
-    , is_own_brightness_function_running_(false)
+    , is_binary_exposure_search_running_(false)
     , max_brightness_tolerance_(2.5)
     , binary_exp_search_(NULL)
 {}
@@ -192,18 +192,6 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
     }
 }
 
-
-PylonCamera::~PylonCamera()
-{
-    // Releases all Pylon resources.
-    Pylon::PylonTerminate();
-    if (binary_exp_search_)
-    {
-        delete binary_exp_search_;
-        binary_exp_search_ = NULL;
-    }
-}
-
 const int& PylonCamera::imageRows() const
 {
     return img_rows_;
@@ -257,10 +245,20 @@ const std::vector<float>& PylonCamera::sequencerExposureTimes() const
     return seq_exp_times_;
 }
 
-const bool& PylonCamera::isOwnBrightnessFunctionRunning() const
+const bool& PylonCamera::isBinaryExposureSearchRunning() const
 {
-    return is_own_brightness_function_running_;
+    return is_binary_exposure_search_running_;
 }
 
+PylonCamera::~PylonCamera()
+{
+    // Releases all Pylon resources.
+    Pylon::PylonTerminate();
+    if (binary_exp_search_)
+    {
+        delete binary_exp_search_;
+        binary_exp_search_ = NULL;
+    }
+}
 
 }  // namespace pylon_camera
