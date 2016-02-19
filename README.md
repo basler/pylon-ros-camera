@@ -28,10 +28,12 @@ Build the PylonCamera package as you would build a standard ROS-package unsing p
 Default parameter in the config file
 ---
 
+ - device_user_id: name of camera (written to its EPROM e.g. via /opt/pylon5/bin/PylonViewerApp). If empty, a random camera is opened. 
  - camera_frame: frame to which the camera is attached
  - start_exposure: exposure which is set to the camera by starting
  - desired_framerate: if the desired framerate can't be reached, this value will be shrinked
- - target_type: Chose between 'BRIGHTNESS' or 'EXPOSURE'
+ - [Deprecated?] target_type: Chose between 'BRIGHTNESS' or 'EXPOSURE'
+ - [HOW TO ACTIVATE AutoExposure?]
 
 Optional and device specific parameter
 ---
