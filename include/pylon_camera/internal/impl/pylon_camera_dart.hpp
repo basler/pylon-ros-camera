@@ -17,16 +17,12 @@ public:
     explicit PylonDARTCamera(Pylon::IPylonDevice* device);
     virtual ~PylonDARTCamera();
 
-    virtual std::string typeName() const;
-
     virtual bool applyStartupSettings(const PylonCameraParameter& params);
-
     virtual bool setUserOutput(int output_id, bool value);
-
+    virtual std::string typeName() const;
 
 protected:
     virtual bool setupSequencer(const std::vector<float>& exposure_times, std::vector<float>& exposure_times_set);
-
     virtual bool grab(Pylon::CGrabResultPtr& grab_result);
 };
 
@@ -44,9 +40,15 @@ bool PylonDARTCamera::applyStartupSettings(const PylonCameraParameter& params)
     return PylonUSBCamera::applyStartupSettings(params);
 }
 
+bool PylonDARTCamera::setUserOutput(int output_id, bool value)
+{
+    ROS_ERROR("Dart camera has no digital output.");
+    return false;
+}
+
 bool PylonDARTCamera::setupSequencer(const std::vector<float>& exposure_times, std::vector<float>& exposure_times_set)
 {
-    ROS_ERROR("SEQUENCER FOR DART CAMERAS NOT YET IMPLEMENTED!!!");
+    ROS_ERROR("Sequencer Mode for Dart Cameras not yet implemented");
     return false;
 }
 
@@ -85,12 +87,6 @@ bool PylonDARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
     }
 
     return true;
-}
-
-bool PylonDARTCamera::setUserOutput(int output_id, bool value)
-{
-    ROS_ERROR("Dart camera has no digital output.");
-    return false;
 }
 
 std::string PylonDARTCamera::typeName() const
