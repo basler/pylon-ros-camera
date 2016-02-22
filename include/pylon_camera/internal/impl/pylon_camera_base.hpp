@@ -398,6 +398,14 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
         {
             // do nothing while the pylon-auto function is active and if the
             // desired brightness is inside the possible range
+            ROS_INFO_STREAM("AutoTargetBrightness values: [min = "
+                    << autoTargetBrightness().GetMin()*255 << ", max = "
+                    << autoTargetBrightness().GetMax()*255 << ", curr = "
+                    << autoTargetBrightness().GetValue()*255 << "]");
+            ROS_INFO_STREAM("AutoGain values: [min = "
+                    << cam_->AutoGainLowerLimit().GetValue() << ", max = "
+                    << cam_->AutoGainUpperLimit().GetValue() << ", max = "
+                    << currentGain() << "]");
             return true;
         }
 

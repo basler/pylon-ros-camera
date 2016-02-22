@@ -519,7 +519,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
         fabs(last_brightness - current_brightness) <= 1.0 ? fail_safe_ctr++ : fail_safe_ctr = 0;
         last_brightness = current_brightness;
 
-        if (fail_safe_ctr > 5)
+        if (fail_safe_ctr > 10)
         {
             ROS_ERROR_STREAM("Seems like the desired brightness (" << target_brightness
                     << ") is not reachable with the current gain (" << pylon_camera_->currentGain()
@@ -535,6 +535,12 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
                     << ", Current Limits = [" << pylon_camera_->currentAutoExposureTimeLowerLimit()
                     << ", " << pylon_camera_->currentAutoExposureTimeUpperLimit()
                     << "]");
+            /*
+             *ROS_INFO_STREAM("AutoTargetBrightness values: [min, max, curr]: ["
+             *        << pylon_camera_->autoTargetBrightness().GetMin() << ", "
+             *        << pylon_camera_->autoTargetBrightness().GetMax() << ", "
+             *        << pylon_camera_->autoTargetBrightness().GetValue() << "]");
+             */
         }
         else
         {
