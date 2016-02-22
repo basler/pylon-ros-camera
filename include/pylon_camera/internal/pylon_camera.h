@@ -51,11 +51,15 @@ public:
 
     virtual float currentExposure();
 
-    virtual float currentGain();
-
     virtual float currentAutoExposureTimeLowerLimit();
 
     virtual float currentAutoExposureTimeUpperLimit();
+
+    virtual float currentGain();
+
+    virtual float currentAutoGainLowerLimit();
+
+    virtual float currentAutoGainUpperLimit();
 
     virtual bool isPylonAutoBrightnessFunctionRunning();
 
@@ -86,6 +90,8 @@ protected:
     GainType& gain();
     GenApi::IFloat& autoExposureTimeLowerLimit();
     GenApi::IFloat& autoExposureTimeUpperLimit();
+    GainType& autoGainLowerLimit();
+    GainType& autoGainUpperLimit();
     GenApi::IFloat& resultingFrameRate();
     AutoTargetBrightnessType& autoTargetBrightness();
 

@@ -106,12 +106,23 @@ public:
      */
     virtual float currentAutoExposureTimeUpperLimit() = 0;
 
-
     /**
      * Returns the current gain in percent.
      * @return the gain time percent.
      */
     virtual float currentGain() = 0;
+
+    /**
+     * Returns the current auto gain lower limit
+     * @return the current auto gain lower limit
+     */
+    virtual float currentAutoGainLowerLimit() = 0;
+
+    /**
+     * Returns the current auto gain upper limit
+     * @return the current auto gain upper limit
+     */
+    virtual float currentAutoGainUpperLimit() = 0;
 
     /**
      * Sets the exposure time in microseconds
@@ -300,12 +311,6 @@ protected:
      * be greater then the max possible exposure time of the camera
      */
     float grab_timeout_;
-
-    /**
-     *
-     * Boolean to store if auto exposure is possible.
-     */
-    bool has_auto_exposure_;
 
     /**
      * Flag which is set in case that the grab-result-pointer of the first acquisition contains valid data

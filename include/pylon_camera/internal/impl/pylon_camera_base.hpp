@@ -17,9 +17,7 @@ template <typename CameraTraitT>
 PylonCameraImpl<CameraTraitT>::PylonCameraImpl(Pylon::IPylonDevice* device) :
     PylonCamera(),
     cam_(new CBaslerInstantCameraT(device))
-{
-    has_auto_exposure_ = GenApi::IsAvailable(cam_->ExposureAuto);
-}
+{}
 
 template <typename CameraTraitT>
 PylonCameraImpl<CameraTraitT>::~PylonCameraImpl()
@@ -82,6 +80,18 @@ template <typename CameraTraitT>
 float PylonCameraImpl<CameraTraitT>::currentAutoExposureTimeUpperLimit()
 {
     return static_cast<float>(autoExposureTimeUpperLimit().GetValue());
+}
+
+template <typename CameraTraitT>
+float PylonCameraImpl<CameraTraitT>::currentAutoGainLowerLimit()
+{
+    return static_cast<float>(autoGainLowerLimit().GetValue());
+}
+
+template <typename CameraTraitT>
+float PylonCameraImpl<CameraTraitT>::currentAutoGainUpperLimit()
+{
+    return static_cast<float>(autoGainUpperLimit().GetValue());
 }
 
 template <typename CameraTraitT>
@@ -155,7 +165,6 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         image_encoding_ = cam_->PixelFormat.GetValue();
         image_pixel_depth_ = cam_->PixelSize.GetValue();
         img_size_byte_ =  img_cols_ * img_rows_ * imagePixelDepth();
-        has_auto_exposure_ = GenApi::IsAvailable(cam_->ExposureAuto);
 
         if (image_encoding_ != PixelFormatEnums::PixelFormat_Mono8)
         {
@@ -288,7 +297,7 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setExposure(const float_t& target_exposure, float_t& reached_exposure)
 {
-    if ((target_exposure == -1.0 || target_exposure == 0.0) && !has_auto_exposure_)
+    if ((target_exposure == -1.0 || target_exposure == 0.0) && !GenApi::IsAvailable(cam_->ExposureAuto) )
     {
         ROS_ERROR("Error while trying to set auto exposure properties: camera has no auto exposure function!");
         return false;
@@ -311,10 +320,7 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const float_t& target_exposure, 
         }
         else
         {
-            if (has_auto_exposure_)
-            {
-                cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
-            }
+            cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
 
             float_t exposure_to_set = target_exposure;
             if (exposureTime().GetMin() > exposure_to_set)
@@ -373,7 +379,7 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
 {
     try
     {
-        if ((target_brightness == -1 || target_brightness == 0) && !has_auto_exposure_)
+        if ((target_brightness == -1 || target_brightness == 0) && !GenApi::IsAvailable(cam_->ExposureAuto) )
         {
             ROS_ERROR("Error while trying to set auto brightness properties: camera has no auto exposure function!");
             return false;

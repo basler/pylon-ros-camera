@@ -22,7 +22,6 @@ PylonCamera::PylonCamera()
     , img_size_byte_(-1)
     , max_framerate_(-1.0)
     , grab_timeout_(-1.0)
-    , has_auto_exposure_(false)
     , is_ready_(false)
     , is_cam_removed_(false)
     , is_binary_exposure_search_running_(false)
@@ -210,11 +209,6 @@ const size_t& PylonCamera::imageSize() const
 const float& PylonCamera::maxPossibleFramerate() const
 {
     return max_framerate_;
-}
-
-const bool& PylonCamera::hasAutoExposure() const
-{
-    return has_auto_exposure_;
 }
 
 /**

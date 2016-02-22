@@ -142,90 +142,104 @@ bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times, st
 template <>
 GenApi::IFloat& PylonUSBCamera::exposureTime()
 {
-    try
+    if ( GenApi::IsAvailable(cam_->ExposureTime) )
     {
         return cam_->ExposureTime;
     }
-    catch (const GenICam::GenericException &e)
+    else
     {
-        ROS_ERROR_STREAM("Err trying to access ExposureTime in PylonUSBCamera"
-                         << e.GetDescription());
-        throw;
+        throw std::runtime_error("Error while accessing ExposureTime in PylonUSBCamera");
     }
 }
 
 template <>
 USBCameraTrait::GainType& PylonUSBCamera::gain()
 {
-    try
+    if ( GenApi::IsAvailable(cam_->Gain) )
     {
         return cam_->Gain;
     }
-    catch (const GenICam::GenericException &e)
+    else
     {
-        ROS_ERROR_STREAM("Err trying to access Gain in PylonUSBCamera"
-                         << e.GetDescription());
-        throw;
+        throw std::runtime_error("Error while accessing Gain in PylonUSBCamera");
     }
 }
 
 template <>
 GenApi::IFloat& PylonUSBCamera::autoExposureTimeLowerLimit()
 {
-    try
+    if ( GenApi::IsAvailable(cam_->AutoExposureTimeLowerLimit) )
     {
         return cam_->AutoExposureTimeLowerLimit;
     }
-    catch (const GenICam::GenericException &e)
+    else
     {
-        ROS_ERROR_STREAM("Err trying to access AutoExposureTimeLowerLimit in PylonUSBCamera"
-                         << e.GetDescription());
-        throw;
+        throw std::runtime_error("Error while accessing AutoExposureTimeLowerLimit in PylonUSBCamera");
     }
 }
 
 template <>
 GenApi::IFloat& PylonUSBCamera::autoExposureTimeUpperLimit()
 {
-    try
+    if ( GenApi::IsAvailable(cam_->AutoExposureTimeUpperLimit) )
     {
         return cam_->AutoExposureTimeUpperLimit;
     }
-    catch (const GenICam::GenericException &e)
+    else
     {
-        ROS_ERROR_STREAM("Err trying to access AutoExposureTimeUpperLimit in PylonUSBCamera"
-                         << e.GetDescription());
-        throw;
+        throw std::runtime_error("Error while accessing AutoExposureTimeUpperLimit in PylonUSBCamera");
+    }
+}
+
+template <>
+USBCameraTrait::GainType& PylonUSBCamera::autoGainLowerLimit()
+{
+    if ( GenApi::IsAvailable(cam_->AutoGainLowerLimit) )
+    {
+        return cam_->AutoGainLowerLimit;
+    }
+    else
+    {
+        throw std::runtime_error("Error while accessing AutoGainLowerLimit in PylonUSBCamera");
+    }
+}
+
+template <>
+USBCameraTrait::GainType& PylonUSBCamera::autoGainUpperLimit()
+{
+    if ( GenApi::IsAvailable(cam_->AutoGainUpperLimit) )
+    {
+        return cam_->AutoGainUpperLimit;
+    }
+    else
+    {
+        throw std::runtime_error("Error while accessing AutoGainUpperLimit in PylonUSBCamera");
     }
 }
 
 template <>
 GenApi::IFloat& PylonUSBCamera::resultingFrameRate()
 {
-    try
+    if ( GenApi::IsAvailable(cam_->ResultingFrameRate) )
     {
         return cam_->ResultingFrameRate;
     }
-    catch (const GenICam::GenericException &e)
+    else
     {
-        ROS_ERROR_STREAM("Err trying to access ResultingFrameRate in PylonUSBCamera"
-                         << e.GetDescription());
-        throw;
+        throw std::runtime_error("Error while accessing ResultingFrameRate in PylonUSBCamera");
     }
 }
 
 template <>
 USBCameraTrait::AutoTargetBrightnessType& PylonUSBCamera::autoTargetBrightness()
 {
-    try
+    if ( GenApi::IsAvailable(cam_->AutoTargetBrightness) )
     {
         return cam_->AutoTargetBrightness;
     }
-    catch (const GenICam::GenericException &e)
+    else
     {
-        ROS_ERROR_STREAM("Err trying to access AutoTargetBrightness in PylonUSBCamera"
-                         << e.GetDescription());
-        throw;
+        throw std::runtime_error("Error while accessing AutoTargetBrightness in PylonUSBCamera");
     }
 }
 
