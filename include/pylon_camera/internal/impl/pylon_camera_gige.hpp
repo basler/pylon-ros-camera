@@ -61,7 +61,9 @@ bool PylonGigECamera::applyStartupSettings(const PylonCameraParameter& params)
         // The gain auto function and the exposure auto function can be used at the same time. In this case,
         // however, you must also set the Auto Function Profile feature.
         cam_->AutoFunctionProfile.SetValue(Basler_GigECameraParams::AutoFunctionProfile_GainMinimum);
-        cam_->GainSelector.SetValue(Basler_GigECameraParams::GainSelector_AnalogAll);
+        // acA1920-40gm does not suppert Basler_GigECameraParams::GainSelector_AnalogAll
+        // has Basler_GigECameraParams::GainSelector_All instead
+        // cam_->GainSelector.SetValue(Basler_GigECameraParams::GainSelector_AnalogAll);
         cam_->GainAuto.SetValue(Basler_GigECameraParams::GainAuto_Off);
         cam_->GainRaw.SetValue(cam_->GainRaw.GetMin() + params.target_gain_ * (cam_->GainRaw.GetMax() - cam_->GainRaw.GetMin()));
 
