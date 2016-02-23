@@ -29,7 +29,6 @@ struct GigECameraTrait
     {
         return value;
     }
-
 };
 
 typedef PylonCameraImpl<GigECameraTrait> PylonGigECamera;
@@ -106,7 +105,7 @@ bool PylonGigECamera::setupSequencer(const std::vector<float>& exposure_times, s
 {
     try
     {
-        if (GenApi::IsWritable(cam_->SequenceEnable))
+        if ( GenApi::IsWritable(cam_->SequenceEnable) )
         {
             cam_->SequenceEnable.SetValue(false);
         }
@@ -208,7 +207,7 @@ GigECameraTrait::GainType& PylonGigECamera::autoGainLowerLimit()
 template <>
 GigECameraTrait::GainType& PylonGigECamera::autoGainUpperLimit()
 {
-    if(GenApi::IsAvailable(cam_->AutoGainRawUpperLimit))
+    if ( GenApi::IsAvailable(cam_->AutoGainRawUpperLimit) )
     {
         return cam_->AutoGainRawUpperLimit;
     }
@@ -221,7 +220,7 @@ GigECameraTrait::GainType& PylonGigECamera::autoGainUpperLimit()
 template <>
 GenApi::IFloat& PylonGigECamera::resultingFrameRate()
 {
-    if(GenApi::IsAvailable(cam_->ResultingFrameRateAbs))
+    if ( GenApi::IsAvailable(cam_->ResultingFrameRateAbs) )
     {
         return cam_->ResultingFrameRateAbs;
     }
@@ -234,7 +233,7 @@ GenApi::IFloat& PylonGigECamera::resultingFrameRate()
 template <>
 GigECameraTrait::AutoTargetBrightnessType& PylonGigECamera::autoTargetBrightness()
 {
-    if(GenApi::IsAvailable(cam_->AutoTargetValue))
+    if ( GenApi::IsAvailable(cam_->AutoTargetValue) )
     {
         return cam_->AutoTargetValue;
     }

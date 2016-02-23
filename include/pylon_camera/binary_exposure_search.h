@@ -15,7 +15,6 @@ namespace pylon_camera
 class BinaryExposureSearch
 {
 public:
-
     /**
      * Initialize the exposure search
      * @param target_brightness the targeted brightness value
@@ -55,7 +54,6 @@ public:
     const float& newExposure() const;
 
 private:
-
     /**
      * The targeted brightness value
      */

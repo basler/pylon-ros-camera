@@ -74,7 +74,6 @@ bool PylonUSBCamera::applyStartupSettings(const PylonCameraParameter& params)
         ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
                 << cam_->AutoTargetBrightness.GetMin() * 255 << " - "
                 << cam_->AutoTargetBrightness.GetMax() * 255 << "].");
-
     }
     catch (const GenICam::GenericException &e)
     {

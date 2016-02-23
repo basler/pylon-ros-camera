@@ -13,7 +13,7 @@ BinaryExposureSearch::BinaryExposureSearch(const float& target_brightness,
     , last_unchanged_exposure_counter_(0)
     , left_limit_(left_lim)
     , right_limit_(right_lim)
-    , new_exposure_( (left_lim + right_lim) / 2.0 )
+    , new_exposure_((left_lim + right_lim) / 2.0)
     , target_brightness_(target_brightness)
     , limit_reached_(false)
     , is_initial_setting_(true)

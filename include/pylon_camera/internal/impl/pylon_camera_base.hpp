@@ -461,7 +461,7 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
             {
                 // pre control to the possible pylon limits, no matter where
                 // we are currently
-                // This is not the best solution in case the current brightness 
+                // This is not the best solution in case the current brightness
                 // is e.g. 35 and we want to reach e.g. 33, because we first go
                 // up to 50 and then start the binary exposure search to go down
                 // again.
@@ -504,7 +504,6 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brig
 
     if ( !binary_exp_search_ )
     {
-
         if ( brightness_to_set < autoTargetBrightness().GetMin() )  // Range from [0 - 49]
         {
             binary_exp_search_ = new BinaryExposureSearch(target_brightness,

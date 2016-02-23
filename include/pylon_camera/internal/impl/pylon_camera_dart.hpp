@@ -62,7 +62,7 @@ bool PylonDARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
         // /!\ The dart camera device does not support waiting for frame trigger ready
         cam_->ExecuteSoftwareTrigger();
 
-	cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException);
+        cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException);
     }
     catch (const GenICam::GenericException &e)
     {

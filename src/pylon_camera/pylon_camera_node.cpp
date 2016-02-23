@@ -370,7 +370,7 @@ bool PylonCameraNode::setExposure(const float& target_exposure, float& reached_e
         // success if the delta is smaller then the exposure step
         return true;
     }
-    else // retry till timeout
+    else  // retry till timeout
     {
         // wait for max 5s till the cam has updated the exposure
         ros::Rate r(10.0);
@@ -413,7 +413,7 @@ bool PylonCameraNode::setGain(const float& target_gain, float& reached_gain)
     {
         return true;
     }
-    else // retry till timeout
+    else  // retry till timeout
     {
         // wait for max 5s till the cam has updated the exposure
         ros::Rate r(10.0);
@@ -432,8 +432,9 @@ bool PylonCameraNode::setGain(const float& target_gain, float& reached_gain)
             }
             r.sleep();
         }
-   }
-   bool success = fabs(reached_gain - target_gain) < 0.01; // Delta of 1% is allowed
+     }
+    // Delta of 1% is allowed
+    bool success = fabs(reached_gain - target_gain) < 0.01;
 }
 
 bool PylonCameraNode::setGainCallback(camera_control_msgs::SetGain::Request &req,
