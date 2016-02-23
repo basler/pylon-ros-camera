@@ -41,11 +41,11 @@ public:
 
     virtual bool setShutterMode(const pylon_camera::SHUTTER_MODE& mode);
 
-    virtual bool setExposure(const float_t& target_exposure, float_t& reached_exposure);
+    virtual bool setExposure(const float& target_exposure, float& reached_exposure);
 
-    virtual bool setGain(const float_t& target_gain, float_t& reached_gain);
+    virtual bool setGain(const float& target_gain, float& reached_gain);
 
-    virtual bool setBrightness(const int& target_brightness, const float_t& current_brightness);
+    virtual bool setBrightness(const int& target_brightness, const float& current_brightness);
 
     virtual bool setUserOutput(const int& output_id, const bool& value);
 

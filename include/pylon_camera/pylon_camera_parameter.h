@@ -58,7 +58,7 @@ public:
     /**
      * The targeted gain value in percent
      */
-    double target_gain_;
+    double gain_;
 
     /**
      * The initial exposure time to start the camera with

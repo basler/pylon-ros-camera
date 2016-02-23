@@ -29,7 +29,7 @@ PylonCameraNode::PylonCameraNode() :
 bool PylonCameraNode::init()
 {
     // reading all necessary parameter to open the desired camera from the ros-parameter-server
-    if (!pylon_camera_parameter_set_.readFromRosParameterServer(nh_))
+    if ( !pylon_camera_parameter_set_.readFromRosParameterServer(nh_) )
     {
         ROS_ERROR("Error reading PylonCameraParameterSet from ROS-Parameter-Server");
         ros::shutdown();
@@ -38,51 +38,18 @@ bool PylonCameraNode::init()
 
     // advertising the ros-services for setting brightness, exposure, gain & gamma and
     // creating the target PylonCamera-Object with the specified device_user_id
-    if (!initAndRegister())
+    if ( !initAndRegister() )
     {
         ros::shutdown();
         return false;
     }
 
-    if (!startGrabbing())
+    if ( !startGrabbing() )
     {
         ros::shutdown();
         return false;
     }
     return true;
-}
-
-void PylonCameraNode::spin()
-{
-    // images were published if subscribers are available or if someone calls the GrabImages Action
-    if (getNumSubscribers() > 0 && !isSleeping())
-    {
-        if (grabImage())
-        {
-            img_raw_pub_.publish(img_raw_msg_, cam_info_msg_);
-        }
-    }
-}
-
-bool PylonCameraNode::setDigitalOutputCB(const int& output_id,
-                                         camera_control_msgs::SetBool::Request &req,
-                                         camera_control_msgs::SetBool::Response &res)
-{
-    res.success = pylon_camera_->setUserOutput(output_id, req.data);
-    return true;
-}
-
-const double& PylonCameraNode::desiredFrameRate() const
-{
-    return pylon_camera_parameter_set_.desired_frame_rate_;
-}
-const std::string& PylonCameraNode::cameraFrame() const
-{
-    return pylon_camera_parameter_set_.camera_frame_;
-}
-uint32_t PylonCameraNode::getNumSubscribers() const
-{
-    return img_raw_pub_.getNumSubscribers();
 }
 
 bool PylonCameraNode::initAndRegister()
@@ -99,30 +66,30 @@ bool PylonCameraNode::initAndRegister()
 
     pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.device_user_id_);
 
-    if (pylon_camera_ == NULL)
+    if ( pylon_camera_ == NULL )
     {
         return false;
     }
 
-    if (!pylon_camera_->registerCameraConfiguration())
+    if ( !pylon_camera_->registerCameraConfiguration() )
     {
         ROS_ERROR("Error while registering the camera configuration to software-trigger mode!");
         return false;
     }
 
-    if (!pylon_camera_->openCamera())
+    if ( !pylon_camera_->openCamera() )
     {
         ROS_ERROR("Error while trying to open the desired camera!");
         return false;
     }
 
-    if (!pylon_camera_->applyStartupSettings(pylon_camera_parameter_set_))
+    if ( !pylon_camera_->applyStartupSettings(pylon_camera_parameter_set_) )
     {
         ROS_ERROR("Error while applying the startup setting (gain, exposure, ...) to the camera!");
         return false;
     }
 
-    if (pylon_camera_->typeName() != "DART")
+    if ( pylon_camera_->typeName() != "DART" )
     {
         set_digital_output_1_service_ = nh_.advertiseService< camera_control_msgs::SetBool::Request,
                                                               camera_control_msgs::SetBool::Response >(
@@ -136,7 +103,7 @@ bool PylonCameraNode::initAndRegister()
 
 bool PylonCameraNode::startGrabbing()
 {
-    if (!pylon_camera_->startGrabbing(pylon_camera_parameter_set_))
+    if ( !pylon_camera_->startGrabbing(pylon_camera_parameter_set_) )
     {
         ROS_ERROR("Error while start grabbing");
         return false;
@@ -151,7 +118,7 @@ bool PylonCameraNode::startGrabbing()
         pylon_camera_parameter_set_.desired_frame_rate_ = pylon_camera_->maxPossibleFramerate();
         nh_.setParam("desired_framerate", pylon_camera_->maxPossibleFramerate());
     }
-    else if (pylon_camera_parameter_set_.desired_frame_rate_ == -1)
+    else if ( pylon_camera_parameter_set_.desired_frame_rate_ == -1 )
     {
         pylon_camera_parameter_set_.desired_frame_rate_ = pylon_camera_->maxPossibleFramerate();
         ROS_INFO("Max possible framerate is %.2f Hz", pylon_camera_->maxPossibleFramerate());
@@ -172,6 +139,41 @@ bool PylonCameraNode::startGrabbing()
     img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
 
     return true;
+}
+
+void PylonCameraNode::spin()
+{
+    // images were published if subscribers are available or if someone calls the GrabImages Action
+    if ( getNumSubscribers() > 0 && !isSleeping() )
+    {
+        if ( grabImage() )
+        {
+            img_raw_pub_.publish(img_raw_msg_, cam_info_msg_);
+        }
+    }
+}
+
+bool PylonCameraNode::setDigitalOutputCB(const int& output_id,
+                                         camera_control_msgs::SetBool::Request &req,
+                                         camera_control_msgs::SetBool::Response &res)
+{
+    res.success = pylon_camera_->setUserOutput(output_id, req.data);
+    return true;
+}
+
+const double& PylonCameraNode::desiredFrameRate() const
+{
+    return pylon_camera_parameter_set_.desired_frame_rate_;
+}
+
+const std::string& PylonCameraNode::cameraFrame() const
+{
+    return pylon_camera_parameter_set_.camera_frame_;
+}
+
+uint32_t PylonCameraNode::getNumSubscribers() const
+{
+    return img_raw_pub_.getNumSubscribers();
 }
 
 void PylonCameraNode::setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
@@ -256,18 +258,18 @@ bool PylonCameraNode::waitForCamera(const ros::Duration& timeout) const
     bool result = false;
     ros::Time start_time = ros::Time::now();
 
-    while (ros::ok())
+    while ( ros::ok() )
     {
-        if (pylon_camera_->isReady())
+        if ( pylon_camera_->isReady() )
         {
             result = true;
             break;
         }
         else
         {
-            if (timeout >= ros::Duration(0))
+            if ( timeout >= ros::Duration(0) )
             {
-                if (ros::Time::now() - start_time >= timeout)
+                if ( ros::Time::now() - start_time >= timeout )
                 {
                     ROS_ERROR_STREAM("Setting brightness failed, because the interface is not ready." <<
                         "This happens although waiting for " << timeout.sec << " seconds!");
@@ -285,7 +287,7 @@ bool PylonCameraNode::grabImage()
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     if (!pylon_camera_->grab(img_raw_msg_.data))
     {
-        if (pylon_camera_->isCamRemoved())
+        if ( pylon_camera_->isCamRemoved() )
         {
             ROS_ERROR("Pylon camera has been removed!");
             ros::shutdown();
@@ -313,15 +315,15 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
     result.success = true;
     float_t previous_exp = pylon_camera_->currentExposure();
 
-    for (std::size_t i = 0; i < goal->target_values.size(); ++i)
+    for ( std::size_t i = 0; i < goal->target_values.size(); ++i )
     {
         // setGain(goal->gain);
         // setGamma(goal->gamma);
-        if (goal->target_type == goal->EXPOSURE)
+        if ( goal->target_type == goal->EXPOSURE )
         {
             setExposure(goal->target_values[i], result.reached_values[i]);
         }
-        if (goal->target_type == goal->BRIGHTNESS)
+        if ( goal->target_type == goal->BRIGHTNESS )
         {
             int reached_val;
             setBrightness(goal->target_values[i], reached_val);
@@ -335,7 +337,7 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
         // step = full row length in bytes
         img.step = img.width * pylon_camera_->imagePixelDepth();
 
-        if (!pylon_camera_->grab(img.data))
+        if ( !pylon_camera_->grab(img.data) )
         {
             result.success = false;
         }
@@ -345,11 +347,11 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
         grab_images_raw_action_server_.publishFeedback(feedback);
     }
 
-    if (!result.success)
+    if ( !result.success )
     {
         result.images.clear();
     }
-    float_t reached_exposure;
+    float reached_exposure;
     setExposure(previous_exp, reached_exposure);
     grab_images_raw_action_server_.setSucceeded(result);
 }
@@ -357,7 +359,7 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
 bool PylonCameraNode::setExposure(const float& target_exposure, float& reached_exposure)
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-    if (!pylon_camera_->isReady())
+    if ( !pylon_camera_->isReady() )
     {
         ROS_WARN("Error in setExposure(): pylon_camera_ is not ready!");
         return false;
@@ -372,8 +374,8 @@ bool PylonCameraNode::setExposure(const float& target_exposure, float& reached_e
     {
         // wait for max 5s till the cam has updated the exposure
         ros::Rate r(10.0);
-        ros::Time timeout = ros::Time::now() + ros::Duration(5.0);
-        while (ros::ok())
+        ros::Time timeout(ros::Time::now() + ros::Duration(5.0));
+        while ( ros::ok() )
         {
             if ( pylon_camera_->setExposure(target_exposure, reached_exposure) )
             {
@@ -381,7 +383,7 @@ bool PylonCameraNode::setExposure(const float& target_exposure, float& reached_e
                 return true;
             }
 
-            if (ros::Time::now() > timeout)
+            if ( ros::Time::now() > timeout )
             {
                 ROS_ERROR("Error in setExposure(): Unable to set target exposure before timeout");
                 return false;
@@ -401,7 +403,7 @@ bool PylonCameraNode::setExposureCallback(camera_control_msgs::SetExposureSrv::R
 bool PylonCameraNode::setGain(const float& target_gain, float& reached_gain)
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-    if (!pylon_camera_->isReady())
+    if ( !pylon_camera_->isReady() )
     {
         ROS_WARN("Error in setGain(): pylon_camera_ is not ready!");
         return false;
@@ -415,15 +417,15 @@ bool PylonCameraNode::setGain(const float& target_gain, float& reached_gain)
     {
         // wait for max 5s till the cam has updated the exposure
         ros::Rate r(10.0);
-        ros::Time timeout = ros::Time::now() + ros::Duration(5.0);
-        while (ros::ok())
+        ros::Time timeout(ros::Time::now() + ros::Duration(5.0));
+        while ( ros::ok() )
         {
             if ( pylon_camera_->setGain(target_gain, reached_gain) )
             {
                 return true;
             }
 
-            if (ros::Time::now() > timeout)
+            if ( ros::Time::now() > timeout )
             {
                 ROS_ERROR("Error in setGain(): Unable to set target gain before timeout");
                 return false;
@@ -446,14 +448,14 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
 
     // brightness service can only work, if an image has already been grabbed, because it calculates the mean on the
     // current image. The interface is ready if the grab-result-pointer of the first acquisition contains valid data
-    if (!waitForCamera(ros::Duration(3.0)))
+    if ( !waitForCamera(ros::Duration(3.0)) )
     {
         ROS_ERROR("Setting brightness failed: interface not ready, although waiting for 3 sec!");
         return false;
     }
 
     // get actual image -> fills img_raw_msg_.data vector
-    if (!grabImage())
+    if ( !grabImage() )
     {
         ROS_ERROR("Failed to grab image, can't calculate current brightness!");
         return false;
@@ -474,13 +476,12 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
     }
 
     // timeout for the brightness search -> need more time for great exposure values
-    ros::Duration timeout;
-    target_brightness > 205 ? timeout = ros::Duration(15.0) : timeout = ros::Duration(5.0);
+    ros::Time timeout(ros::Time::now());
+    timeout += target_brightness > 205 ? ros::Duration(15.0) : ros::Duration(5.0);
 
     bool is_brightness_reached = false;
-    size_t fail_safe_ctr = 0;
+    uint8_t fail_safe_ctr = 0;
     float last_brightness = std::numeric_limits<float>::max();
-    ros::Time start = ros::Time::now();
     while ( ros::ok() )
     {
         // calling setBrightness in every cycle would not be necessary for the pylon auto
@@ -498,62 +499,55 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
 
         current_brightness = calcCurrentBrightness();
 
-        is_brightness_reached = fabs(current_brightness - static_cast<float>(target_brightness))
-                                < pylon_camera_->maxBrightnessTolerance();
-        if (is_brightness_reached)
-        {
-            pylon_camera_->disableAllRunningAutoBrightessFunctions();
-            ROS_INFO_STREAM("Brightness reached: " << current_brightness);
-            break;
-        }
-
-        if (ros::Time::now() - start > timeout)
+        if ( ros::Time::now() > timeout )
         {
             // cancel all running brightness search by deactivating ExposureAuto
             pylon_camera_->disableAllRunningAutoBrightessFunctions();
             ROS_ERROR_STREAM("Did not reach the target brightness before timeout "
-                    << timeout.sec << " sec, stuck at " << current_brightness);
+                    << timeout.sec << " sec! Stuck at brightness "
+                    << current_brightness);
             break;
         }
 
-        fabs(last_brightness - current_brightness) <= 1.0 ? fail_safe_ctr++ : fail_safe_ctr = 0;
-        last_brightness = current_brightness;
-
-        if (fail_safe_ctr > 10)
+        if ( fabs(last_brightness - current_brightness) <= 1.0 )
         {
-            ROS_ERROR_STREAM("Seems like the desired brightness (" << target_brightness
-                    << ") is not reachable with the current gain (" << pylon_camera_->currentGain()
-                    << ")! Stuck at brighntness "<< current_brightness);
-            break;
-        }
-
-        if (pylon_camera_->isBrightnessSearchRunning())
-        {
-            ROS_INFO_STREAM("BS running: Current br = " << current_brightness
-                    << ", Current Gain = " << pylon_camera_->currentGain()
-                    << ", Current Exp = " << pylon_camera_->currentExposure()
-                    << ", Current Limits = [" << pylon_camera_->currentAutoExposureTimeLowerLimit()
-                    << ", " << pylon_camera_->currentAutoExposureTimeUpperLimit()
-                    << "]");
-            /*
-             *ROS_INFO_STREAM("AutoTargetBrightness values: [min, max, curr]: ["
-             *        << pylon_camera_->autoTargetBrightness().GetMin() << ", "
-             *        << pylon_camera_->autoTargetBrightness().GetMax() << ", "
-             *        << pylon_camera_->autoTargetBrightness().GetValue() << "]");
-             */
+            fail_safe_ctr++;
         }
         else
         {
-            ROS_INFO("Brightness Search --- NOT --- running, FINAL BRIGHTNESS = %.3f", current_brightness);
+            fail_safe_ctr = 0;
+        }
+
+        last_brightness = current_brightness;
+
+        is_brightness_reached = fabs(current_brightness - static_cast<float>(target_brightness))
+                                < pylon_camera_->maxBrightnessTolerance();
+
+        if ( fail_safe_ctr > 10 && !is_brightness_reached )
+        {
+            ROS_ERROR_STREAM("Seems like the desired brightness (" << target_brightness
+                    << ") is not reachable! Stuck at brightness "<< current_brightness);
+            pylon_camera_->disableAllRunningAutoBrightessFunctions();
+            break;
+        }
+
+        if ( pylon_camera_->isPylonAutoBrightnessFunctionRunning() )
+        {
+            // do nothing if the pylon auto function is running, we need to
+            // wait till it's finished
+            continue;
+        }
+
+        if ( is_brightness_reached )
+        {
+            pylon_camera_->disableAllRunningAutoBrightessFunctions();
+            break;
         }
     }
 
+    ROS_INFO_STREAM("Finally reached brightness: " << current_brightness);
     reached_brightness = static_cast<int>(current_brightness);
-    ROS_INFO("Final Brightness: %d", reached_brightness);
 
-    std::cout << "fabs = " << fabs(current_brightness - target_brightness) << std::endl;
-    std::cout << "max tolerance = " << pylon_camera_->maxBrightnessTolerance() << std::endl;
-    std::cout << "bool = " << is_brightness_reached << std::endl;
     return is_brightness_reached;
 }
 
@@ -578,7 +572,7 @@ bool PylonCameraNode::setSleepingCallback(camera_control_msgs::SetSleepingSrv::R
 {
     is_sleeping_ = req.set_sleeping;
 
-    if (is_sleeping_)
+    if ( is_sleeping_ )
     {
         ROS_INFO("Seting Pylon Camera Node to sleep...");
     }

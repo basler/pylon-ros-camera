@@ -11,7 +11,7 @@ PylonCameraParameter::PylonCameraParameter() :
         camera_frame_(""),
         desired_frame_rate_(-1.),
         target_exposure_(3000),
-        target_gain_(0.5),
+        gain_(0.5),
         start_exposure_(2000.0),
         mtu_size_(3000),
         binning_(1),
@@ -55,10 +55,8 @@ bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
     // > 0: Exposure in micro-seconds
     nh.param<double>("start_exposure", start_exposure_, 35000.0);
 
-    // -1: AutoGainContinuous
-    //  0: AutoGainOff
-    // [0-1]: Gain in percent
-    nh.param<double>("target_gain", target_gain_, 0.5);
+    // gain in percent [0.0 - 1.0]
+    nh.param<double>("gain", gain_, 0.5);
 
     nh.param<int>("binning", binning_, 1);
 
@@ -67,7 +65,7 @@ bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
 
 bool PylonCameraParameter::validateParameterSet(ros::NodeHandle& nh)
 {
-    if (!device_user_id_.empty())
+    if ( !device_user_id_.empty() )
     {
         ROS_INFO("Trying to open the following camera: %s", device_user_id_.c_str());
     }
@@ -76,18 +74,25 @@ bool PylonCameraParameter::validateParameterSet(ros::NodeHandle& nh)
         ROS_INFO("No Device User ID set -> Will open the camera device found first");
     }
 
-    if (binning_ > 4 || binning_ < 1)
+    if ( binning_ > 4 || binning_ < 1 )
     {
         ROS_ERROR("Invalid binning settings! Value is %i, but valid is [1,2,3,4]", binning_);
         return false;
     }
 
-    if (desired_frame_rate_ < 0 && desired_frame_rate_ != -1)
+    if ( desired_frame_rate_ < 0 && desired_frame_rate_ != -1 )
     {
         desired_frame_rate_ = -1.0;
         nh.setParam("desired_framerate", desired_frame_rate_);
         ROS_ERROR("Unexpected framerate (%f). Setting to -1 (max possible)",
                   desired_frame_rate_);
+    }
+
+    if ( gain_ < 0.0 || gain_ > 1.0 )
+    {
+        ROS_ERROR_STREAM("Desired gain (in percent) not in allowed range! Gain = "
+                << gain_);
+        return false;
     }
 
     return true;

@@ -23,17 +23,19 @@ public:
      * @param right_lim the maximum exposure time to set
      * @param current_exp the current exposure time
      */
-    BinaryExposureSearch(const float_t& target_brightness,
-                         const float_t& left_lim,
-                         const float_t& right_lim,
-                         const float_t& current_exp);
+    BinaryExposureSearch(const float& target_brightness,
+                         const float& left_lim,
+                         const float& right_lim,
+                         const float& current_exp);
+
+    virtual ~BinaryExposureSearch();
 
     /**
      * Update the binary search based on the current
      * brightness and exposure values
      */
-    bool update(const float_t& current_brightness,
-                const float_t& current_exposure);
+    bool update(const float& current_brightness,
+                       const float& current_exposure);
 
     /**
      * Setter for limit_reached_
@@ -45,31 +47,24 @@ public:
      * Returns true if the search reached the physical exposure
      * limit of the camera
      */
-    bool isLimitReached();
+    bool isLimitReached() const;
 
     /**
      * Getter for the new exposure calculated in out of the update step
      */
-    float_t& newExposure();
-
-    virtual ~BinaryExposureSearch();
+    const float& newExposure() const;
 
 private:
 
     /**
-     * The new exposure out of the update step
-     */
-    float_t new_exposure_;
-
-    /**
      * The targeted brightness value
      */
-    const float_t target_brightness_;
+    const float target_brightness_;
 
     /**
      * The previous exposure value
      */
-    float_t last_exposure_;
+    float last_exposure_;
 
     /**
      * Counts how often the exposure remained unchanged during search
@@ -79,12 +74,17 @@ private:
     /**
      * Left limit for the binary search
      */
-    float_t left_limit_;
+    float left_limit_;
 
     /**
      * Right limit for the binary search
      */
-    float_t right_limit_;
+    float right_limit_;
+
+    /**
+     * The new exposure out of the update step
+     */
+    float new_exposure_;
 
     /**
      * Flag which tells, when the physical limit of the camera is reached.
@@ -93,6 +93,12 @@ private:
      */
     bool limit_reached_;
 
+    /**
+     * Flag which tells if it is the first time the update() function is called
+     * Hence it is not necessary to update the search limits, because they
+     * were set correctly in the constructor
+     */
+    bool is_initial_setting_;
 };
 
 }  // namespace pylon_camera

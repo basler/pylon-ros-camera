@@ -28,16 +28,19 @@ protected:
 
 PylonDARTCamera::PylonDARTCamera(Pylon::IPylonDevice* device) :
     PylonUSBCamera(device)
-{
-}
+{}
 
 PylonDARTCamera::~PylonDARTCamera()
-{
-}
+{}
 
 bool PylonDARTCamera::applyStartupSettings(const PylonCameraParameter& params)
 {
-    return PylonUSBCamera::applyStartupSettings(params);
+    if ( !PylonUSBCamera::applyStartupSettings(params) )
+    {
+        return false;
+    }
+    cam_->AutoFunctionProfile.SetValue(Basler_UsbCameraParams::AutoFunctionProfile_Smart);
+    return true;
 }
 
 bool PylonDARTCamera::setUserOutput(int output_id, bool value)
@@ -63,7 +66,7 @@ bool PylonDARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
     }
     catch (const GenICam::GenericException &e)
     {
-        if (cam_->IsCameraDeviceRemoved())
+        if ( cam_->IsCameraDeviceRemoved() )
         {
             is_cam_removed_ = true;
             ROS_ERROR("Camera was removed");
@@ -74,13 +77,13 @@ bool PylonDARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
         }
         return false;
     }
-    catch (...)
+    catch ( ... )
     {
         ROS_ERROR("An unspecified image grabbing exception in pylon camera occurred");
         return false;
     }
 
-    if (!grab_result->GrabSucceeded())
+    if ( !grab_result->GrabSucceeded() )
     {
         ROS_ERROR_STREAM("Error: " << grab_result->GetErrorCode() << " " << grab_result->GetErrorDescription());
         return false;

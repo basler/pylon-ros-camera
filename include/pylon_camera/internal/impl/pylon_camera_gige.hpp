@@ -63,9 +63,10 @@ bool PylonGigECamera::applyStartupSettings(const PylonCameraParameter& params)
         cam_->AutoFunctionProfile.SetValue(Basler_GigECameraParams::AutoFunctionProfile_GainMinimum);
         // acA1920-40gm does not suppert Basler_GigECameraParams::GainSelector_AnalogAll
         // has Basler_GigECameraParams::GainSelector_All instead
-        cam_->GainSelector.SetValue(Basler_GigECameraParams::GainSelector_AnalogAll);
+        // cam_->GainSelector.SetValue(Basler_GigECameraParams::GainSelector_AnalogAll);
         cam_->GainAuto.SetValue(Basler_GigECameraParams::GainAuto_Off);
-        cam_->GainRaw.SetValue(cam_->GainRaw.GetMin() + params.target_gain_ * (cam_->GainRaw.GetMax() - cam_->GainRaw.GetMin()));
+        float reached_gain;
+        setGain(params.gain_, reached_gain);
 
         ROS_INFO_STREAM("Cam has gain range: [" << cam_->GainRaw.GetMin() << " - " << cam_->GainRaw.GetMax()
                 << "] measured in decive specific units. Initialiy setting to: " << cam_->GainRaw.GetValue());
@@ -73,6 +74,9 @@ bool PylonGigECamera::applyStartupSettings(const PylonCameraParameter& params)
                 << cam_->ExposureTimeAbs.GetMax() << "] measured in microseconds. Initially setting to: "
                 << cam_->ExposureTimeAbs.GetValue());
 
+        ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
+                << cam_->AutoTargetValue.GetMin() << " - "
+                << cam_->AutoTargetValue.GetMax() << "].");
         // Basler-Debug Day:  Read- & Write Retry-Counter should stay default (=2)
         // Linux does only support 1
 

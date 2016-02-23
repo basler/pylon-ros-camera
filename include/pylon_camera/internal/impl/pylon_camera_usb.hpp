@@ -58,15 +58,22 @@ bool PylonUSBCamera::applyStartupSettings(const PylonCameraParameter& params)
 
         // The gain auto function and the exposure auto function can be used at the same time. In this case,
         // however, you must also set the Auto Function Profile feature.
-        cam_->AutoFunctionProfile.SetValue(Basler_UsbCameraParams::AutoFunctionProfile_MinimizeGain);
+        //  cam_->AutoFunctionProfile.SetValue(Basler_UsbCameraParams::AutoFunctionProfile_MinimizeGain);
         cam_->GainAuto.SetValue(Basler_UsbCameraParams::GainAuto_Off);
-        cam_->Gain.SetValue(cam_->Gain.GetMin() + params.target_gain_ * (cam_->Gain.GetMax() - cam_->Gain.GetMin()));
 
-        ROS_INFO_STREAM("Cam has gain range: [" << cam_->Gain.GetMin() << " - " << cam_->Gain.GetMax()
+        float reached_gain;
+        setGain(params.gain_, reached_gain);
+
+        ROS_INFO_STREAM("Cam has gain range: [" << cam_->Gain.GetMin()
+                << " - " << cam_->Gain.GetMax()
                 << "] measured in dB. Initially setting to: " << cam_->Gain.GetValue());
-        ROS_INFO_STREAM("Cam has exposure time range: [" << cam_->ExposureTime.GetMin() << " - "
-                << cam_->ExposureTime.GetMax() << "] measured in microseconds. Initially setting to: "
+        ROS_INFO_STREAM("Cam has exposure time range: [" << cam_->ExposureTime.GetMin()
+                << " - " << cam_->ExposureTime.GetMax()
+                << "] measured in microseconds. Initially setting to: "
                 << cam_->ExposureTime.GetValue());
+        ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
+                << cam_->AutoTargetBrightness.GetMin() * 255 << " - "
+                << cam_->AutoTargetBrightness.GetMax() * 255 << "].");
 
     }
     catch (const GenICam::GenericException &e)

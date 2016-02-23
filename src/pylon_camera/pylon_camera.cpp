@@ -26,7 +26,7 @@ PylonCamera::PylonCamera()
     , is_cam_removed_(false)
     , is_binary_exposure_search_running_(false)
     , max_brightness_tolerance_(2.5)
-    , binary_exp_search_(NULL)
+    , binary_exp_search_(nullptr)
 {}
 
 PYLON_CAM_TYPE detectPylonCamType(Pylon::CInstantCamera* cam)
@@ -248,10 +248,10 @@ PylonCamera::~PylonCamera()
 {
     // Releases all Pylon resources.
     Pylon::PylonTerminate();
-    if (binary_exp_search_)
+    if ( binary_exp_search_ )
     {
         delete binary_exp_search_;
-        binary_exp_search_ = NULL;
+        binary_exp_search_ = nullptr;
     }
 }
 

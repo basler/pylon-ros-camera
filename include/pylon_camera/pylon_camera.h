@@ -133,7 +133,7 @@ public:
      * @param reached_exposure time in microseconds
      * @return false if a communication error occurred or true otherwise.
      */
-    virtual bool setExposure(const float_t& target_exposure, float_t& reached_exposure) = 0;
+    virtual bool setExposure(const float& target_exposure, float& reached_exposure) = 0;
 
     /**
      * Sets the gain in percent independent of the camera type
@@ -141,7 +141,7 @@ public:
      * @param reached_gain the reached gain in percent.
      * @return false if a communication error occurred or true otherwise.
      */
-    virtual bool setGain(const float_t& target_gain, float_t& reached_gain) = 0;
+    virtual bool setGain(const float& target_gain, float& reached_gain) = 0;
 
     /**
      * Sets the target brightness
@@ -152,7 +152,7 @@ public:
      * @param brightness target brightness. Range is [-1...255].
      * @return false if a communication error occurred or true otherwise.
      */
-    virtual bool setBrightness(const int& target_brightness, const float_t& current_brightness) = 0;
+    virtual bool setBrightness(const int& target_brightness, const float& current_brightness) = 0;
 
 
     /**
