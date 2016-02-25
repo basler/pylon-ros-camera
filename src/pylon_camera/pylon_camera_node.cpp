@@ -63,6 +63,9 @@ bool PylonCameraNode::initAndRegister()
     set_gain_service_ = nh_.advertiseService("set_gain_srv",
                                              &PylonCameraNode::setGainCallback,
                                              this);
+    set_gamma_service_ = nh_.advertiseService("set_gamma_srv",
+                                             &PylonCameraNode::setGammaCallback,
+                                             this);
 
     pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.deviceUserID());
 
@@ -160,9 +163,19 @@ bool PylonCameraNode::startGrabbing()
         }
     }
 
-    ROS_INFO_STREAM("Starting with current settings: gain = " << pylon_camera_->currentGain()
-            << ", exposure = " << pylon_camera_->currentExposure() << ", gamma = "
-            << "-42" << ", shutter mode = " << pylon_camera_parameter_set_.shutterModeString());
+    if ( pylon_camera_parameter_set_.gamma_given_ )
+    {
+        float reached_gamma;
+        setGamma(pylon_camera_parameter_set_.gamma_, reached_gamma);
+        ROS_INFO_STREAM("Setting gamma to " << pylon_camera_parameter_set_.gamma_ << ", reached: " << reached_gamma);
+    }
+
+    ROS_INFO_STREAM("Starting with current settings: "
+            << "gain = " << pylon_camera_->currentGain() << ", "
+            << "exposure = " << pylon_camera_->currentExposure() << ", "
+            << "gamma = " <<  pylon_camera_->currentGamma() << ", "
+            << "shutter mode = " << pylon_camera_parameter_set_.shutterModeString());
+
     // Framerate Settings
     if (pylon_camera_->maxPossibleFramerate() < pylon_camera_parameter_set_.frameRate())
     {
@@ -496,6 +509,49 @@ bool PylonCameraNode::setGainCallback(camera_control_msgs::SetGain::Request &req
     res.success = setGain(req.target_gain, res.reached_gain);
     return true;
 }
+
+bool PylonCameraNode::setGamma(const float& target_gamma, float& reached_gamma)
+{
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if ( !pylon_camera_->isReady() )
+    {
+        ROS_WARN("Error in setGamma(): pylon_camera_ is not ready!");
+        return false;
+    }
+
+    if ( pylon_camera_->setGamma(target_gamma, reached_gamma) )
+    {
+        return true;
+    }
+    else  // retry till timeout
+    {
+        // wait for max 5s till the cam has updated the gamma value
+        ros::Rate r(10.0);
+        ros::Time timeout(ros::Time::now() + ros::Duration(5.0));
+        while ( ros::ok() )
+        {
+            if ( pylon_camera_->setGamma(target_gamma, reached_gamma) )
+            {
+                return true;
+            }
+
+            if ( ros::Time::now() > timeout )
+            {
+                ROS_ERROR("Error in setGamma(): Unable to set target gamma before timeout");
+                return false;
+            }
+            r.sleep();
+        }
+    }
+}
+
+bool PylonCameraNode::setGammaCallback(camera_control_msgs::SetGamma::Request &req,
+                                       camera_control_msgs::SetGamma::Response &res)
+{
+    res.success = setGamma(req.target_gamma, res.reached_gamma);
+    return true;
+}
+
 bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_brightness)
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);

@@ -73,6 +73,25 @@ float PylonCameraImpl<CameraTraitT>::currentGain()
 }
 
 template <typename CameraTraitT>
+GenApi::IFloat& PylonCameraImpl<CameraTraitT>::gamma()
+{
+    if ( GenApi::IsAvailable(cam_->Gamma) )
+    {
+        return cam_->Gamma;
+    }
+    else
+    {
+        throw std::runtime_error("Error while accessing Gamma in PylonCameraImpl<CameraTraitT");
+    }
+}
+
+template <typename CameraTraitT>
+float PylonCameraImpl<CameraTraitT>::currentGamma()
+{
+    return static_cast<float>(gamma().GetValue());
+}
+
+template <typename CameraTraitT>
 float PylonCameraImpl<CameraTraitT>::currentAutoExposureTimeLowerLimit()
 {
     return static_cast<float>(autoExposureTimeLowerLimit().GetValue());
@@ -370,21 +389,52 @@ bool PylonCameraImpl<CameraTraitT>::setGain(const float& target_gain, float& rea
         {
             float gain_to_set = gain().GetMin() + target_gain * (gain().GetMax() - gain().GetMin());
             gain().SetValue(gain_to_set);
-            ROS_INFO_STREAM("Gain to set: " << gain_to_set ); 
+            ROS_INFO_STREAM("Gain to set: " << gain_to_set );
             reached_gain = currentGain();
-
-          //  if ( fabs(reached_gain - gain_to_set) > exposureStep() )
-          //  {
-          //      // no success if the delta between target and reached exposure
-          //      // is greater then the exposure step in ms
-          //      return false;
-          //  }
         }
     }
     catch (const GenICam::GenericException &e)
     {
-        ROS_ERROR_STREAM("An exception while setting target gain to " << target_gain << " occurred:"
-                         << e.GetDescription());
+        ROS_ERROR_STREAM("An exception while setting target gain to "
+               << target_gain << " occurred: " << e.GetDescription());
+        return false;
+    }
+    return true;
+}
+
+template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::setGamma(const float& target_gamma, float& reached_gamma)
+{
+    if ( !GenApi::IsAvailable(cam_->Gamma) )
+    {
+        ROS_ERROR_STREAM("Error while trying to set gamma: cam.Gamma NodeMap is"
+               << " not available!");
+        return false;
+    }
+
+    try
+    {
+        float gamma_to_set = target_gamma;
+        if ( gamma().GetMin() > gamma_to_set )
+        {
+            gamma_to_set = gamma().GetMin();
+            ROS_WARN_STREAM("Desired gamma unreachable! Setting to lower limit: "
+                                  << gamma_to_set);
+        }
+        else if ( gamma().GetMax() < gamma_to_set )
+        {
+            gamma_to_set = gamma().GetMax();
+            ROS_WARN_STREAM("Desired gamma unreachable! Setting to upper limit: "
+                                  << gamma_to_set);
+        }
+        ROS_INFO_STREAM("Setting Gamma: " << gamma_to_set );
+        gamma().SetValue(gamma_to_set);
+        reached_gamma = currentGamma();
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        ROS_ERROR_STREAM("An exception while setting target gamma to "
+                << target_gamma << " occurred: " << e.GetDescription());
         return false;
     }
     return true;

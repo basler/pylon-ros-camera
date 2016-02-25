@@ -114,6 +114,12 @@ public:
     virtual float currentGain() = 0;
 
     /**
+     * Returns the current gamma value.
+     * @return the gamma value.
+     */
+    virtual float currentGamma() = 0;
+
+    /**
      * Returns the current auto gain lower limit
      * @return the current auto gain lower limit
      */
@@ -143,6 +149,14 @@ public:
      * @return false if a communication error occurred or true otherwise.
      */
     virtual bool setGain(const float& target_gain, float& reached_gain) = 0;
+
+    /**
+     * Sets the target gamma value
+     * @param target_gamma the target gamma value.
+     * @param reached_gamma the reached gamma value.
+     * @return false if a communication error occurred or true otherwise.
+     */
+    virtual bool setGamma(const float& target_gamma, float& reached_gamma) = 0;
 
     /**
      * Sets the target brightness

@@ -45,6 +45,8 @@ public:
 
     virtual bool setGain(const float& target_gain, float& reached_gain);
 
+    virtual bool setGamma(const float& target_gamma, float& reached_gamma);
+
     virtual bool setBrightness(const int& target_brightness, const float& current_brightness);
 
     virtual bool setUserOutput(const int& output_id, const bool& value);
@@ -56,6 +58,8 @@ public:
     virtual float currentAutoExposureTimeUpperLimit();
 
     virtual float currentGain();
+
+    virtual float currentGamma();
 
     virtual float currentAutoGainLowerLimit();
 
@@ -91,6 +95,7 @@ protected:
     // Each camera has it's own getter for GenApi accessors that are named differently for USB and GigE
     GenApi::IFloat& exposureTime();
     GainType& gain();
+    GenApi::IFloat& gamma();
     GenApi::IFloat& autoExposureTimeLowerLimit();
     GenApi::IFloat& autoExposureTimeUpperLimit();
     GainType& autoGainLowerLimit();

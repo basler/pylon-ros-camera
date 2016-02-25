@@ -77,6 +77,9 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
                 << cam_->AutoTargetValue.GetMin() << " - "
                 << cam_->AutoTargetValue.GetMax() << "] which is the average pixel intensity.");
+        ROS_INFO_STREAM("Cam has gammma range: ["
+                << cam_->Gamma.GetMin() << " - "
+                << cam_->Gamma.GetMax() << "].");
         // Basler-Debug Day:  Read- & Write Retry-Counter should stay default (=2)
         // Linux does only support 1
 

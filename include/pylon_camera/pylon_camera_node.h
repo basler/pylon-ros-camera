@@ -18,6 +18,7 @@
 #include <camera_control_msgs/SetBrightnessSrv.h>
 #include <camera_control_msgs/SetExposureSrv.h>
 #include <camera_control_msgs/SetGain.h>
+#include <camera_control_msgs/SetGamma.h>
 #include <camera_control_msgs/SetSleepingSrv.h>
 #include <camera_control_msgs/GrabImagesAction.h>
 
@@ -140,6 +141,23 @@ protected:
                          camera_control_msgs::SetGain::Response &res);
 
     /**
+     * Update the gamma from the camera to a target gamma correction value
+     * @param target_gamma the targeted gamma
+     * @param reached_gamma the gamma that could be reached
+     * @return true if the targeted gamma could be reached
+     */
+    bool setGamma(const float& target_gamma, float& reached_gamma);
+
+    /**
+     * Service callback for setting the desired gamma correction value
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setGammaCallback(camera_control_msgs::SetGamma::Request &req,
+                         camera_control_msgs::SetGamma::Response &res);
+
+    /**
      * Callback that puts the camera to sleep
      * @param req request
      * @param res response
@@ -196,6 +214,7 @@ protected:
     ros::ServiceServer set_exposure_service_;
     ros::ServiceServer set_brightness_service_;
     ros::ServiceServer set_gain_service_;
+    ros::ServiceServer set_gamma_service_;
     ros::ServiceServer set_sleeping_service_;
     ros::ServiceServer set_digital_output_1_service_;
 
