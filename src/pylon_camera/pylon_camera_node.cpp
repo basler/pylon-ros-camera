@@ -270,48 +270,57 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
     camera_control_msgs::GrabImagesResult result;
     camera_control_msgs::GrabImagesFeedback feedback;
 
-    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-
-    result.images.resize(goal->target_values.size());
-    result.reached_values.resize(goal->target_values.size());
-    result.success = true;
-    for (std::size_t i = 0; i < goal->target_values.size(); ++i)
+    try
     {
-        // setGain(goal->gain);
-        // setGamma(goal->gamma);
-        if (goal->target_type == goal->EXPOSURE)
+        boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+
+        result.images.resize(goal->target_values.size());
+        result.reached_values.resize(goal->target_values.size());
+        result.success = true;
+        for (std::size_t i = 0; i < goal->target_values.size(); ++i)
         {
-            setExposure(goal->target_values[i], result.reached_values[i]);
-        }
-        if (goal->target_type == goal->BRIGHTNESS)
-        {
-            int reached_val;
-            setBrightness(goal->target_values[i], reached_val);
-            result.reached_values[i] = static_cast<float>(reached_val);
+            // setGain(goal->gain);
+            // setGamma(goal->gamma);
+            if (goal->target_type == goal->EXPOSURE)
+            {
+                setExposure(goal->target_values[i], result.reached_values[i]);
+            }
+            if (goal->target_type == goal->BRIGHTNESS)
+            {
+                int reached_val;
+                setBrightness(goal->target_values[i], reached_val);
+                result.reached_values[i] = static_cast<float>(reached_val);
+            }
+
+            sensor_msgs::Image& img = result.images[i];
+            img.encoding = pylon_camera_->imageEncoding();
+            img.height = pylon_camera_->imageRows();
+            img.width = pylon_camera_->imageCols();
+            // step = full row length in bytes
+            img.step = img.width * pylon_camera_->imagePixelDepth();
+
+            if (!pylon_camera_->grab(img.data))
+            {
+                result.success = false;
+            }
+            img.header.stamp = ros::Time::now();
+            img.header.frame_id = cameraFrame();
+            feedback.curr_nr_images_taken = i+1;
+            grab_images_raw_action_server_.publishFeedback(feedback);
         }
 
-        sensor_msgs::Image& img = result.images[i];
-        img.encoding = pylon_camera_->imageEncoding();
-        img.height = pylon_camera_->imageRows();
-        img.width = pylon_camera_->imageCols();
-        // step = full row length in bytes
-        img.step = img.width * pylon_camera_->imagePixelDepth();
-
-        if (!pylon_camera_->grab(img.data))
+        if (!result.success)
         {
-            result.success = false;
+            result.images.clear();
         }
-        img.header.stamp = ros::Time::now();
-        img.header.frame_id = cameraFrame();
-        feedback.curr_nr_images_taken = i+1;
-        grab_images_raw_action_server_.publishFeedback(feedback);
+
     }
-
-    if (!result.success)
+    catch (const GenICam::LogicalErrorException &e)
     {
+        ROS_ERROR_STREAM("Error executing grabImagesRawExecuteCB: " << e.GetDescription());
+        result.success = false;
         result.images.clear();
     }
-
     grab_images_raw_action_server_.setSucceeded(result);
 }
 
