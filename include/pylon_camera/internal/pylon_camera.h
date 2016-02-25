@@ -31,7 +31,7 @@ public:
 
     virtual bool setupSequencer(const std::vector<float>& exposure_times);
 
-    virtual bool applyStartupSettings(const PylonCameraParameter& parameters);
+    virtual bool applyCamSpecificStartupSettings(const PylonCameraParameter& parameters);
 
     virtual bool startGrabbing(const PylonCameraParameter& parameters);
 
@@ -61,6 +61,8 @@ public:
 
     virtual float currentAutoGainUpperLimit();
 
+    virtual float maxPossibleFramerate();
+
     virtual bool isPylonAutoBrightnessFunctionRunning();
 
     virtual bool isBrightnessSearchRunning();
@@ -78,6 +80,7 @@ public:
 protected:
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
     typedef typename CameraTraitT::ExposureAutoEnums ExposureAutoEnums;
+    typedef typename CameraTraitT::GainAutoEnums GainAutoEnums;
     typedef typename CameraTraitT::PixelFormatEnums PixelFormatEnums;
     typedef typename CameraTraitT::PixelSizeEnums PixelSizeEnums;
     typedef typename CameraTraitT::AutoTargetBrightnessType AutoTargetBrightnessType;
@@ -95,7 +98,8 @@ protected:
     GenApi::IFloat& resultingFrameRate();
     AutoTargetBrightnessType& autoTargetBrightness();
 
-    virtual bool setExtendedBrightness(const int& target_brightness, const float& current_brightness);
+    virtual bool setExtendedBrightness(const int& target_brightness,
+                                       const float& current_brightness);
 
     virtual bool grab(Pylon::CGrabResultPtr& grab_result);
 

@@ -18,7 +18,6 @@ namespace pylon_camera
 class PylonCamera
 {
 public:
-    virtual ~PylonCamera();
 
     /**
      * Create a new PylonCamera instance. It will return the first camera that could be found.
@@ -47,10 +46,12 @@ public:
 
     /**
      * Configures the camera according to the provided ros parameters.
+     * This will use the device specific parameters as e.g. the mtu size for
+     * GigE-Cameras
      * @param parameters The PylonCameraParameter set to use
      * @return true if all parameters could be sent to the camera.
      */
-    virtual bool applyStartupSettings(const PylonCameraParameter& parameters) = 0;
+    virtual bool applyCamSpecificStartupSettings(const PylonCameraParameter& parameters) = 0;
 
     /**
      * Configure the sequencer exposure times.
@@ -227,8 +228,10 @@ public:
     const size_t& imageCols() const;
 
     /**
-     * Returns the current state of the interface
-     * @return true in case that the grab-result-pointer of the first acquisition contains valid data
+     * Getter for the is_ready_ flag. This is set in case that the
+     * grab-result-pointer of the first acquisition contains valid data.
+     * Hence this is the current state of the interface
+     * @return true if the interfeace is ready
      */
     const bool& isReady() const;
 
@@ -242,7 +245,7 @@ public:
      * Get the maximum achievable frame rate
      * @return float
      */
-    const float& maxPossibleFramerate() const;
+    virtual float maxPossibleFramerate() = 0;
 
     /**
      * Checks if the camera has the auto exposure feature.
@@ -268,6 +271,7 @@ public:
      */
     const std::vector<float>& sequencerExposureTimes() const;
 
+    virtual ~PylonCamera();
 protected:
     /**
      * Protected default constructor.
@@ -300,11 +304,6 @@ protected:
      * The size of the image in number of bytes.
      */
     size_t img_size_byte_;
-
-    /**
-     * The maximum achievable frame rate reported by the camera
-     */
-    float max_framerate_;
 
     /**
      * The max time a single grab is allwed to take. This value should always

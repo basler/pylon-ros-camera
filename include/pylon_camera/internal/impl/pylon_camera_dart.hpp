@@ -17,7 +17,7 @@ public:
     explicit PylonDARTCamera(Pylon::IPylonDevice* device);
     virtual ~PylonDARTCamera();
 
-    virtual bool applyStartupSettings(const PylonCameraParameter& params);
+    virtual bool applyCamSpecificStartupSettings(const PylonCameraParameter& params);
     virtual bool setUserOutput(int output_id, bool value);
     virtual std::string typeName() const;
 
@@ -33,13 +33,13 @@ PylonDARTCamera::PylonDARTCamera(Pylon::IPylonDevice* device) :
 PylonDARTCamera::~PylonDARTCamera()
 {}
 
-bool PylonDARTCamera::applyStartupSettings(const PylonCameraParameter& params)
+bool PylonDARTCamera::applyCamSpecificStartupSettings(const PylonCameraParameter& parameters)
 {
-    if ( !PylonUSBCamera::applyStartupSettings(params) )
+    if ( !PylonUSBCamera::applyCamSpecificStartupSettings(parameters) )
     {
         return false;
     }
-    cam_->AutoFunctionProfile.SetValue(Basler_UsbCameraParams::AutoFunctionProfile_Smart);
+//    cam_->AutoFunctionProfile.SetValue(Basler_UsbCameraParams::AutoFunctionProfile_Smart);
     return true;
 }
 

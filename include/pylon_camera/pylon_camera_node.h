@@ -44,10 +44,11 @@ public:
     virtual void spin();
 
     /**
-     * Getter for the desired frame rate.
+     * Getter for the frame rate set by the launch script or from the ros parameter
+     * server
      * @return the desired frame rate.
      */
-    const double& desiredFrameRate() const;
+    const double& frameRate() const;
 
     /**
      * Getter for the tf frame.

@@ -20,7 +20,6 @@ PylonCamera::PylonCamera()
     : img_rows_(-1)
     , img_cols_(-1)
     , img_size_byte_(-1)
-    , max_framerate_(-1.0)
     , grab_timeout_(-1.0)
     , is_ready_(false)
     , is_cam_removed_(false)
@@ -155,7 +154,7 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
                 {
                     found_desired_device = true;
                     cam_pos = i;
-                    ROS_INFO_STREAM("Found the desired Camera with DeviceUserID: " << device_user_id_to_open
+                    ROS_INFO_STREAM("Found the desired camera with DeviceUserID: " << device_user_id_to_open
                                     << ": " << camera_array[cam_pos].GetDeviceInfo().GetModelName());
                     break;
                 }
@@ -204,11 +203,6 @@ const size_t& PylonCamera::imageCols() const
 const size_t& PylonCamera::imageSize() const
 {
     return img_size_byte_;
-}
-
-const float& PylonCamera::maxPossibleFramerate() const
-{
-    return max_framerate_;
 }
 
 /**

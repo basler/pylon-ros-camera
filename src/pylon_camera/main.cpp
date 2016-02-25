@@ -18,10 +18,10 @@ int main(int argc, char **argv)
 
     pylon_camera::PylonCameraNode pylon_camera_node;
 
-    ros::Rate r(pylon_camera_node.desiredFrameRate());
+    ros::Rate r(pylon_camera_node.frameRate());
 
     ROS_INFO("Start image grabbing if node connects to topic with framerate: %.2f Hz",
-             pylon_camera_node.desiredFrameRate());
+             pylon_camera_node.frameRate());
 
     // Main thread and brightness-service thread
     boost::thread th(boost::bind(&ros::spin));

@@ -16,6 +16,7 @@ struct USBCameraTrait
 {
     typedef Pylon::CBaslerUsbInstantCamera CBaslerInstantCameraT;
     typedef Basler_UsbCameraParams::ExposureAutoEnums ExposureAutoEnums;
+    typedef Basler_UsbCameraParams::GainAutoEnums GainAutoEnums;
     typedef Basler_UsbCameraParams::PixelFormatEnums PixelFormatEnums;
     typedef Basler_UsbCameraParams::PixelSizeEnums PixelSizeEnums;
     typedef GenApi::IFloat AutoTargetBrightnessType;
@@ -33,7 +34,7 @@ struct USBCameraTrait
 typedef PylonCameraImpl<USBCameraTrait> PylonUSBCamera;
 
 template <>
-bool PylonUSBCamera::applyStartupSettings(const PylonCameraParameter& params)
+bool PylonUSBCamera::applyCamSpecificStartupSettings(const PylonCameraParameter& parameters)
 {
     try
     {
@@ -59,25 +60,25 @@ bool PylonUSBCamera::applyStartupSettings(const PylonCameraParameter& params)
         // The gain auto function and the exposure auto function can be used at the same time. In this case,
         // however, you must also set the Auto Function Profile feature.
         //  cam_->AutoFunctionProfile.SetValue(Basler_UsbCameraParams::AutoFunctionProfile_MinimizeGain);
-        cam_->GainAuto.SetValue(Basler_UsbCameraParams::GainAuto_Off);
+       // cam_->GainAuto.SetValue(Basler_UsbCameraParams::GainAuto_Off);
 
-        float reached_gain;
-        setGain(params.gain_, reached_gain);
+    //    float reached_gain;
+     //   setGain(params.gain_, reached_gain);
 
         ROS_INFO_STREAM("Cam has gain range: [" << cam_->Gain.GetMin()
                 << " - " << cam_->Gain.GetMax()
-                << "] measured in dB. Initially setting to: " << cam_->Gain.GetValue());
+                << "] measured in dB.");
         ROS_INFO_STREAM("Cam has exposure time range: [" << cam_->ExposureTime.GetMin()
                 << " - " << cam_->ExposureTime.GetMax()
-                << "] measured in microseconds. Initially setting to: "
-                << cam_->ExposureTime.GetValue());
+                << "] measured in microseconds.");
         ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
                 << cam_->AutoTargetBrightness.GetMin() * 255 << " - "
-                << cam_->AutoTargetBrightness.GetMax() * 255 << "].");
+                << cam_->AutoTargetBrightness.GetMax() * 255 << "] which is the average pixel intensity.");
     }
     catch (const GenICam::GenericException &e)
     {
-        ROS_ERROR_STREAM(e.GetDescription());
+        ROS_ERROR_STREAM("Error applying cam specific startup setting for USB cameras: "
+                << e.GetDescription());
         return false;
     }
     return true;

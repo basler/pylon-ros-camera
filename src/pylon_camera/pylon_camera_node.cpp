@@ -64,7 +64,7 @@ bool PylonCameraNode::initAndRegister()
                                              &PylonCameraNode::setGainCallback,
                                              this);
 
-    pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.device_user_id_);
+    pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.deviceUserID());
 
     if ( pylon_camera_ == NULL )
     {
@@ -83,9 +83,10 @@ bool PylonCameraNode::initAndRegister()
         return false;
     }
 
-    if ( !pylon_camera_->applyStartupSettings(pylon_camera_parameter_set_) )
+    if ( !pylon_camera_->applyCamSpecificStartupSettings(pylon_camera_parameter_set_) )
     {
-        ROS_ERROR("Error while applying the startup setting (gain, exposure, ...) to the camera!");
+        ROS_ERROR_STREAM("Error while applying the cam specific startup settings "
+                << "(e.g. mtu size for GigE, ...) to the camera!");
         return false;
     }
 
@@ -109,25 +110,77 @@ bool PylonCameraNode::startGrabbing()
         return false;
     }
 
+    if ( pylon_camera_parameter_set_.gain_given_ )
+    {
+        float reached_gain;
+        setGain(pylon_camera_parameter_set_.gain_, reached_gain);
+        ROS_INFO_STREAM("Setting gain to: " << pylon_camera_parameter_set_.gain_ << ", reached: " << reached_gain);
+        if ( pylon_camera_parameter_set_.gain_fixed_ )
+        {
+            setGain(-2.0, reached_gain);  // AutoGain_Off
+        }
+    }
+
+    if ( pylon_camera_parameter_set_.exposure_given_ )
+    {
+        float reached_exposure;
+        setExposure(pylon_camera_parameter_set_.exposure_, reached_exposure);
+        ROS_INFO_STREAM("Setting exposure to " << pylon_camera_parameter_set_.exposure_ << ", reached: " << reached_exposure);
+        if ( pylon_camera_parameter_set_.exposure_fixed_ )
+        {
+            setExposure(0.0, reached_exposure);
+        }
+    }
+
+    if ( pylon_camera_parameter_set_.brightness_given_ )
+    {
+        if ( pylon_camera_parameter_set_.gain_fixed_ && pylon_camera_parameter_set_.exposure_fixed_ )
+        {
+            ROS_ERROR_STREAM("Impossible to reach desired brightness, "
+                << "because exposure and gain are declared as fix! "
+                << "Will ignore the brightness setting");
+        }
+        else
+        {
+            int reached_brightness;
+            setBrightness(pylon_camera_parameter_set_.brightness_, reached_brightness);
+            if ( pylon_camera_parameter_set_.brightness_continuous_ )
+            {
+                if ( !pylon_camera_parameter_set_.gain_fixed_ )
+                {
+                    float reached_gain;
+                    setGain(-1.0, reached_gain);
+                }
+                if ( !pylon_camera_parameter_set_.exposure_fixed_ )
+                {
+                    float reached_exposure;
+                    setExposure(-1.0, reached_exposure);
+                }
+            }
+        }
+    }
+
+    ROS_INFO_STREAM("Starting with current settings: gain = " << pylon_camera_->currentGain()
+            << ", exposure = " << pylon_camera_->currentExposure() << ", gamma = "
+            << "-42" << ", shutter mode = " << pylon_camera_parameter_set_.shutterModeString());
     // Framerate Settings
-    if (pylon_camera_->maxPossibleFramerate() < pylon_camera_parameter_set_.desired_frame_rate_)
+    if (pylon_camera_->maxPossibleFramerate() < pylon_camera_parameter_set_.frameRate())
     {
         ROS_INFO("Desired framerate %.2f is higher than max possible. Will limit framerate to: %.2f Hz",
-                 pylon_camera_parameter_set_.desired_frame_rate_,
+                 pylon_camera_parameter_set_.frameRate(),
                  pylon_camera_->maxPossibleFramerate());
-        pylon_camera_parameter_set_.desired_frame_rate_ = pylon_camera_->maxPossibleFramerate();
-        nh_.setParam("desired_framerate", pylon_camera_->maxPossibleFramerate());
+        pylon_camera_parameter_set_.setFrameRate(nh_, pylon_camera_->maxPossibleFramerate());
     }
-    else if ( pylon_camera_parameter_set_.desired_frame_rate_ == -1 )
+    else if ( pylon_camera_parameter_set_.frameRate() == -1 )
     {
-        pylon_camera_parameter_set_.desired_frame_rate_ = pylon_camera_->maxPossibleFramerate();
+        pylon_camera_parameter_set_.setFrameRate(nh_, pylon_camera_->maxPossibleFramerate());
         ROS_INFO("Max possible framerate is %.2f Hz", pylon_camera_->maxPossibleFramerate());
     }
 
     // setting up the CameraInfo object with the data of the uncalibrated image
     setupCameraInfo(cam_info_msg_);
 
-    img_raw_msg_.header.frame_id = cameraFrame();
+    img_raw_msg_.header.frame_id = pylon_camera_parameter_set_.cameraFrame();
     // Encoding of pixels -- channel meaning, ordering, size
     // taken from the list of strings in include/sensor_msgs/image_encodings.h
     img_raw_msg_.encoding = pylon_camera_->imageEncoding();
@@ -161,14 +214,14 @@ bool PylonCameraNode::setDigitalOutputCB(const int& output_id,
     return true;
 }
 
-const double& PylonCameraNode::desiredFrameRate() const
+const double& PylonCameraNode::frameRate() const
 {
-    return pylon_camera_parameter_set_.desired_frame_rate_;
+    return pylon_camera_parameter_set_.frameRate();
 }
 
 const std::string& PylonCameraNode::cameraFrame() const
 {
-    return pylon_camera_parameter_set_.camera_frame_;
+    return pylon_camera_parameter_set_.cameraFrame();
 }
 
 uint32_t PylonCameraNode::getNumSubscribers() const
@@ -179,7 +232,7 @@ uint32_t PylonCameraNode::getNumSubscribers() const
 void PylonCameraNode::setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
 {
     std_msgs::Header header;
-    header.frame_id = cameraFrame();
+    header.frame_id = pylon_camera_parameter_set_.cameraFrame();
     header.stamp = ros::Time::now();
 
     // http://www.ros.org/reps/rep-0104.html
@@ -599,4 +652,4 @@ PylonCameraNode::~PylonCameraNode()
     it_ = NULL;
 }
 
-}  // namespace pylon_camera
+}  // namespace pylon_camer

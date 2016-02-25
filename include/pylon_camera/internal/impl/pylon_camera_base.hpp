@@ -67,7 +67,9 @@ float PylonCameraImpl<CameraTraitT>::currentExposure()
 template <typename CameraTraitT>
 float PylonCameraImpl<CameraTraitT>::currentGain()
 {
-    return static_cast<float>(gain().GetValue()) / static_cast<float>(gain().GetMax());
+    float curr_gain = (static_cast<float>(gain().GetValue()) - static_cast<float>(gain().GetMin())) /
+        (static_cast<float>(gain().GetMax() - static_cast<float>(gain().GetMin())));
+    return curr_gain;
 }
 
 template <typename CameraTraitT>
@@ -145,21 +147,17 @@ bool PylonCameraImpl<CameraTraitT>::setupSequencer(const std::vector<float>& exp
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& params)
+bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& parameters)
 {
     try
     {
         if (GenApi::IsAvailable(cam_->ShutterMode))
         {
-            setShutterMode(params.shutter_mode_);
-        }
-        else
-        {
-            ROS_INFO("Desired cam has no selectable ShutterMode, will keep the default setting.");
+            setShutterMode(parameters.shutter_mode_);
         }
 
-        cam_->BinningHorizontal.SetValue(params.binning_);
-        cam_->BinningVertical.SetValue(params.binning_);
+        cam_->BinningHorizontal.SetValue(parameters.binning_);
+        cam_->BinningVertical.SetValue(parameters.binning_);
 
         cam_->StartGrabbing();
 
@@ -176,24 +174,9 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
             ROS_WARN("Color Image support not yet implemented! Will switch to 8-Bit Mono");
         }
 
-        cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
-
-        double truncated_start_exposure = params.start_exposure_;
-        if (exposureTime().GetMin() > truncated_start_exposure)
-        {
-            truncated_start_exposure = exposureTime().GetMin();
-            ROS_WARN_STREAM("Desired exposure time unreachable! Setting to lower limit: " << truncated_start_exposure);
-        }
-        else if (exposureTime().GetMax() < truncated_start_exposure)
-        {
-            truncated_start_exposure = exposureTime().GetMax();
-            ROS_WARN_STREAM("Desired exposure time unreachable! Setting to upper limit: " << truncated_start_exposure);
-        }
-        exposureTime().SetValue(truncated_start_exposure, false);
         grab_timeout_ = exposureTime().GetMax() * 1.05;
-        max_framerate_ = resultingFrameRate().GetValue();
 
-        // grab one image to be sure, that the desired exposure / brightness is set for the first image being sent
+        // grab one image to be sure, that the communication is successful
         Pylon::CGrabResultPtr grab_result;
         grab(grab_result);
         if (grab_result.IsValid())
@@ -362,10 +345,41 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const float& target_exposure, fl
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setGain(const float& target_gain, float& reached_gain)
 {
+    if ((target_gain == -1.0 || target_gain == -2.0) && !GenApi::IsAvailable(cam_->GainAuto) )
+    {
+        ROS_ERROR("Error while trying to set auto gain properties: camera has no auto gain function!");
+        return false;
+    }
+    else if (!(target_gain == -1.0 || target_gain == -2.0) && target_gain < 0.0)
+    {
+        ROS_ERROR_STREAM("Target Gain " << target_gain << " not in the allowed range");
+        return false;
+    }
+
     try
     {
-        gain().SetValue(gain().GetMin() + target_gain * (gain().GetMax() - gain().GetMin()));
-        reached_gain = currentGain();
+        if (target_gain == -1.0)
+        {
+            cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Continuous);
+        }
+        else if (target_gain == -2.0)
+        {
+            cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Off);
+        }
+        else
+        {
+            float gain_to_set = gain().GetMin() + target_gain * (gain().GetMax() - gain().GetMin());
+            gain().SetValue(gain_to_set);
+            ROS_INFO_STREAM("Gain to set: " << gain_to_set ); 
+            reached_gain = currentGain();
+
+          //  if ( fabs(reached_gain - gain_to_set) > exposureStep() )
+          //  {
+          //      // no success if the delta between target and reached exposure
+          //      // is greater then the exposure step in ms
+          //      return false;
+          //  }
+        }
     }
     catch (const GenICam::GenericException &e)
     {
@@ -612,6 +626,12 @@ template <typename CameraTraitT>
 float PylonCameraImpl<CameraTraitT>::exposureStep()
 {
     return static_cast<float>(exposureTime().GetMin());
+}
+
+template <typename CameraTraitT>
+float PylonCameraImpl<CameraTraitT>::maxPossibleFramerate()
+{
+    return static_cast<float>(resultingFrameRate().GetValue());
 }
 
 template <typename CameraTraitT>

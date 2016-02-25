@@ -1,4 +1,5 @@
 // Copyright 2015 <Magazino GmbH>
+// Copyright 2015 <Magazino GmbH>
 
 #ifndef PYLON_CAMERA_INTERNAL_GIGE_H_
 #define PYLON_CAMERA_INTERNAL_GIGE_H_
@@ -17,6 +18,7 @@ struct GigECameraTrait
 {
     typedef Pylon::CBaslerGigEInstantCamera CBaslerInstantCameraT;
     typedef Basler_GigECameraParams::ExposureAutoEnums ExposureAutoEnums;
+    typedef Basler_GigECameraParams::GainAutoEnums GainAutoEnums;
     typedef Basler_GigECameraParams::PixelFormatEnums PixelFormatEnums;
     typedef Basler_GigECameraParams::PixelSizeEnums PixelSizeEnums;
     typedef GenApi::IInteger AutoTargetBrightnessType;
@@ -34,7 +36,7 @@ struct GigECameraTrait
 typedef PylonCameraImpl<GigECameraTrait> PylonGigECamera;
 
 template <>
-bool PylonGigECamera::applyStartupSettings(const PylonCameraParameter& params)
+bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter& parameters)
 {
     try
     {
@@ -59,30 +61,29 @@ bool PylonGigECamera::applyStartupSettings(const PylonCameraParameter& params)
 
         // The gain auto function and the exposure auto function can be used at the same time. In this case,
         // however, you must also set the Auto Function Profile feature.
-        cam_->AutoFunctionProfile.SetValue(Basler_GigECameraParams::AutoFunctionProfile_GainMinimum);
+//        cam_->AutoFunctionProfile.SetValue(Basler_GigECameraParams::AutoFunctionProfile_GainMinimum);
         // acA1920-40gm does not suppert Basler_GigECameraParams::GainSelector_AnalogAll
         // has Basler_GigECameraParams::GainSelector_All instead
         // cam_->GainSelector.SetValue(Basler_GigECameraParams::GainSelector_AnalogAll);
-        cam_->GainAuto.SetValue(Basler_GigECameraParams::GainAuto_Off);
-        float reached_gain;
-        setGain(params.gain_, reached_gain);
+//        cam_->GainAuto.SetValue(Basler_GigECameraParams::GainAuto_Off);
+        //float reached_gain;
+        //setGain(params.gain_, reached_gain);
+
 
         ROS_INFO_STREAM("Cam has gain range: [" << cam_->GainRaw.GetMin() << " - " << cam_->GainRaw.GetMax()
-                << "] measured in decive specific units. Initialiy setting to: " << cam_->GainRaw.GetValue());
+                << "] measured in decive specific units.");
         ROS_INFO_STREAM("Cam has exposure time range: [" << cam_->ExposureTimeAbs.GetMin() << " - "
-                << cam_->ExposureTimeAbs.GetMax() << "] measured in microseconds. Initially setting to: "
-                << cam_->ExposureTimeAbs.GetValue());
-
+                << cam_->ExposureTimeAbs.GetMax() << "] measured in microseconds.");
         ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
                 << cam_->AutoTargetValue.GetMin() << " - "
-                << cam_->AutoTargetValue.GetMax() << "].");
+                << cam_->AutoTargetValue.GetMax() << "] which is the average pixel intensity.");
         // Basler-Debug Day:  Read- & Write Retry-Counter should stay default (=2)
         // Linux does only support 1
 
         // raise inter-package delay (GevSCPD) for solving error: 'the image buffer was incompletely grabbed'
         // also in ubuntu settings -> network -> options -> MTU Size from 'automatic' to 3000 if card supports it
         // Raspberry PI has MTU = 1500, max value for some cards: 9000
-        cam_->GevSCPSPacketSize.SetValue(params.mtu_size_);
+        cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
 
         // http://www.baslerweb.com/media/documents/AW00064902000%20Control%20Packet%20Timing%20With%20Delays.pdf
         // inter package delay in ticks (? -> mathi said in nanosec) -> prevent lost frames
@@ -94,7 +95,8 @@ bool PylonGigECamera::applyStartupSettings(const PylonCameraParameter& params)
     }
     catch (const GenICam::GenericException &e)
     {
-        ROS_ERROR("%s", e.GetDescription());
+        ROS_ERROR_STREAM("Error applying cam specific startup setting for GigE cameras: "
+                << e.GetDescription());
         return false;
     }
     return true;
