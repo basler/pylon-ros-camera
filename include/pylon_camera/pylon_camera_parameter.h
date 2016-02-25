@@ -72,6 +72,11 @@ public:
     // #######################################################################
     // ###################### Image Intensity Settings  ######################
     // #######################################################################
+    // The following settings do *NOT* have to be set. Each camera has default
+    // values which provide an automatic image adjustment
+    // If one would like to adjust image brightness, it is not
+    // #######################################################################
+
     /**
      * The exposure time in microseconds after opening the camera.
      * This value can be overriden from the brightness search, in case that
@@ -187,9 +192,8 @@ protected:
      * Calling the GrabImages-Action can result in a higher framerate
      */
     double frame_rate_;
-
 };
 
 }  // namespace pylon_camera
 
-#endif // PYLON_CAMERA_PYLON_CAMERA_PARAMETER_H
+#endif  // PYLON_CAMERA_PYLON_CAMERA_PARAMETER_H

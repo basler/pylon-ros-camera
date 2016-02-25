@@ -164,7 +164,6 @@ const std::string& PylonCameraParameter::deviceUserID() const
 
 std::string PylonCameraParameter::shutterModeString() const
 {
-
     if ( shutter_mode_ == SM_ROLLING )
     {
         return "rolling";
@@ -188,7 +187,8 @@ const std::string& PylonCameraParameter::cameraFrame() const
     return camera_frame_;
 }
 
-void PylonCameraParameter::setFrameRate(const ros::NodeHandle& nh, const double& frame_rate)
+void PylonCameraParameter::setFrameRate(const ros::NodeHandle& nh,
+                                        const double& frame_rate)
 {
     frame_rate_ = frame_rate;
     nh.setParam("frame_rate", frame_rate_);

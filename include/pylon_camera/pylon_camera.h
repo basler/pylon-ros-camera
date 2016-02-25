@@ -18,7 +18,6 @@ namespace pylon_camera
 class PylonCamera
 {
 public:
-
     /**
      * Create a new PylonCamera instance. It will return the first camera that could be found.
      * @return new PylonCamera instance or NULL if no camera was found.
@@ -167,7 +166,8 @@ public:
      * @param brightness target brightness. Range is [-1...255].
      * @return false if a communication error occurred or true otherwise.
      */
-    virtual bool setBrightness(const int& target_brightness, const float& current_brightness) = 0;
+    virtual bool setBrightness(const int& target_brightness,
+                               const float& current_brightness) = 0;
 
 
     /**
@@ -295,9 +295,10 @@ protected:
     /**
      * Enables the extended brightness search.
      * @param brightness target brightness
-     * @return true after reaching the target brightness. If false, recall the method until the method returns true.
+     * @return true after reaching the target brightness.
      */
-    virtual bool setExtendedBrightness(const int& target_brightness, const float& current_brightness) = 0;
+    virtual bool setExtendedBrightness(const int& target_brightness,
+                                       const float& current_brightness) = 0;
 
     /**
      * Parameters for the extended brightness search
@@ -326,7 +327,8 @@ protected:
     float grab_timeout_;
 
     /**
-     * Flag which is set in case that the grab-result-pointer of the first acquisition contains valid data
+     * Flag which is set in case that the grab-result-pointer of the first
+     * acquisition contains valid data
      */
     bool is_ready_;
 

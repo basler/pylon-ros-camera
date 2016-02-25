@@ -18,7 +18,8 @@ PylonCameraNode::PylonCameraNode() :
         img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
         grab_images_raw_action_server_(nh_, "grab_images_raw",
         boost::bind(&PylonCameraNode::grabImagesRawActionExecuteCB, this, _1), false),
-        set_sleeping_service_(nh_.advertiseService("set_sleeping_srv", &PylonCameraNode::setSleepingCallback, this)),
+        set_sleeping_service_(nh_.advertiseService("set_sleeping_srv",
+                              &PylonCameraNode::setSleepingCallback, this)),
         target_brightness_(-42),
         brightness_service_running_(false),
         is_sleeping_(false)
@@ -117,7 +118,8 @@ bool PylonCameraNode::startGrabbing()
     {
         float reached_gain;
         setGain(pylon_camera_parameter_set_.gain_, reached_gain);
-        ROS_INFO_STREAM("Setting gain to: " << pylon_camera_parameter_set_.gain_ << ", reached: " << reached_gain);
+        ROS_INFO_STREAM("Setting gain to: " << pylon_camera_parameter_set_.gain_
+                << ", reached: " << reached_gain);
         if ( pylon_camera_parameter_set_.gain_fixed_ )
         {
             setGain(-2.0, reached_gain);  // AutoGain_Off
@@ -128,7 +130,9 @@ bool PylonCameraNode::startGrabbing()
     {
         float reached_exposure;
         setExposure(pylon_camera_parameter_set_.exposure_, reached_exposure);
-        ROS_INFO_STREAM("Setting exposure to " << pylon_camera_parameter_set_.exposure_ << ", reached: " << reached_exposure);
+        ROS_INFO_STREAM("Setting exposure to "
+                << pylon_camera_parameter_set_.exposure_ << ", reached: "
+                << reached_exposure);
         if ( pylon_camera_parameter_set_.exposure_fixed_ )
         {
             setExposure(0.0, reached_exposure);
@@ -167,7 +171,8 @@ bool PylonCameraNode::startGrabbing()
     {
         float reached_gamma;
         setGamma(pylon_camera_parameter_set_.gamma_, reached_gamma);
-        ROS_INFO_STREAM("Setting gamma to " << pylon_camera_parameter_set_.gamma_ << ", reached: " << reached_gamma);
+        ROS_INFO_STREAM("Setting gamma to " << pylon_camera_parameter_set_.gamma_
+                << ", reached: " << reached_gamma);
     }
 
     ROS_INFO_STREAM("Starting with current settings: "
@@ -177,7 +182,7 @@ bool PylonCameraNode::startGrabbing()
             << "shutter mode = " << pylon_camera_parameter_set_.shutterModeString());
 
     // Framerate Settings
-    if (pylon_camera_->maxPossibleFramerate() < pylon_camera_parameter_set_.frameRate())
+    if ( pylon_camera_->maxPossibleFramerate() < pylon_camera_parameter_set_.frameRate() )
     {
         ROS_INFO("Desired framerate %.2f is higher than max possible. Will limit framerate to: %.2f Hz",
                  pylon_camera_parameter_set_.frameRate(),
@@ -249,17 +254,20 @@ void PylonCameraNode::setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
     header.stamp = ros::Time::now();
 
     // http://www.ros.org/reps/rep-0104.html
-    // If the camera is uncalibrated, the matrices D, K, R, P should be left zeroed out.
-    // In particular, clients may assume that K[0] == 0.0 indicates an uncalibrated camera.
+    // If the camera is uncalibrated, the matrices D, K, R, P should be left
+    // zeroed out. In particular, clients may assume that K[0] == 0.0
+    // indicates an uncalibrated camera.
     cam_info_msg.header = header;
     cam_info_msg.height = pylon_camera_->imageRows();
     cam_info_msg.width = pylon_camera_->imageCols();
 
-    // The distortion model used. Supported models are listed in sensor_msgs/distortion_models.h.
-    // For most cameras, "plumb_bob" - a simple model of radial and tangential distortion - is sufficient.
-    // Empty D and distortion_model indicate that the CameraInfo cannot be used to rectify points or images,
-    // either because the camera is not calibrated or because the rectified image was produced using an
-    // unsupported distortion model, e.g. the proprietary one used by Bumblebee cameras
+    // The distortion model used. Supported models are listed in
+    // sensor_msgs/distortion_models.h. For most cameras, "plumb_bob" - a
+    // simple model of radial and tangential distortion - is sufficient.
+    // Empty D and distortion_model indicate that the CameraInfo cannot be used 
+    // to rectify points or images, either because the camera is not calibrated
+    // or because the rectified image was produced using an unsupported
+    // distortion model, e.g. the proprietary one used by Bumblebee cameras
     // [http://www.ros.org/reps/rep-0104.html].
     cam_info_msg.distortion_model = "";
 
@@ -271,46 +279,52 @@ void PylonCameraNode::setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
     //     [fx  0 cx]
     // K = [ 0 fy cy]  --> 3x3 row-major matrix
     //     [ 0  0  1]
-    // Projects 3D points in the camera coordinate frame to 2D pixel coordinates using the
-    // focal lengths (fx, fy) and principal point (cx, cy).
+    // Projects 3D points in the camera coordinate frame to 2D pixel coordinates
+    // using the focal lengths (fx, fy) and principal point (cx, cy).
     cam_info_msg.K.assign(0.0);
 
     // Rectification matrix (stereo cameras only)
-    // A rotation matrix aligning the camera coordinate system to the ideal stereo image plane so that
-    // epipolar lines in both stereo images are parallel.
+    // A rotation matrix aligning the camera coordinate system to the ideal
+    // stereo image plane so that epipolar lines in both stereo images are parallel.
     cam_info_msg.R.assign(0.0);
 
     // Projection/camera matrix
     //     [fx'  0  cx' Tx]
     // P = [ 0  fy' cy' Ty]  --> # 3x4 row-major matrix
     //     [ 0   0   1   0]
-    // By convention, this matrix specifies the intrinsic (camera) matrix of the processed (rectified) image.
-    // That is, the left 3x3 portion is the normal camera intrinsic matrix for the rectified image.
-    // It projects 3D points in the camera coordinate frame to 2D pixel coordinates using the focal
-    // lengths (fx', fy') and principal point (cx', cy') - these may differ from the values in K.
-    // For monocular cameras, Tx = Ty = 0. Normally, monocular cameras will also have R = the identity
-    // and P[1:3,1:3] = K.
-    // For a stereo pair, the fourth column [Tx Ty 0]' is related to the position of the optical center of
-    // The second camera in the first camera's frame. We assume Tz = 0 so both cameras are in the same
-    // stereo image plane. The first camera always has Tx = Ty = 0. For the right (second) camera of a
-    // horizontal stereo pair, Ty = 0 and Tx = -fx' * B, where B is the baseline between the cameras.
-    // Given a 3D point [X Y Z]', the projection (x, y) of the point onto the rectified image is given by:
+    // By convention, this matrix specifies the intrinsic (camera) matrix of the
+    // processed (rectified) image. That is, the left 3x3 portion is the normal
+    // camera intrinsic matrix for the rectified image. It projects 3D points
+    // in the camera coordinate frame to 2D pixel coordinates using the focal
+    // lengths (fx', fy') and principal point (cx', cy') - these may differ from
+    // the values in K. For monocular cameras, Tx = Ty = 0. Normally, monocular
+    // cameras will also have R = the identity and P[1:3,1:3] = K.
+    // For a stereo pair, the fourth column [Tx Ty 0]' is related to the
+    // position of the optical center of the second camera in the first
+    // camera's frame. We assume Tz = 0 so both cameras are in the same
+    // stereo image plane. The first camera always has Tx = Ty = 0.
+    // For the right (second) camera of a horizontal stereo pair,
+    // Ty = 0 and Tx = -fx' * B, where B is the baseline between the cameras.
+    // Given a 3D point [X Y Z]', the projection (x, y) of the point onto the
+    // rectified image is given by:
     // [u v w]' = P * [X Y Z 1]'
     //        x = u / w
     //        y = v / w
     //  This holds for both images of a stereo pair.
     cam_info_msg.P.assign(0.0);
 
-    // Binning refers here to any camera setting which combines rectangular neighborhoods of pixels into
-    // larger "super-pixels." It reduces the resolution of the output image to
-    // (width / binning_x) x (height / binning_y). The default values binning_x = binning_y = 0 is
-    // considered the same as binning_x = binning_y = 1 (no subsampling).
+    // Binning refers here to any camera setting which combines rectangular
+    // neighborhoods of pixels into larger "super-pixels." It reduces the
+    // resolution of the output image to (width / binning_x) x (height / binning_y).
+    // The default values binning_x = binning_y = 0 is considered the same as
+    // binning_x = binning_y = 1 (no subsampling).
     cam_info_msg.binning_x = cam_info_msg.binning_y = pylon_camera_parameter_set_.binning_;
 
-    // Region of interest (subwindow of full camera resolution), given in full resolution (unbinned)
-    // image coordinates. A particular ROI always denotes the same window of pixels on the camera sensor,
-    // regardless of binning settings. The default setting of roi (all values 0) is considered the same as
-    // full resolution (roi.width = width, roi.height = height).
+    // Region of interest (subwindow of full camera resolution), given in full
+    // resolution (unbinned) image coordinates. A particular ROI always denotes
+    // the same window of pixels on the camera sensor, regardless of binning
+    // settings. The default setting of roi (all values 0) is considered the same
+    // as full resolution (roi.width = width, roi.height = height).
     cam_info_msg.roi.x_offset = cam_info_msg.roi.y_offset = 0;
     cam_info_msg.roi.height = cam_info_msg.roi.width = 0;
 }
@@ -422,7 +436,8 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
     grab_images_raw_action_server_.setSucceeded(result);
 }
 
-bool PylonCameraNode::setExposure(const float& target_exposure, float& reached_exposure)
+bool PylonCameraNode::setExposure(const float& target_exposure,
+                                  float& reached_exposure)
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     if ( !pylon_camera_->isReady() )
@@ -451,7 +466,8 @@ bool PylonCameraNode::setExposure(const float& target_exposure, float& reached_e
 
             if ( ros::Time::now() > timeout )
             {
-                ROS_ERROR("Error in setExposure(): Unable to set target exposure before timeout");
+                ROS_ERROR_STREAM("Error in setExposure(): Unable to set target"
+                        << " exposure before timeout");
                 return false;
             }
             r.sleep();
@@ -493,7 +509,8 @@ bool PylonCameraNode::setGain(const float& target_gain, float& reached_gain)
 
             if ( ros::Time::now() > timeout )
             {
-                ROS_ERROR("Error in setGain(): Unable to set target gain before timeout");
+                ROS_ERROR_STREAM("Error in setGain(): Unable to set target "
+                        << "gain before timeout");
                 return false;
             }
             r.sleep();
@@ -537,7 +554,8 @@ bool PylonCameraNode::setGamma(const float& target_gamma, float& reached_gamma)
 
             if ( ros::Time::now() > timeout )
             {
-                ROS_ERROR("Error in setGamma(): Unable to set target gamma before timeout");
+                ROS_ERROR_STREAM("Error in setGamma(): Unable to set target "
+                        << "gamma before timeout");
                 return false;
             }
             r.sleep();
@@ -552,12 +570,15 @@ bool PylonCameraNode::setGammaCallback(camera_control_msgs::SetGamma::Request &r
     return true;
 }
 
-bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_brightness)
+bool PylonCameraNode::setBrightness(const int& target_brightness,
+                                    int& reached_brightness)
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
 
-    // brightness service can only work, if an image has already been grabbed, because it calculates the mean on the
-    // current image. The interface is ready if the grab-result-pointer of the first acquisition contains valid data
+    // brightness service can only work, if an image has already been grabbed,
+    // because it calculates the mean on the current image. The interface is
+    // ready if the grab-result-pointer of the first acquisition contains
+    // valid data
     if ( !waitForCamera(ros::Duration(3.0)) )
     {
         ROS_ERROR("Setting brightness failed: interface not ready, although waiting for 3 sec!");
@@ -579,7 +600,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
                     << target_brightness << ", current brightness = "
                     << current_brightness);
 
-    if ( fabs(current_brightness - static_cast<float>(target_brightness)) <= 1.0)
+    if ( fabs(current_brightness - static_cast<float>(target_brightness)) <= 1.0 )
     {
         reached_brightness = static_cast<int>(current_brightness);
         return true;  // target brightness already reached
@@ -662,7 +683,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness, int& reached_b
 }
 
 bool PylonCameraNode::setBrightnessCallback(camera_control_msgs::SetBrightnessSrv::Request &req,
-    camera_control_msgs::SetBrightnessSrv::Response &res)
+                                            camera_control_msgs::SetBrightnessSrv::Response &res)
 {
     res.success = setBrightness(req.target_brightness, res.reached_brightness);
     return true;
@@ -678,7 +699,7 @@ float PylonCameraNode::calcCurrentBrightness()
 }
 
 bool PylonCameraNode::setSleepingCallback(camera_control_msgs::SetSleepingSrv::Request &req,
-    camera_control_msgs::SetSleepingSrv::Response &res)
+                                          camera_control_msgs::SetSleepingSrv::Response &res)
 {
     is_sleeping_ = req.set_sleeping;
 
@@ -708,4 +729,4 @@ PylonCameraNode::~PylonCameraNode()
     it_ = NULL;
 }
 
-}  // namespace pylon_camer
+}  // namespace pylon_camera

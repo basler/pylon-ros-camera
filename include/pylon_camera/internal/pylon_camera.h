@@ -92,7 +92,8 @@ protected:
     typedef typename CameraTraitT::ShutterModeEnums ShutterModeEnums;
     typedef typename CameraTraitT::UserOutputSelectorEnums UserOutputSelectorEnums;
 
-    // Each camera has it's own getter for GenApi accessors that are named differently for USB and GigE
+    // Each camera has it's own getter for GenApi accessors that are named
+    // differently for USB and GigE
     GenApi::IFloat& exposureTime();
     GainType& gain();
     GenApi::IFloat& gamma();

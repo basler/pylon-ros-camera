@@ -60,10 +60,6 @@ bool PylonUSBCamera::applyCamSpecificStartupSettings(const PylonCameraParameter&
         // The gain auto function and the exposure auto function can be used at the same time. In this case,
         // however, you must also set the Auto Function Profile feature.
         //  cam_->AutoFunctionProfile.SetValue(Basler_UsbCameraParams::AutoFunctionProfile_MinimizeGain);
-       // cam_->GainAuto.SetValue(Basler_UsbCameraParams::GainAuto_Off);
-
-    //    float reached_gain;
-     //   setGain(params.gain_, reached_gain);
 
         ROS_INFO_STREAM("Cam has gain range: [" << cam_->Gain.GetMin()
                 << " - " << cam_->Gain.GetMax()
@@ -73,12 +69,13 @@ bool PylonUSBCamera::applyCamSpecificStartupSettings(const PylonCameraParameter&
                 << "] measured in microseconds.");
         ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
                 << cam_->AutoTargetBrightness.GetMin() * 255 << " - "
-                << cam_->AutoTargetBrightness.GetMax() * 255 << "] which is the average pixel intensity.");
+                << cam_->AutoTargetBrightness.GetMax() * 255
+                << "] which is the average pixel intensity.");
         ROS_INFO_STREAM("Cam has gammma range: ["
                 << cam_->Gamma.GetMin() << " - "
                 << cam_->Gamma.GetMax() << "].");
     }
-    catch (const GenICam::GenericException &e)
+    catch ( const GenICam::GenericException &e )
     {
         ROS_ERROR_STREAM("Error applying cam specific startup setting for USB cameras: "
                 << e.GetDescription());
@@ -88,12 +85,13 @@ bool PylonUSBCamera::applyCamSpecificStartupSettings(const PylonCameraParameter&
 }
 
 template <>
-bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times, std::vector<float>& exposure_times_set)
+bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times,
+                                    std::vector<float>& exposure_times_set)
 {
     try
     {
         // Runtime Sequencer: cam_->IsGrabbing() ? cam_->StopGrabbing(); //10ms
-        if (GenApi::IsWritable(cam_->SequencerMode))
+        if ( GenApi::IsWritable(cam_->SequencerMode) )
         {
             cam_->SequencerMode.SetValue(Basler_UsbCameraParams::SequencerMode_Off);
         }
@@ -116,14 +114,14 @@ bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times, st
         cam_->SequencerTriggerSource.SetValue(Basler_UsbCameraParams::SequencerTriggerSource_FrameStart);
         // ********************************************************
 
-        for (std::size_t i = 0; i < exposure_times.size(); ++i)
+        for ( std::size_t i = 0; i < exposure_times.size(); ++i )
         {
-            if (i > 0)
+            if ( i > 0 )
             {
                 cam_->SequencerSetSelector.SetValue(i);
             }
 
-            if (i == exposure_times.size() - 1)  // last frame
+            if ( i == exposure_times.size() - 1 )  // last frame
             {
                 cam_->SequencerSetNext.SetValue(0);
             }
@@ -141,9 +139,10 @@ bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times, st
         cam_->SequencerConfigurationMode.SetValue(Basler_UsbCameraParams::SequencerConfigurationMode_Off);
         cam_->SequencerMode.SetValue(Basler_UsbCameraParams::SequencerMode_On);
     }
-    catch (const GenICam::GenericException &e)
+    catch ( const GenICam::GenericException &e )
     {
-        ROS_ERROR_STREAM("ERROR while initializing pylon sequencer:" << e.GetDescription());
+        ROS_ERROR_STREAM("ERROR while initializing pylon sequencer: "
+                << e.GetDescription());
         return false;
     }
     return true;

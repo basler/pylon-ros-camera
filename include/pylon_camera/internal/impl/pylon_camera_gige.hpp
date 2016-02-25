@@ -59,32 +59,30 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         cam_->AutoGainRawLowerLimit.SetValue(cam_->GainRaw.GetMin());
         cam_->AutoGainRawUpperLimit.SetValue(cam_->GainRaw.GetMax());
 
-        // The gain auto function and the exposure auto function can be used at the same time. In this case,
-        // however, you must also set the Auto Function Profile feature.
-//        cam_->AutoFunctionProfile.SetValue(Basler_GigECameraParams::AutoFunctionProfile_GainMinimum);
+        // The gain auto function and the exposure auto function can be used at the
+        // same time. In this case, however, you must also set the
+        // Auto Function Profile feature.
         // acA1920-40gm does not suppert Basler_GigECameraParams::GainSelector_AnalogAll
         // has Basler_GigECameraParams::GainSelector_All instead
         // cam_->GainSelector.SetValue(Basler_GigECameraParams::GainSelector_AnalogAll);
-//        cam_->GainAuto.SetValue(Basler_GigECameraParams::GainAuto_Off);
-        //float reached_gain;
-        //setGain(params.gain_, reached_gain);
 
-
-        ROS_INFO_STREAM("Cam has gain range: [" << cam_->GainRaw.GetMin() << " - " << cam_->GainRaw.GetMax()
-                << "] measured in decive specific units.");
-        ROS_INFO_STREAM("Cam has exposure time range: [" << cam_->ExposureTimeAbs.GetMin() << " - "
-                << cam_->ExposureTimeAbs.GetMax() << "] measured in microseconds.");
+        ROS_INFO_STREAM("Cam has gain range: [" << cam_->GainRaw.GetMin() << " - "
+                << cam_->GainRaw.GetMax() << "] measured in decive specific units.");
+        ROS_INFO_STREAM("Cam has exposure time range: [" << cam_->ExposureTimeAbs.GetMin()
+                << " - " << cam_->ExposureTimeAbs.GetMax()
+                << "] measured in microseconds.");
         ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
                 << cam_->AutoTargetValue.GetMin() << " - "
-                << cam_->AutoTargetValue.GetMax() << "] which is the average pixel intensity.");
+                << cam_->AutoTargetValue.GetMax()
+                << "] which is the average pixel intensity.");
         ROS_INFO_STREAM("Cam has gammma range: ["
                 << cam_->Gamma.GetMin() << " - "
                 << cam_->Gamma.GetMax() << "].");
-        // Basler-Debug Day:  Read- & Write Retry-Counter should stay default (=2)
-        // Linux does only support 1
 
-        // raise inter-package delay (GevSCPD) for solving error: 'the image buffer was incompletely grabbed'
-        // also in ubuntu settings -> network -> options -> MTU Size from 'automatic' to 3000 if card supports it
+        // raise inter-package delay (GevSCPD) for solving error:
+        // 'the image buffer was incompletely grabbed'
+        // also in ubuntu settings -> network -> options -> MTU Size
+        // from 'automatic' to 3000 if card supports it
         // Raspberry PI has MTU = 1500, max value for some cards: 9000
         cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
 
@@ -96,7 +94,7 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         // std::cout << "Inter-Package Delay" << inter_package_delay_in_ticks << std::endl;
         cam_->GevSCPD.SetValue(1000);
     }
-    catch (const GenICam::GenericException &e)
+    catch ( const GenICam::GenericException &e )
     {
         ROS_ERROR_STREAM("Error applying cam specific startup setting for GigE cameras: "
                 << e.GetDescription());
@@ -106,7 +104,8 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
 }
 
 template <>
-bool PylonGigECamera::setupSequencer(const std::vector<float>& exposure_times, std::vector<float>& exposure_times_set)
+bool PylonGigECamera::setupSequencer(const std::vector<float>& exposure_times,
+                                     std::vector<float>& exposure_times_set)
 {
     try
     {
@@ -123,7 +122,7 @@ bool PylonGigECamera::setupSequencer(const std::vector<float>& exposure_times, s
         cam_->SequenceAdvanceMode = Basler_GigECameraParams::SequenceAdvanceMode_Auto;
         cam_->SequenceSetTotalNumber = exposure_times.size();
 
-        for (std::size_t i = 0; i < exposure_times.size(); ++i)
+        for ( std::size_t i = 0; i < exposure_times.size(); ++i )
         {
             // Set parameters for each step
             cam_->SequenceSetIndex = i;
@@ -136,7 +135,7 @@ bool PylonGigECamera::setupSequencer(const std::vector<float>& exposure_times, s
         // config finished
         cam_->SequenceEnable.SetValue(true);
     }
-    catch (const GenICam::GenericException &e)
+    catch ( const GenICam::GenericException &e )
     {
         ROS_ERROR("%s", e.GetDescription());
         return false;

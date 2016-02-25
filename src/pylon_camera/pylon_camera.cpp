@@ -35,14 +35,14 @@ PYLON_CAM_TYPE detectPylonCamType(Pylon::CInstantCamera* cam)
     {
         sfnc_version = cam->GetSfncVersion();
     }
-    catch (const GenICam::GenericException &e)
+    catch ( const GenICam::GenericException &e )
     {
-        ROS_ERROR_STREAM("An exception while detecting the pylon camera type from its SFNC-Version occurred: "
-                         << e.GetDescription());
+        ROS_ERROR_STREAM("An exception while detecting the pylon camera type "
+                << "from its SFNC-Version occurred: " << e.GetDescription());
         return UNKNOWN;
     }
 
-    switch (sfnc_version.getMinor())
+    switch ( sfnc_version.getMinor() )
     {
     case 0:  // GigE Camera: Sfnc_2_0_0
         return GIGE;
@@ -58,7 +58,7 @@ PYLON_CAM_TYPE detectPylonCamType(Pylon::CInstantCamera* cam)
 
 PylonCamera* createFromDevice(PYLON_CAM_TYPE cam_type, Pylon::IPylonDevice* device)
 {
-    switch (cam_type)
+    switch ( cam_type )
     {
         case GIGE:
             return new PylonGigECamera(device);
@@ -79,8 +79,8 @@ PylonCamera* PylonCamera::create()
         // Before using any pylon methods, the pylon runtime must be initialized.
         Pylon::PylonInitialize();
 
-        // BaslerDebugDay: It is possible to detect the correct camera without opening it first
-        // Hence use CDeviceInfo info; to detect the name
+        // BaslerDebugDay: It is possible to detect the correct camera without
+        // opening it first. Hence use CDeviceInfo info; to detect the name
 
         Pylon::CInstantCamera* cam = new Pylon::CInstantCamera(Pylon::CTlFactory::GetInstance().CreateFirstDevice());
         cam->Open();
@@ -98,7 +98,7 @@ PylonCamera* PylonCamera::create()
         delete cam;
         return createFromDevice(cam_type, Pylon::CTlFactory::GetInstance().CreateFirstDevice());
     }
-    catch (const GenICam::GenericException &e)
+    catch ( const GenICam::GenericException &e )
     {
         ROS_ERROR_STREAM("Error while PylonCamera::create(). \r\nException: " << e.what());
         return NULL;
@@ -107,7 +107,7 @@ PylonCamera* PylonCamera::create()
 
 PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
 {
-    if (device_user_id_to_open.empty())
+    if ( device_user_id_to_open.empty() )
     {
         return create();
     }
@@ -122,7 +122,7 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
         // Get all attached devices and exit application if no device is found.
         Pylon::DeviceInfoList_t device_info_list;
 
-        if (transport_layer_factory.EnumerateDevices(device_info_list) == 0)
+        if ( transport_layer_factory.EnumerateDevices(device_info_list) == 0 )
         {
             ROS_ERROR("No camera present.");
             return NULL;
@@ -135,7 +135,7 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
 
         // Create and attach all Pylon Devices.
         size_t cam_pos = -1;
-        for (size_t i = 0; i < camera_array.GetSize(); ++i)
+        for ( size_t i = 0; i < camera_array.GetSize(); ++i )
         {
             try
             {
@@ -154,18 +154,19 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
                 {
                     found_desired_device = true;
                     cam_pos = i;
-                    ROS_INFO_STREAM("Found the desired camera with DeviceUserID: " << device_user_id_to_open
-                                    << ": " << camera_array[cam_pos].GetDeviceInfo().GetModelName());
+                    ROS_INFO_STREAM("Found the desired camera with DeviceUserID: "
+                            << device_user_id_to_open << ": "
+                            << camera_array[cam_pos].GetDeviceInfo().GetModelName());
                     break;
                 }
             }
-            catch (const GenICam::GenericException &e)
+            catch ( const GenICam::GenericException &e )
             {
                 continue;
             }
         }
 
-        if (!found_desired_device)
+        if ( !found_desired_device )
         {
             ROS_ERROR_STREAM("Maybe the given DeviceUserID (" <<
                              device_user_id_to_open <<
@@ -173,16 +174,17 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
             return NULL;
         }
 
-        if (!camera_array[cam_pos].IsOpen())
+        if ( !camera_array[cam_pos].IsOpen() )
         {
             camera_array[cam_pos].Open();
         }
         PYLON_CAM_TYPE cam_type = detectPylonCamType(&camera_array[cam_pos]);
         camera_array[cam_pos].Close();
 
-        return createFromDevice(cam_type, transport_layer_factory.CreateDevice(camera_array[cam_pos].GetDeviceInfo()));
+        return createFromDevice(cam_type,
+                                transport_layer_factory.CreateDevice(camera_array[cam_pos].GetDeviceInfo()));
     }
-    catch (GenICam::GenericException &e)
+    catch ( GenICam::GenericException &e )
     {
         ROS_ERROR_STREAM("An exception while opening the desired camera with Device User ID: <"
                          << device_user_id_to_open << "> occurred:" << e.GetDescription());
@@ -205,10 +207,6 @@ const size_t& PylonCamera::imageSize() const
     return img_size_byte_;
 }
 
-/**
- * Max allowed delta between target and reached brightness
- * @return the allowed tolerance.
- */
 const float& PylonCamera::maxBrightnessTolerance() const
 {
     return max_brightness_tolerance_;
@@ -219,10 +217,6 @@ const bool& PylonCamera::isCamRemoved() const
     return is_cam_removed_;
 }
 
-/**
- * Flag which is set in case that the grab-result-pointer of the first acquisition contains valid data
- * From this point on, the interface is ready
- */
 const bool& PylonCamera::isReady() const
 {
     return is_ready_;

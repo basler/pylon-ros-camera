@@ -36,7 +36,7 @@ bool PylonCameraImpl<CameraTraitT>::registerCameraConfiguration()
                                         Pylon::Cleanup_Delete);
         return true;
     }
-    catch (const GenICam::GenericException &e)
+    catch ( const GenICam::GenericException &e )
     {
         ROS_ERROR_STREAM(e.GetDescription());
         return false;
@@ -51,7 +51,7 @@ bool PylonCameraImpl<CameraTraitT>::openCamera()
         cam_->Open();
         return true;
     }
-    catch (const GenICam::GenericException &e)
+    catch ( const GenICam::GenericException &e )
     {
         ROS_ERROR_STREAM(e.GetDescription());
         return false;
@@ -143,15 +143,15 @@ template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setupSequencer(const std::vector<float>& exposure_times)
 {
     std::vector<float> exposure_times_set;
-    if (setupSequencer(exposure_times, exposure_times_set))
+    if ( setupSequencer(exposure_times, exposure_times_set) )
     {
         seq_exp_times_ = exposure_times_set;
         std::stringstream ss;
         ss << "Initialized sequencer with the following inverse exposure-times [1/s]: ";
-        for (size_t i = 0; i < seq_exp_times_.size(); ++i)
+        for ( size_t i = 0; i < seq_exp_times_.size(); ++i )
         {
             ss << seq_exp_times_.at(i);
-            if (i != seq_exp_times_.size() - 1)
+            if ( i != seq_exp_times_.size() - 1 )
             {
                 ss << ", ";
             }
@@ -170,7 +170,7 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
 {
     try
     {
-        if (GenApi::IsAvailable(cam_->ShutterMode))
+        if ( GenApi::IsAvailable(cam_->ShutterMode) )
         {
             setShutterMode(parameters.shutter_mode_);
         }
@@ -186,7 +186,7 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         image_pixel_depth_ = cam_->PixelSize.GetValue();
         img_size_byte_ =  img_cols_ * img_rows_ * imagePixelDepth();
 
-        if (image_encoding_ != PixelFormatEnums::PixelFormat_Mono8)
+        if ( image_encoding_ != PixelFormatEnums::PixelFormat_Mono8 )
         {
             cam_->PixelFormat.SetValue(PixelFormatEnums::PixelFormat_Mono8);
             image_encoding_ = cam_->PixelFormat.GetValue();
@@ -198,7 +198,7 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         // grab one image to be sure, that the communication is successful
         Pylon::CGrabResultPtr grab_result;
         grab(grab_result);
-        if (grab_result.IsValid())
+        if ( grab_result.IsValid() )
         {
             is_ready_ = true;
         }
@@ -207,7 +207,7 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
             ROS_ERROR("PylonCamera not ready because the result of the initial grab is invalid");
         }
     }
-    catch (const GenICam::GenericException &e)
+    catch ( const GenICam::GenericException &e )
     {
         ROS_ERROR_STREAM("startGrabbing: " << e.GetDescription());
         return false;
@@ -220,7 +220,7 @@ template <typename CameraTrait>
 bool PylonCameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image)
 {
     Pylon::CGrabResultPtr ptr_grab_result;
-    if (!grab(ptr_grab_result))
+    if ( !grab(ptr_grab_result) )
     {
         ROS_ERROR("Error: Grab was not successful");
         return false;
@@ -229,7 +229,7 @@ bool PylonCameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image)
     const uint8_t *pImageBuffer = reinterpret_cast<uint8_t*>(ptr_grab_result->GetBuffer());
     image.assign(pImageBuffer, pImageBuffer + img_size_byte_);
 
-    if (!is_ready_)
+    if ( !is_ready_ )
         is_ready_ = true;
 
     return true;
@@ -239,7 +239,7 @@ template <typename CameraTrait>
 bool PylonCameraImpl<CameraTrait>::grab(uint8_t* image)
 {
     Pylon::CGrabResultPtr ptr_grab_result;
-    if (!grab(ptr_grab_result))
+    if ( !grab(ptr_grab_result) )
     {
         ROS_ERROR("Error: Grab was not successful");
         return false;
@@ -260,7 +260,7 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
         // WaitForFrameTriggerReady to prevent trigger signal to get lost
         // this could happen, if 2xExecuteSoftwareTrigger() is only followed by 1xgrabResult()
         // -> 2nd trigger might get lost
-        if (cam_->WaitForFrameTriggerReady(timeout, Pylon::TimeoutHandling_ThrowException))
+        if ( cam_->WaitForFrameTriggerReady(timeout, Pylon::TimeoutHandling_ThrowException) )
         {
             cam_->ExecuteSoftwareTrigger();
         }
@@ -271,16 +271,17 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
         }
         cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException);
     }
-    catch (const GenICam::GenericException &e)
+    catch ( const GenICam::GenericException &e )
     {
-        if (cam_->IsCameraDeviceRemoved())
+        if ( cam_->IsCameraDeviceRemoved() )
         {
             is_cam_removed_ = true;
             ROS_ERROR("Camera was removed");
         }
         else
         {
-            ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: " << e.GetDescription());
+            ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: "
+                    << e.GetDescription());
         }
         return false;
     }
@@ -290,9 +291,10 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
         return false;
     }
 
-    if (!grab_result->GrabSucceeded())
+    if ( !grab_result->GrabSucceeded() )
     {
-        ROS_ERROR_STREAM("Error: " << grab_result->GetErrorCode() << " " << grab_result->GetErrorDescription());
+        ROS_ERROR_STREAM("Error: " << grab_result->GetErrorCode() << " "
+                << grab_result->GetErrorDescription());
         return false;
     }
 
@@ -300,26 +302,31 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setExposure(const float& target_exposure, float& reached_exposure)
+bool PylonCameraImpl<CameraTraitT>::setExposure(const float& target_exposure,
+                                                float& reached_exposure)
 {
-    if ((target_exposure == -1.0 || target_exposure == 0.0) && !GenApi::IsAvailable(cam_->ExposureAuto) )
+    if ( ( target_exposure == -1.0 || target_exposure == 0.0 ) &&
+         !GenApi::IsAvailable(cam_->ExposureAuto) )
     {
-        ROS_ERROR("Error while trying to set auto exposure properties: camera has no auto exposure function!");
+        ROS_ERROR_STREAM("Error while trying to set auto exposure properties: "
+                << "camera has no auto exposure function!");
         return false;
     }
-    else if (!(target_exposure == -1.0 || target_exposure == 0.0) && target_exposure < 0.0)
+    else if ( !(target_exposure == -1.0 || target_exposure == 0.0) &&
+              target_exposure < 0.0 )
     {
-        ROS_ERROR_STREAM("Target Exposure " << target_exposure << " not in the allowed range");
+        ROS_ERROR_STREAM("Target Exposure " << target_exposure
+                << " not in the allowed range");
         return false;
     }
 
     try
     {
-        if (target_exposure == -1.0)
+        if ( target_exposure == -1.0 )
         {
             cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Continuous);
         }
-        else if (target_exposure == 0.0)
+        else if ( target_exposure == 0.0 )
         {
             cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
         }
@@ -328,13 +335,13 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const float& target_exposure, fl
             cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
 
             float exposure_to_set = target_exposure;
-            if (exposureTime().GetMin() > exposure_to_set)
+            if ( exposureTime().GetMin() > exposure_to_set )
             {
                 exposure_to_set = exposureTime().GetMin();
                 ROS_WARN_STREAM("Desired exposure time unreachable! Setting to lower limit: "
                                   << exposure_to_set);
             }
-            else if (exposureTime().GetMax() < exposure_to_set)
+            else if ( exposureTime().GetMax() < exposure_to_set )
             {
                 exposure_to_set = exposureTime().GetMax();
                 ROS_WARN_STREAM("Desired exposure time unreachable! Setting to upper limit: "
@@ -351,7 +358,7 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const float& target_exposure, fl
             }
         }
     }
-    catch (const GenICam::GenericException &e)
+    catch ( const GenICam::GenericException &e )
     {
         ROS_ERROR_STREAM("An exception while setting target exposure to "
                          << target_exposure << " occurred:"
@@ -362,38 +369,43 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const float& target_exposure, fl
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setGain(const float& target_gain, float& reached_gain)
+bool PylonCameraImpl<CameraTraitT>::setGain(const float& target_gain,
+                                            float& reached_gain)
 {
-    if ((target_gain == -1.0 || target_gain == -2.0) && !GenApi::IsAvailable(cam_->GainAuto) )
+    if ( (target_gain == -1.0 || target_gain == -2.0) &&
+         !GenApi::IsAvailable(cam_->GainAuto) )
     {
-        ROS_ERROR("Error while trying to set auto gain properties: camera has no auto gain function!");
+        ROS_ERROR_STREAM("Error while trying to set auto gain properties: "
+                << "camera has no auto gain function!");
         return false;
     }
-    else if (!(target_gain == -1.0 || target_gain == -2.0) && target_gain < 0.0)
+    else if ( !(target_gain == -1.0 || target_gain == -2.0) && target_gain < 0.0 )
     {
-        ROS_ERROR_STREAM("Target Gain " << target_gain << " not in the allowed range");
+        ROS_ERROR_STREAM("Target Gain " << target_gain
+                << " not in the allowed range");
         return false;
     }
 
     try
     {
-        if (target_gain == -1.0)
+        if ( target_gain == -1.0 )
         {
             cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Continuous);
         }
-        else if (target_gain == -2.0)
+        else if ( target_gain == -2.0 )
         {
             cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Off);
         }
         else
         {
-            float gain_to_set = gain().GetMin() + target_gain * (gain().GetMax() - gain().GetMin());
+            float gain_to_set = gain().GetMin() + target_gain *
+                                        (gain().GetMax() - gain().GetMin());
             gain().SetValue(gain_to_set);
-            ROS_INFO_STREAM("Gain to set: " << gain_to_set );
+            ROS_INFO_STREAM("Gain to set: " << gain_to_set);
             reached_gain = currentGain();
         }
     }
-    catch (const GenICam::GenericException &e)
+    catch ( const GenICam::GenericException &e )
     {
         ROS_ERROR_STREAM("An exception while setting target gain to "
                << target_gain << " occurred: " << e.GetDescription());
@@ -427,11 +439,11 @@ bool PylonCameraImpl<CameraTraitT>::setGamma(const float& target_gamma, float& r
             ROS_WARN_STREAM("Desired gamma unreachable! Setting to upper limit: "
                                   << gamma_to_set);
         }
-        ROS_INFO_STREAM("Setting Gamma: " << gamma_to_set );
+        ROS_INFO_STREAM("Setting Gamma: " << gamma_to_set);
         gamma().SetValue(gamma_to_set);
         reached_gamma = currentGamma();
     }
-    catch (const GenICam::GenericException &e)
+    catch ( const GenICam::GenericException &e )
     {
         ROS_ERROR_STREAM("An exception while setting target gamma to "
                 << target_gamma << " occurred: " << e.GetDescription());
@@ -446,14 +458,18 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
 {
     try
     {
-        if ( (target_brightness == -1 || target_brightness == 0) && !GenApi::IsAvailable(cam_->ExposureAuto) )
+        if ( (target_brightness == -1 || target_brightness == 0) &&
+                !GenApi::IsAvailable(cam_->ExposureAuto) )
         {
-            ROS_ERROR("Error while trying to set auto brightness properties: camera has no auto exposure function!");
+            ROS_ERROR_STREAM("Error while trying to set auto brightness properties: "
+                    << "camera has no auto exposure function!");
             return false;
         }
-        else if ( !(target_brightness == -1 || target_brightness == 0) && target_brightness < 0 )
+        else if ( !(target_brightness == -1 || target_brightness == 0) &&
+                    target_brightness < 0 )
         {
-            ROS_ERROR_STREAM("Target brightness " << target_brightness << " not in the allowed range");
+            ROS_ERROR_STREAM("Target brightness " << target_brightness
+                    << " not in the allowed range");
             return false;
         }
 
@@ -549,9 +565,10 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
     }
     catch (const GenICam::GenericException &e)
     {
-        ROS_ERROR_STREAM("An generic exception while setting target brightness to " << target_brightness << " (= "
-                         << CameraTraitT::convertBrightness(std::min(255, target_brightness)) <<  ") occurred: "
-                         << e.GetDescription());
+        ROS_ERROR_STREAM("An generic exception while setting target brightness to "
+                << target_brightness << " (= "
+                << CameraTraitT::convertBrightness(std::min(255, target_brightness))
+                <<  ") occurred: " << e.GetDescription());
         return false;
     }
     return true;
@@ -617,11 +634,11 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brig
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setShutterMode(const SHUTTER_MODE &mode)
+bool PylonCameraImpl<CameraTraitT>::setShutterMode(const SHUTTER_MODE &shutter_mode)
 {
     try
     {
-        switch (mode)
+        switch (shutter_mode)
         {
         case pylon_camera::SM_ROLLING:
             cam_->ShutterMode.SetValue(ShutterModeEnums::ShutterMode_Rolling);
@@ -637,21 +654,19 @@ bool PylonCameraImpl<CameraTraitT>::setShutterMode(const SHUTTER_MODE &mode)
             break;
         }
     }
-    catch (const GenICam::GenericException &e)
+    catch ( const GenICam::GenericException &e )
     {
-        ROS_ERROR_STREAM("An exception while setting shutter mode to " << mode <<
-                         " occurred: " << e.GetDescription());
+        ROS_ERROR_STREAM("An exception while setting shutter mode to "
+               << shutter_mode << " occurred: " << e.GetDescription());
         return false;
     }
-
-    /// TODO: read back value
     return true;
 }
 
 template <typename CameraTraitT>
 std::string PylonCameraImpl<CameraTraitT>::imageEncoding() const
 {
-    switch (image_encoding_)
+    switch ( image_encoding_ )
     {
         case PixelFormatEnums::PixelFormat_Mono8:
             return sensor_msgs::image_encodings::MONO8;
@@ -663,7 +678,7 @@ std::string PylonCameraImpl<CameraTraitT>::imageEncoding() const
 template <typename CameraTraitT>
 int PylonCameraImpl<CameraTraitT>::imagePixelDepth() const
 {
-    switch (image_pixel_depth_)
+    switch ( image_pixel_depth_ )
     {
         case PixelSizeEnums::PixelSize_Bpp8:
             return sizeof(uint8_t);
@@ -685,7 +700,8 @@ float PylonCameraImpl<CameraTraitT>::maxPossibleFramerate()
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setUserOutput(const int& output_id, const bool& value)
+bool PylonCameraImpl<CameraTraitT>::setUserOutput(const int& output_id,
+                                                  const bool& value)
 {
     ROS_INFO("PylonGigECamera: Setting output id %i to %i", output_id, value);
 
@@ -694,13 +710,13 @@ bool PylonCameraImpl<CameraTraitT>::setUserOutput(const int& output_id, const bo
         cam_->UserOutputSelector.SetValue(static_cast<UserOutputSelectorEnums>(output_id));
         cam_->UserOutputValue.SetValue(value);
     }
-    catch (const std::exception& ex)
+    catch ( const std::exception& ex )
     {
         ROS_ERROR("Could not set user output %i: %s", output_id, ex.what());
         return false;
     }
 
-    if (value != cam_->UserOutputValue.GetValue())
+    if ( value != cam_->UserOutputValue.GetValue() )
     {
         ROS_ERROR("Value %i could not be set to output %i", value, output_id);
         return false;

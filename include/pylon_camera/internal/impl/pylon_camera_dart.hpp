@@ -22,7 +22,8 @@ public:
     virtual std::string typeName() const;
 
 protected:
-    virtual bool setupSequencer(const std::vector<float>& exposure_times, std::vector<float>& exposure_times_set);
+    virtual bool setupSequencer(const std::vector<float>& exposure_times,
+                                std::vector<float>& exposure_times_set);
     virtual bool grab(Pylon::CGrabResultPtr& grab_result);
 };
 
@@ -39,7 +40,6 @@ bool PylonDARTCamera::applyCamSpecificStartupSettings(const PylonCameraParameter
     {
         return false;
     }
-//    cam_->AutoFunctionProfile.SetValue(Basler_UsbCameraParams::AutoFunctionProfile_Smart);
     return true;
 }
 
@@ -49,7 +49,8 @@ bool PylonDARTCamera::setUserOutput(int output_id, bool value)
     return false;
 }
 
-bool PylonDARTCamera::setupSequencer(const std::vector<float>& exposure_times, std::vector<float>& exposure_times_set)
+bool PylonDARTCamera::setupSequencer(const std::vector<float>& exposure_times,
+                                     std::vector<float>& exposure_times_set)
 {
     ROS_ERROR("Sequencer Mode for Dart Cameras not yet implemented");
     return false;
@@ -62,7 +63,8 @@ bool PylonDARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
         // /!\ The dart camera device does not support waiting for frame trigger ready
         cam_->ExecuteSoftwareTrigger();
 
-        cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException);
+        cam_->RetrieveResult(grab_timeout_, grab_result,
+                             Pylon::TimeoutHandling_ThrowException);
     }
     catch (const GenICam::GenericException &e)
     {
@@ -73,7 +75,8 @@ bool PylonDARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
         }
         else
         {
-            ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: " << e.GetDescription());
+            ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: "
+                    << e.GetDescription());
         }
         return false;
     }
@@ -85,7 +88,8 @@ bool PylonDARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
 
     if ( !grab_result->GrabSucceeded() )
     {
-        ROS_ERROR_STREAM("Error: " << grab_result->GetErrorCode() << " " << grab_result->GetErrorDescription());
+        ROS_ERROR_STREAM("Error: " << grab_result->GetErrorCode()
+                << " " << grab_result->GetErrorDescription());
         return false;
     }
 
