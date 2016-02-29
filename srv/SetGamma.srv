@@ -1,0 +1,7 @@
+# target gamma
+float32 target_gamma
+---
+# target value can not always be reached
+float32 reached_gamma
+bool success
+
