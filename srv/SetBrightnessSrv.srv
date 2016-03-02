@@ -1,6 +1,23 @@
-# target brightness
+# The target brightness, which is average intensity values of the images.
+# It depends the exposure time as well as the gain setting.
 int32 target_brightness
+
+# The brightness_continuous flag controls the auto brightness function.
+# If it is set to false, the given brightness will only be reached once.
+# Hence changing light conditions lead to changing brightness values.
+# If it is set to true, the given brightness will be reached continuously,
+# trying to adapt to changing light conditions.
+bool brightness_continuous
+
+# Only relevant, if brightness_continuous is true:
+# If the camera should try to keep the desired brightness, hence adapting to
+# changing light conditions, at least one of the following flags must be set.
+# If both are set, the interface will use the profile that tries to keep the
+# gain at minimum to reduce white noise
+bool exposure_continuous
+bool gain_continuous
+
 ---
-# target value can not always be reached
+# Exact match can not always be reached
 int32 reached_brightness
 bool success

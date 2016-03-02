@@ -7,7 +7,7 @@ uint8 BRIGHTNESS = 1
 uint8 EXPOSURE = 2
 # select between desired mean brightness or exposure
 uint8 target_type
-# list of target exposures / brightness -> resulting image list has same size
+# list of target exposures/brightness -> resulting 'images' list has same size
 float32[] target_values
 ########################################## DEPRECATED !!!
 
