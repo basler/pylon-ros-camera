@@ -22,29 +22,6 @@ bool exposure_given
 # search, in case that the flag exposure_fixed is not true.
 float32[] exposure_times
 
-# If the exposure_fixed flag is set, the current exposure time will stay fix in
-# case of a brightness search. Hence the target brightness will be reached
-# only by varying the gain (which is not a very good approach in most cases)
-bool exposure_fixed
-
-
-# Flag which indicates if the brightness values are provided and hence should
-# be set before grabbing
-bool brightness_given
-
-# Only relevant, if brightness_given is true:
-# The average intensity values of the images. It depends the exposure time
-# as well as the gain setting.
-float32[] brightness_values
-
-# The brightness_continuous flag controls the auto brightness function.
-# If it is set to false, the given brightness will only be reached once.
-# Hence changing light conditions lead to changing brightness values.
-# If it is set to true, the given brightness will be reached continuously,
-# trying to adapt to changing light conditions.
-bool brightness_continuous
-
-
 # Flag which indicates if the gain is provided and hence should be set before
 # grabbing
 bool gain_given
@@ -56,14 +33,6 @@ bool gain_given
 # brightness search, in case that the gain_fixed flag is set to false.
 float32[] gain_values
 
-# If the gain_fixed flag is set, the gain value will stay fix in
-# case of a brightness search. Hence the target brightness will be reached
-# only by varying the exposure time. If a desired brightness can't be reached,
-# it could be the case that the pyhsical exposure time limits of the camera are
-# reached. Hence the gain should be adapted.
-bool gain_fixed
-
-
 # Flag which indicates if the gamma value is provided and hence should be set
 # before grabbing
 bool gamma_given
@@ -74,6 +43,28 @@ bool gamma_given
 # to account for a non-linearity in the human perception of brightness or
 # of the display system (such as CRT).
 float32[] gamma_values
+
+# Flag which indicates if the brightness values are provided and hence should
+# be set before grabbing
+bool brightness_given
+
+# Only relevant, if brightness_given is true:
+# The average intensity values of the images. It depends the exposure time
+# as well as the gain setting.
+float32[] brightness_values
+
+# Only relevant, if brightness_given is true:
+# If the camera should try reach the desired brightness, at least one of the
+# following flags MUST be set. If both are set, the interface will use the
+# profile that tries to keep the gain at minimum to reduce white noise.
+# 'exposure_auto' will adapt the exposure time to reach the brightness, wheras
+# 'gain_auto' does so by adapting the gain. If one of these flags is set to
+# false, the connected property will be kept fix.
+# In most of the cases trying to reach a target brightness only by varying the
+# gain and keeping the exposure time fix is not a good approach, because the
+# exposure range is many times higher than the gain range.
+bool exposure_auto
+bool gain_auto
 
 ---
 ##########################################
