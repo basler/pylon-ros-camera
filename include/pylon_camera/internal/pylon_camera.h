@@ -47,7 +47,10 @@ public:
 
     virtual bool setGamma(const float& target_gamma, float& reached_gamma);
 
-    virtual bool setBrightness(const int& target_brightness, const float& current_brightness);
+    virtual bool setBrightness(const int& target_brightness,
+                               const float& current_brightness,
+                               const bool& exposure_auto,
+                               const bool& gain_auto);
 
     virtual bool setUserOutput(const int& output_id, const bool& value);
 
@@ -72,6 +75,10 @@ public:
     virtual bool isBrightnessSearchRunning();
 
     virtual void disableAllRunningAutoBrightessFunctions();
+
+    virtual void enableContinuousAutoExposure();
+
+    virtual void enableContinuousAutoGain();
 
     virtual std::string imageEncoding() const;
 

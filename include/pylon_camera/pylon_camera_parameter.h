@@ -29,11 +29,12 @@ public:
     virtual ~PylonCameraParameter();
 
     /**
-     * Read the parameters from the parameter server
+     * Read the parameters from the parameter server.
+     * If invalid parameters can be detected, the interface will reset them
+     * to the default values.
      * @param nh the ros::NodeHandle to use
-     * @return true if the values on the parameter server are valid
      */
-    bool readFromRosParameterServer(const ros::NodeHandle& nh);
+    void readFromRosParameterServer(const ros::NodeHandle& nh);
 
     /**
      * Getter for the device_user_id_ set from ros-parameter server
@@ -78,18 +79,9 @@ public:
     // #######################################################################
 
     /**
-     * The exposure time in microseconds after opening the camera.
-     * This value can be overriden from the brightness search, in case that
-     * the flag exposure_fixed is not true
+     * The exposure time in microseconds to be set after opening the camera.
      */
     double exposure_;
-
-    /**
-     * If the exposure_fixed flag is set, the exposure time will stay fix in
-     * case of a brightness search. Hence the target brightness will be reached
-     * only by varying the gain
-     */
-    bool exposure_fixed_;
 
     /**
      * Flag which indicates if the exposure time is provided and hence should
@@ -97,41 +89,12 @@ public:
      */
     bool exposure_given_;
 
-    /** The average intensity value of the image. It depends the exposure time
-     * as well as the gain setting. The interface will only try to reach this
-     * value if the brightness_enabled flag is set to true.
-     */
-    int brightness_;
-
-    /**
-     * The brightness_continuous flag controls the auto brightness function.
-     * If it is set to false, the given brightness will only be reached once.
-     * Hence changing light conditions lead to changing brightness values.
-     * If it is set to true, the given brightness will be reached continuously,
-     * trying to adapt to changing light conditions
-     */
-    bool brightness_continuous_;
-
-    /**
-     * Flag which indicates if the average brightness is provided and hence
-     * should be set during startup
-     */
-    bool brightness_given_;
-
     /**
      * The target gain in percent of the maximal value the camera supports
      * For USB-Cameras, the gain is in dB, for GigE-Cameras it is given in so
-     * called 'device specific units'. This value can be overriden from the
-     * brightness search, in case that the gain_fixed flag is set to false
+     * called 'device specific units'.
      */
     double gain_;
-
-    /**
-     * If the gain_fixed flag is set, the gain value will stay fix in
-     * case of a brightness search. Hence the target brightness will be reached
-     * only by varying the exposure
-     */
-    bool gain_fixed_;
 
     /**
      * Flag which indicates if the gain value is provided and hence should be
@@ -152,6 +115,51 @@ public:
      * hence should be set during startup
      */
     bool gamma_given_;
+
+    /**
+     * The average intensity value of the images. It depends the exposure time
+     * as well as the gain setting. If 'exposure' is provided, the interface
+     * will try to reach the desired brightness by only varying the gain.
+     * (What may often fail, because the range of possible exposure vaules is
+     * many times higher than the gain range).
+     * If 'gain' is provided, the interface will try to reach the desired
+     * brightness by only varying the exposure time. If gain AND exposure are
+     * given, it is not possible to reach the brightness, because both are
+     * assumed to be fix.
+     */
+    int brightness_;
+
+    /**
+     * Flag which indicates if the average brightness is provided and hence
+     * should be set during startup
+     */
+    bool brightness_given_;
+
+    /**
+     * Only relevant, if 'brightness' is set as ros-parameter:
+     * The brightness_continuous flag controls the auto brightness function.
+     * If it is set to false, the brightness will only be reached once.
+     * Hence changing light conditions lead to changing brightness values.
+     * If it is set to true, the given brightness will be reached continuously,
+     * trying to adapt to changing light conditions. This is only possible for
+     * values in the possible auto range of the pylon API which is
+     * e.g. [50 - 205] for acA2500-14um and acA1920-40gm
+     */
+    bool brightness_continuous_;
+
+    /**
+     * Only relevant, if 'brightness' is given as ros-parameter:
+     * If the camera should try to reach and / or keep the brightness, hence
+     * adapting to changing light conditions, at least one of the following
+     * flags must be set. If both are set, the interface will use the profile
+     * that tries to keep the  gain at minimum to reduce white noise.
+     * The exposure_auto flag indicates, that the desired brightness will
+     * be reached by adapting the exposure time.
+     * The gain_auto flag indicates, that the desired brightness will be
+     * reached by adapting the gain.
+     */
+    bool exposure_auto_;
+    bool gain_auto_;
     // #######################################################################
 
     /**
@@ -169,11 +177,12 @@ public:
 
 protected:
     /**
-     * Validates the parameter set found on the parameter server
+     * Validates the parameter set found on the ros parameter server.
+     * If invalid parameters can be detected, the interface will reset them
+     * to the default values.
      * @param nh the ros::NodeHandle to use
-     * @return true if the parameter set is valid
      */
-    bool validateParameterSet(const ros::NodeHandle& nh);
+    void validateParameterSet(const ros::NodeHandle& nh);
 
     /**
      * The tf frame under which the images were published

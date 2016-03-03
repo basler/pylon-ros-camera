@@ -104,15 +104,23 @@ protected:
                              camera_control_msgs::SetExposureSrv::Response &res);
 
     /**
-     * Set the target brightness value of the published images.
-     * This is the intensity-mean over all pixels.
-     * The autofunction of the Pylon-API supports values from [50 - 205].
-     * Using a binary search, this range will be extended up to [1 - 254].
-     * @param target_brightness
-     * @param reached_brightness
-     * @return true on success
+     * Sets the target brightness which is the intensity-mean over all pixels.
+     * If the target exposure time is not in the range of Pylon's auto target
+     * brightness range the extended brightness search is started.
+     * The Auto function of the Pylon-API supports values from [50 - 205].
+     * Using a binary search, this range will be extended up to [1 - 255].
+     * @param target_brightness is the desired brightness. Range is [1...255].
+     * @param current_brightness is the current brightness with the given settings.
+     * @param exposure_auto flag which indicates if the target_brightness
+     *                      should be reached adapting the exposure time
+     * @param gain_auto flag which indicates if the target_brightness should be
+     *                      reached adapting the gain.
+     * @return true if the brightness could be reached or false otherwise.
      */
-    bool setBrightness(const int& target_brightness, int& reached_brightness);
+    bool setBrightness(const int& target_brightness,
+                       int& reached_brightness,
+                       const bool& exposure_auto,
+                       const bool& gain_auto);
 
     /**
      * Service callback for setting the brightness

@@ -16,8 +16,13 @@ PylonCameraNode::PylonCameraNode() :
         pylon_camera_parameter_set_(),
         it_(new image_transport::ImageTransport(nh_)),
         img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
-        grab_images_raw_action_server_(nh_, "grab_images_raw",
-        boost::bind(&PylonCameraNode::grabImagesRawActionExecuteCB, this, _1), false),
+        grab_images_raw_action_server_(
+                nh_,
+                "grab_images_raw",
+                boost::bind(&PylonCameraNode::grabImagesRawActionExecuteCB,
+                            this,
+                            _1),
+                false),
         set_sleeping_service_(nh_.advertiseService("set_sleeping_srv",
                               &PylonCameraNode::setSleepingCallback, this)),
         target_brightness_(-42),
@@ -29,16 +34,14 @@ PylonCameraNode::PylonCameraNode() :
 
 bool PylonCameraNode::init()
 {
-    // reading all necessary parameter to open the desired camera from the ros-parameter-server
-    if ( !pylon_camera_parameter_set_.readFromRosParameterServer(nh_) )
-    {
-        ROS_ERROR("Error reading PylonCameraParameterSet from ROS-Parameter-Server");
-        ros::shutdown();
-        return false;
-    }
+    // Reading all necessary parameter to open the desired camera from the
+    // ros-parameter-server. In case that invalid parameter values can be
+    // detected, the interface will reset them to the default values.
+    pylon_camera_parameter_set_.readFromRosParameterServer(nh_);
 
-    // advertising the ros-services for setting brightness, exposure, gain & gamma and
-    // creating the target PylonCamera-Object with the specified device_user_id
+    // Advertising the ros-services for setting brightness, exposure, gain and
+    // gamma. Furthermore creating the target PylonCamera-Object with the
+    // specified device_user_id
     if ( !initAndRegister() )
     {
         ros::shutdown();
@@ -55,9 +58,6 @@ bool PylonCameraNode::init()
 
 bool PylonCameraNode::initAndRegister()
 {
-    set_brightness_service_ = nh_.advertiseService("set_brightness_srv",
-                                                   &PylonCameraNode::setBrightnessCallback,
-                                                   this);
     set_exposure_service_ = nh_.advertiseService("set_exposure_srv",
                                                  &PylonCameraNode::setExposureCallback,
                                                  this);
@@ -67,6 +67,9 @@ bool PylonCameraNode::initAndRegister()
     set_gamma_service_ = nh_.advertiseService("set_gamma_srv",
                                              &PylonCameraNode::setGammaCallback,
                                              this);
+    set_brightness_service_ = nh_.advertiseService("set_brightness_srv",
+                                                   &PylonCameraNode::setBrightnessCallback,
+                                                   this);
 
     pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.deviceUserID());
 
@@ -114,18 +117,6 @@ bool PylonCameraNode::startGrabbing()
         return false;
     }
 
-    if ( pylon_camera_parameter_set_.gain_given_ )
-    {
-        float reached_gain;
-        setGain(pylon_camera_parameter_set_.gain_, reached_gain);
-        ROS_INFO_STREAM("Setting gain to: " << pylon_camera_parameter_set_.gain_
-                << ", reached: " << reached_gain);
-        if ( pylon_camera_parameter_set_.gain_fixed_ )
-        {
-            setGain(-2.0, reached_gain);  // AutoGain_Off
-        }
-    }
-
     if ( pylon_camera_parameter_set_.exposure_given_ )
     {
         float reached_exposure;
@@ -133,38 +124,15 @@ bool PylonCameraNode::startGrabbing()
         ROS_INFO_STREAM("Setting exposure to "
                 << pylon_camera_parameter_set_.exposure_ << ", reached: "
                 << reached_exposure);
-        if ( pylon_camera_parameter_set_.exposure_fixed_ )
-        {
-            setExposure(0.0, reached_exposure);
-        }
     }
 
-    if ( pylon_camera_parameter_set_.brightness_given_ )
+    if ( pylon_camera_parameter_set_.gain_given_ )
     {
-        if ( pylon_camera_parameter_set_.gain_fixed_ && pylon_camera_parameter_set_.exposure_fixed_ )
-        {
-            ROS_ERROR_STREAM("Impossible to reach desired brightness, "
-                << "because exposure and gain are declared as fix! "
-                << "Will ignore the brightness setting");
-        }
-        else
-        {
-            int reached_brightness;
-            setBrightness(pylon_camera_parameter_set_.brightness_, reached_brightness);
-            if ( pylon_camera_parameter_set_.brightness_continuous_ )
-            {
-                if ( !pylon_camera_parameter_set_.gain_fixed_ )
-                {
-                    float reached_gain;
-                    setGain(-1.0, reached_gain);
-                }
-                if ( !pylon_camera_parameter_set_.exposure_fixed_ )
-                {
-                    float reached_exposure;
-                    setExposure(-1.0, reached_exposure);
-                }
-            }
-        }
+        float reached_gain;
+        setGain(pylon_camera_parameter_set_.gain_, reached_gain);
+        ROS_INFO_STREAM("Setting gain to: "
+                << pylon_camera_parameter_set_.gain_ << ", reached: "
+                << reached_gain);
     }
 
     if ( pylon_camera_parameter_set_.gamma_given_ )
@@ -175,9 +143,36 @@ bool PylonCameraNode::startGrabbing()
                 << ", reached: " << reached_gamma);
     }
 
+    if ( pylon_camera_parameter_set_.brightness_given_ )
+    {
+        int reached_brightness;
+        setBrightness(pylon_camera_parameter_set_.brightness_,
+                      reached_brightness,
+                      pylon_camera_parameter_set_.exposure_auto_,
+                      pylon_camera_parameter_set_.gain_auto_);
+        ROS_INFO_STREAM("Setting brightness to: "
+                << pylon_camera_parameter_set_.brightness_ << ", reached: "
+                << reached_brightness);
+        if ( pylon_camera_parameter_set_.brightness_continuous_ )
+        {
+            if ( pylon_camera_parameter_set_.exposure_auto_ )
+            {
+                pylon_camera_->enableContinuousAutoExposure();
+            }
+            if ( pylon_camera_parameter_set_.gain_auto_ )
+            {
+                pylon_camera_->enableContinuousAutoGain();
+            }
+        }
+        else
+        {
+            pylon_camera_->disableAllRunningAutoBrightessFunctions();
+        }
+    }
+
     ROS_INFO_STREAM("Starting with current settings: "
-            << "gain = " << pylon_camera_->currentGain() << ", "
             << "exposure = " << pylon_camera_->currentExposure() << ", "
+            << "gain = " << pylon_camera_->currentGain() << ", "
             << "gamma = " <<  pylon_camera_->currentGamma() << ", "
             << "shutter mode = " << pylon_camera_parameter_set_.shutterModeString());
 
@@ -388,26 +383,173 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
     camera_control_msgs::GrabImagesResult result;
     camera_control_msgs::GrabImagesFeedback feedback;
 
-    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-
-    result.images.resize(goal->target_values.size());
-    result.reached_values.resize(goal->target_values.size());
-    result.success = true;
-    float_t previous_exp = pylon_camera_->currentExposure();
-
-    for ( std::size_t i = 0; i < goal->target_values.size(); ++i )
+    std::cout << *goal << std::endl;
+    // handling of deprecated interface
+    bool using_deprecated_interface = goal->target_values.size() > 0;
+    std::vector<float> exposure_times;
+    std::vector<float> brightness_values;
+    bool exposure_given = false;
+    bool brightness_given = false;
+    if ( using_deprecated_interface )
     {
-        // setGain(goal->gain);
-        // setGamma(goal->gamma);
+        ROS_ERROR_STREAM("The use of 'target_type' && 'target_values' in the "
+                << "'GrabImages-Action' of the camera_control_msgs-pkg is "
+                << "deprecated! Will map your desired values to the new "
+                << "interface, but please fix your code and make ake use of "
+                << "the new interface");
         if ( goal->target_type == goal->EXPOSURE )
         {
-            setExposure(goal->target_values[i], result.reached_values[i]);
+            exposure_times = goal->target_values;
+            exposure_given = true;
         }
         if ( goal->target_type == goal->BRIGHTNESS )
         {
-            int reached_val;
-            setBrightness(goal->target_values[i], reached_val);
-            result.reached_values[i] = static_cast<float>(reached_val);
+            brightness_values = goal->target_values;
+            brightness_given = true;
+        }
+    }
+    else
+    {
+        exposure_times = goal->exposure_times;
+        brightness_values = goal->brightness_values;
+        exposure_given = goal->exposure_given;
+        brightness_given = goal->brightness_given;
+    }
+    // handling of deprecated interface
+
+    // Can only grab images if either exposure times, or brightness or gain
+    // values are provided:
+    if ( exposure_times.size() + brightness_values.size() +
+         goal->gain_values.size() == 0 )
+    {
+        ROS_ERROR_STREAM("GrabImagesRaw action server received request but "
+            << "size of all given image properties is zero! Can't grab!");
+        result.success = false;
+        grab_images_raw_action_server_.setSucceeded(result);
+        return;
+    }
+
+    size_t n_images = std::max(std::max(exposure_times.size(), brightness_values.size()),
+                               std::max(goal->gain_values.size(), goal->gamma_values.size()));
+
+    if ( !( exposure_times.size() == 0 || exposure_times.size() == n_images ) )
+    {
+        ROS_ERROR_STREAM("Size of requested exposure times does not match to "
+            << "the size of the requested vaules of brightness, gain or "
+            << "gamma! Can't grab!");
+        result.success = false;
+        grab_images_raw_action_server_.setSucceeded(result);
+        return;
+    }
+
+    if ( !( goal->gain_values.size() == 0 || goal->gain_values.size() == n_images ) )
+    {
+        ROS_ERROR_STREAM("Size of requested gain values does not match to "
+            << "the size of the requested exposure times or the vaules of "
+            << "brightness or gamma! Can't grab!");
+        result.success = false;
+        grab_images_raw_action_server_.setSucceeded(result);
+        return;
+    }
+
+    if ( !( goal->gamma_values.size() == 0 || goal->gamma_values.size() == n_images ) )
+    {
+        ROS_ERROR_STREAM("Size of requested gamma values does not match to "
+            << "the size of the requested exposure times or the vaules of "
+            << "brightness or gain! Can't grab!");
+        result.success = false;
+        grab_images_raw_action_server_.setSucceeded(result);
+        return;
+    }
+
+    if ( !( brightness_values.size() == 0 || brightness_values.size() == n_images ) )
+    {
+        ROS_ERROR_STREAM("Size of requested brightness values does not match to "
+            << "the size of the requested exposure times or the vaules of gain or "
+            << "gamma! Can't grab!");
+        result.success = false;
+        grab_images_raw_action_server_.setSucceeded(result);
+        return;
+    }
+
+    if ( brightness_given && !( goal->exposure_auto || goal->gain_auto ) )
+    {
+        ROS_ERROR_STREAM("Error while executing the GrabImagesRawAction: A "
+            << "target brightness is provided but Exposure time AND gain are "
+            << "declared as fix, so its impossible to reach the brightness");
+        result.success = false;
+        return;
+    }
+
+    result.images.resize(n_images);
+    result.reached_exposure_times.resize(n_images);
+    result.reached_gain_values.resize(n_images);
+    result.reached_gamma_values.resize(n_images);
+    result.reached_brightness_values.resize(n_images);
+
+    result.success = true;
+
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+
+
+    float previous_exp, previous_gain, previous_gamma;
+    if ( exposure_given )
+    {
+        previous_exp = pylon_camera_->currentExposure();
+    }
+    if ( goal->gain_given )
+    {
+        previous_gain = pylon_camera_->currentGain();
+    }
+    if ( goal->gamma_given )
+    {
+        previous_gamma = pylon_camera_->currentGamma();
+    }
+    if ( brightness_given )
+    {
+        previous_gain = pylon_camera_->currentGain();
+        previous_exp = pylon_camera_->currentExposure();
+    }
+
+    float reached_gain, reached_gamma, reached_exposure;
+    int reached_brightness;
+
+    for ( std::size_t i = 0; i < n_images; ++i )
+    {
+        if ( exposure_given )
+        {
+            ROS_INFO("EXPOSURE GIVEN");
+            result.success = setExposure(exposure_times[i],
+                                         result.reached_exposure_times[i]);
+        }
+        if ( goal->gain_given )
+        {
+            ROS_INFO("GAIN GIVEN");
+            result.success = setGain(goal->gain_values[i],
+                                     result.reached_gain_values[i]);
+        }
+        if ( goal->gamma_given )
+        {
+            ROS_INFO("GAMMA GIVEN");
+            result.success = setGamma(goal->gamma_values[i],
+                                      result.reached_gamma_values[i]);
+        }
+        if ( brightness_given )
+        {
+            ROS_INFO("BRIGHTNESS GIVEN");
+            result.success = setBrightness(brightness_values[i],
+                                           reached_brightness,
+                                           goal->exposure_auto,
+                                           goal->gain_auto);
+            result.reached_brightness_values[i] = static_cast<float>(reached_brightness);
+            result.reached_exposure_times[i] = pylon_camera_->currentExposure();
+            result.reached_gain_values[i] = pylon_camera_->currentGain();
+        }
+        if ( !result.success )
+        {
+            ROS_ERROR_STREAM("Error while setting one of the desired image "
+                << "properties in the GrabImagesRawActionCB. Aborting!");
+            break;
         }
 
         sensor_msgs::Image& img = result.images[i];
@@ -420,20 +562,69 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
         if ( !pylon_camera_->grab(img.data) )
         {
             result.success = false;
+            break;
         }
         img.header.stamp = ros::Time::now();
         img.header.frame_id = cameraFrame();
         feedback.curr_nr_images_taken = i+1;
         grab_images_raw_action_server_.publishFeedback(feedback);
     }
-
+    float reached_val;
     if ( !result.success )
     {
-        result.images.clear();
+        grab_images_raw_action_server_.setSucceeded(result);
+        // restore previous settings:
+        if ( exposure_given )
+        {
+            setExposure(previous_exp, reached_val);
+        }
+        if ( goal->gain_given )
+        {
+            setGain(previous_gain, reached_val);
+        }
+        if ( goal->gamma_given )
+        {
+            setGamma(previous_gamma, reached_val);
+        }
+        if ( brightness_given )
+        {
+            setGain(previous_gain, reached_val);
+            setExposure(previous_exp, reached_val);
+        }
+        return;
     }
-    float reached_exposure;
-    setExposure(previous_exp, reached_exposure);
+
+    if ( using_deprecated_interface )
+    {
+        if ( goal->target_type == goal->BRIGHTNESS )
+        {
+            result.reached_values = result.reached_brightness_values;
+        }
+        if ( goal->target_type == goal->EXPOSURE )
+        {
+            result.reached_values = result.reached_exposure_times;
+        }
+    }
     grab_images_raw_action_server_.setSucceeded(result);
+
+    // restore previous settings:
+    if ( exposure_given )
+    {
+        setExposure(previous_exp, reached_val);
+    }
+    if ( goal->gain_given )
+    {
+        setGain(previous_gain, reached_val);
+    }
+    if ( goal->gamma_given )
+    {
+        setGamma(previous_gamma, reached_val);
+    }
+    if ( brightness_given )
+    {
+        setGain(previous_gain, reached_val);
+        setExposure(previous_exp, reached_val);
+    }
 }
 
 bool PylonCameraNode::setExposure(const float& target_exposure,
@@ -571,7 +762,9 @@ bool PylonCameraNode::setGammaCallback(camera_control_msgs::SetGamma::Request &r
 }
 
 bool PylonCameraNode::setBrightness(const int& target_brightness,
-                                    int& reached_brightness)
+                                    int& reached_brightness,
+                                    const bool& exposure_auto,
+                                    const bool& gain_auto)
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
 
@@ -607,11 +800,31 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
     }
 
     // timeout for the brightness search -> need more time for great exposure values
-    ros::Time timeout(ros::Time::now());
-    timeout += target_brightness > 205 ? ros::Duration(15.0) : ros::Duration(5.0);
+    ros::Time timeout;
+    if ( target_brightness > 205 )
+    {
+        timeout = ros::Time::now() + ros::Duration(15.0);
+    }
+    else
+    {
+        timeout = ros::Time::now() + ros::Duration(5.0);
+    }
+
+    bool valid_exposure_auto = exposure_auto;
+    bool valid_gain_auto = gain_auto;
+    if ( !exposure_auto && !gain_auto )
+    {
+        ROS_WARN_STREAM("Neither Auto Exposure Time ('exposure_auto') nor Auto "
+            << "Gain ('gain_auto') are enabled! Hence gain and exposure time "
+            << "are assumed to be fix and the target brightness ("
+            << target_brightness << ") can not be reached! Will override this "
+            << "settings and enabling 'exposure_auto' and 'gain_auto'");
+        valid_exposure_auto = true;
+        valid_gain_auto = true;
+    }
 
     bool is_brightness_reached = false;
-    uint8_t fail_safe_ctr = 0;
+    size_t fail_safe_ctr = 0;
     float last_brightness = std::numeric_limits<float>::max();
     while ( ros::ok() )
     {
@@ -619,7 +832,10 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
         // brightness search. But for the case that the target brightness is out of the
         // pylon range which is from [50 - 205] a binary exposure search will be executed
         // where we have to update the search parameter in every cycle
-        if ( !pylon_camera_->setBrightness(target_brightness, current_brightness) )
+        if ( !pylon_camera_->setBrightness(target_brightness,
+                                           current_brightness,
+                                           valid_exposure_auto,
+                                           valid_gain_auto) )
         {
             ROS_ERROR("Error while setting target brightness!");
             pylon_camera_->disableAllRunningAutoBrightessFunctions();
@@ -654,7 +870,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
         is_brightness_reached = fabs(current_brightness - static_cast<float>(target_brightness))
                                 < pylon_camera_->maxBrightnessTolerance();
 
-        if ( fail_safe_ctr > 10 && !is_brightness_reached )
+        if ( ( fail_safe_ctr > 30 ) && !is_brightness_reached )
         {
             ROS_ERROR_STREAM("Seems like the desired brightness (" << target_brightness
                     << ") is not reachable! Stuck at brightness "<< current_brightness);
@@ -685,7 +901,23 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
 bool PylonCameraNode::setBrightnessCallback(camera_control_msgs::SetBrightnessSrv::Request &req,
                                             camera_control_msgs::SetBrightnessSrv::Response &res)
 {
-    res.success = setBrightness(req.target_brightness, res.reached_brightness);
+    res.success = setBrightness(req.target_brightness,
+                                res.reached_brightness,
+                                req.exposure_auto,
+                                req.gain_auto);
+    if ( req.brightness_continuous )
+    {
+        if ( req.exposure_auto )
+        {
+            pylon_camera_->enableContinuousAutoExposure();
+        }
+        if ( req.gain_auto )
+        {
+            pylon_camera_->enableContinuousAutoGain();
+        }
+    }
+    res.reached_exposure_time = pylon_camera_->currentExposure();
+    res.reached_gain_value = pylon_camera_->currentGain();
     return true;
 }
 

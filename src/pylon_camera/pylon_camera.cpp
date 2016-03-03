@@ -89,7 +89,7 @@ PylonCamera* PylonCamera::create()
             GenApi::INodeMap& node_map = cam->GetNodeMap();
             GenApi::CStringPtr DeviceUserID(node_map.GetNode("DeviceUserID"));
             std::string device_user_id(DeviceUserID->GetValue());
-            ROS_INFO_STREAM("Using camera " << device_user_id);
+            ROS_INFO_STREAM("Found camera: " << device_user_id);
         }
 
         PYLON_CAM_TYPE cam_type = detectPylonCamType(cam);

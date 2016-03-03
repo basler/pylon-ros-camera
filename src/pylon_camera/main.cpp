@@ -21,12 +21,12 @@ int main(int argc, char **argv)
     ros::Rate r(pylon_camera_node.frameRate());
 
     ROS_INFO_STREAM("Start image grabbing if node connects to topic with "
-            << " a framerate of : " << pylon_camera_node.frameRate() << " Hz");
+        << "a frame_rate of: " << pylon_camera_node.frameRate() << " Hz");
 
     // Main thread and brightness-service thread
     boost::thread th(boost::bind(&ros::spin));
 
-    while (ros::ok())
+    while ( ros::ok() )
     {
         pylon_camera_node.spin();
         r.sleep();

@@ -61,19 +61,19 @@ bool PylonUSBCamera::applyCamSpecificStartupSettings(const PylonCameraParameter&
         // however, you must also set the Auto Function Profile feature.
         //  cam_->AutoFunctionProfile.SetValue(Basler_UsbCameraParams::AutoFunctionProfile_MinimizeGain);
 
-        ROS_INFO_STREAM("Cam has gain range: [" << cam_->Gain.GetMin()
-                << " - " << cam_->Gain.GetMax()
-                << "] measured in dB.");
         ROS_INFO_STREAM("Cam has exposure time range: [" << cam_->ExposureTime.GetMin()
                 << " - " << cam_->ExposureTime.GetMax()
                 << "] measured in microseconds.");
+        ROS_INFO_STREAM("Cam has gain range: [" << cam_->Gain.GetMin()
+                << " - " << cam_->Gain.GetMax()
+                << "] measured in dB.");
+        ROS_INFO_STREAM("Cam has gammma range: ["
+                << cam_->Gamma.GetMin() << " - "
+                << cam_->Gamma.GetMax() << "].");
         ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
                 << cam_->AutoTargetBrightness.GetMin() * 255 << " - "
                 << cam_->AutoTargetBrightness.GetMax() * 255
                 << "] which is the average pixel intensity.");
-        ROS_INFO_STREAM("Cam has gammma range: ["
-                << cam_->Gamma.GetMin() << " - "
-                << cam_->Gamma.GetMax() << "].");
     }
     catch ( const GenICam::GenericException &e )
     {

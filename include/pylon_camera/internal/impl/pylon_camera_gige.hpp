@@ -66,18 +66,18 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         // has Basler_GigECameraParams::GainSelector_All instead
         // cam_->GainSelector.SetValue(Basler_GigECameraParams::GainSelector_AnalogAll);
 
-        ROS_INFO_STREAM("Cam has gain range: [" << cam_->GainRaw.GetMin() << " - "
-                << cam_->GainRaw.GetMax() << "] measured in decive specific units.");
         ROS_INFO_STREAM("Cam has exposure time range: [" << cam_->ExposureTimeAbs.GetMin()
                 << " - " << cam_->ExposureTimeAbs.GetMax()
                 << "] measured in microseconds.");
+        ROS_INFO_STREAM("Cam has gain range: [" << cam_->GainRaw.GetMin() << " - "
+                << cam_->GainRaw.GetMax() << "] measured in decive specific units.");
+        ROS_INFO_STREAM("Cam has gammma range: ["
+                << cam_->Gamma.GetMin() << " - "
+                << cam_->Gamma.GetMax() << "].");
         ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
                 << cam_->AutoTargetValue.GetMin() << " - "
                 << cam_->AutoTargetValue.GetMax()
                 << "] which is the average pixel intensity.");
-        ROS_INFO_STREAM("Cam has gammma range: ["
-                << cam_->Gamma.GetMin() << " - "
-                << cam_->Gamma.GetMax() << "].");
 
         // raise inter-package delay (GevSCPD) for solving error:
         // 'the image buffer was incompletely grabbed'

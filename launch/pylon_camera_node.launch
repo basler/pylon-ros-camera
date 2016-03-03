@@ -2,7 +2,7 @@
 <launch>
     <arg name="respawn" default="false" />
     <arg name="debug" default="false" />
-    <arg name="node_name" default="pylon_camera" />
+    <arg name="node_name" default="pylon_camera_node" />
     <arg name="config_file" default="$(find pylon_camera)/config/default.yaml" />
 
     <arg unless="$(arg debug)" name="launch_prefix" value="" />

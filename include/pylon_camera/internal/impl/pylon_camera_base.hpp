@@ -118,13 +118,42 @@ float PylonCameraImpl<CameraTraitT>::currentAutoGainUpperLimit()
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::isPylonAutoBrightnessFunctionRunning()
 {
-    return (cam_->ExposureAuto.GetValue() != ExposureAutoEnums::ExposureAuto_Off);
+    return ( cam_->ExposureAuto.GetValue() != ExposureAutoEnums::ExposureAuto_Off ) ||
+           ( cam_->GainAuto.GetValue() != GainAutoEnums::GainAuto_Off );
 }
 
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::isBrightnessSearchRunning()
 {
-    return isBinaryExposureSearchRunning() || (cam_->ExposureAuto.GetValue() != ExposureAutoEnums::ExposureAuto_Off);
+    return isBinaryExposureSearchRunning() || isPylonAutoBrightnessFunctionRunning();
+}
+
+template <typename CameraTraitT>
+void PylonCameraImpl<CameraTraitT>::enableContinuousAutoExposure()
+{
+    if ( GenApi::IsAvailable(cam_->ExposureAuto) )
+    {
+        cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Continuous);
+    }
+    else
+    {
+        ROS_ERROR_STREAM("Trying to enable ExposureAuto_Continuous mode, but "
+            << "the camera has no Auto Exposure");
+    }
+}
+
+template <typename CameraTraitT>
+void PylonCameraImpl<CameraTraitT>::enableContinuousAutoGain()
+{
+    if ( GenApi::IsAvailable(cam_->GainAuto) )
+    {
+        cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Continuous);
+    }
+    else
+    {
+        ROS_ERROR_STREAM("Trying to enable GainAuto_Continuous mode, but "
+            << "the camera has no Auto Gain");
+    }
 }
 
 template <typename CameraTraitT>
@@ -132,6 +161,7 @@ void PylonCameraImpl<CameraTraitT>::disableAllRunningAutoBrightessFunctions()
 {
     is_binary_exposure_search_running_ = false;
     cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
+    cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Off);
     if ( binary_exp_search_ )
     {
         delete binary_exp_search_;
@@ -305,57 +335,33 @@ template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setExposure(const float& target_exposure,
                                                 float& reached_exposure)
 {
-    if ( ( target_exposure == -1.0 || target_exposure == 0.0 ) &&
-         !GenApi::IsAvailable(cam_->ExposureAuto) )
-    {
-        ROS_ERROR_STREAM("Error while trying to set auto exposure properties: "
-                << "camera has no auto exposure function!");
-        return false;
-    }
-    else if ( !(target_exposure == -1.0 || target_exposure == 0.0) &&
-              target_exposure < 0.0 )
-    {
-        ROS_ERROR_STREAM("Target Exposure " << target_exposure
-                << " not in the allowed range");
-        return false;
-    }
-
     try
     {
-        if ( target_exposure == -1.0 )
-        {
-            cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Continuous);
-        }
-        else if ( target_exposure == 0.0 )
-        {
-            cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
-        }
-        else
-        {
-            cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
+        cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
 
-            float exposure_to_set = target_exposure;
-            if ( exposureTime().GetMin() > exposure_to_set )
-            {
-                exposure_to_set = exposureTime().GetMin();
-                ROS_WARN_STREAM("Desired exposure time unreachable! Setting to lower limit: "
-                                  << exposure_to_set);
-            }
-            else if ( exposureTime().GetMax() < exposure_to_set )
-            {
-                exposure_to_set = exposureTime().GetMax();
-                ROS_WARN_STREAM("Desired exposure time unreachable! Setting to upper limit: "
-                                  << exposure_to_set);
-            }
-            exposureTime().SetValue(exposure_to_set);
-            reached_exposure = currentExposure();
+        float exposure_to_set = target_exposure;
+        if ( exposure_to_set < exposureTime().GetMin() )
+        {
+            ROS_WARN_STREAM("Desired exposure (" << exposure_to_set << ") "
+                << "time unreachable! Setting to lower limit: "
+                << exposureTime().GetMin());
+            exposure_to_set = exposureTime().GetMin();
+        }
+        else if ( exposure_to_set > exposureTime().GetMax() )
+        {
+            ROS_WARN_STREAM("Desired exposure (" << exposure_to_set << ") "
+                << "time unreachable! Setting to upper limit: "
+                << exposureTime().GetMax());
+            exposure_to_set = exposureTime().GetMax();
+        }
+        exposureTime().SetValue(exposure_to_set);
+        reached_exposure = currentExposure();
 
-            if ( fabs(reached_exposure - exposure_to_set) > exposureStep() )
-            {
-                // no success if the delta between target and reached exposure
-                // is greater then the exposure step in ms
-                return false;
-            }
+        if ( fabs(reached_exposure - exposure_to_set) > exposureStep() )
+        {
+            // no success if the delta between target and reached exposure
+            // is greater then the exposure step in ms
+            return false;
         }
     }
     catch ( const GenICam::GenericException &e )
@@ -372,38 +378,29 @@ template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setGain(const float& target_gain,
                                             float& reached_gain)
 {
-    if ( (target_gain == -1.0 || target_gain == -2.0) &&
-         !GenApi::IsAvailable(cam_->GainAuto) )
-    {
-        ROS_ERROR_STREAM("Error while trying to set auto gain properties: "
-                << "camera has no auto gain function!");
-        return false;
-    }
-    else if ( !(target_gain == -1.0 || target_gain == -2.0) && target_gain < 0.0 )
-    {
-        ROS_ERROR_STREAM("Target Gain " << target_gain
-                << " not in the allowed range");
-        return false;
-    }
-
     try
     {
-        if ( target_gain == -1.0 )
+        cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Off);
+        float truncated_gain = target_gain;
+        if ( truncated_gain < 0.0 )
         {
-            cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Continuous);
+            ROS_WARN_STREAM("Desired gain (" << target_gain << ") in "
+                << "percent out of range [0.0 - 1.0]! Setting to lower "
+                << "limit: 0.0");
+            truncated_gain = 0.0;
         }
-        else if ( target_gain == -2.0 )
+        else if ( truncated_gain > 1.0 )
         {
-            cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Off);
+            ROS_WARN_STREAM("Desired gain (" << target_gain << ") in "
+                << "percent out of range [0.0 - 1.0]! Setting to upper "
+                << "limit: 1.0");
+            truncated_gain = 1.0;
         }
-        else
-        {
-            float gain_to_set = gain().GetMin() + target_gain *
-                                        (gain().GetMax() - gain().GetMin());
-            gain().SetValue(gain_to_set);
-            ROS_INFO_STREAM("Gain to set: " << gain_to_set);
-            reached_gain = currentGain();
-        }
+
+        float gain_to_set = gain().GetMin() +
+                            truncated_gain * ( gain().GetMax() - gain().GetMin() );
+        gain().SetValue(gain_to_set);
+        reached_gain = currentGain();
     }
     catch ( const GenICam::GenericException &e )
     {
@@ -439,7 +436,6 @@ bool PylonCameraImpl<CameraTraitT>::setGamma(const float& target_gamma, float& r
             ROS_WARN_STREAM("Desired gamma unreachable! Setting to upper limit: "
                                   << gamma_to_set);
         }
-        ROS_INFO_STREAM("Setting Gamma: " << gamma_to_set);
         gamma().SetValue(gamma_to_set);
         reached_gamma = currentGamma();
     }
@@ -454,38 +450,19 @@ bool PylonCameraImpl<CameraTraitT>::setGamma(const float& target_gamma, float& r
 
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
-                                                  const float& current_brightness)
+                                                  const float& current_brightness,
+                                                  const bool& exposure_auto,
+                                                  const bool& gain_auto)
 {
     try
     {
-        if ( (target_brightness == -1 || target_brightness == 0) &&
-                !GenApi::IsAvailable(cam_->ExposureAuto) )
-        {
-            ROS_ERROR_STREAM("Error while trying to set auto brightness properties: "
-                    << "camera has no auto exposure function!");
-            return false;
-        }
-        else if ( !(target_brightness == -1 || target_brightness == 0) &&
-                    target_brightness < 0 )
-        {
-            ROS_ERROR_STREAM("Target brightness " << target_brightness
-                    << " not in the allowed range");
-            return false;
-        }
-
-        if ( target_brightness == 0 )
-        {
-            cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
-            return true;
-        }
-
         // if the target brightness is greater 255, limit it to 255
         // the brightness_to_set is a float value, regardless of the current
         // pixel data output format, i.e., 0.0 -> black, 1.0 -> white.
         typename CameraTraitT::AutoTargetBrightnessValueType brightness_to_set =
             CameraTraitT::convertBrightness(std::min(255, target_brightness));
 
-#if 0
+#if 1
         std::cout << "br = " << current_brightness << ", gain = "
             << currentGain() << ", exp = "
             << currentExposure()
@@ -508,15 +485,18 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
             return true;
         }
 
-#if 0
+
+#if 1
         ROS_INFO("pylon auto finished . . .");
 #endif
 
-        if ( target_brightness == -1 )
-        {
-            cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Continuous);
-            return true;
-        }
+        /*
+         *if ( target_brightness == -1 )
+         *{
+         *    cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Continuous);
+         *    return true;
+         *}
+         */
 
         if ( autoTargetBrightness().GetMin() <= brightness_to_set &&
              autoTargetBrightness().GetMax() >= brightness_to_set )
@@ -524,7 +504,14 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
             // Use Pylon Auto Function, whenever in possible range
             // -> Own binary exposure search not necessary
             autoTargetBrightness().SetValue(brightness_to_set, true);
-            cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
+            if ( exposure_auto )
+            {
+                cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
+            }
+            if ( gain_auto )
+            {
+                cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Once);
+            }
         }
         else
         {
@@ -552,12 +539,26 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
                 {
                     // target < 50 -> pre control to 50
                     autoTargetBrightness().SetValue(autoTargetBrightness().GetMin(), true);
-                    cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
+                    if ( exposure_auto )
+                    {
+                        cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
+                    }
+                    if ( gain_auto )
+                    {
+                        cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Once);
+                    }
                 }
                 else  // target > 205 -> pre control to 205
                 {
                     autoTargetBrightness().SetValue(autoTargetBrightness().GetMax(), true);
-                    cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
+                    if ( exposure_auto )
+                    {
+                        cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
+                    }
+                    if ( gain_auto )
+                    {
+                        cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Once);
+                    }
                 }
                 is_binary_exposure_search_running_ = true;
             }

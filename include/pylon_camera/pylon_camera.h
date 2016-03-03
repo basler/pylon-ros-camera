@@ -163,11 +163,18 @@ public:
      * Setting the exposure time to  0 disables the AutoExposure function.
      * If the target exposure time is not in the range of Pylon's auto target brightness range
      * the extended brightness search is started.
-     * @param brightness target brightness. Range is [-1...255].
-     * @return false if a communication error occurred or true otherwise.
+     * @param target_brightness is the desired brightness. Range is [1...255].
+     * @param current_brightness is the current brightness with the given settings.
+     * @param exposure_auto flag which indicates if the target_brightness
+     *                      should be reached adapting the exposure time
+     * @param gain_auto flag which indicates if the target_brightness should be
+     *                      reached adapting the gain.
+     * @return true if the brightness could be reached or false otherwise.
      */
     virtual bool setBrightness(const int& target_brightness,
-                               const float& current_brightness) = 0;
+                               const float& current_brightness,
+                               const bool& exposure_auto,
+                               const bool& gain_auto) = 0;
 
 
     /**
@@ -195,6 +202,16 @@ public:
      * the desired brightness is reached or a timeout occoured
      */
     virtual void disableAllRunningAutoBrightessFunctions() = 0;
+
+    /**
+     * Enables the continuous auto exposure mode
+     */
+    virtual void enableContinuousAutoExposure() = 0;
+
+    /**
+     * Enables the continuous auto gain mode
+     */
+    virtual void enableContinuousAutoGain() = 0;
 
     /**
      * Get the camera image encoding according to sensor_msgs::image_encodings
