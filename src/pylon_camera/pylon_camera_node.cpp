@@ -381,6 +381,15 @@ bool PylonCameraNode::grabImage()
 void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::GrabImagesGoal::ConstPtr& goal)
 {
     camera_control_msgs::GrabImagesResult result;
+    result = grabImagesRaw(goal, &grab_images_raw_action_server_);
+    grab_images_raw_action_server_.setSucceeded(result);
+}
+
+camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
+        const camera_control_msgs::GrabImagesGoal::ConstPtr& goal,
+        GrabImagesAction* action_server)
+{
+    camera_control_msgs::GrabImagesResult result;
     camera_control_msgs::GrabImagesFeedback feedback;
 
 #if DEBUG
@@ -428,8 +437,8 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
         ROS_ERROR_STREAM("GrabImagesRaw action server received request but "
             << "size of all given image properties is zero! Can't grab!");
         result.success = false;
-        grab_images_raw_action_server_.setSucceeded(result);
-        return;
+        //grab_images_raw_action_server_.setSucceeded(result);
+        return result;
     }
 
     size_t n_images = std::max(std::max(exposure_times.size(), brightness_values.size()),
@@ -441,8 +450,8 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
             << "the size of the requested vaules of brightness, gain or "
             << "gamma! Can't grab!");
         result.success = false;
-        grab_images_raw_action_server_.setSucceeded(result);
-        return;
+        //grab_images_raw_action_server_.setSucceeded(result);
+        return result;
     }
 
     if ( !( goal->gain_values.size() == 0 || goal->gain_values.size() == n_images ) )
@@ -451,8 +460,8 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
             << "the size of the requested exposure times or the vaules of "
             << "brightness or gamma! Can't grab!");
         result.success = false;
-        grab_images_raw_action_server_.setSucceeded(result);
-        return;
+        //grab_images_raw_action_server_.setSucceeded(result);
+        return result;
     }
 
     if ( !( goal->gamma_values.size() == 0 || goal->gamma_values.size() == n_images ) )
@@ -461,8 +470,8 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
             << "the size of the requested exposure times or the vaules of "
             << "brightness or gain! Can't grab!");
         result.success = false;
-        grab_images_raw_action_server_.setSucceeded(result);
-        return;
+        //grab_images_raw_action_server_.setSucceeded(result);
+        return result;
     }
 
     if ( !( brightness_values.size() == 0 || brightness_values.size() == n_images ) )
@@ -471,8 +480,8 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
             << "the size of the requested exposure times or the vaules of gain or "
             << "gamma! Can't grab!");
         result.success = false;
-        grab_images_raw_action_server_.setSucceeded(result);
-        return;
+        //grab_images_raw_action_server_.setSucceeded(result);
+        return result;
     }
 
     if ( brightness_given && !( goal->exposure_auto || goal->gain_auto ) )
@@ -481,7 +490,7 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
             << "target brightness is provided but Exposure time AND gain are "
             << "declared as fix, so its impossible to reach the brightness");
         result.success = false;
-        return;
+        return result;
     }
 
     result.images.resize(n_images);
@@ -565,12 +574,11 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
         img.header.stamp = ros::Time::now();
         img.header.frame_id = cameraFrame();
         feedback.curr_nr_images_taken = i+1;
-        grab_images_raw_action_server_.publishFeedback(feedback);
+        action_server->publishFeedback(feedback);
     }
     float reached_val;
     if ( !result.success )
     {
-        grab_images_raw_action_server_.setSucceeded(result);
         // restore previous settings:
         if ( exposure_given )
         {
@@ -589,7 +597,8 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
             setGain(previous_gain, reached_val);
             setExposure(previous_exp, reached_val);
         }
-        return;
+        //grab_images_raw_action_server_.setSucceeded(result);
+        return result;
     }
 
     if ( using_deprecated_interface )
@@ -603,7 +612,6 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
             result.reached_values = result.reached_exposure_times;
         }
     }
-    grab_images_raw_action_server_.setSucceeded(result);
 
     // restore previous settings:
     if ( exposure_given )
@@ -623,6 +631,8 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
         setGain(previous_gain, reached_val);
         setExposure(previous_exp, reached_val);
     }
+    //grab_images_raw_action_server_.setSucceeded(result);
+    return result;
 }
 
 bool PylonCameraNode::setExposure(const float& target_exposure,

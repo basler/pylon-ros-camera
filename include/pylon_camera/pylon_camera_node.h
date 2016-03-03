@@ -193,6 +193,13 @@ protected:
     void grabImagesRawActionExecuteCB(const camera_control_msgs::GrabImagesGoal::ConstPtr& goal);
 
     /**
+     * This function can also be called from the derived PylonCameraOpenCV-Class
+     */
+    camera_control_msgs::GrabImagesResult grabImagesRaw(
+                    const camera_control_msgs::GrabImagesGoal::ConstPtr& goal,
+                    GrabImagesAction* action_server);
+
+    /**
      * Callback that sets the digital output
      * @param output_id the ID of the output to set
      * @param req request
