@@ -118,8 +118,8 @@ float PylonCameraImpl<CameraTraitT>::currentAutoGainUpperLimit()
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::isPylonAutoBrightnessFunctionRunning()
 {
-    return ( cam_->ExposureAuto.GetValue() != ExposureAutoEnums::ExposureAuto_Off ) ||
-           ( cam_->GainAuto.GetValue() != GainAutoEnums::GainAuto_Off );
+    return cam_->ExposureAuto.GetValue() != ExposureAutoEnums::ExposureAuto_Off ||
+           cam_->GainAuto.GetValue() != GainAutoEnums::GainAuto_Off;
 }
 
 template <typename CameraTraitT>
@@ -398,7 +398,7 @@ bool PylonCameraImpl<CameraTraitT>::setGain(const float& target_gain,
         }
 
         float gain_to_set = gain().GetMin() +
-                            truncated_gain * ( gain().GetMax() - gain().GetMin() );
+                            truncated_gain * (gain().GetMax() - gain().GetMin());
         gain().SetValue(gain_to_set);
         reached_gain = currentGain();
     }
@@ -462,7 +462,7 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
         typename CameraTraitT::AutoTargetBrightnessValueType brightness_to_set =
             CameraTraitT::convertBrightness(std::min(255, target_brightness));
 
-#if 1
+#if DEBUG
         std::cout << "br = " << current_brightness << ", gain = "
             << currentGain() << ", exp = "
             << currentExposure()
@@ -485,18 +485,9 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
             return true;
         }
 
-
-#if 1
+#if DEBUG
         ROS_INFO("pylon auto finished . . .");
 #endif
-
-        /*
-         *if ( target_brightness == -1 )
-         *{
-         *    cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Continuous);
-         *    return true;
-         *}
-         */
 
         if ( autoTargetBrightness().GetMin() <= brightness_to_set &&
              autoTargetBrightness().GetMax() >= brightness_to_set )

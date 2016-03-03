@@ -259,7 +259,7 @@ void PylonCameraNode::setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
     // The distortion model used. Supported models are listed in
     // sensor_msgs/distortion_models.h. For most cameras, "plumb_bob" - a
     // simple model of radial and tangential distortion - is sufficient.
-    // Empty D and distortion_model indicate that the CameraInfo cannot be used 
+    // Empty D and distortion_model indicate that the CameraInfo cannot be used
     // to rectify points or images, either because the camera is not calibrated
     // or because the rectified image was produced using an unsupported
     // distortion model, e.g. the proprietary one used by Bumblebee cameras
@@ -383,7 +383,10 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
     camera_control_msgs::GrabImagesResult result;
     camera_control_msgs::GrabImagesFeedback feedback;
 
+#if DEBUG
     std::cout << *goal << std::endl;
+#endif
+
     // handling of deprecated interface
     bool using_deprecated_interface = goal->target_values.size() > 0;
     std::vector<float> exposure_times;
@@ -491,7 +494,6 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
 
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
 
-
     float previous_exp, previous_gain, previous_gamma;
     if ( exposure_given )
     {
@@ -518,25 +520,21 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
     {
         if ( exposure_given )
         {
-            ROS_INFO("EXPOSURE GIVEN");
             result.success = setExposure(exposure_times[i],
                                          result.reached_exposure_times[i]);
         }
         if ( goal->gain_given )
         {
-            ROS_INFO("GAIN GIVEN");
             result.success = setGain(goal->gain_values[i],
                                      result.reached_gain_values[i]);
         }
         if ( goal->gamma_given )
         {
-            ROS_INFO("GAMMA GIVEN");
             result.success = setGamma(goal->gamma_values[i],
                                       result.reached_gamma_values[i]);
         }
         if ( brightness_given )
         {
-            ROS_INFO("BRIGHTNESS GIVEN");
             result.success = setBrightness(brightness_values[i],
                                            reached_brightness,
                                            goal->exposure_auto,
