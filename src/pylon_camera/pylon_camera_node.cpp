@@ -807,6 +807,10 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
         return true;  // target brightness already reached
     }
 
+    // initially cancel all running brightness search by deactivating
+    // ExposureAuto & AutoGain
+    pylon_camera_->disableAllRunningAutoBrightessFunctions();
+
     // timeout for the brightness search -> need more time for great exposure values
     ros::Time timeout;
     if ( target_brightness > 205 )
@@ -833,6 +837,13 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
 
     bool is_brightness_reached = false;
     size_t fail_safe_ctr = 0;
+    size_t fail_safe_ctr_limit = 10;
+    if ( pylon_camera_->typeName() == "DART" )
+    {
+        // DART Cameras may need up to 50 images till the desired brightness
+        // value can be reached. USB & GigE Cameras can achieve that much faster
+        fail_safe_ctr_limit = 50;
+    }
     float last_brightness = std::numeric_limits<float>::max();
     while ( ros::ok() )
     {
@@ -878,7 +889,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
         is_brightness_reached = fabs(current_brightness - static_cast<float>(target_brightness))
                                 < pylon_camera_->maxBrightnessTolerance();
 
-        if ( ( fail_safe_ctr > 30 ) && !is_brightness_reached )
+        if ( ( fail_safe_ctr > fail_safe_ctr_limit ) && !is_brightness_reached )
         {
             ROS_ERROR_STREAM("Seems like the desired brightness (" << target_brightness
                     << ") is not reachable! Stuck at brightness "<< current_brightness);
