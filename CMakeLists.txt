@@ -9,18 +9,6 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
-################ MSG ################
-file(GLOB msg_files "msg/*.msg")
-foreach(file ${msg_files})
-    get_filename_component(file_short ${file} NAME)
-    list(APPEND msg_base_files ${file_short})
-endforeach()
-
-add_message_files(FILES ${msg_base_files})
-message(STATUS "+++ Services: ${msg_base_files}")
-################ MSG ################
-
-
 ################ ACTIONS ################
 file(GLOB action_files "action/*.action")
 foreach(file ${action_files})
