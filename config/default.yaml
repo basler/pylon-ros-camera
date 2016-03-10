@@ -5,9 +5,14 @@ camera_frame: pylon_camera
 #  device list will be used
 device_user_id: ""
 
-#  Binning factor to get downsampled images. This factor will be applied
-#  to the image width as well as the image height
-# binning: 1
+#  Binning factor to get downsampled images. It refers here to any camera
+#  setting which combines rectangular neighborhoods of pixels into larger
+#  "super-pixels." It reduces the resolution of the output image to
+#  (width / binning_x) x (height / binning_y).
+#  The default values binning_x = binning_y = 0 are considered the same
+#  as binning_x = binning_y = 1 (no subsampling).
+#binning_x: 1
+#binning_y: 1
 
 ##########################################################################
 ######################## Image Intensity Settings ########################

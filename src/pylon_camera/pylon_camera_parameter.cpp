@@ -9,7 +9,10 @@ namespace pylon_camera
 PylonCameraParameter::PylonCameraParameter() :
         camera_frame_("pylon_camera"),
         device_user_id_(""),
-        binning_(1),
+        binning_x_(1),
+        binning_y_(1),
+        binning_x_given_(false),
+        binning_y_given_(false),
         // ##########################
         //  image intensity settings
         // ##########################
@@ -36,34 +39,71 @@ PylonCameraParameter::~PylonCameraParameter()
 void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
 {
     // handling of deprecated parameter naming behaviour
-    if ( nh.hasParam("desired_framerate") )
     {
-        ROS_ERROR_STREAM("Using parameter 'desired_framerate' is deprecated! "
-            << "Please rename it to 'frame_rate'");
-        nh.getParam("desired_framerate", frame_rate_);
-    }
-    if ( nh.hasParam("start_exposure") )
-    {
-        ROS_ERROR_STREAM("Using parameter 'start_exposure' is deprecated! "
-            << "Please look at the default.yaml config file in the "
-            << "pylon_camera pkg to see how you should use it. The parameter "
-            << "name has changed to 'exposure'");
-        nh.getParam("start_exposure", exposure_);
-    }
-    if ( nh.hasParam("target_gain") )
-    {
-        ROS_ERROR_STREAM("Using parameter 'target_gain' is deprecated! "
-            << "Please look at the default.yaml config file in the "
-            << "pylon_camera pkg to see how you should use it. The parameter "
-            << "name has changed to 'gain'");
-        nh.getParam("target_gain", gain_);
+        if ( nh.hasParam("desired_framerate") )
+        {
+            ROS_ERROR_STREAM("Using parameter 'desired_framerate' is deprecated! "
+                << "Please rename it to 'frame_rate'");
+            nh.getParam("desired_framerate", frame_rate_);
+        }
+        if ( nh.hasParam("start_exposure") )
+        {
+            ROS_ERROR_STREAM("Using parameter 'start_exposure' is deprecated! "
+                << "Please look at the default.yaml config file in the "
+                << "pylon_camera pkg to see how you should use it. The parameter "
+                << "name has changed to 'exposure'");
+            nh.getParam("start_exposure", exposure_);
+        }
+        if ( nh.hasParam("target_gain") )
+        {
+            ROS_ERROR_STREAM("Using parameter 'target_gain' is deprecated! "
+                << "Please look at the default.yaml config file in the "
+                << "pylon_camera pkg to see how you should use it. The parameter "
+                << "name has changed to 'gain'");
+            nh.getParam("target_gain", gain_);
+        }
     }
     // handling of deprecated parameter naming behaviour
 
-
     nh.param<std::string>("camera_frame", camera_frame_, "pylon_camera");
     nh.param<std::string>("device_user_id", device_user_id_, "");
-    nh.param<int>("binning", binning_, 1);
+
+    binning_x_given_ = nh.hasParam("binning_x");
+    if ( binning_x_given_ )
+    {
+        int binning_x;
+        nh.getParam("binning_x", binning_x);
+        std::cout << "binning x is given and has value " << binning_x << std::endl;
+        if ( binning_x > 32 || binning_x < 0 )
+        {
+            ROS_WARN_STREAM("Desired horizontal binning_x factor not in valid "
+                << "range! Binning x = " << binning_x << ". Will reset it to "
+                << "default value (1)");
+            binning_x_given_ = false;
+        }
+        else
+        {
+            binning_x_ = static_cast<size_t>(binning_x);
+        }
+    }
+    binning_y_given_ = nh.hasParam("binning_y");
+    if ( binning_y_given_ )
+    {
+        int binning_y;
+        nh.getParam("binning_y", binning_y);
+        std::cout << "binning y is given and has value " << binning_y << std::endl;
+        if ( binning_y > 32 || binning_y < 0 )
+        {
+            ROS_WARN_STREAM("Desired vertical binning_y factor not in valid "
+                << "range! Binning y = " << binning_y << ". Will reset it to "
+                << "default value (1)");
+            binning_y_given_ = false;
+        }
+        else
+        {
+            binning_y_ = static_cast<size_t>(binning_y);
+        }
+    }
 
     // ##########################
     //  image intensity settings
@@ -171,14 +211,6 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
 
 void PylonCameraParameter::validateParameterSet(const ros::NodeHandle& nh)
 {
-    if ( binning_ > 4 || binning_ < 1 )
-    {
-        ROS_WARN_STREAM("Unsupported binning settings! Binning is "
-                << binning_ << ", but valid are only values in this range: "
-                << "[1, 2, 3, 4]! Will reset it to default value (1)");
-        binning_ = 1;
-    }
-
     if ( exposure_given_ && ( exposure_ <= 0.0 || exposure_ > 1e7 ) )
     {
         ROS_WARN_STREAM("Desired exposure measured in microseconds not in "

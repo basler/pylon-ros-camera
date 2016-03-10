@@ -59,6 +59,18 @@ bool PylonCameraImpl<CameraTraitT>::openCamera()
 }
 
 template <typename CameraTraitT>
+size_t PylonCameraImpl<CameraTraitT>::currentBinningX()
+{
+    return static_cast<size_t>(cam_->BinningHorizontal.GetValue());
+}
+
+template <typename CameraTraitT>
+size_t PylonCameraImpl<CameraTraitT>::currentBinningY()
+{
+    return static_cast<size_t>(cam_->BinningVertical.GetValue());
+}
+
+template <typename CameraTraitT>
 float PylonCameraImpl<CameraTraitT>::currentExposure()
 {
     return static_cast<float>(exposureTime().GetValue());
@@ -205,9 +217,6 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
             setShutterMode(parameters.shutter_mode_);
         }
 
-        cam_->BinningHorizontal.SetValue(parameters.binning_);
-        cam_->BinningVertical.SetValue(parameters.binning_);
-
         cam_->StartGrabbing();
 
         img_rows_ = static_cast<size_t>(cam_->Height.GetValue());
@@ -242,7 +251,6 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         ROS_ERROR_STREAM("startGrabbing: " << e.GetDescription());
         return false;
     }
-
     return true;
 }
 
@@ -328,6 +336,74 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
         return false;
     }
 
+    return true;
+}
+
+template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::setBinningX(const size_t& target_binning_x,
+                                                size_t& reached_binning_x)
+{
+    try
+    {
+        size_t binning_x_to_set = target_binning_x;
+        if ( binning_x_to_set < cam_->BinningHorizontal.GetMin() )
+        {
+            ROS_WARN_STREAM("Desired horizontal binning_x factor("
+                << binning_x_to_set << ") unreachable! Setting to lower "
+                << "limit: " << cam_->BinningHorizontal.GetMin());
+            binning_x_to_set = cam_->BinningHorizontal.GetMin();
+        }
+        else if ( binning_x_to_set > cam_->BinningHorizontal.GetMax() )
+        {
+            ROS_WARN_STREAM("Desired horizontal binning_x factor("
+                << binning_x_to_set << ") unreachable! Setting to upper "
+                << "limit: " << cam_->BinningHorizontal.GetMax());
+            binning_x_to_set = cam_->BinningHorizontal.GetMax();
+        }
+        cam_->BinningHorizontal.SetValue(binning_x_to_set);
+        reached_binning_x = currentBinningX();
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting target horizontal "
+                << "binning_x factor to " << target_binning_x << " occurred: "
+                << e.GetDescription());
+        return false;
+    }
+    return true;
+}
+
+template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::setBinningY(const size_t& target_binning_y,
+                                                 size_t& reached_binning_y)
+{
+    try
+    {
+        size_t binning_y_to_set = target_binning_y;
+        if ( binning_y_to_set < cam_->BinningVertical.GetMin() )
+        {
+            ROS_WARN_STREAM("Desired vertical binning_y factor("
+                << binning_y_to_set << ") unreachable! Setting to lower "
+                << "limit: " << cam_->BinningVertical.GetMin());
+            binning_y_to_set = cam_->BinningVertical.GetMin();
+        }
+        else if ( binning_y_to_set > cam_->BinningVertical.GetMax() )
+        {
+            ROS_WARN_STREAM("Desired vertical binning_y factor("
+                << binning_y_to_set << ") unreachable! Setting to upper "
+                << "limit: " << cam_->BinningVertical.GetMax());
+            binning_y_to_set = cam_->BinningVertical.GetMax();
+        }
+        cam_->BinningVertical.SetValue(binning_y_to_set);
+        reached_binning_y = currentBinningY();
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting target vertical "
+                << "binning_y factor to " << target_binning_y << " occurred: "
+                << e.GetDescription());
+        return false;
+    }
     return true;
 }
 

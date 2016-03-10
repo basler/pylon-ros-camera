@@ -15,6 +15,7 @@
 
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/pylon_camera.h>
+#include <camera_control_msgs/SetBinning.h>
 #include <camera_control_msgs/SetBrightnessSrv.h>
 #include <camera_control_msgs/SetExposureSrv.h>
 #include <camera_control_msgs/SetGain.h>
@@ -86,6 +87,34 @@ protected:
      */
     virtual void setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg);
 
+    /**
+     * Update the horizontal binning_x factor to get downsampled images
+     * @param target_binning_x the target horizontal binning_x factor
+     * @param reached_binning_x the horizontal binning_x factor that could be
+     *        reached
+     * @return true if the targeted binning could be reached
+     */
+    bool setBinningX(const size_t& target_binning_x,
+                     size_t& reached_binning_x);
+
+    /**
+     * Update the vertical binning_y factor to get downsampled images
+     * @param target_binning_y the target vertical binning_y factor
+     * @param reached_binning_y the vertical binning_y factor that could be
+     *        reached
+     * @return true if the targeted binning could be reached
+     */
+    bool setBinningY(const size_t& target_binning_y,
+                     size_t& reached_binning_y);
+
+    /**
+     * Service callback for updating the cameras binning setting
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setBinningCallback(camera_control_msgs::SetBinning::Request &req,
+                            camera_control_msgs::SetBinning::Response &res);
     /**
      * Update the exposure value on the camera
      * @param target_exposure the targeted exposure
@@ -226,6 +255,7 @@ protected:
 
     GrabImagesAction grab_images_raw_action_server_;
 
+    ros::ServiceServer set_binning_service_;
     ros::ServiceServer set_exposure_service_;
     ros::ServiceServer set_brightness_service_;
     ros::ServiceServer set_gain_service_;

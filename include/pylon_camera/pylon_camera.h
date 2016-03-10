@@ -89,6 +89,18 @@ public:
     virtual bool grab(uint8_t* image) = 0;
 
     /**
+     * Returns the current horizontal binning_x setting.
+     * @return the horizontal binning_x setting.
+     */
+    virtual size_t currentBinningX() = 0;
+
+    /**
+     * Returns the current vertical binning_y setting.
+     * @return the vertical binning_y setting.
+     */
+    virtual size_t currentBinningY() = 0;
+
+    /**
      * Returns the current exposure time in microseconds.
      * @return the exposure time in microseconds.
      */
@@ -131,15 +143,31 @@ public:
     virtual float currentAutoGainUpperLimit() = 0;
 
     /**
+     * Sets the target horizontal binning_x factor
+     * @param target_binning_x the target horizontal binning_x factor.
+     * @param reached_binning_x the reached horizontal binning_x factor.
+     * @return false if a communication error occurred or true otherwise.
+     */
+    virtual bool setBinningX(const size_t& target_binning_x,
+                             size_t& reached_binning_x) = 0;
+
+    /**
+     * Sets the target vertical binning_y factor
+     * @param target_binning_y the target vertical binning_y factor.
+     * @param reached_binning_y the reached vertical binning_y factor.
+     * @return false if a communication error occurred or true otherwise.
+     */
+    virtual bool setBinningY(const size_t& target_binning_y,
+                             size_t& reached_binning_y) = 0;
+
+    /**
      * Sets the exposure time in microseconds
-     * Setting the exposure time to -1.0 enables the AutoExposureContinuous mode.
-     * Setting the exposure time to  0.0 disables the AutoExposure function.
-     * Setting the exposure time to a value greater than zero disables the auto exposure feature.
      * @param target_exposure the desired exposure time to set in microseconds.
      * @param reached_exposure time in microseconds
      * @return false if a communication error occurred or true otherwise.
      */
-    virtual bool setExposure(const float& target_exposure, float& reached_exposure) = 0;
+    virtual bool setExposure(const float& target_exposure,
+                             float& reached_exposure) = 0;
 
     /**
      * Sets the gain in percent independent of the camera type

@@ -58,13 +58,20 @@ bool PylonCameraNode::init()
 
 bool PylonCameraNode::initAndRegister()
 {
+    // up to now it's not yet possible to change binning settings at runtime,
+    // because the cam has to be closed & reopened
+    /**
+     * set_binning_service_ = nh_.advertiseService("set_binning",
+     *                                             &PylonCameraNode::setBinningCallback,
+     *                                             this);
+     */
     set_exposure_service_ = nh_.advertiseService("set_exposure_srv",
                                                  &PylonCameraNode::setExposureCallback,
                                                  this);
-    set_gain_service_ = nh_.advertiseService("set_gain_srv",
+    set_gain_service_ = nh_.advertiseService("set_gain",
                                              &PylonCameraNode::setGainCallback,
                                              this);
-    set_gamma_service_ = nh_.advertiseService("set_gamma_srv",
+    set_gamma_service_ = nh_.advertiseService("set_gamma",
                                              &PylonCameraNode::setGammaCallback,
                                              this);
     set_brightness_service_ = nh_.advertiseService("set_brightness_srv",
@@ -111,6 +118,26 @@ bool PylonCameraNode::initAndRegister()
 
 bool PylonCameraNode::startGrabbing()
 {
+    if ( pylon_camera_parameter_set_.binning_x_given_ )
+    {
+        size_t reached_binning_x;
+        setBinningX(pylon_camera_parameter_set_.binning_x_, reached_binning_x);
+        ROS_INFO_STREAM("Setting horizontal binning_x to "
+                << pylon_camera_parameter_set_.binning_x_);
+        ROS_WARN_STREAM("The image width of the camera_info-msg will "
+            << "be adapted, so that the binning_x value in this msg remains 1");
+    }
+
+    if ( pylon_camera_parameter_set_.binning_y_given_ )
+    {
+        size_t reached_binning_y;
+        setBinningY(pylon_camera_parameter_set_.binning_y_, reached_binning_y);
+        ROS_INFO_STREAM("Setting vertical binning_y to "
+                << pylon_camera_parameter_set_.binning_y_);
+        ROS_WARN_STREAM("The image height of the camera_info-msg will "
+            << "be adapted, so that the binning_y value in this msg remains 1");
+    }
+
     if ( !pylon_camera_->startGrabbing(pylon_camera_parameter_set_) )
     {
         ROS_ERROR("Error while start grabbing");
@@ -170,11 +197,14 @@ bool PylonCameraNode::startGrabbing()
         }
     }
 
-    ROS_INFO_STREAM("Starting with current settings: "
+    ROS_INFO_STREAM("Startup settings: "
+            << "binning = [" << pylon_camera_->currentBinningX() << ", "
+            << pylon_camera_->currentBinningY() << "], "
             << "exposure = " << pylon_camera_->currentExposure() << ", "
             << "gain = " << pylon_camera_->currentGain() << ", "
             << "gamma = " <<  pylon_camera_->currentGamma() << ", "
-            << "shutter mode = " << pylon_camera_parameter_set_.shutterModeString());
+            << "shutter mode = "
+            << pylon_camera_parameter_set_.shutterModeString());
 
     // Framerate Settings
     if ( pylon_camera_->maxPossibleFramerate() < pylon_camera_parameter_set_.frameRate() )
@@ -182,7 +212,9 @@ bool PylonCameraNode::startGrabbing()
         ROS_INFO("Desired framerate %.2f is higher than max possible. Will limit framerate to: %.2f Hz",
                  pylon_camera_parameter_set_.frameRate(),
                  pylon_camera_->maxPossibleFramerate());
-        pylon_camera_parameter_set_.setFrameRate(nh_, pylon_camera_->maxPossibleFramerate());
+        pylon_camera_parameter_set_.setFrameRate(
+                nh_,
+                pylon_camera_->maxPossibleFramerate());
     }
     else if ( pylon_camera_parameter_set_.frameRate() == -1 )
     {
@@ -253,6 +285,10 @@ void PylonCameraNode::setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
     // zeroed out. In particular, clients may assume that K[0] == 0.0
     // indicates an uncalibrated camera.
     cam_info_msg.header = header;
+
+    // The image dimensions with which the camera was calibrated. Normally
+    // this will be the full camera resolution in pixels. They remain fix, even
+    // if binning is applied
     cam_info_msg.height = pylon_camera_->imageRows();
     cam_info_msg.width = pylon_camera_->imageCols();
 
@@ -313,7 +349,8 @@ void PylonCameraNode::setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
     // resolution of the output image to (width / binning_x) x (height / binning_y).
     // The default values binning_x = binning_y = 0 is considered the same as
     // binning_x = binning_y = 1 (no subsampling).
-    cam_info_msg.binning_x = cam_info_msg.binning_y = pylon_camera_parameter_set_.binning_;
+    cam_info_msg.binning_x = 1;
+    cam_info_msg.binning_y = 1;
 
     // Region of interest (subwindow of full camera resolution), given in full
     // resolution (unbinned) image coordinates. A particular ROI always denotes
@@ -437,7 +474,6 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         ROS_ERROR_STREAM("GrabImagesRaw action server received request but "
             << "size of all given image properties is zero! Can't grab!");
         result.success = false;
-        //grab_images_raw_action_server_.setSucceeded(result);
         return result;
     }
 
@@ -450,7 +486,6 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
             << "the size of the requested vaules of brightness, gain or "
             << "gamma! Can't grab!");
         result.success = false;
-        //grab_images_raw_action_server_.setSucceeded(result);
         return result;
     }
 
@@ -460,7 +495,6 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
             << "the size of the requested exposure times or the vaules of "
             << "brightness or gamma! Can't grab!");
         result.success = false;
-        //grab_images_raw_action_server_.setSucceeded(result);
         return result;
     }
 
@@ -470,7 +504,6 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
             << "the size of the requested exposure times or the vaules of "
             << "brightness or gain! Can't grab!");
         result.success = false;
-        //grab_images_raw_action_server_.setSucceeded(result);
         return result;
     }
 
@@ -480,7 +513,6 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
             << "the size of the requested exposure times or the vaules of gain or "
             << "gamma! Can't grab!");
         result.success = false;
-        //grab_images_raw_action_server_.setSucceeded(result);
         return result;
     }
 
@@ -597,7 +629,6 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
             setGain(previous_gain, reached_val);
             setExposure(previous_exp, reached_val);
         }
-        //grab_images_raw_action_server_.setSucceeded(result);
         return result;
     }
 
@@ -631,8 +662,91 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         setGain(previous_gain, reached_val);
         setExposure(previous_exp, reached_val);
     }
-    //grab_images_raw_action_server_.setSucceeded(result);
     return result;
+}
+
+bool PylonCameraNode::setBinningX(const size_t& target_binning_x,
+                                  size_t& reached_binning_x)
+{
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if ( pylon_camera_->setBinningX(target_binning_x, reached_binning_x) )
+    {
+        return true;
+    }
+    else  // retry till timeout
+    {
+        // wait for max 5s till the cam has updated the exposure
+        ros::Rate r(10.0);
+        ros::Time timeout(ros::Time::now() + ros::Duration(2.0));
+        while ( ros::ok() )
+        {
+            if ( pylon_camera_->setBinningX(target_binning_x, reached_binning_x) )
+            {
+                return true;
+            }
+
+            if ( ros::Time::now() > timeout )
+            {
+                ROS_ERROR_STREAM("Error in setBinningX(): Unable to set target "
+                        << "binning_x factor before timeout");
+                return false;
+            }
+            r.sleep();
+        }
+    }
+}
+
+bool PylonCameraNode::setBinningY(const size_t& target_binning_y,
+                                  size_t& reached_binning_y)
+{
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if ( pylon_camera_->setBinningY(target_binning_y, reached_binning_y) )
+    {
+        return true;
+    }
+    else  // retry till timeout
+    {
+        // wait for max 5s till the cam has updated the exposure
+        ros::Rate r(10.0);
+        ros::Time timeout(ros::Time::now() + ros::Duration(2.0));
+        while ( ros::ok() )
+        {
+            if ( pylon_camera_->setBinningY(target_binning_y, reached_binning_y) )
+            {
+                return true;
+            }
+
+            if ( ros::Time::now() > timeout )
+            {
+                ROS_ERROR_STREAM("Error in setBinningY(): Unable to set target "
+                        << "binning_y factor before timeout");
+                return false;
+            }
+            r.sleep();
+        }
+    }
+}
+
+bool PylonCameraNode::setBinningCallback(camera_control_msgs::SetBinning::Request &req,
+                                         camera_control_msgs::SetBinning::Response &res)
+{
+    ROS_WARN("setBinning() not yet implemented during runtime");
+    return true;
+/*
+ *    size_t reached_binning_x, reached_binning_y;
+ *    bool success_x = setBinningX(req.target_binning_x,
+ *                                 reached_binning_x);
+ *    bool success_y = setBinningY(req.target_binning_y,
+ *                                 reached_binning_y);
+ *
+ *    res.reached_binning_x = static_cast<long unsigned int>(reached_binning_x);
+ *    res.reached_binning_y = static_cast<long unsigned int>(reached_binning_y);
+ *
+ *    res.success = success_x && success_y;
+ *    cam_info_msg_.binning_x = pylon_camera_->currentBinningX();
+ *    cam_info_msg_.binning_y = pylon_camera_->currentBinningY();
+ *    return true;
+ */
 }
 
 bool PylonCameraNode::setExposure(const float& target_exposure,

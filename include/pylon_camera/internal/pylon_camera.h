@@ -41,6 +41,12 @@ public:
 
     virtual bool setShutterMode(const pylon_camera::SHUTTER_MODE& mode);
 
+    virtual bool setBinningX(const size_t& target_binning_x,
+                             size_t& reached_binning_x);
+
+    virtual bool setBinningY(const size_t& target_binning_y,
+                             size_t& reached_binning_y);
+
     virtual bool setExposure(const float& target_exposure, float& reached_exposure);
 
     virtual bool setGain(const float& target_gain, float& reached_gain);
@@ -53,6 +59,10 @@ public:
                                const bool& gain_auto);
 
     virtual bool setUserOutput(const int& output_id, const bool& value);
+
+    virtual size_t currentBinningX();
+
+    virtual size_t currentBinningY();
 
     virtual float currentExposure();
 

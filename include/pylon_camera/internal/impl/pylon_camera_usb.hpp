@@ -61,6 +61,11 @@ bool PylonUSBCamera::applyCamSpecificStartupSettings(const PylonCameraParameter&
         // however, you must also set the Auto Function Profile feature.
         //  cam_->AutoFunctionProfile.SetValue(Basler_UsbCameraParams::AutoFunctionProfile_MinimizeGain);
 
+        ROS_INFO_STREAM("Cam has binning range: x(hz) = ["
+            << cam_->BinningHorizontal.GetMin() << " - "
+            << cam_->BinningHorizontal.GetMax() << "], y(vt) = ["
+            << cam_->BinningVertical.GetMin() << " - "
+            << cam_->BinningVertical.GetMax() << "].");
         ROS_INFO_STREAM("Cam has exposure time range: [" << cam_->ExposureTime.GetMin()
                 << " - " << cam_->ExposureTime.GetMax()
                 << "] measured in microseconds.");

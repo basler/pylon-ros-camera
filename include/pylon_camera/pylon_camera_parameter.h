@@ -63,12 +63,22 @@ public:
     std::string shutterModeString() const;
 
 public:
-    /**
-     * Binning factor to get downsampled images. This factor will be applied
-     * to the image width as well as the image height
+    /** Binning factor to get downsampled images. It refers here to any camera
+     * setting which combines rectangular neighborhoods of pixels into larger
+     * "super-pixels." It reduces the resolution of the output image to
+     * (width / binning_x) x (height / binning_y).
+     * The default values binning_x = binning_y = 0 are considered the same
+     * as binning_x = binning_y = 1 (no subsampling).
      */
-    int binning_;
+    size_t binning_x_;
+    size_t binning_y_;
 
+    /**
+     * Flagis which indicate if the binning factors are provided and hence
+     * should be set during startup
+     */
+    bool binning_x_given_;
+    bool binning_y_given_;
 
     // #######################################################################
     // ###################### Image Intensity Settings  ######################

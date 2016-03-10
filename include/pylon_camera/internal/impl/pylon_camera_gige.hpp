@@ -66,6 +66,11 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         // has Basler_GigECameraParams::GainSelector_All instead
         // cam_->GainSelector.SetValue(Basler_GigECameraParams::GainSelector_AnalogAll);
 
+        ROS_INFO_STREAM("Cam has binning range: x(hz) = ["
+            << cam_->BinningHorizontal.GetMin() << " - "
+            << cam_->BinningHorizontal.GetMax() << "], y(vt) = ["
+            << cam_->BinningVertical.GetMin() << " - "
+            << cam_->BinningVertical.GetMax() << "].");
         ROS_INFO_STREAM("Cam has exposure time range: [" << cam_->ExposureTimeAbs.GetMin()
                 << " - " << cam_->ExposureTimeAbs.GetMax()
                 << "] measured in microseconds.");
