@@ -451,7 +451,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     bool brightness_given = false;
     if ( using_deprecated_interface )
     {
-        ROS_ERROR_STREAM("The use of 'target_type' && 'target_values' in the "
+        ROS_WARN_STREAM("The use of 'target_type' && 'target_values' in the "
                 << "'GrabImages-Action' of the camera_control_msgs-pkg is "
                 << "deprecated! Will map your desired values to the new "
                 << "interface, but please fix your code and make ake use of "
