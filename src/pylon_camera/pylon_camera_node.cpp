@@ -23,7 +23,9 @@ PylonCameraNode::PylonCameraNode() :
                             this,
                             _1),
                 false),
-        set_sleeping_service_(nh_.advertiseService("set_sleeping_srv",
+        set_sleeping_service_deprecated_(nh_.advertiseService("set_sleeping_srv",
+                              &PylonCameraNode::setSleepingCallbackDeprecated, this)),
+        set_sleeping_service_(nh_.advertiseService("set_sleeping",
                               &PylonCameraNode::setSleepingCallback, this)),
         target_brightness_(-42),
         brightness_service_running_(false),
@@ -65,7 +67,7 @@ bool PylonCameraNode::initAndRegister()
      *                                             &PylonCameraNode::setBinningCallback,
      *                                             this);
      */
-    set_exposure_service_ = nh_.advertiseService("set_exposure_srv",
+    set_exposure_service_ = nh_.advertiseService("set_exposure",
                                                  &PylonCameraNode::setExposureCallback,
                                                  this);
     set_gain_service_ = nh_.advertiseService("set_gain",
@@ -74,9 +76,17 @@ bool PylonCameraNode::initAndRegister()
     set_gamma_service_ = nh_.advertiseService("set_gamma",
                                              &PylonCameraNode::setGammaCallback,
                                              this);
-    set_brightness_service_ = nh_.advertiseService("set_brightness_srv",
+    set_brightness_service_ = nh_.advertiseService("set_brightness",
                                                    &PylonCameraNode::setBrightnessCallback,
                                                    this);
+    // ##################### DEPRECATED !
+    set_exposure_service_deprecated_ = nh_.advertiseService("set_exposure_srv",
+                                                 &PylonCameraNode::setExposureCallbackDeprecated,
+                                                 this);
+    set_brightness_service_deprecated_ = nh_.advertiseService("set_brightness_srv",
+                                                   &PylonCameraNode::setBrightnessCallbackDeprecated,
+                                                   this);
+    // ##################### DEPRECATED !
 
     pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.deviceUserID());
 
@@ -788,9 +798,19 @@ bool PylonCameraNode::setExposure(const float& target_exposure,
     }
 }
 
-bool PylonCameraNode::setExposureCallback(camera_control_msgs::SetExposureSrv::Request &req,
-                                          camera_control_msgs::SetExposureSrv::Response &res)
+bool PylonCameraNode::setExposureCallback(camera_control_msgs::SetExposure::Request &req,
+                                          camera_control_msgs::SetExposure::Response &res)
 {
+    res.success = setExposure(req.target_exposure, res.reached_exposure);
+    return true;
+}
+
+bool PylonCameraNode::setExposureCallbackDeprecated(camera_control_msgs::SetExposureSrv::Request &req,
+                                                    camera_control_msgs::SetExposureSrv::Response &res)
+{
+    ROS_WARN_STREAM("The usage of the '/set_exposure_srv' with the "
+        << "'SetExposureSrv.srv' service is DEPRECATED! Please switch to "
+        << "'/set_exposure' and make use of the 'SetExposure.srv'!");
     res.success = setExposure(req.target_exposure, res.reached_exposure);
     return true;
 }
@@ -1031,9 +1051,35 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
     return is_brightness_reached;
 }
 
-bool PylonCameraNode::setBrightnessCallback(camera_control_msgs::SetBrightnessSrv::Request &req,
-                                            camera_control_msgs::SetBrightnessSrv::Response &res)
+bool PylonCameraNode::setBrightnessCallback(camera_control_msgs::SetBrightness::Request &req,
+                                            camera_control_msgs::SetBrightness::Response &res)
 {
+    res.success = setBrightness(req.target_brightness,
+                                res.reached_brightness,
+                                req.exposure_auto,
+                                req.gain_auto);
+    if ( req.brightness_continuous )
+    {
+        if ( req.exposure_auto )
+        {
+            pylon_camera_->enableContinuousAutoExposure();
+        }
+        if ( req.gain_auto )
+        {
+            pylon_camera_->enableContinuousAutoGain();
+        }
+    }
+    res.reached_exposure_time = pylon_camera_->currentExposure();
+    res.reached_gain_value = pylon_camera_->currentGain();
+    return true;
+}
+
+bool PylonCameraNode::setBrightnessCallbackDeprecated(camera_control_msgs::SetBrightnessSrv::Request &req,
+                                                      camera_control_msgs::SetBrightnessSrv::Response &res)
+{
+    ROS_WARN_STREAM("The usage of the '/set_brightness_srv' with the "
+        << "'SetBrightnessSrv.srv' service is DEPRECATED! Please switch to "
+        << "'/set_brightness' and make use of the 'SetBrightness.srv'!");
     res.success = setBrightness(req.target_brightness,
                                 res.reached_brightness,
                                 req.exposure_auto,
@@ -1063,9 +1109,30 @@ float PylonCameraNode::calcCurrentBrightness()
     return mean;
 }
 
-bool PylonCameraNode::setSleepingCallback(camera_control_msgs::SetSleepingSrv::Request &req,
-                                          camera_control_msgs::SetSleepingSrv::Response &res)
+bool PylonCameraNode::setSleepingCallback(camera_control_msgs::SetSleeping::Request &req,
+                                          camera_control_msgs::SetSleeping::Response &res)
 {
+    is_sleeping_ = req.set_sleeping;
+
+    if ( is_sleeping_ )
+    {
+        ROS_INFO("Seting Pylon Camera Node to sleep...");
+    }
+    else
+    {
+        ROS_INFO("Pylon Camera Node continues grabbing");
+    }
+
+    res.success = true;
+    return true;
+}
+
+bool PylonCameraNode::setSleepingCallbackDeprecated(camera_control_msgs::SetSleepingSrv::Request &req,
+                                                    camera_control_msgs::SetSleepingSrv::Response &res)
+{
+    ROS_WARN_STREAM("The usage of the '/set_sleeping_srv' with the "
+        << "'SetSleepingSrv.srv' service is DEPRECATED! Please switch to "
+        << "'/set_sleeping' and make use of the 'SetSleeping.srv'!");
     is_sleeping_ = req.set_sleeping;
 
     if ( is_sleeping_ )
