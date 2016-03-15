@@ -42,13 +42,13 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     {
         if ( nh.hasParam("desired_framerate") )
         {
-            ROS_ERROR_STREAM("Using parameter 'desired_framerate' is deprecated! "
+            ROS_WARN_STREAM("Using parameter 'desired_framerate' is deprecated! "
                 << "Please rename it to 'frame_rate'");
             nh.getParam("desired_framerate", frame_rate_);
         }
         if ( nh.hasParam("start_exposure") )
         {
-            ROS_ERROR_STREAM("Using parameter 'start_exposure' is deprecated! "
+            ROS_WARN_STREAM("Using parameter 'start_exposure' is deprecated! "
                 << "Please look at the default.yaml config file in the "
                 << "pylon_camera pkg to see how you should use it. The parameter "
                 << "name has changed to 'exposure'");
@@ -56,7 +56,7 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
         }
         if ( nh.hasParam("target_gain") )
         {
-            ROS_ERROR_STREAM("Using parameter 'target_gain' is deprecated! "
+            ROS_WARN_STREAM("Using parameter 'target_gain' is deprecated! "
                 << "Please look at the default.yaml config file in the "
                 << "pylon_camera pkg to see how you should use it. The parameter "
                 << "name has changed to 'gain'");
@@ -139,7 +139,7 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
             << std::endl;
         if ( gain_given_ && exposure_given_ )
         {
-            ROS_ERROR_STREAM("Gain ('gain') and Exposure Time ('exposure') "
+            ROS_WARN_STREAM("Gain ('gain') and Exposure Time ('exposure') "
                 << "are given as startup ros-parameter and hence assumed to be "
                 << "fix! The desired brightness (" << brightness_ << ") can't "
                 << "be reached! Will ignore the brightness by only "
