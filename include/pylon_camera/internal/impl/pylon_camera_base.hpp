@@ -314,7 +314,7 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
         if ( cam_->IsCameraDeviceRemoved() )
         {
             is_cam_removed_ = true;
-            ROS_ERROR("Camera was removed");
+            ROS_ERROR("Camera was removed, trying to re-open . . .");
         }
         else
         {

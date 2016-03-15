@@ -412,7 +412,10 @@ bool PylonCameraNode::grabImage()
         if ( pylon_camera_->isCamRemoved() )
         {
             ROS_ERROR("Pylon camera has been removed!");
-            ros::shutdown();
+            delete pylon_camera_;
+            pylon_camera_ = nullptr;
+            ros::Duration(0.5).sleep();
+            init();
         }
         else
         {
