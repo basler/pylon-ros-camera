@@ -701,12 +701,13 @@ bool PylonCameraNode::setBinningX(const size_t& target_binning_x,
 
             if ( ros::Time::now() > timeout )
             {
-                ROS_ERROR_STREAM("Error in setBinningX(): Unable to set target "
-                        << "binning_x factor before timeout");
-                return false;
+                break;
             }
             r.sleep();
         }
+        ROS_ERROR_STREAM("Error in setBinningX(): Unable to set target "
+            << "binning_x factor before timeout");
+        return false;
     }
 }
 
@@ -732,12 +733,13 @@ bool PylonCameraNode::setBinningY(const size_t& target_binning_y,
 
             if ( ros::Time::now() > timeout )
             {
-                ROS_ERROR_STREAM("Error in setBinningY(): Unable to set target "
-                        << "binning_y factor before timeout");
-                return false;
+                break;
             }
             r.sleep();
         }
+        ROS_ERROR_STREAM("Error in setBinningY(): Unable to set target "
+            << "binning_y factor before timeout");
+        return false;
     }
 }
 
@@ -793,12 +795,13 @@ bool PylonCameraNode::setExposure(const float& target_exposure,
 
             if ( ros::Time::now() > timeout )
             {
-                ROS_ERROR_STREAM("Error in setExposure(): Unable to set target"
-                        << " exposure before timeout");
-                return false;
+                break;
             }
             r.sleep();
         }
+        ROS_ERROR_STREAM("Error in setExposure(): Unable to set target"
+            << " exposure before timeout");
+        return false;
     }
 }
 
@@ -846,15 +849,14 @@ bool PylonCameraNode::setGain(const float& target_gain, float& reached_gain)
 
             if ( ros::Time::now() > timeout )
             {
-                ROS_ERROR_STREAM("Error in setGain(): Unable to set target "
-                        << "gain before timeout");
-                return false;
+                break;
             }
             r.sleep();
         }
+        ROS_ERROR_STREAM("Error in setGain(): Unable to set target "
+            << "gain before timeout");
+        return false;
      }
-    // Delta of 1% is allowed
-    bool success = fabs(reached_gain - target_gain) < 0.01;
 }
 
 bool PylonCameraNode::setGainCallback(camera_control_msgs::SetGain::Request &req,
@@ -891,12 +893,13 @@ bool PylonCameraNode::setGamma(const float& target_gamma, float& reached_gamma)
 
             if ( ros::Time::now() > timeout )
             {
-                ROS_ERROR_STREAM("Error in setGamma(): Unable to set target "
-                        << "gamma before timeout");
-                return false;
+                break;
             }
             r.sleep();
         }
+        ROS_ERROR_STREAM("Error in setGamma(): Unable to set target "
+            << "gamma before timeout");
+        return false;
     }
 }
 
