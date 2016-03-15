@@ -1,8 +1,3 @@
-###############################################################################
-########## This service is DEPRECATED! Please use SetBrightness.srv ###########
-###############################################################################
-
-
 # The target brightness, which is average intensity values of the images.
 # It depends the exposure time as well as the gain setting.
 int32 target_brightness
