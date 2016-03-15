@@ -11,14 +11,23 @@
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
-//#include <std_srvs/SetBool.h>
 #include <camera_control_msgs/SetBool.h>
 
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/pylon_camera.h>
-#include <camera_control_msgs/SetExposureSrv.h>
+#include <camera_control_msgs/SetBinning.h>
+#include <camera_control_msgs/SetBrightness.h>
+#include <camera_control_msgs/SetExposure.h>
+
+// ###################################### Deprecated !
 #include <camera_control_msgs/SetBrightnessSrv.h>
+#include <camera_control_msgs/SetExposureSrv.h>
 #include <camera_control_msgs/SetSleepingSrv.h>
+// ###################################### Deprecated !
+
+#include <camera_control_msgs/SetGain.h>
+#include <camera_control_msgs/SetGamma.h>
+#include <camera_control_msgs/SetSleeping.h>
 #include <camera_control_msgs/GrabImagesAction.h>
 
 namespace pylon_camera
@@ -44,10 +53,11 @@ public:
     virtual void spin();
 
     /**
-     * Getter for the desired frame rate.
+     * Getter for the frame rate set by the launch script or from the ros parameter
+     * server
      * @return the desired frame rate.
      */
-    const double& desiredFrameRate() const;
+    const double& frameRate() const;
 
     /**
      * Getter for the tf frame.
@@ -85,6 +95,34 @@ protected:
     virtual void setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg);
 
     /**
+     * Update the horizontal binning_x factor to get downsampled images
+     * @param target_binning_x the target horizontal binning_x factor
+     * @param reached_binning_x the horizontal binning_x factor that could be
+     *        reached
+     * @return true if the targeted binning could be reached
+     */
+    bool setBinningX(const size_t& target_binning_x,
+                     size_t& reached_binning_x);
+
+    /**
+     * Update the vertical binning_y factor to get downsampled images
+     * @param target_binning_y the target vertical binning_y factor
+     * @param reached_binning_y the vertical binning_y factor that could be
+     *        reached
+     * @return true if the targeted binning could be reached
+     */
+    bool setBinningY(const size_t& target_binning_y,
+                     size_t& reached_binning_y);
+
+    /**
+     * Service callback for updating the cameras binning setting
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setBinningCallback(camera_control_msgs::SetBinning::Request &req,
+                            camera_control_msgs::SetBinning::Response &res);
+    /**
      * Update the exposure value on the camera
      * @param target_exposure the targeted exposure
      * @param reached_exposure the exposure that could be reached
@@ -98,16 +136,35 @@ protected:
      * @param res response
      * @return true on success
      */
-    bool setExposureCallback(camera_control_msgs::SetExposureSrv::Request &req,
-                             camera_control_msgs::SetExposureSrv::Response &res);
+    bool setExposureCallback(camera_control_msgs::SetExposure::Request &req,
+                             camera_control_msgs::SetExposure::Response &res);
 
-    /**
-     * Set the target brightness value on the camera
-     * @param target_brightness
-     * @param reached_brightness
+    /** DEPRECATED handling
+     * Service callback for setting the exposure
+     * @param req request
+     * @param res response
      * @return true on success
      */
-    bool setBrightness(const int& target_brightness, int& reached_brightness);
+    bool setExposureCallbackDeprecated(camera_control_msgs::SetExposureSrv::Request &req,
+                                       camera_control_msgs::SetExposureSrv::Response &res);
+    /**
+     * Sets the target brightness which is the intensity-mean over all pixels.
+     * If the target exposure time is not in the range of Pylon's auto target
+     * brightness range the extended brightness search is started.
+     * The Auto function of the Pylon-API supports values from [50 - 205].
+     * Using a binary search, this range will be extended up to [1 - 255].
+     * @param target_brightness is the desired brightness. Range is [1...255].
+     * @param current_brightness is the current brightness with the given settings.
+     * @param exposure_auto flag which indicates if the target_brightness
+     *                      should be reached adapting the exposure time
+     * @param gain_auto flag which indicates if the target_brightness should be
+     *                      reached adapting the gain.
+     * @return true if the brightness could be reached or false otherwise.
+     */
+    bool setBrightness(const int& target_brightness,
+                       int& reached_brightness,
+                       const bool& exposure_auto,
+                       const bool& gain_auto);
 
     /**
      * Service callback for setting the brightness
@@ -115,8 +172,51 @@ protected:
      * @param res response
      * @return true on success
      */
-    bool setBrightnessCallback(camera_control_msgs::SetBrightnessSrv::Request &req,
-                               camera_control_msgs::SetBrightnessSrv::Response &res);
+    bool setBrightnessCallback(camera_control_msgs::SetBrightness::Request &req,
+                               camera_control_msgs::SetBrightness::Response &res);
+
+    /**
+     * Service callback for setting the brightness
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setBrightnessCallbackDeprecated(camera_control_msgs::SetBrightnessSrv::Request &req,
+                                         camera_control_msgs::SetBrightnessSrv::Response &res);
+
+    /**
+     * Update the gain from the camera to a target gain in percent
+     * @param target_gain the targeted gain in percent
+     * @param reached_gain the gain that could be reached
+     * @return true if the targeted gain could be reached
+     */
+    bool setGain(const float& target_gain, float& reached_gain);
+
+    /**
+     * Service callback for setting the desired gain in percent
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setGainCallback(camera_control_msgs::SetGain::Request &req,
+                         camera_control_msgs::SetGain::Response &res);
+
+    /**
+     * Update the gamma from the camera to a target gamma correction value
+     * @param target_gamma the targeted gamma
+     * @param reached_gamma the gamma that could be reached
+     * @return true if the targeted gamma could be reached
+     */
+    bool setGamma(const float& target_gamma, float& reached_gamma);
+
+    /**
+     * Service callback for setting the desired gamma correction value
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setGammaCallback(camera_control_msgs::SetGamma::Request &req,
+                         camera_control_msgs::SetGamma::Response &res);
 
     /**
      * Callback that puts the camera to sleep
@@ -124,8 +224,17 @@ protected:
      * @param res response
      * @return true on success
      */
-    bool setSleepingCallback(camera_control_msgs::SetSleepingSrv::Request &req,
-                             camera_control_msgs::SetSleepingSrv::Response &res);
+    bool setSleepingCallback(camera_control_msgs::SetSleeping::Request &req,
+                             camera_control_msgs::SetSleeping::Response &res);
+
+    /**
+     * Callback that puts the camera to sleep
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setSleepingCallbackDeprecated(camera_control_msgs::SetSleepingSrv::Request &req,
+                                       camera_control_msgs::SetSleepingSrv::Response &res);
 
     /**
      * Returns true if the camera was put into sleep mode
@@ -134,34 +243,23 @@ protected:
     bool isSleeping();
 
     /**
-     * Checks if the auto brightness function is running
-     */
-    void checkForPylonAutoFunctionRunning();
-
-    /**
-     * Check if the current brightness and the target brightness are similiar
-     * @param target
-     * @return
-     */
-    virtual bool brightnessValidation(int target);
-
-    /**
      * Calculates the mean brightness of the image
      * @return the mean brightness of the image
      */
-    virtual int calcCurrentBrightness();
-
-    /**
-     * Getter for the current exposure
-     * @return the current exposure
-     */
-    virtual float getCurrentExposure();
+    float calcCurrentBrightness();
 
     /**
      * Callback for the grab images action
      * @param goal the goal
      */
     void grabImagesRawActionExecuteCB(const camera_control_msgs::GrabImagesGoal::ConstPtr& goal);
+
+    /**
+     * This function can also be called from the derived PylonCameraOpenCV-Class
+     */
+    camera_control_msgs::GrabImagesResult grabImagesRaw(
+                    const camera_control_msgs::GrabImagesGoal::ConstPtr& goal,
+                    GrabImagesAction* action_server);
 
     /**
      * Callback that sets the digital output
@@ -174,6 +272,12 @@ protected:
                             camera_control_msgs::SetBool::Request &req,
                             camera_control_msgs::SetBool::Response &res);
 
+    /**
+     * Waits till the pylon_camera_ isReady() observing a given timeout
+     * @return true when the camera's state toggles to 'isReady()'
+     */
+    bool waitForCamera(const ros::Duration& timeout) const;
+
     ros::NodeHandle nh_;
 
     PylonCamera* pylon_camera_;
@@ -184,10 +288,18 @@ protected:
 
     GrabImagesAction grab_images_raw_action_server_;
 
+    ros::ServiceServer set_binning_service_;
     ros::ServiceServer set_exposure_service_;
     ros::ServiceServer set_brightness_service_;
+    ros::ServiceServer set_gain_service_;
+    ros::ServiceServer set_gamma_service_;
     ros::ServiceServer set_sleeping_service_;
     ros::ServiceServer set_digital_output_1_service_;
+    // ################### DEPRECATED !
+    ros::ServiceServer set_exposure_service_deprecated_;
+    ros::ServiceServer set_brightness_service_deprecated_;
+    ros::ServiceServer set_sleeping_service_deprecated_;
+    // ################### DEPRECATED !
 
     sensor_msgs::Image img_raw_msg_;
     sensor_msgs::CameraInfo cam_info_msg_;

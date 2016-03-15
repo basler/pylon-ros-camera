@@ -37,13 +37,13 @@ set(
 )
 
 roslint_cpp(
-    src/${PROJECT_NAME}/exposure_search_parameter.cpp
+    src/${PROJECT_NAME}/binary_exposure_search.cpp
     src/${PROJECT_NAME}/main.cpp
     src/${PROJECT_NAME}/pylon_camera_node.cpp
     src/${PROJECT_NAME}/pylon_camera_parameter.cpp
     src/${PROJECT_NAME}/pylon_camera.cpp
     src/${PROJECT_NAME}/write_magazino_id_to_camera.cpp
-    include/${PROJECT_NAME}/exposure_search_parameter.h
+    include/${PROJECT_NAME}/binary_exposure_search.h
     include/${PROJECT_NAME}/pylon_camera_node.h
     include/${PROJECT_NAME}/pylon_camera_parameter.h
     include/${PROJECT_NAME}/pylon_camera.h
@@ -63,7 +63,7 @@ include_directories(
 # Add library
 add_library(
     ${PROJECT_NAME}
-     src/${PROJECT_NAME}/exposure_search_parameter.cpp
+     src/${PROJECT_NAME}/binary_exposure_search.cpp
      src/${PROJECT_NAME}/pylon_camera.cpp
      src/${PROJECT_NAME}/pylon_camera_node.cpp
      src/${PROJECT_NAME}/pylon_camera_parameter.cpp
@@ -123,20 +123,18 @@ install(
      ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
 )
 
-file(GLOB ${PROJECT_NAME}_SCRIPTS
-        "scripts/*.py"
+file(
+    GLOB
+     ${PROJECT_NAME}_SCRIPTS "scripts/*.py"
 )
 
 install(
-	PROGRAMS
-	 scripts/brightness_evaluation.py
-	 scripts/brightness_publisher.py
-	 scripts/exp_caller.py
-	 scripts/file_sequencer.py
-	 scripts/result_bag_to_action.py
-	 scripts/sequence_to_file.py
-	DESTINATION
-	 ${CATKIN_PACKAGE_SHARE_DESTINATION}
+    PROGRAMS
+     scripts/file_sequencer.py
+     scripts/result_bag_to_action.py
+     scripts/sequence_to_file.py
+    DESTINATION
+     ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 install(

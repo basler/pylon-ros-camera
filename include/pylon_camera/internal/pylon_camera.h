@@ -25,29 +25,70 @@ public:
 
     virtual ~PylonCameraImpl();
 
-    virtual bool registerCameraConfiguration(const PylonCameraParameter& params);
+    virtual bool registerCameraConfiguration();
 
-    virtual bool startGrabbing(const PylonCameraParameter& params);
+    virtual bool openCamera();
+
+    virtual bool setupSequencer(const std::vector<float>& exposure_times);
+
+    virtual bool applyCamSpecificStartupSettings(const PylonCameraParameter& parameters);
+
+    virtual bool startGrabbing(const PylonCameraParameter& parameters);
 
     virtual bool grab(std::vector<uint8_t>& image);
 
     virtual bool grab(uint8_t* image);
 
-    virtual bool setupSequencer(const std::vector<float>& exposure_times);
-
     virtual bool setShutterMode(const pylon_camera::SHUTTER_MODE& mode);
+
+    virtual bool setBinningX(const size_t& target_binning_x,
+                             size_t& reached_binning_x);
+
+    virtual bool setBinningY(const size_t& target_binning_y,
+                             size_t& reached_binning_y);
+
+    virtual bool setExposure(const float& target_exposure, float& reached_exposure);
+
+    virtual bool setGain(const float& target_gain, float& reached_gain);
+
+    virtual bool setGamma(const float& target_gamma, float& reached_gamma);
+
+    virtual bool setBrightness(const int& target_brightness,
+                               const float& current_brightness,
+                               const bool& exposure_auto,
+                               const bool& gain_auto);
+
+    virtual bool setUserOutput(const int& output_id, const bool& value);
+
+    virtual size_t currentBinningX();
+
+    virtual size_t currentBinningY();
 
     virtual float currentExposure();
 
-    virtual bool setExposure(const double& exposure);
+    virtual float currentAutoExposureTimeLowerLimit();
 
-    virtual bool setBrightness(const int& brightness);
+    virtual float currentAutoExposureTimeUpperLimit();
 
-    virtual bool setExtendedBrightness(int& brightness);
+    virtual float currentGain();
 
-    virtual void setupExtendedBrightnessSearch(const int& brightness);
+    virtual float currentGamma();
 
-    virtual bool isAutoBrightnessFunctionRunning();
+    virtual float currentAutoGainLowerLimit();
+
+    virtual float currentAutoGainUpperLimit();
+
+    virtual float maxPossibleFramerate();
+
+    virtual bool isPylonAutoBrightnessFunctionRunning();
+
+    virtual bool isBrightnessSearchRunning();
+
+    virtual void disableAllRunningAutoBrightessFunctions();
+
+    virtual void enableContinuousAutoExposure();
+
+    virtual void enableContinuousAutoGain();
 
     virtual std::string imageEncoding() const;
 
@@ -57,21 +98,31 @@ public:
 
     virtual float exposureStep();
 
-    virtual bool setUserOutput(const int& output_id, const bool& value);
-
 protected:
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
     typedef typename CameraTraitT::ExposureAutoEnums ExposureAutoEnums;
+    typedef typename CameraTraitT::GainAutoEnums GainAutoEnums;
     typedef typename CameraTraitT::PixelFormatEnums PixelFormatEnums;
     typedef typename CameraTraitT::PixelSizeEnums PixelSizeEnums;
     typedef typename CameraTraitT::AutoTargetBrightnessType AutoTargetBrightnessType;
+    typedef typename CameraTraitT::GainType GainType;
     typedef typename CameraTraitT::ShutterModeEnums ShutterModeEnums;
     typedef typename CameraTraitT::UserOutputSelectorEnums UserOutputSelectorEnums;
 
-    // Each camera has it's own getter for GenApi accessors that are named differently for USB and GigE
+    // Each camera has it's own getter for GenApi accessors that are named
+    // differently for USB and GigE
     GenApi::IFloat& exposureTime();
+    GainType& gain();
+    GenApi::IFloat& gamma();
+    GenApi::IFloat& autoExposureTimeLowerLimit();
+    GenApi::IFloat& autoExposureTimeUpperLimit();
+    GainType& autoGainLowerLimit();
+    GainType& autoGainUpperLimit();
     GenApi::IFloat& resultingFrameRate();
     AutoTargetBrightnessType& autoTargetBrightness();
+
+    virtual bool setExtendedBrightness(const int& target_brightness,
+                                       const float& current_brightness);
 
     virtual bool grab(Pylon::CGrabResultPtr& grab_result);
 

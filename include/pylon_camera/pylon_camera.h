@@ -7,7 +7,7 @@
 #include <vector>
 
 #include <pylon_camera/pylon_camera_parameter.h>
-#include <pylon_camera/exposure_search_parameter.h>
+#include <pylon_camera/binary_exposure_search.h>
 
 namespace pylon_camera
 {
@@ -18,8 +18,6 @@ namespace pylon_camera
 class PylonCamera
 {
 public:
-    virtual ~PylonCamera();
-
     /**
      * Create a new PylonCamera instance. It will return the first camera that could be found.
      * @return new PylonCamera instance or NULL if no camera was found.
@@ -34,11 +32,25 @@ public:
     static PylonCamera* create(const std::string& device_user_id);
 
     /**
+     * Configures the camera according to the software trigger mode.
+     * @return true if all the configuration could be set up.
+     */
+    virtual bool registerCameraConfiguration() = 0;
+
+    /**
+     * Opens the desired camera, the communication starts from now on.
+     * @return true if the camera could be opend.
+     */
+    virtual bool openCamera() = 0;
+
+    /**
      * Configures the camera according to the provided ros parameters.
+     * This will use the device specific parameters as e.g. the mtu size for
+     * GigE-Cameras
      * @param parameters The PylonCameraParameter set to use
      * @return true if all parameters could be sent to the camera.
      */
-    virtual bool registerCameraConfiguration(const PylonCameraParameter& parameters) = 0;
+    virtual bool applyCamSpecificStartupSettings(const PylonCameraParameter& parameters) = 0;
 
     /**
      * Configure the sequencer exposure times.
@@ -47,14 +59,12 @@ public:
      */
     virtual bool setupSequencer(const std::vector<float>& exposure_times) = 0;
 
-
     /**
      * @brief sets shutter mode for the camera (rolling or global_reset)
      * @param mode
      * @return
      */
     virtual bool setShutterMode(const pylon_camera::SHUTTER_MODE& mode) = 0;
-
 
     /**
      * Initializes the internal parameters of the PylonCamera instance.
@@ -72,10 +82,23 @@ public:
 
     /**
      * Grab a camera frame and copy the result into image
-     * @param image pointer to the image buffer. Caution: Make sure the buffer is initialized correctly!
+     * @param image pointer to the image buffer.
+     *              Caution: Make sure the buffer is initialized correctly!
      * @return true if the image was grabbed successfully.
      */
     virtual bool grab(uint8_t* image) = 0;
+
+    /**
+     * Returns the current horizontal binning_x setting.
+     * @return the horizontal binning_x setting.
+     */
+    virtual size_t currentBinningX() = 0;
+
+    /**
+     * Returns the current vertical binning_y setting.
+     * @return the vertical binning_y setting.
+     */
+    virtual size_t currentBinningY() = 0;
 
     /**
      * Returns the current exposure time in microseconds.
@@ -84,14 +107,83 @@ public:
     virtual float currentExposure() = 0;
 
     /**
-     * Sets the exposure time in microseconds
-     * Setting the exposure time to -1.0 enables the AutoExposureContinuous mode.
-     * Setting the exposure time to  0.0 disables the AutoExposure function.
-     * Setting the exposure time to a value greater than zero disables the auto exposure feature.
-     * @param exposure exposure time in microseconds.
+     * Returns the current auto exposure time lower limit
+     * @return the current auto exposure time lower limit
+     */
+    virtual float currentAutoExposureTimeLowerLimit() = 0;
+
+    /**
+     * Returns the current auto exposure time upper limit
+     * @return the current auto exposure time upper limit
+     */
+    virtual float currentAutoExposureTimeUpperLimit() = 0;
+
+    /**
+     * Returns the current gain in percent.
+     * @return the gain time percent.
+     */
+    virtual float currentGain() = 0;
+
+    /**
+     * Returns the current gamma value.
+     * @return the gamma value.
+     */
+    virtual float currentGamma() = 0;
+
+    /**
+     * Returns the current auto gain lower limit
+     * @return the current auto gain lower limit
+     */
+    virtual float currentAutoGainLowerLimit() = 0;
+
+    /**
+     * Returns the current auto gain upper limit
+     * @return the current auto gain upper limit
+     */
+    virtual float currentAutoGainUpperLimit() = 0;
+
+    /**
+     * Sets the target horizontal binning_x factor
+     * @param target_binning_x the target horizontal binning_x factor.
+     * @param reached_binning_x the reached horizontal binning_x factor.
      * @return false if a communication error occurred or true otherwise.
      */
-    virtual bool setExposure(const double& exposure) = 0;
+    virtual bool setBinningX(const size_t& target_binning_x,
+                             size_t& reached_binning_x) = 0;
+
+    /**
+     * Sets the target vertical binning_y factor
+     * @param target_binning_y the target vertical binning_y factor.
+     * @param reached_binning_y the reached vertical binning_y factor.
+     * @return false if a communication error occurred or true otherwise.
+     */
+    virtual bool setBinningY(const size_t& target_binning_y,
+                             size_t& reached_binning_y) = 0;
+
+    /**
+     * Sets the exposure time in microseconds
+     * @param target_exposure the desired exposure time to set in microseconds.
+     * @param reached_exposure time in microseconds
+     * @return false if a communication error occurred or true otherwise.
+     */
+    virtual bool setExposure(const float& target_exposure,
+                             float& reached_exposure) = 0;
+
+    /**
+     * Sets the gain in percent independent of the camera type
+     * @param target_gain the target gain in percent.
+     * @param reached_gain the reached gain in percent.
+     * @return false if a communication error occurred or true otherwise.
+     */
+    virtual bool setGain(const float& target_gain, float& reached_gain) = 0;
+
+    /**
+     * Sets the target gamma value
+     * @param target_gamma the target gamma value.
+     * @param reached_gamma the reached gamma value.
+     * @return false if a communication error occurred or true otherwise.
+     */
+    virtual bool setGamma(const float& target_gamma, float& reached_gamma) = 0;
 
     /**
      * Sets the target brightness
@@ -99,35 +191,55 @@ public:
      * Setting the exposure time to  0 disables the AutoExposure function.
      * If the target exposure time is not in the range of Pylon's auto target brightness range
      * the extended brightness search is started.
-     * @param brightness target brightness. Range is [-1...255].
-     * @return false if a communication error occurred or true otherwise.
+     * @param target_brightness is the desired brightness. Range is [1...255].
+     * @param current_brightness is the current brightness with the given settings.
+     * @param exposure_auto flag which indicates if the target_brightness
+     *                      should be reached adapting the exposure time
+     * @param gain_auto flag which indicates if the target_brightness should be
+     *                      reached adapting the gain.
+     * @return true if the brightness could be reached or false otherwise.
      */
-    virtual bool setBrightness(const int& brightness) = 0;
+    virtual bool setBrightness(const int& target_brightness,
+                               const float& current_brightness,
+                               const bool& exposure_auto,
+                               const bool& gain_auto) = 0;
+
 
     /**
-     * Enables the extended brightness search.
-     * @param brightness target brightness
-     * @return true after reaching the target brightness. If false, recall the method until the method returns true.
+     * Checks if the camera currently tries to regulate towards a target brightness.
+     * This can either be done by pylon for the range [50 - 205] or the own extendended binary search one
+     * for the ranges [1 - 49] and [206 - 254].
+     * @return true if the brightness-search is running
      */
-    virtual bool setExtendedBrightness(int& brightness) = 0;
+    virtual bool isBrightnessSearchRunning() = 0;
 
     /**
-     * Initializes the extended brightness search.
-     * @param brightness target brightness.
+     * Checks if the auto brightness function from the Pylon API is enabled.
+     * @return true if AutoExposure is set to AutoExposureContinuous or AutoExposureOnce.
      */
-    virtual void setupExtendedBrightnessSearch(const int& brightness) = 0;
+    virtual bool isPylonAutoBrightnessFunctionRunning() = 0;
 
     /**
-     * Checks if the auto brightness function is enabled.
-     * @return true if AutoExposure is set to AutoExposureContinuous.
+     * Getter for is_binary_exposure_search_running_
+     * @return true if the extended exposure search is running
      */
-    virtual bool isAutoBrightnessFunctionRunning() = 0;
+    const bool& isBinaryExposureSearchRunning() const;
 
     /**
-     * Check if the extended brightness search is running
-     * @return true if the extended brightness search is running
+     * Disables all currently running brightness search methods in case that
+     * the desired brightness is reached or a timeout occoured
      */
-    const bool& isOwnBrightnessFunctionRunning() const;
+    virtual void disableAllRunningAutoBrightessFunctions() = 0;
+
+    /**
+     * Enables the continuous auto exposure mode
+     */
+    virtual void enableContinuousAutoExposure() = 0;
+
+    /**
+     * Enables the continuous auto gain mode
+     */
+    virtual void enableContinuousAutoGain() = 0;
 
     /**
      * Get the camera image encoding according to sensor_msgs::image_encodings
@@ -166,17 +278,19 @@ public:
      * Getter for the image height
      * @return number of rows in the image
      */
-    const int& imageRows() const;
+    const size_t& imageRows() const;
 
     /**
      * Getter for the image width
      * @return number of columns in the image
      */
-    const int& imageCols() const;
+    const size_t& imageCols() const;
 
     /**
-     * Returns true if the camera was initialized correctly
-     * @return true if the camera was initialized correctly
+     * Getter for the is_ready_ flag. This is set in case that the
+     * grab-result-pointer of the first acquisition contains valid data.
+     * Hence this is the current state of the interface
+     * @return true if the interfeace is ready
      */
     const bool& isReady() const;
 
@@ -184,19 +298,25 @@ public:
      * Returns the image size in bytes
      * @return the image size in bytes
      */
-    const int& imageSize() const;
+    const size_t& imageSize() const;
 
     /**
      * Get the maximum achievable frame rate
      * @return float
      */
-    const float& maxPossibleFramerate() const;
+    virtual float maxPossibleFramerate() = 0;
 
     /**
      * Checks if the camera has the auto exposure feature.
      * @return true if the camera supports auto exposure.
      */
     const bool& hasAutoExposure() const;
+
+    /**
+     * Max allowed delta between target and reached brightness
+     * @return the allowed tolerance.
+     */
+    const float& maxBrightnessTolerance() const;
 
     /**
      * Returns the connection state of the camera device.
@@ -210,11 +330,7 @@ public:
      */
     const std::vector<float>& sequencerExposureTimes() const;
 
-    /**
-     * Parameters for the extended brightness search
-     */
-    ExposureSearchParameter exp_search_params_;
-
+    virtual ~PylonCamera();
 protected:
     /**
      * Protected default constructor.
@@ -222,32 +338,42 @@ protected:
     PylonCamera();
 
     /**
+     * Enables the extended brightness search.
+     * @param brightness target brightness
+     * @return true after reaching the target brightness.
+     */
+    virtual bool setExtendedBrightness(const int& target_brightness,
+                                       const float& current_brightness) = 0;
+
+    /**
+     * Parameters for the extended brightness search
+     */
+    BinaryExposureSearch* binary_exp_search_;
+
+    /**
      * Number of image rows.
      */
-    int img_rows_;
+    size_t img_rows_;
 
     /**
      * Number of image columns.
      */
-    int img_cols_;
+    size_t img_cols_;
 
     /**
      * The size of the image in number of bytes.
      */
-    int img_size_byte_;
+    size_t img_size_byte_;
 
     /**
-     * The maximum achievable frame rate reported by the camera
+     * The max time a single grab is allwed to take. This value should always
+     * be greater then the max possible exposure time of the camera
      */
-    float max_framerate_;
+    float grab_timeout_;
 
     /**
-     * Boolean to store if auto exposure is possible.
-     */
-    bool has_auto_exposure_;
-
-    /**
-     * Is the camera initialized?
+     * Flag which is set in case that the grab-result-pointer of the first
+     * acquisition contains valid data
      */
     bool is_ready_;
 
@@ -257,9 +383,14 @@ protected:
     bool is_cam_removed_;
 
     /**
-     * True if the extended brightness search is running.
+     * True if the extended binary exposure search is running.
      */
-    bool is_own_brightness_function_running_;
+    bool is_binary_exposure_search_running_;
+
+    /**
+     * Max allowed delta between target and reached brightness
+     */
+    const float max_brightness_tolerance_;
 
     /**
      * Exposure times to use when in sequencer mode.

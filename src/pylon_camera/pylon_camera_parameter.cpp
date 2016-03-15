@@ -7,28 +7,184 @@ namespace pylon_camera
 {
 
 PylonCameraParameter::PylonCameraParameter() :
+        camera_frame_("pylon_camera"),
         device_user_id_(""),
-        camera_frame_(""),
-        desired_frame_rate_(-1.),
-        target_exposure_(3000),
-        target_gain_(0.5),
-        start_exposure_(2000.0),
+        binning_x_(1),
+        binning_y_(1),
+        binning_x_given_(false),
+        binning_y_given_(false),
+        // ##########################
+        //  image intensity settings
+        // ##########################
+        exposure_(10000.0),
+        exposure_given_(false),
+        gain_(0.5),
+        gain_given_(false),
+        gamma_(1.0),
+        gamma_given_(false),
+        brightness_(100),
+        brightness_given_(false),
+        brightness_continuous_(false),
+        exposure_auto_(true),
+        gain_auto_(true),
+        // #########################
+        frame_rate_(5.0),
         mtu_size_(3000),
-        binning_(1),
         shutter_mode_(SM_DEFAULT)
-{
-}
+{}
 
 PylonCameraParameter::~PylonCameraParameter()
-{
-}
+{}
 
-bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
+void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
 {
-    nh.param<std::string>("device_user_id", device_user_id_, "");
-    nh.param<double>("desired_framerate", desired_frame_rate_, -1.);
+    // handling of deprecated parameter naming behaviour
+    {
+        if ( nh.hasParam("desired_framerate") )
+        {
+            ROS_ERROR_STREAM("Using parameter 'desired_framerate' is deprecated! "
+                << "Please rename it to 'frame_rate'");
+            nh.getParam("desired_framerate", frame_rate_);
+        }
+        if ( nh.hasParam("start_exposure") )
+        {
+            ROS_ERROR_STREAM("Using parameter 'start_exposure' is deprecated! "
+                << "Please look at the default.yaml config file in the "
+                << "pylon_camera pkg to see how you should use it. The parameter "
+                << "name has changed to 'exposure'");
+            nh.getParam("start_exposure", exposure_);
+        }
+        if ( nh.hasParam("target_gain") )
+        {
+            ROS_ERROR_STREAM("Using parameter 'target_gain' is deprecated! "
+                << "Please look at the default.yaml config file in the "
+                << "pylon_camera pkg to see how you should use it. The parameter "
+                << "name has changed to 'gain'");
+            nh.getParam("target_gain", gain_);
+        }
+    }
+    // handling of deprecated parameter naming behaviour
+
     nh.param<std::string>("camera_frame", camera_frame_, "pylon_camera");
-    nh.param<int>("gige/mtu_size", mtu_size_, 3000);
+    nh.param<std::string>("device_user_id", device_user_id_, "");
+
+    binning_x_given_ = nh.hasParam("binning_x");
+    if ( binning_x_given_ )
+    {
+        int binning_x;
+        nh.getParam("binning_x", binning_x);
+        std::cout << "binning x is given and has value " << binning_x << std::endl;
+        if ( binning_x > 32 || binning_x < 0 )
+        {
+            ROS_WARN_STREAM("Desired horizontal binning_x factor not in valid "
+                << "range! Binning x = " << binning_x << ". Will reset it to "
+                << "default value (1)");
+            binning_x_given_ = false;
+        }
+        else
+        {
+            binning_x_ = static_cast<size_t>(binning_x);
+        }
+    }
+    binning_y_given_ = nh.hasParam("binning_y");
+    if ( binning_y_given_ )
+    {
+        int binning_y;
+        nh.getParam("binning_y", binning_y);
+        std::cout << "binning y is given and has value " << binning_y << std::endl;
+        if ( binning_y > 32 || binning_y < 0 )
+        {
+            ROS_WARN_STREAM("Desired vertical binning_y factor not in valid "
+                << "range! Binning y = " << binning_y << ". Will reset it to "
+                << "default value (1)");
+            binning_y_given_ = false;
+        }
+        else
+        {
+            binning_y_ = static_cast<size_t>(binning_y);
+        }
+    }
+
+    // ##########################
+    //  image intensity settings
+    // ##########################
+
+    // > 0: Exposure time in microseconds
+    exposure_given_ = nh.hasParam("exposure") || nh.hasParam("start_exposure");
+    if ( exposure_given_ )
+    {
+        nh.getParam("exposure", exposure_);
+        std::cout << "exposure is given and has value " << exposure_ << std::endl;
+    }
+
+    gain_given_ = nh.hasParam("gain") || nh.hasParam("target_gain");
+    if ( gain_given_ )
+    {
+        nh.getParam("gain", gain_);
+        std::cout << "gain is given and has value " << gain_ << std::endl;
+    }
+
+    gamma_given_ = nh.hasParam("gamma");
+    if ( gamma_given_ )
+    {
+        nh.getParam("gamma", gamma_);
+        std::cout << "gamma is given and has value " << gamma_ << std::endl;
+    }
+
+    brightness_given_ = nh.hasParam("brightness");
+    if ( brightness_given_ )
+    {
+        nh.getParam("brightness", brightness_);
+        std::cout << "brightness is given and has value " << brightness_
+            << std::endl;
+        if ( gain_given_ && exposure_given_ )
+        {
+            ROS_ERROR_STREAM("Gain ('gain') and Exposure Time ('exposure') "
+                << "are given as startup ros-parameter and hence assumed to be "
+                << "fix! The desired brightness (" << brightness_ << ") can't "
+                << "be reached! Will ignore the brightness by only "
+                << "setting gain and exposure . . .");
+            brightness_given_ = false;
+        }
+        else
+        {
+            if ( nh.hasParam("brightness_continuous") )
+            {
+                nh.getParam("brightness_continuous", brightness_continuous_);
+                std::cout << "brightness is continuous" << std::endl;
+            }
+            if ( nh.hasParam("exposure_auto") )
+            {
+                nh.getParam("exposure_auto", exposure_auto_);
+                std::cout << "exposure is set to auto" << std::endl;
+            }
+            if ( nh.hasParam("gain_auto") )
+            {
+                nh.getParam("gain_auto", gain_auto_);
+                std::cout << "gain is set to auto" << std::endl;
+            }
+        }
+    }
+
+    if ( nh.hasParam("frame_rate") )
+    {
+        nh.getParam("frame_rate", frame_rate_);
+    }
+    if ( nh.hasParam("gige/mtu_size") )
+    {
+        nh.getParam("gige/mtu_size", mtu_size_);
+    }
+
+    if ( !device_user_id_.empty() )
+    {
+        ROS_INFO_STREAM("Trying to open the following camera: "
+            << device_user_id_.c_str());
+    }
+    else
+    {
+        ROS_INFO_STREAM("No Device User ID set -> Will open the camera device "
+                << "found first");
+    }
 
     std::string shutter_param_string;
     nh.param<std::string>("shutter_mode", shutter_param_string, "");
@@ -46,51 +202,88 @@ bool PylonCameraParameter::readFromRosParameterServer(ros::NodeHandle& nh)
     }
     else
     {
-        ROS_INFO("No ShutterMode given, will keep the default setting.");
         shutter_mode_ = SM_DEFAULT;
     }
 
-    // -1: AutoExposureContinuous
-    //  0: AutoExposureOff
-    // > 0: Exposure in micro-seconds
-    nh.param<double>("start_exposure", start_exposure_, 35000.0);
-
-    // -1: AutoGainContinuous
-    //  0: AutoGainOff
-    // [0-1]: Gain in percent
-    nh.param<double>("target_gain", target_gain_, 0.5);
-
-    nh.param<int>("binning", binning_, 1);
-
-    return validateParameterSet(nh);
+    validateParameterSet(nh);
+    return;
 }
 
-bool PylonCameraParameter::validateParameterSet(ros::NodeHandle& nh)
+void PylonCameraParameter::validateParameterSet(const ros::NodeHandle& nh)
 {
-    if (!device_user_id_.empty())
+    if ( exposure_given_ && ( exposure_ <= 0.0 || exposure_ > 1e7 ) )
     {
-        ROS_INFO("Trying to open the following camera: %s", device_user_id_.c_str());
+        ROS_WARN_STREAM("Desired exposure measured in microseconds not in "
+                << "valid range! Exposure time = " << exposure_ << ". Will "
+                << "reset it to default value!");
+        exposure_given_ = false;
+    }
+
+    if ( gain_given_ && ( gain_ < 0.0 || gain_ > 1.0 ) )
+    {
+        ROS_WARN_STREAM("Desired gain (in percent) not in allowed range! "
+                << "Gain = " << gain_ << ". Will reset it to default value!");
+        gain_given_ = false;
+    }
+
+    if ( brightness_given_ && ( brightness_ < 0.0 || brightness_ > 255 ) )
+    {
+        ROS_WARN_STREAM("Desired brightness not in allowed range [0 - 255]! "
+               << "Brightness = " << brightness_ << ". Will reset it to "
+               << "default value!");
+        brightness_given_ = false;
+    }
+
+    if ( frame_rate_ < 0 && frame_rate_ != -1 )
+    {
+        ROS_WARN_STREAM("Unexpected frame rate (" << frame_rate_ << "). Will "
+                << "reset it to default value which is 5 Hz");
+        frame_rate_ = 5.0;
+        nh.setParam("frame_rate", frame_rate_);
+    }
+    return;
+}
+
+const std::string& PylonCameraParameter::deviceUserID() const
+{
+    return device_user_id_;
+}
+
+std::string PylonCameraParameter::shutterModeString() const
+{
+    if ( shutter_mode_ == SM_ROLLING )
+    {
+        return "rolling";
+    }
+    else if ( shutter_mode_ == SM_GLOBAL )
+    {
+        return "global";
+    }
+    else if ( shutter_mode_ == SM_GLOBAL_RESET_RELEASE )
+    {
+        return "global_reset";
     }
     else
     {
-        ROS_INFO("No Device User ID set -> Will open the camera device found first");
+        return "default_shutter_mode";
     }
+}
 
-    if (binning_ > 4 || binning_ < 1)
-    {
-        ROS_ERROR("Invalid binning settings! Value is %i, but valid is [1,2,3,4]", binning_);
-        return false;
-    }
+const std::string& PylonCameraParameter::cameraFrame() const
+{
+    return camera_frame_;
+}
 
-    if (desired_frame_rate_ < 0 && desired_frame_rate_ != -1)
-    {
-        desired_frame_rate_ = -1.0;
-        nh.setParam("desired_framerate", desired_frame_rate_);
-        ROS_ERROR("Unexpected framerate (%f). Setting to -1 (max possible)",
-                  desired_frame_rate_);
-    }
+void PylonCameraParameter::setFrameRate(const ros::NodeHandle& nh,
+                                        const double& frame_rate)
+{
+    frame_rate_ = frame_rate;
+    nh.setParam("frame_rate", frame_rate_);
+}
 
-    return true;
+const double& PylonCameraParameter::frameRate() const
+{
+    return frame_rate_;
 }
 
 }  // namespace pylon_camera
