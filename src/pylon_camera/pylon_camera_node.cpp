@@ -10,26 +10,26 @@
 namespace pylon_camera
 {
 
-PylonCameraNode::PylonCameraNode() :
-    nh_("~"),
-        pylon_camera_(NULL),
-        pylon_camera_parameter_set_(),
-        it_(new image_transport::ImageTransport(nh_)),
-        img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
-        grab_images_raw_action_server_(
-                nh_,
-                "grab_images_raw",
-                boost::bind(&PylonCameraNode::grabImagesRawActionExecuteCB,
-                            this,
-                            _1),
-                false),
-        set_sleeping_service_deprecated_(nh_.advertiseService("set_sleeping_srv",
-                              &PylonCameraNode::setSleepingCallbackDeprecated, this)),
-        set_sleeping_service_(nh_.advertiseService("set_sleeping",
-                              &PylonCameraNode::setSleepingCallback, this)),
-        target_brightness_(-42),
-        brightness_service_running_(false),
-        is_sleeping_(false)
+PylonCameraNode::PylonCameraNode()
+    : nh_("~"),
+      pylon_camera_(NULL),
+      pylon_camera_parameter_set_(),
+      it_(new image_transport::ImageTransport(nh_)),
+      img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
+      grab_images_raw_action_server_(
+              nh_,
+              "grab_images_raw",
+              boost::bind(&PylonCameraNode::grabImagesRawActionExecuteCB,
+                          this,
+                          _1),
+              false),
+      set_sleeping_service_deprecated_(nh_.advertiseService("set_sleeping_srv",
+                  &PylonCameraNode::setSleepingCallbackDeprecated, this)),
+      set_sleeping_service_(nh_.advertiseService("set_sleeping",
+                  &PylonCameraNode::setSleepingCallback, this)),
+      target_brightness_(-42),
+      brightness_service_running_(false),
+      is_sleeping_(false)
 {
     init();
 }
@@ -447,53 +447,86 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
 #endif
 
     // handling of deprecated interface
-    bool using_deprecated_interface = goal->target_values.size() > 0;
-    std::vector<float> exposure_times;
-    std::vector<float> brightness_values;
+    bool using_deprecated_interface = goal->target_type == 1 ||
+                                      goal->target_type == 2;
     bool exposure_given = false;
+    std::vector<float> exposure_times;
     bool brightness_given = false;
+    std::vector<float> brightness_values;
     if ( using_deprecated_interface )
     {
         ROS_WARN_STREAM("The use of 'target_type' && 'target_values' in the "
                 << "'GrabImages-Action' of the camera_control_msgs-pkg is "
                 << "deprecated! Will map your desired values to the new "
                 << "interface, but please fix your code and make ake use of "
-                << "the new interface");
+                << "the new interface!");
         if ( goal->target_type == goal->EXPOSURE )
         {
-            exposure_times = goal->target_values;
             exposure_given = true;
+            exposure_times = goal->target_values;
         }
         if ( goal->target_type == goal->BRIGHTNESS )
         {
-            brightness_values = goal->target_values;
             brightness_given = true;
+            brightness_values = goal->target_values;
         }
     }
     else
     {
-        exposure_times = goal->exposure_times;
-        brightness_values = goal->brightness_values;
         exposure_given = goal->exposure_given;
+        exposure_times = goal->exposure_times;
         brightness_given = goal->brightness_given;
+        brightness_values = goal->brightness_values;
     }
     // handling of deprecated interface
 
     // Can only grab images if either exposure times, or brightness or gain
     // values are provided:
-    if ( exposure_times.size() + brightness_values.size() +
-         goal->gain_values.size() == 0 )
+    if ( !exposure_given && !brightness_given && !goal->gain_given )
     {
         ROS_ERROR_STREAM("GrabImagesRaw action server received request but "
-            << "size of all given image properties is zero! Can't grab!");
+            << "'exposure_given', 'gain_given' and 'brightness_given' are set "
+            << "to false! Not enough information to execute acquisition!");
         result.success = false;
         return result;
     }
 
-    size_t n_images = std::max(std::max(exposure_times.size(), brightness_values.size()),
-                               std::max(goal->gain_values.size(), goal->gamma_values.size()));
+    if ( exposure_given && exposure_times.size() == 1
+                        && exposure_times.front() == 0.0 )
+    {
+        ROS_ERROR_STREAM("GrabImagesRaw action server received request and "
+            << "'exposure_given' is true, but the 'exposure_times' vector is "
+            << "empty! Not enough information to execute acquisition!");
+        result.success = false;
+        return result;
+    }
 
-    if ( !( exposure_times.size() == 0 || exposure_times.size() == n_images ) )
+    if ( goal->gain_given && goal->gain_values.size() == 1
+                          && goal->gain_values.front() == 0.0 )
+    {
+        ROS_ERROR_STREAM("GrabImagesRaw action server received request and "
+            << "'gain_given' is true, but the 'gain_values' vector is "
+            << "empty! Not enough information to execute acquisition!");
+        result.success = false;
+        return result;
+    }
+
+    if ( brightness_given && brightness_values.size() == 1
+                          && brightness_values.front() == 0.0 )
+    {
+        ROS_ERROR_STREAM("GrabImagesRaw action server received request and "
+            << "'brightness_given' is true, but the 'brightness_values' vector"
+            << " is empty! Not enough information to execute acquisition!");
+        result.success = false;
+        return result;
+    }
+
+    size_t n_images = std::max(std::max(exposure_times.size(),
+                                        brightness_values.size()),
+                               std::max(goal->gain_values.size(),
+                                        goal->gamma_values.size()));
+
+    if ( !( exposure_times.size() == 1 || exposure_times.size() == n_images ) )
     {
         ROS_ERROR_STREAM("Size of requested exposure times does not match to "
             << "the size of the requested vaules of brightness, gain or "
@@ -502,7 +535,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         return result;
     }
 
-    if ( !( goal->gain_values.size() == 0 || goal->gain_values.size() == n_images ) )
+    if ( !( goal->gain_values.size() == 1 || goal->gain_values.size() == n_images ) )
     {
         ROS_ERROR_STREAM("Size of requested gain values does not match to "
             << "the size of the requested exposure times or the vaules of "
@@ -511,7 +544,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         return result;
     }
 
-    if ( !( goal->gamma_values.size() == 0 || goal->gamma_values.size() == n_images ) )
+    if ( !( goal->gamma_values.size() == 1 || goal->gamma_values.size() == n_images ) )
     {
         ROS_ERROR_STREAM("Size of requested gamma values does not match to "
             << "the size of the requested exposure times or the vaules of "
@@ -520,7 +553,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         return result;
     }
 
-    if ( !( brightness_values.size() == 0 || brightness_values.size() == n_images ) )
+    if ( !( brightness_values.size() == 1 || brightness_values.size() == n_images ) )
     {
         ROS_ERROR_STREAM("Size of requested brightness values does not match to "
             << "the size of the requested exposure times or the vaules of gain or "
