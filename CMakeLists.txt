@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
   message_generation
   sensor_msgs # depends std_msgs, message_generation
-  std_srvs
+  #std_srvs
 )
 
 ################ ACTIONS ################
@@ -36,7 +36,7 @@ generate_messages(
   DEPENDENCIES
   actionlib_msgs
   sensor_msgs
-  std_srvs
+  #std_srvs
 )
 
 catkin_package(CATKIN_DEPENDS
