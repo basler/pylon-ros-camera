@@ -5,8 +5,8 @@ project(camera_control_msgs)
 find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
   message_generation
-  sensor_msgs
-  std_msgs
+  sensor_msgs # depends std_msgs, message_generation
+  std_srvs
 )
 
 ################ ACTIONS ################
@@ -27,25 +27,21 @@ foreach(file ${srv_files})
     list(APPEND srv_base_files ${file_short})
 endforeach()
 
+add_service_files(DIRECTORY srv FILES ${srv_base_files})
 message(STATUS "+++ Services: ${srv_base_files}")
 ################ SRV ################
 
 
-add_service_files(
-  DIRECTORY srv
-  FILES ${srv_base_files}
-)
 generate_messages(
   DEPENDENCIES
   actionlib_msgs
   sensor_msgs
-  std_msgs
+  std_srvs
 )
 
 catkin_package(CATKIN_DEPENDS
   actionlib_msgs
   message_runtime
   sensor_msgs
-  std_msgs
 )
 
