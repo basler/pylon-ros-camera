@@ -538,10 +538,14 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         return result;
     }
 
-    size_t n_images = std::max(std::max(exposure_times.size(),
-                                        brightness_values.size()),
-                               std::max(goal->gain_values.size(),
-                                        goal->gamma_values.size()));
+    std::vector<size_t> candidates;
+    candidates.resize(4); // gain, exposure, gamma, brightness
+    candidates.at(0) = goal->gain_given ? goal->gain_values.size() : 0;
+    candidates.at(1) = exposure_given ? exposure_times.size() : 0;
+    candidates.at(2) = brightness_given ? brightness_values.size() : 0;
+    candidates.at(3) = goal->gamma_given ? goal->gamma_values.size() : 0;
+
+    size_t n_images = *std::max_element(candidates.begin(), candidates.end());
 
     if ( exposure_given && exposure_times.size() != n_images )
     {
@@ -1062,8 +1066,8 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
             // cancel all running brightness search by deactivating ExposureAuto
             pylon_camera_->disableAllRunningAutoBrightessFunctions();
             ROS_ERROR_STREAM("Did not reach the target brightness before timeout "
-                    << timeout.sec << " sec! Stuck at brightness "
-                    << current_brightness);
+                    << (ros::Time::now() - timeout).sec << " sec! Stuck at "
+                    << "brightness " << current_brightness);
             break;
         }
 
