@@ -1,7 +1,3 @@
-###############################################################################
-############################# NOT YET IMPLEMENTED #############################
-###############################################################################
-
 # Binning factor to get downsampled images. It refers here to any camera
 # setting which combines rectangular neighborhoods of pixels into larger
 # "super-pixels." It reduces the resolution of the output image to
