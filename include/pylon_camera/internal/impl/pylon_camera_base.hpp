@@ -345,6 +345,7 @@ bool PylonCameraImpl<CameraTraitT>::setBinningX(const size_t& target_binning_x,
 {
     try
     {
+        cam_->StopGrabbing();
         size_t binning_x_to_set = target_binning_x;
         if ( binning_x_to_set < cam_->BinningHorizontal.GetMin() )
         {
@@ -362,6 +363,9 @@ bool PylonCameraImpl<CameraTraitT>::setBinningX(const size_t& target_binning_x,
         }
         cam_->BinningHorizontal.SetValue(binning_x_to_set);
         reached_binning_x = currentBinningX();
+        cam_->StartGrabbing();
+        img_cols_ = static_cast<size_t>(cam_->Width.GetValue());
+        img_size_byte_ =  img_cols_ * img_rows_ * imagePixelDepth();
     }
     catch ( const GenICam::GenericException &e )
     {
@@ -379,6 +383,7 @@ bool PylonCameraImpl<CameraTraitT>::setBinningY(const size_t& target_binning_y,
 {
     try
     {
+        cam_->StopGrabbing();
         size_t binning_y_to_set = target_binning_y;
         if ( binning_y_to_set < cam_->BinningVertical.GetMin() )
         {
@@ -396,6 +401,9 @@ bool PylonCameraImpl<CameraTraitT>::setBinningY(const size_t& target_binning_y,
         }
         cam_->BinningVertical.SetValue(binning_y_to_set);
         reached_binning_y = currentBinningY();
+        cam_->StartGrabbing();
+        img_rows_ = static_cast<size_t>(cam_->Height.GetValue());
+        img_size_byte_ =  img_cols_ * img_rows_ * imagePixelDepth();
     }
     catch ( const GenICam::GenericException &e )
     {

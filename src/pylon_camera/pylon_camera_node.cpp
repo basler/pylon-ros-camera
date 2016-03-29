@@ -60,13 +60,9 @@ bool PylonCameraNode::init()
 
 bool PylonCameraNode::initAndRegister()
 {
-    // up to now it's not yet possible to change binning settings at runtime,
-    // because the cam has to be closed & reopened
-    /**
-     * set_binning_service_ = nh_.advertiseService("set_binning",
-     *                                             &PylonCameraNode::setBinningCallback,
-     *                                             this);
-     */
+    set_binning_service_ = nh_.advertiseService("set_binning",
+                                                &PylonCameraNode::setBinningCallback,
+                                                this);
     set_exposure_service_ = nh_.advertiseService("set_exposure",
                                                  &PylonCameraNode::setExposureCallback,
                                                  this);
@@ -128,6 +124,12 @@ bool PylonCameraNode::initAndRegister()
 
 bool PylonCameraNode::startGrabbing()
 {
+    if ( !pylon_camera_->startGrabbing(pylon_camera_parameter_set_) )
+    {
+        ROS_ERROR("Error while start grabbing");
+        return false;
+    }
+
     if ( pylon_camera_parameter_set_.binning_x_given_ )
     {
         size_t reached_binning_x;
@@ -146,12 +148,6 @@ bool PylonCameraNode::startGrabbing()
                 << pylon_camera_parameter_set_.binning_y_);
         ROS_WARN_STREAM("The image height of the camera_info-msg will "
             << "be adapted, so that the binning_y value in this msg remains 1");
-    }
-
-    if ( !pylon_camera_->startGrabbing(pylon_camera_parameter_set_) )
-    {
-        ROS_ERROR("Error while start grabbing");
-        return false;
     }
 
     if ( pylon_camera_parameter_set_.exposure_given_ )
@@ -359,8 +355,8 @@ void PylonCameraNode::setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
     // resolution of the output image to (width / binning_x) x (height / binning_y).
     // The default values binning_x = binning_y = 0 is considered the same as
     // binning_x = binning_y = 1 (no subsampling).
-    cam_info_msg.binning_x = 1;
-    cam_info_msg.binning_y = 1;
+    cam_info_msg.binning_x = pylon_camera_->currentBinningX();
+    cam_info_msg.binning_y = pylon_camera_->currentBinningY();
 
     // Region of interest (subwindow of full camera resolution), given in full
     // resolution (unbinned) image coordinates. A particular ROI always denotes
@@ -738,86 +734,90 @@ bool PylonCameraNode::setBinningX(const size_t& target_binning_x,
                                   size_t& reached_binning_x)
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-    if ( pylon_camera_->setBinningX(target_binning_x, reached_binning_x) )
+    if ( !pylon_camera_->setBinningX(target_binning_x, reached_binning_x) )
     {
-        return true;
-    }
-    else  // retry till timeout
-    {
-        // wait for max 5s till the cam has updated the exposure
+        // retry till timeout
         ros::Rate r(10.0);
         ros::Time timeout(ros::Time::now() + ros::Duration(2.0));
         while ( ros::ok() )
         {
             if ( pylon_camera_->setBinningX(target_binning_x, reached_binning_x) )
             {
-                return true;
+                break;
             }
 
             if ( ros::Time::now() > timeout )
             {
-                break;
+                ROS_ERROR_STREAM("Error in setBinningX(): Unable to set target "
+                << "binning_x factor before timeout");
+                cam_info_msg_.binning_x = pylon_camera_->currentBinningX();
+                img_raw_msg_.width = pylon_camera_->imageCols();
+                // step = full row length in bytes
+                // img_raw_msg_.data // actual matrix data, size is (step * rows)
+                img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
+                return false;
             }
             r.sleep();
         }
-        ROS_ERROR_STREAM("Error in setBinningX(): Unable to set target "
-            << "binning_x factor before timeout");
-        return false;
     }
+    cam_info_msg_.binning_x = pylon_camera_->currentBinningX();
+    img_raw_msg_.width = pylon_camera_->imageCols();
+    // step = full row length in bytes
+    // img_raw_msg_.data // actual matrix data, size is (step * rows)
+    img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
+    return true;
 }
 
 bool PylonCameraNode::setBinningY(const size_t& target_binning_y,
                                   size_t& reached_binning_y)
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-    if ( pylon_camera_->setBinningY(target_binning_y, reached_binning_y) )
+    if ( !pylon_camera_->setBinningY(target_binning_y, reached_binning_y) )
     {
-        return true;
-    }
-    else  // retry till timeout
-    {
-        // wait for max 5s till the cam has updated the exposure
+        // retry till timeout
         ros::Rate r(10.0);
         ros::Time timeout(ros::Time::now() + ros::Duration(2.0));
         while ( ros::ok() )
         {
             if ( pylon_camera_->setBinningY(target_binning_y, reached_binning_y) )
             {
-                return true;
+                break;
             }
 
             if ( ros::Time::now() > timeout )
             {
-                break;
+                ROS_ERROR_STREAM("Error in setBinningY(): Unable to set target "
+                    << "binning_y factor before timeout");
+                cam_info_msg_.binning_y = pylon_camera_->currentBinningY();
+                img_raw_msg_.height = pylon_camera_->imageRows();
+                // step = full row length in bytes
+                // img_raw_msg_.data // actual matrix data, size is (step * rows)
+                img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
+                return false;
             }
             r.sleep();
         }
-        ROS_ERROR_STREAM("Error in setBinningY(): Unable to set target "
-            << "binning_y factor before timeout");
-        return false;
     }
+    cam_info_msg_.binning_y = pylon_camera_->currentBinningY();
+    img_raw_msg_.height = pylon_camera_->imageRows();
+    // step = full row length in bytes
+    // img_raw_msg_.data // actual matrix data, size is (step * rows)
+    img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
+    return true;
 }
 
 bool PylonCameraNode::setBinningCallback(camera_control_msgs::SetBinning::Request &req,
                                          camera_control_msgs::SetBinning::Response &res)
 {
-    ROS_WARN("setBinning() not yet implemented during runtime");
+    size_t reached_binning_x, reached_binning_y;
+    bool success_x = setBinningX(req.target_binning_x,
+                                 reached_binning_x);
+    bool success_y = setBinningY(req.target_binning_y,
+                                 reached_binning_y);
+    res.reached_binning_x = static_cast<long unsigned int>(reached_binning_x);
+    res.reached_binning_y = static_cast<long unsigned int>(reached_binning_y);
+    res.success = success_x && success_y;
     return true;
-/*
- *    size_t reached_binning_x, reached_binning_y;
- *    bool success_x = setBinningX(req.target_binning_x,
- *                                 reached_binning_x);
- *    bool success_y = setBinningY(req.target_binning_y,
- *                                 reached_binning_y);
- *
- *    res.reached_binning_x = static_cast<long unsigned int>(reached_binning_x);
- *    res.reached_binning_y = static_cast<long unsigned int>(reached_binning_y);
- *
- *    res.success = success_x && success_y;
- *    cam_info_msg_.binning_x = pylon_camera_->currentBinningX();
- *    cam_info_msg_.binning_y = pylon_camera_->currentBinningY();
- *    return true;
- */
 }
 
 bool PylonCameraNode::setExposure(const float& target_exposure,
@@ -1167,7 +1167,7 @@ float PylonCameraNode::calcCurrentBrightness()
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     assert(img_raw_msg_.data.size() > 0);
     int sum = std::accumulate(img_raw_msg_.data.begin(), img_raw_msg_.data.end(), 0);
-    float mean = static_cast<int>(sum) / img_raw_msg_.data.size();
+    float mean = static_cast<float>(sum) / img_raw_msg_.data.size();
     return mean;
 }
 
