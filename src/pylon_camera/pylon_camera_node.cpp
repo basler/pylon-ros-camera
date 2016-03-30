@@ -460,7 +460,7 @@ void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::Gr
 
 camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         const camera_control_msgs::GrabImagesGoal::ConstPtr& goal,
-        GrabImagesAction* action_server)
+        GrabImagesAS* action_server)
 {
     camera_control_msgs::GrabImagesResult result;
     camera_control_msgs::GrabImagesFeedback feedback;

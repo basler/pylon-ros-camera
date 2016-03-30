@@ -60,7 +60,7 @@
 namespace pylon_camera
 {
 
-typedef actionlib::SimpleActionServer<camera_control_msgs::GrabImagesAction> GrabImagesAction;
+typedef actionlib::SimpleActionServer<camera_control_msgs::GrabImagesAction> GrabImagesAS;
 
 class PylonCameraNode
 {
@@ -286,7 +286,7 @@ protected:
      */
     camera_control_msgs::GrabImagesResult grabImagesRaw(
                     const camera_control_msgs::GrabImagesGoal::ConstPtr& goal,
-                    GrabImagesAction* action_server);
+                    GrabImagesAS* action_server);
 
     /**
      * Callback that sets the digital output
@@ -313,7 +313,7 @@ protected:
     image_transport::ImageTransport* it_;
     image_transport::CameraPublisher img_raw_pub_;
 
-    GrabImagesAction grab_images_raw_action_server_;
+    GrabImagesAS grab_images_raw_action_server_;
 
     ros::ServiceServer set_binning_service_;
     ros::ServiceServer set_exposure_service_;
