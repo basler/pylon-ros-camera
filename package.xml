@@ -2,6 +2,14 @@
 <package>
   <name>pylon_camera</name>
 
+  <version>0.0.25</version>
+
+  <description>
+  	Proprietary Package for Basler Cameras using the the Pylon API.
+  	- Supports DART, USB3 and GigE cameras.
+  	- Setting Gain, Gamma, Exposure, Binning and Brightness using Services.
+  </description>
+
   <author>Marcel Debout</author>
   <author>Markus Grimm</author>
   <author>Nikolas Engelhard</author>
@@ -9,14 +17,9 @@
   <maintainer email="grimm@magazino.eu">Markus Grimm</maintainer>
   <maintainer email="engelhard@magazino.eu">Nikolas Engelhard</maintainer>
 
-  <version>0.0.25</version>
-  <license>Apache2.0</license>
+  <license>BSD</license>
 
-  <description>
-  	Proprietary Package for Basler Cameras using the the Pylon API.
-  	- Supports DART, USB3 and GigE cameras.
-  	- Setting Brightness and Exposure using Services.
-  </description>
+  <url>http://www.ros.org/wiki/pylon_camera</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
