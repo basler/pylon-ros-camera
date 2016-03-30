@@ -1,4 +1,4 @@
-Magazino PylonCamera developed by Magazino GmbH, using the pylon Software Camera Suite by Basler AG
+PylonCamera-ROS driver developed by Magazino GmbH, using the pylon Software Camera Suite by Basler AG
 =======
 
 
