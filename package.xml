@@ -2,6 +2,13 @@
 <package>
   <name>camera_control_msgs</name>
 
+  <version>0.0.7</version>
+
+  <description>
+      Message package from the pylon_camera package.
+      Contains action and service definitions of the pylon_camera interface.
+  </description>
+
   <author>Marcel Debout</author>
   <author>Markus Grimm</author>
   <author>Nikolas Engelhard</author>
@@ -9,12 +16,9 @@
   <maintainer email="grimm@magazino.eu">Markus Grimm</maintainer>
   <maintainer email="engelhard@magazino.eu">Nikolas Engelhard</maintainer>
 
-  <version>0.0.7</version>
-  <license>Apache2.0</license>
+  <license>BSD</license>
 
-  <description>
-    Message Package for Pylon Camera
-  </description>
+  <url>http://www.ros.org/wiki/pylon_camera</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 

@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(camera_control_msgs)
 
-## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
   message_generation
@@ -30,7 +29,6 @@ endforeach()
 add_service_files(DIRECTORY srv FILES ${srv_base_files})
 message(STATUS "+++ Services: ${srv_base_files}")
 ################ SRV ################
-
 
 generate_messages(
   DEPENDENCIES

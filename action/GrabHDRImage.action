@@ -11,7 +11,6 @@ uint8 target_type
 float32[] target_values
 ########################################## DEPRECATED !!!
 
-
 # Flag which indicates if the exposure times are provided and hence should be
 # set before grabbing
 bool exposure_given
