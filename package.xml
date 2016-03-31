@@ -2,7 +2,7 @@
 <package>
   <name>pylon_camera</name>
 
-  <version>0.0.35</version>
+  <version>0.0.36</version>
 
   <description>
   	Proprietary Package for Basler Cameras using the the Pylon API.
