@@ -43,19 +43,19 @@ PylonCameraNode::PylonCameraNode()
       pylon_camera_parameter_set_(),
       it_(new image_transport::ImageTransport(nh_)),
       img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
-      grab_images_raw_action_server_(
+      grab_imgs_raw_as_(
               nh_,
               "grab_images_raw",
               boost::bind(&PylonCameraNode::grabImagesRawActionExecuteCB,
                           this,
                           _1),
               false),
-      set_sleeping_service_deprecated_(nh_.advertiseService("set_sleeping_srv",
-                  &PylonCameraNode::setSleepingCallbackDeprecated, this)),
       set_sleeping_service_(nh_.advertiseService("set_sleeping",
                   &PylonCameraNode::setSleepingCallback, this)),
-      target_brightness_(-42),
-      brightness_service_running_(false),
+      // ##################### DEPRECATED !
+      set_sleeping_service_deprecated_(nh_.advertiseService("set_sleeping_srv",
+                  &PylonCameraNode::setSleepingCallbackDeprecated, this)),
+      // ##################### DEPRECATED !
       is_sleeping_(false)
 {
     init();
@@ -145,7 +145,7 @@ bool PylonCameraNode::initAndRegister()
                                             boost::bind(&PylonCameraNode::setDigitalOutputCB, this, 1, _1, _2));
     }
 
-    grab_images_raw_action_server_.start();
+    grab_imgs_raw_as_.start();
     return true;
 }
 
@@ -454,8 +454,8 @@ bool PylonCameraNode::grabImage()
 void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::GrabImagesGoal::ConstPtr& goal)
 {
     camera_control_msgs::GrabImagesResult result;
-    result = grabImagesRaw(goal, &grab_images_raw_action_server_);
-    grab_images_raw_action_server_.setSucceeded(result);
+    result = grabImagesRaw(goal, &grab_imgs_raw_as_);
+    grab_imgs_raw_as_.setSucceeded(result);
 }
 
 camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(

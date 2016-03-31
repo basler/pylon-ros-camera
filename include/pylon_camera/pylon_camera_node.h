@@ -32,30 +32,28 @@
 
 #include <boost/thread.hpp>
 #include <string>
-
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
-#include <camera_control_msgs/SetBool.h>
 
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/pylon_camera.h>
+
+#include <camera_control_msgs/SetBool.h>
 #include <camera_control_msgs/SetBinning.h>
 #include <camera_control_msgs/SetBrightness.h>
 #include <camera_control_msgs/SetExposure.h>
-
+#include <camera_control_msgs/SetGain.h>
+#include <camera_control_msgs/SetGamma.h>
+#include <camera_control_msgs/SetSleeping.h>
+#include <camera_control_msgs/GrabImagesAction.h>
 // ###################################### Deprecated !
 #include <camera_control_msgs/SetBrightnessSrv.h>
 #include <camera_control_msgs/SetExposureSrv.h>
 #include <camera_control_msgs/SetSleepingSrv.h>
 // ###################################### Deprecated !
-
-#include <camera_control_msgs/SetGain.h>
-#include <camera_control_msgs/SetGamma.h>
-#include <camera_control_msgs/SetSleeping.h>
-#include <camera_control_msgs/GrabImagesAction.h>
 
 namespace pylon_camera
 {
@@ -313,7 +311,7 @@ protected:
     image_transport::ImageTransport* it_;
     image_transport::CameraPublisher img_raw_pub_;
 
-    GrabImagesAS grab_images_raw_action_server_;
+    GrabImagesAS grab_imgs_raw_as_;
 
     ros::ServiceServer set_binning_service_;
     ros::ServiceServer set_exposure_service_;
@@ -331,8 +329,6 @@ protected:
     sensor_msgs::Image img_raw_msg_;
     sensor_msgs::CameraInfo cam_info_msg_;
 
-    bool brightness_service_running_;
-    int target_brightness_;
     bool is_sleeping_;
     boost::recursive_mutex grab_mutex_;
 };
