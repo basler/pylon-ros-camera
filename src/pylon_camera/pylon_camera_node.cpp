@@ -1046,17 +1046,13 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
         timeout = start_time + ros::Duration(5.0);
     }
 
-    bool valid_exposure_auto = exposure_auto;
-    bool valid_gain_auto = gain_auto;
     if ( !exposure_auto && !gain_auto )
     {
         ROS_WARN_STREAM("Neither Auto Exposure Time ('exposure_auto') nor Auto "
             << "Gain ('gain_auto') are enabled! Hence gain and exposure time "
             << "are assumed to be fix and the target brightness ("
-            << target_brightness << ") can not be reached! Will override this "
-            << "settings and enabling 'exposure_auto' and 'gain_auto'");
-        valid_exposure_auto = true;
-        valid_gain_auto = true;
+            << target_brightness << ") can not be reached!");
+        return false;
     }
 
     bool is_brightness_reached = false;
@@ -1077,8 +1073,8 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
         // where we have to update the search parameter in every cycle
         if ( !pylon_camera_->setBrightness(target_brightness,
                                            current_brightness,
-                                           valid_exposure_auto,
-                                           valid_gain_auto) )
+                                           exposure_auto,
+                                           gain_auto) )
         {
             ROS_ERROR("Error while setting target brightness!");
             pylon_camera_->disableAllRunningAutoBrightessFunctions();
