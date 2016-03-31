@@ -32,7 +32,6 @@
 
 #include <boost/thread.hpp>
 #include <string>
-
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <cv_bridge/cv_bridge.h>
@@ -44,6 +43,7 @@
 #include <pylon_camera/intrinsic_calib_loader.h>
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/pylon_camera.h>
+
 #include <camera_control_msgs/SetBool.h>
 #include <camera_control_msgs/SetBinning.h>
 #include <camera_control_msgs/SetBrightness.h>
