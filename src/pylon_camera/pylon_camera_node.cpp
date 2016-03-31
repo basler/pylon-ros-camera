@@ -43,19 +43,24 @@ PylonCameraNode::PylonCameraNode()
       pylon_camera_parameter_set_(),
       it_(new image_transport::ImageTransport(nh_)),
       img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
-      grab_images_raw_action_server_(
+      img_rect_pub_(nullptr),
+      grab_imgs_raw_as_(
               nh_,
               "grab_images_raw",
               boost::bind(&PylonCameraNode::grabImagesRawActionExecuteCB,
                           this,
                           _1),
               false),
-      set_sleeping_service_deprecated_(nh_.advertiseService("set_sleeping_srv",
-                  &PylonCameraNode::setSleepingCallbackDeprecated, this)),
+      grab_imgs_rect_as_(nullptr),
+      pinhole_model_(),
+      has_intrinsic_calib_(false),
+      cv_bridge_img_rect_(nullptr),
       set_sleeping_service_(nh_.advertiseService("set_sleeping",
                   &PylonCameraNode::setSleepingCallback, this)),
-      target_brightness_(-42),
-      brightness_service_running_(false),
+      // ##################### DEPRECATED !
+      set_sleeping_service_deprecated_(nh_.advertiseService("set_sleeping_srv",
+                  &PylonCameraNode::setSleepingCallbackDeprecated, this)),
+      // ##################### DEPRECATED !
       is_sleeping_(false)
 {
     init();
@@ -145,7 +150,7 @@ bool PylonCameraNode::initAndRegister()
                                             boost::bind(&PylonCameraNode::setDigitalOutputCB, this, 1, _1, _2));
     }
 
-    grab_images_raw_action_server_.start();
+    grab_imgs_raw_as_.start();
     return true;
 }
 
@@ -307,6 +312,11 @@ uint32_t PylonCameraNode::getNumSubscribers() const
     return img_raw_pub_.getNumSubscribers();
 }
 
+uint32_t PylonCameraNode::getNumSubscribersRect() const
+{
+    return has_intrinsic_calib_ ? img_rect_pub_->getNumSubscribers() : 0;
+}
+
 void PylonCameraNode::setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
 {
     std_msgs::Header header;
@@ -451,11 +461,31 @@ bool PylonCameraNode::grabImage()
     return true;
 }
 
+bool PylonCameraNode::grabImageRect()
+{
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if ( !grabImage() ) // fills img_raw_msg_
+    {
+        return false;
+    }
+
+    if ( has_intrinsic_calib_ )
+    {
+        cv_bridge_img_rect_->header.stamp = img_raw_msg_.header.stamp;
+        assert(pinhole_model_.initialized());
+        cv::Mat img_raw = cv::Mat(img_raw_msg_.height, img_raw_msg_.width,
+                                  CV_8UC1, img_raw_msg_.data.data());
+
+        pinhole_model_.rectifyImage(img_raw, cv_bridge_img_rect_->image);
+    }
+    return true;
+}
+
 void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::GrabImagesGoal::ConstPtr& goal)
 {
     camera_control_msgs::GrabImagesResult result;
-    result = grabImagesRaw(goal, &grab_images_raw_action_server_);
-    grab_images_raw_action_server_.setSucceeded(result);
+    result = grabImagesRaw(goal, &grab_imgs_raw_as_);
+    grab_imgs_raw_as_.setSucceeded(result);
 }
 
 camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(

@@ -7,6 +7,8 @@ set(
     CATKIN_COMPONENTS
      actionlib
      camera_control_msgs
+     cv_bridge
+     image_geometry
      image_transport
      roscpp
      sensor_msgs
@@ -38,12 +40,14 @@ set(
 
 roslint_cpp(
     src/${PROJECT_NAME}/binary_exposure_search.cpp
+    src/${PROJECT_NAME}/intrinsic_calib_loader.cpp
     src/${PROJECT_NAME}/main.cpp
     src/${PROJECT_NAME}/pylon_camera_node.cpp
     src/${PROJECT_NAME}/pylon_camera_parameter.cpp
     src/${PROJECT_NAME}/pylon_camera.cpp
     src/${PROJECT_NAME}/write_magazino_id_to_camera.cpp
     include/${PROJECT_NAME}/binary_exposure_search.h
+    include/${PROJECT_NAME}/intrinsic_calib_loader.h
     include/${PROJECT_NAME}/pylon_camera_node.h
     include/${PROJECT_NAME}/pylon_camera_parameter.h
     include/${PROJECT_NAME}/pylon_camera.h
@@ -64,6 +68,7 @@ include_directories(
 add_library(
     ${PROJECT_NAME}
      src/${PROJECT_NAME}/binary_exposure_search.cpp
+     src/${PROJECT_NAME}/intrinsic_calib_loader.cpp
      src/${PROJECT_NAME}/pylon_camera.cpp
      src/${PROJECT_NAME}/pylon_camera_node.cpp
      src/${PROJECT_NAME}/pylon_camera_parameter.cpp

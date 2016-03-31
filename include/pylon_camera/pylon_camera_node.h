@@ -35,33 +35,37 @@
 
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
+#include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
+#include <image_geometry/pinhole_camera_model.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
-#include <camera_control_msgs/SetBool.h>
 
+#include <pylon_camera/intrinsic_calib_loader.h>
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/pylon_camera.h>
+#include <camera_control_msgs/SetBool.h>
 #include <camera_control_msgs/SetBinning.h>
 #include <camera_control_msgs/SetBrightness.h>
 #include <camera_control_msgs/SetExposure.h>
-
+#include <camera_control_msgs/SetGain.h>
+#include <camera_control_msgs/SetGamma.h>
+#include <camera_control_msgs/SetSleeping.h>
+#include <camera_control_msgs/GrabImagesAction.h>
 // ###################################### Deprecated !
 #include <camera_control_msgs/SetBrightnessSrv.h>
 #include <camera_control_msgs/SetExposureSrv.h>
 #include <camera_control_msgs/SetSleepingSrv.h>
 // ###################################### Deprecated !
 
-#include <camera_control_msgs/SetGain.h>
-#include <camera_control_msgs/SetGamma.h>
-#include <camera_control_msgs/SetSleeping.h>
-#include <camera_control_msgs/GrabImagesAction.h>
-
 namespace pylon_camera
 {
 
 typedef actionlib::SimpleActionServer<camera_control_msgs::GrabImagesAction> GrabImagesAS;
 
+/**
+ * The ROS-node of the pylon_camera interface
+ */
 class PylonCameraNode
 {
 public:
@@ -111,10 +115,21 @@ protected:
     uint32_t getNumSubscribers() const;
 
     /**
+     * Returns the number of subscribers for the rect image topic
+     */
+    uint32_t getNumSubscribersRect() const;
+
+    /**
      * Grabs an image and stores the image in img_raw_msg_
      * @return false if an error occurred.
      */
     virtual bool grabImage();
+
+    /**
+     * Calls grabImage() and rectifies the result
+     * @return false if an error occurred.
+     */
+    virtual bool grabImageRect();
 
     /**
      * Fills the ros CameraInfo-Object with the image dimensions
@@ -313,7 +328,13 @@ protected:
     image_transport::ImageTransport* it_;
     image_transport::CameraPublisher img_raw_pub_;
 
-    GrabImagesAS grab_images_raw_action_server_;
+    ros::Publisher* img_rect_pub_;
+    image_geometry::PinholeCameraModel pinhole_model_;
+    IntrinsicCalibLoader calib_loader_;
+    bool has_intrinsic_calib_;
+
+    GrabImagesAS grab_imgs_raw_as_;
+    GrabImagesAS* grab_imgs_rect_as_;
 
     ros::ServiceServer set_binning_service_;
     ros::ServiceServer set_exposure_service_;
@@ -330,9 +351,8 @@ protected:
 
     sensor_msgs::Image img_raw_msg_;
     sensor_msgs::CameraInfo cam_info_msg_;
+    cv_bridge::CvImage* cv_bridge_img_rect_;
 
-    bool brightness_service_running_;
-    int target_brightness_;
     bool is_sleeping_;
     boost::recursive_mutex grab_mutex_;
 };
