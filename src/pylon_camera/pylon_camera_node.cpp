@@ -1065,14 +1065,15 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
     pylon_camera_->disableAllRunningAutoBrightessFunctions();
 
     // timeout for the brightness search -> need more time for great exposure values
+    ros::Time start_time = ros::Time::now();
     ros::Time timeout;
     if ( target_brightness > 205 )
     {
-        timeout = ros::Time::now() + ros::Duration(15.0);
+        timeout = start_time + ros::Duration(15.0);
     }
     else
     {
-        timeout = ros::Time::now() + ros::Duration(5.0);
+        timeout = start_time + ros::Duration(5.0);
     }
 
     bool valid_exposure_auto = exposure_auto;
@@ -1122,9 +1123,9 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
         {
             // cancel all running brightness search by deactivating ExposureAuto
             pylon_camera_->disableAllRunningAutoBrightessFunctions();
-            ROS_ERROR_STREAM("Did not reach the target brightness before timeout "
-                    << (ros::Time::now() - timeout).sec << " sec! Stuck at "
-                    << "brightness " << current_brightness);
+            ROS_ERROR_STREAM("Did not reach the target brightness before "
+                << "timeout of " << (ros::Time::now() - start_time).sec
+                << " sec! Stuck at brightness " << current_brightness);
             break;
         }
 
