@@ -59,7 +59,8 @@ PylonCameraParameter::PylonCameraParameter() :
         frame_rate_(5.0),
         camera_info_url_(""),
         mtu_size_(3000),
-        shutter_mode_(SM_DEFAULT)
+        shutter_mode_(SM_DEFAULT),
+        has_intrinsic_calib_(false)
 {}
 
 PylonCameraParameter::~PylonCameraParameter()
@@ -233,6 +234,28 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     else
     {
         shutter_mode_ = SM_DEFAULT;
+    }
+
+    std::string intrinsic_yaml_string("");
+    has_intrinsic_calib_ = nh.hasParam("intrinsic_yaml_string");
+    if ( has_intrinsic_calib_ )
+    {
+        nh.getParam("intrinsic_yaml_string", intrinsic_yaml_string);
+        if ( intrinsic_yaml_string.empty() )
+        {
+            ROS_WARN_STREAM("Yaml file string needed for rectification! "
+                << "ROS-Param: 'pylon_camera_node/intrinsic_yaml_string'"
+                << " is provided, but empty!");
+            ROS_WARN("Will only provide distorted /image_raw images!");
+            has_intrinsic_calib_ = false;
+        }
+    }
+    else
+    {
+        ROS_WARN_STREAM("Yaml file string needed for rectification! ROS-Param: "
+            << "'pylon_camera_node/intrinsic_yaml_string' is not set!");
+        ROS_WARN("Will only provide distorted /image_raw images!");
+        has_intrinsic_calib_ = false;
     }
 
     validateParameterSet(nh);

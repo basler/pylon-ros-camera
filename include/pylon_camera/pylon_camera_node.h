@@ -280,6 +280,13 @@ protected:
                                        camera_control_msgs::SetSleepingSrv::Response &res);
 
     /**
+     * Returns true if the camera has been calibrated and hence the intrinsic
+     * data is available
+     * @return true if the intrinsic camera data is available
+     */
+    const bool& hasIntrinsicCalib() const;
+
+    /**
      * Returns true if the camera was put into sleep mode
      * @return true if in sleep mode
      */
@@ -332,7 +339,6 @@ protected:
     ros::Publisher* img_rect_pub_;
     image_geometry::PinholeCameraModel pinhole_model_;
     IntrinsicCalibLoader calib_loader_;
-    bool has_intrinsic_calib_;
 
     GrabImagesAS grab_imgs_raw_as_;
     GrabImagesAS* grab_imgs_rect_as_;
