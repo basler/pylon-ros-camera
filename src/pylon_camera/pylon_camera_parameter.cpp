@@ -57,6 +57,7 @@ PylonCameraParameter::PylonCameraParameter() :
         gain_auto_(true),
         // #########################
         frame_rate_(5.0),
+        camera_info_url_(""),
         mtu_size_(3000),
         shutter_mode_(SM_DEFAULT)
 {}
@@ -95,6 +96,7 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
 
     nh.param<std::string>("camera_frame", camera_frame_, "pylon_camera");
     nh.param<std::string>("device_user_id", device_user_id_, "");
+    nh.param<std::string>("camera_info_url", camera_info_url_, "");
 
     binning_x_given_ = nh.hasParam("binning_x");
     if ( binning_x_given_ )
@@ -300,6 +302,11 @@ std::string PylonCameraParameter::shutterModeString() const
 const std::string& PylonCameraParameter::cameraFrame() const
 {
     return camera_frame_;
+}
+
+const std::string& PylonCameraParameter::cameraInfoURL() const
+{
+    return camera_info_url_;
 }
 
 void PylonCameraParameter::setFrameRate(const ros::NodeHandle& nh,

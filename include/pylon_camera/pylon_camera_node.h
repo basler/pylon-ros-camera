@@ -37,6 +37,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
 #include <image_geometry/pinhole_camera_model.h>
+#include <camera_info_manager/camera_info_manager.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
 
@@ -352,6 +353,8 @@ protected:
     sensor_msgs::Image img_raw_msg_;
     sensor_msgs::CameraInfo cam_info_msg_;
     cv_bridge::CvImage* cv_bridge_img_rect_;
+
+    camera_info_manager::CameraInfoManager* camera_info_manager_;
 
     bool is_sleeping_;
     boost::recursive_mutex grab_mutex_;

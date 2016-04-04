@@ -9,6 +9,7 @@ set(
      camera_control_msgs
      cv_bridge
      image_geometry
+     camera_info_manager
      image_transport
      roscpp
      sensor_msgs

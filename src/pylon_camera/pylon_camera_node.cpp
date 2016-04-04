@@ -39,7 +39,7 @@ namespace pylon_camera
 
 PylonCameraNode::PylonCameraNode()
     : nh_("~"),
-      pylon_camera_(NULL),
+      pylon_camera_(nullptr),
       pylon_camera_parameter_set_(),
       it_(new image_transport::ImageTransport(nh_)),
       img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
@@ -61,6 +61,8 @@ PylonCameraNode::PylonCameraNode()
       set_sleeping_service_deprecated_(nh_.advertiseService("set_sleeping_srv",
                   &PylonCameraNode::setSleepingCallbackDeprecated, this)),
       // ##################### DEPRECATED !
+      cam_info_msg_(),
+      camera_info_manager_(new camera_info_manager::CameraInfoManager(nh_)),
       is_sleeping_(false)
 {
     init();
@@ -162,6 +164,13 @@ bool PylonCameraNode::startGrabbing()
         return false;
     }
 
+    if ( !camera_info_manager_->setCameraName(pylon_camera_->deviceUserID()) )
+    {
+        // valid name contains only alphanumerc signs and '_'
+        ROS_WARN_STREAM("[" << pylon_camera_->deviceUserID()
+                << "] name not valid for camera_info_manger");
+    }
+
     if ( pylon_camera_parameter_set_.binning_x_given_ )
     {
         size_t reached_binning_x;
@@ -261,7 +270,14 @@ bool PylonCameraNode::startGrabbing()
     }
 
     // setting up the CameraInfo object with the data of the uncalibrated image
-    setupCameraInfo(cam_info_msg_);
+    //setupCameraInfo(cam_info_msg_);
+
+    if ( !camera_info_manager_->validateURL(pylon_camera_parameter_set_.cameraInfoURL()) )
+    {
+        ROS_WARN_STREAM("CameraInfoURL invalid or empty, will only provide "
+            << "distorted (raw) images!");
+    }
+    camera_info_manager_->loadCameraInfo(pylon_camera_parameter_set_.cameraInfoURL());
 
     img_raw_msg_.header.frame_id = pylon_camera_parameter_set_.cameraFrame();
     // Encoding of pixels -- channel meaning, ordering, size
@@ -279,7 +295,17 @@ bool PylonCameraNode::startGrabbing()
 
 void PylonCameraNode::spin()
 {
-    // images were published if subscribers are available or if someone calls the GrabImages Action
+    if ( camera_info_manager_->isCalibrated() )
+    {
+        ROS_INFO_ONCE("IS CALIBRATED");
+    }
+    else
+    {
+        ROS_INFO_ONCE("NOT CALIBRATED");
+    }
+
+    // images were published if subscribers are available or if someone calls
+    // the GrabImages Action
     if ( getNumSubscribers() > 0 && !isSleeping() )
     {
         if ( grabImage() )
@@ -457,6 +483,7 @@ bool PylonCameraNode::grabImage()
         return false;
     }
     img_raw_msg_.header.stamp = ros::Time::now();
+    cam_info_msg_ = camera_info_manager_->getCameraInfo();
     cam_info_msg_.header.stamp = img_raw_msg_.header.stamp;
     return true;
 }
