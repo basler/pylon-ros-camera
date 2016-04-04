@@ -53,7 +53,6 @@ PylonCameraNode::PylonCameraNode()
               false),
       grab_imgs_rect_as_(nullptr),
       pinhole_model_(),
-      has_intrinsic_calib_(false),
       cv_bridge_img_rect_(nullptr),
       set_sleeping_service_(nh_.advertiseService("set_sleeping",
                   &PylonCameraNode::setSleepingCallback, this)),
@@ -116,6 +115,29 @@ bool PylonCameraNode::initAndRegister()
                                                    this);
     // ##################### DEPRECATED !
 
+    if ( hasIntrinsicCalib() )
+    {
+        calib_loader_.init(intrinsic_yaml_string);
+        if ( !calib_loader_.loadCalib() )
+        {
+            ROS_ERROR_STREAM("Error parsing intrinsic calibration matricies"
+                << " from yaml string! Will only provide distorted "
+                << "/image_raw images!");
+                pylon_camera_parameter_set_.has_intrinsic_calib_ = false;
+        }
+        if ( calib_loader_.img_cols() != pylon_camera_->imageCols() ||
+             calib_loader_.img_rows() != pylon_camera_->imageRows() )
+        {
+            ROS_ERROR_STREAM("Error: Image size from yaml file ("
+                << calib_loader_.img_cols() << ", "
+                << calib_loader_.img_rows() << ") does not match to the "
+                << "size of the connected camera ("
+                << pylon_camera_->imageRows() << ", "
+                << pylon_camera_->imageCols() << ")! "
+                << "Will only provide distorted /image_raw images!");
+                pylon_camera_parameter_set_.has_intrinsic_calib_ = false;
+        }
+    }
     pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.deviceUserID());
 
     if ( pylon_camera_ == NULL )
@@ -314,7 +336,7 @@ uint32_t PylonCameraNode::getNumSubscribers() const
 
 uint32_t PylonCameraNode::getNumSubscribersRect() const
 {
-    return has_intrinsic_calib_ ? img_rect_pub_->getNumSubscribers() : 0;
+    return hasIntrinsicCalib() ? img_rect_pub_->getNumSubscribers() : 0;
 }
 
 void PylonCameraNode::setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
@@ -469,7 +491,7 @@ bool PylonCameraNode::grabImageRect()
         return false;
     }
 
-    if ( has_intrinsic_calib_ )
+    if ( hasIntrinsicCalib() )
     {
         cv_bridge_img_rect_->header.stamp = img_raw_msg_.header.stamp;
         assert(pinhole_model_.initialized());
@@ -1265,6 +1287,11 @@ bool PylonCameraNode::setSleepingCallbackDeprecated(camera_control_msgs::SetSlee
 
     res.success = true;
     return true;
+}
+
+const bool& PylonCameraNode::hasIntrinsicCalib() const
+{
+    return pylon_camera_parameter_set_.has_intrinsic_calib_;
 }
 
 bool PylonCameraNode::isSleeping()
