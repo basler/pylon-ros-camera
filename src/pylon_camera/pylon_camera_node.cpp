@@ -1092,7 +1092,8 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
             ROS_ERROR_STREAM("Did not reach the target brightness before "
                 << "timeout of " << (ros::Time::now() - start_time).sec
                 << " sec! Stuck at brightness " << current_brightness);
-            break;
+            reached_brightness = static_cast<int>(current_brightness);
+            return false;
         }
 
         if ( fabs(last_brightness - current_brightness) <= 1.0 )
@@ -1114,7 +1115,8 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
             ROS_ERROR_STREAM("Seems like the desired brightness (" << target_brightness
                     << ") is not reachable! Stuck at brightness "<< current_brightness);
             pylon_camera_->disableAllRunningAutoBrightessFunctions();
-            break;
+            reached_brightness = static_cast<int>(current_brightness);
+            return false;
         }
 
         if ( pylon_camera_->isPylonAutoBrightnessFunctionRunning() )
