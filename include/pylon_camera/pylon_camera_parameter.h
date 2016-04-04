@@ -85,6 +85,11 @@ public:
     const std::string& cameraFrame() const;
 
     /**
+     * Getter for the camera_info_url set from ros-parameter server
+     */
+    const std::string& cameraInfoURL() const;
+
+    /**
      * Getter for the string describing the shutter mode
      */
     std::string shutterModeString() const;
@@ -238,6 +243,14 @@ protected:
      * Calling the GrabImages-Action can result in a higher framerate
      */
     double frame_rate_;
+
+    /**
+     * The CameraInfo URL (Uniform Resource Locator) where the optional
+     * intrinsic camera calibration parameters are stored. This URL string will
+     * be parsed from the CameraInfoManager:
+     * http://wiki.ros.org/camera_info_manager
+     */
+    std::string camera_info_url_;
 };
 
 }  // namespace pylon_camera

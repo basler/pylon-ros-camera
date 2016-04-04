@@ -35,6 +35,7 @@
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <image_transport/image_transport.h>
+#include <camera_info_manager/camera_info_manager.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
 
@@ -328,6 +329,8 @@ protected:
 
     sensor_msgs::Image img_raw_msg_;
     sensor_msgs::CameraInfo cam_info_msg_;
+
+    camera_info_manager::CameraInfoManager* camera_info_manager_;
 
     bool is_sleeping_;
     boost::recursive_mutex grab_mutex_;

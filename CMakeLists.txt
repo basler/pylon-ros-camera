@@ -7,6 +7,7 @@ set(
     CATKIN_COMPONENTS
      actionlib
      camera_control_msgs
+     camera_info_manager
      image_transport
      roscpp
      sensor_msgs
