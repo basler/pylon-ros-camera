@@ -44,9 +44,9 @@ enum PYLON_CAM_TYPE
 
 PylonCamera::PylonCamera()
     : device_user_id_("")
-    , img_rows_(-1)
-    , img_cols_(-1)
-    , img_size_byte_(-1)
+    , img_rows_(0)
+    , img_cols_(0)
+    , img_size_byte_(0)
     , grab_timeout_(-1.0)
     , is_ready_(false)
     , is_cam_removed_(false)
