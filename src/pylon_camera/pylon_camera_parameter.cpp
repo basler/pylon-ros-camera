@@ -57,8 +57,8 @@ PylonCameraParameter::PylonCameraParameter() :
         gain_auto_(true),
         // #########################
         mtu_size_(3000),
-        shutter_mode_(SM_DEFAULT),
-        has_intrinsic_calib_(false)
+        inter_pkg_delay_(1000),
+        shutter_mode_(SM_DEFAULT)
 {}
 
 PylonCameraParameter::~PylonCameraParameter()
@@ -210,6 +210,11 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     if ( nh.hasParam("gige/mtu_size") )
     {
         nh.getParam("gige/mtu_size", mtu_size_);
+    }
+
+    if ( nh.hasParam("gige/inter_pkg_delay") )
+    {
+        nh.getParam("gige/inter_pkg_delay", inter_pkg_delay_);
     }
 
     std::string shutter_param_string;

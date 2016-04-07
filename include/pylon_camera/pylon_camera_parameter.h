@@ -213,11 +213,19 @@ public:
 
     /**
      * The MTU size. Only used for GigE cameras.
-     * To prevent lost frames configure the camera has to be configured
+     * To prevent lost frames the camera has to be configured
      * with the MTU size the network card supports. A value greater 3000
      * should be good (1500 for RaspberryPI)
      */
     int mtu_size_;
+
+    /**
+     * The inter-package delay in ticks. Only used for GigE cameras.
+     * To prevent lost frames it should be greater 0.
+     * For most of GigE-Cameras, a value of 1000 is reasonable.
+     * For GigE-Cameras used on a RaspberryPI this value should be set to 11772
+     */
+    int inter_pkg_delay_;
 
     /**
       Shutter mode

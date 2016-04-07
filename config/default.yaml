@@ -82,3 +82,10 @@ frame_rate: 5.0
 #  should be good (1500 for RaspberryPI)
 # gige:
 #  mtu_size: 3000
+
+#  Only used for GigE cameras.
+#  The inter-package delay in ticks to prevent lost frames.
+#  For most of GigE-Cameras, a value of 1000 is reasonable.
+#  For cameras used on a RaspberryPI this value should be set to 11772.
+# gige:
+#  inter_pkg_delay: 1000
