@@ -459,7 +459,9 @@ void PylonCameraNode::grabImagesRectActionExecuteCB(
             pinhole_model_->rectifyImage(cv_img_raw, cv_bridge_img_rect.image);
 
             sensor_msgs::Image& res_image = result.images[i];
+            std_msgs::Header header = result.images[i].header;
             cv_bridge_img_rect.toImageMsg(res_image);
+            result.images[i].header = header;
         }
         grab_imgs_rect_as_->setSucceeded(result);
     }
