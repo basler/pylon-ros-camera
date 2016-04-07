@@ -152,9 +152,9 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
             for ( it = device_list.begin(); it != device_list.end(); ++it )
             {
                 std::string device_user_id_found(it->GetUserDefinedName());
-                if ( ( 0 == device_user_id_to_open.compare(device_user_id_found) ) ||
-                     ( device_user_id_to_open.length() < device_user_id_found.length() &&
-                      ( 0 == device_user_id_found.compare(device_user_id_found.length() -
+                if ( (0 == device_user_id_to_open.compare(device_user_id_found)) ||
+                     (device_user_id_to_open.length() < device_user_id_found.length() &&
+                     (0 == device_user_id_found.compare(device_user_id_found.length() -
                                                          device_user_id_to_open.length(),
                                                          device_user_id_to_open.length(),
                                                          device_user_id_to_open) )

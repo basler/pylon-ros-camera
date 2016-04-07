@@ -397,7 +397,7 @@ bool PylonCameraNode::grabImage()
             ROS_ERROR("Pylon camera has been removed!");
             delete pylon_camera_;
             pylon_camera_ = nullptr;
-            ros::Duration(0.5).sleep(); // sleep for half a second
+            ros::Duration(0.5).sleep();  // sleep for half a second
             init();
         }
         else
@@ -569,7 +569,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     }
 
     std::vector<size_t> candidates;
-    candidates.resize(4); // gain, exposure, gamma, brightness
+    candidates.resize(4);  // gain, exposure, gamma, brightness
     candidates.at(0) = goal->gain_given ? goal->gain_values.size() : 0;
     candidates.at(1) = exposure_given ? exposure_times.size() : 0;
     candidates.at(2) = brightness_given ? brightness_values.size() : 0;
@@ -1009,8 +1009,8 @@ bool PylonCameraNode::setBinningCallback(camera_control_msgs::SetBinning::Reques
                                  reached_binning_x);
     bool success_y = setBinningY(req.target_binning_y,
                                  reached_binning_y);
-    res.reached_binning_x = static_cast<long unsigned int>(reached_binning_x);
-    res.reached_binning_y = static_cast<long unsigned int>(reached_binning_y);
+    res.reached_binning_x = static_cast<uint32_t>(reached_binning_x);
+    res.reached_binning_y = static_cast<uint32_t>(reached_binning_y);
     res.success = success_x && success_y;
     return true;
 }
