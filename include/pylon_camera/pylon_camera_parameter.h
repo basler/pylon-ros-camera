@@ -69,6 +69,16 @@ public:
     const std::string& deviceUserID() const;
 
     /**
+     * Getter for the string describing the shutter mode
+     */
+    std::string shutterModeString() const;
+
+    /**
+     * Getter for the camera_frame_ set from ros-parameter server
+     */
+    const std::string& cameraFrame() const;
+
+    /**
      * Getter for the frame_rate_ read from ros-parameter server
      */
     const double& frameRate() const;
@@ -80,19 +90,16 @@ public:
     void setFrameRate(const ros::NodeHandle& nh, const double& frame_rate);
 
     /**
-     * Getter for the camera_frame_ set from ros-parameter server
-     */
-    const std::string& cameraFrame() const;
-
-    /**
      * Getter for the camera_info_url set from ros-parameter server
      */
     const std::string& cameraInfoURL() const;
 
     /**
-     * Getter for the string describing the shutter mode
+     * Setter for the camera_info_url_ if a new CameraInfo-Msgs Object is
+     * provided via the SetCameraInfo-service from the CameraInfoManager
      */
-    std::string shutterModeString() const;
+    void setCameraInfoURL(const ros::NodeHandle& nh,
+                          const std::string& camera_info_url);
 
 public:
     /** Binning factor to get downsampled images. It refers here to any camera

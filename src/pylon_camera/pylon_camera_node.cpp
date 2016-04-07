@@ -37,10 +37,45 @@
 namespace pylon_camera
 {
 
+using sensor_msgs::CameraInfo;
+using sensor_msgs::CameraInfoPtr;
+
 PylonCameraNode::PylonCameraNode()
     : nh_("~"),
-      pylon_camera_(nullptr),
       pylon_camera_parameter_set_(),
+      set_binning_srv_(nh_.advertiseService("set_binning",
+                                            &PylonCameraNode::setBinningCallback,
+                                            this)),
+      set_exposure_srv_(nh_.advertiseService("set_exposure",
+                                             &PylonCameraNode::setExposureCallback,
+                                             this)),
+      set_gain_srv_(nh_.advertiseService("set_gain",
+                                         &PylonCameraNode::setGainCallback,
+                                         this)),
+      set_gamma_srv_(nh_.advertiseService("set_gamma",
+                                          &PylonCameraNode::setGammaCallback,
+                                          this)),
+      set_brightness_srv_(nh_.advertiseService("set_brightness",
+                                               &PylonCameraNode::setBrightnessCallback,
+                                               this)),
+      set_sleeping_srv_(nh_.advertiseService("set_sleeping",
+                                             &PylonCameraNode::setSleepingCallback,
+                                             this)),
+      // ##################### DEPRECATED !
+      set_exposure_srv_deprecated_(nh_.advertiseService(
+                                        "set_exposure_srv",
+                                        &PylonCameraNode::setExposureCallbackDeprecated,
+                                        this)),
+      set_brightness_srv_deprecated_(nh_.advertiseService(
+                                        "set_brightness_srv",
+                                        &PylonCameraNode::setBrightnessCallbackDeprecated,
+                                        this)),
+      set_sleeping_srv_deprecated_(nh_.advertiseService(
+                                        "set_sleeping_srv",
+                                        &PylonCameraNode::setSleepingCallbackDeprecated,
+                                        this)),
+      // ##################### DEPRECATED !
+      pylon_camera_(nullptr),
       it_(new image_transport::ImageTransport(nh_)),
       img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
       img_rect_pub_(nullptr),
@@ -52,15 +87,8 @@ PylonCameraNode::PylonCameraNode()
                           _1),
               false),
       grab_imgs_rect_as_(nullptr),
-      pinhole_model_(),
+      pinhole_model_(nullptr),
       cv_bridge_img_rect_(nullptr),
-      set_sleeping_service_(nh_.advertiseService("set_sleeping",
-                  &PylonCameraNode::setSleepingCallback, this)),
-      // ##################### DEPRECATED !
-      set_sleeping_service_deprecated_(nh_.advertiseService("set_sleeping_srv",
-                  &PylonCameraNode::setSleepingCallbackDeprecated, this)),
-      // ##################### DEPRECATED !
-      cam_info_msg_(),
       camera_info_manager_(new camera_info_manager::CameraInfoManager(nh_)),
       is_sleeping_(false)
 {
@@ -69,20 +97,23 @@ PylonCameraNode::PylonCameraNode()
 
 bool PylonCameraNode::init()
 {
-    // Reading all necessary parameter to open the desired camera from the
+    // reading all necessary parameter to open the desired camera from the
     // ros-parameter-server. In case that invalid parameter values can be
     // detected, the interface will reset them to the default values.
+    // These parameters furthermore contain the intrinsic calibration matrices,
+    // in case they are provided
     pylon_camera_parameter_set_.readFromRosParameterServer(nh_);
 
-    // Advertising the ros-services for setting brightness, exposure, gain and
-    // gamma. Furthermore creating the target PylonCamera-Object with the
-    // specified device_user_id
+    // creating the target PylonCamera-Object with the specified
+    // device_user_id, registering the Software-Trigger-Mode, starting the
+    // communication with the device and enabling the desired startup-settings
     if ( !initAndRegister() )
     {
         ros::shutdown();
         return false;
     }
 
+    // starting the grabbing procedure with the desired image-settings
     if ( !startGrabbing() )
     {
         ros::shutdown();
@@ -93,63 +124,18 @@ bool PylonCameraNode::init()
 
 bool PylonCameraNode::initAndRegister()
 {
-    set_binning_service_ = nh_.advertiseService("set_binning",
-                                                &PylonCameraNode::setBinningCallback,
-                                                this);
-    set_exposure_service_ = nh_.advertiseService("set_exposure",
-                                                 &PylonCameraNode::setExposureCallback,
-                                                 this);
-    set_gain_service_ = nh_.advertiseService("set_gain",
-                                             &PylonCameraNode::setGainCallback,
-                                             this);
-    set_gamma_service_ = nh_.advertiseService("set_gamma",
-                                             &PylonCameraNode::setGammaCallback,
-                                             this);
-    set_brightness_service_ = nh_.advertiseService("set_brightness",
-                                                   &PylonCameraNode::setBrightnessCallback,
-                                                   this);
-    // ##################### DEPRECATED !
-    set_exposure_service_deprecated_ = nh_.advertiseService("set_exposure_srv",
-                                                 &PylonCameraNode::setExposureCallbackDeprecated,
-                                                 this);
-    set_brightness_service_deprecated_ = nh_.advertiseService("set_brightness_srv",
-                                                   &PylonCameraNode::setBrightnessCallbackDeprecated,
-                                                   this);
-    // ##################### DEPRECATED !
+    pylon_camera_ = PylonCamera::create(
+                                    pylon_camera_parameter_set_.deviceUserID());
 
-    if ( hasIntrinsicCalib() )
-    {
-        calib_loader_.init(intrinsic_yaml_string);
-        if ( !calib_loader_.loadCalib() )
-        {
-            ROS_ERROR_STREAM("Error parsing intrinsic calibration matricies"
-                << " from yaml string! Will only provide distorted "
-                << "/image_raw images!");
-                pylon_camera_parameter_set_.has_intrinsic_calib_ = false;
-        }
-        if ( calib_loader_.img_cols() != pylon_camera_->imageCols() ||
-             calib_loader_.img_rows() != pylon_camera_->imageRows() )
-        {
-            ROS_ERROR_STREAM("Error: Image size from yaml file ("
-                << calib_loader_.img_cols() << ", "
-                << calib_loader_.img_rows() << ") does not match to the "
-                << "size of the connected camera ("
-                << pylon_camera_->imageRows() << ", "
-                << pylon_camera_->imageCols() << ")! "
-                << "Will only provide distorted /image_raw images!");
-                pylon_camera_parameter_set_.has_intrinsic_calib_ = false;
-        }
-    }
-    pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.deviceUserID());
-
-    if ( pylon_camera_ == NULL )
+    if ( pylon_camera_ == nullptr )
     {
         return false;
     }
 
     if ( !pylon_camera_->registerCameraConfiguration() )
     {
-        ROS_ERROR("Error while registering the camera configuration to software-trigger mode!");
+        ROS_ERROR_STREAM("Error while registering the camera configuration to "
+            << "software-trigger mode!");
         return false;
     }
 
@@ -174,7 +160,6 @@ bool PylonCameraNode::initAndRegister()
                                             boost::bind(&PylonCameraNode::setDigitalOutputCB, this, 1, _1, _2));
     }
 
-    grab_imgs_raw_as_.start();
     return true;
 }
 
@@ -186,11 +171,54 @@ bool PylonCameraNode::startGrabbing()
         return false;
     }
 
+    img_raw_msg_.header.frame_id = pylon_camera_parameter_set_.cameraFrame();
+    // Encoding of pixels -- channel meaning, ordering, size
+    // taken from the list of strings in include/sensor_msgs/image_encodings.h
+    img_raw_msg_.encoding = pylon_camera_->imageEncoding();
+    img_raw_msg_.height = pylon_camera_->imageRows();
+    img_raw_msg_.width = pylon_camera_->imageCols();
+
+    // step = full row length in bytes
+    // img_raw_msg_.data // actual matrix data, size is (step * rows)
+    img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
+
     if ( !camera_info_manager_->setCameraName(pylon_camera_->deviceUserID()) )
     {
         // valid name contains only alphanumerc signs and '_'
         ROS_WARN_STREAM("[" << pylon_camera_->deviceUserID()
                 << "] name not valid for camera_info_manger");
+    }
+
+    grab_imgs_raw_as_.start();
+
+    // Initial setting of the CameraInfo-msg, assuming no calibration given
+    CameraInfo initial_cam_info;
+    setupInitialCameraInfo(initial_cam_info);
+    camera_info_manager_->setCameraInfo(initial_cam_info);
+
+    if ( pylon_camera_parameter_set_.cameraInfoURL().empty() ||
+         !camera_info_manager_->validateURL(pylon_camera_parameter_set_.cameraInfoURL()) )
+    {
+        ROS_INFO_STREAM("CameraInfoURL needed for rectification! \nROS-Param: "
+            << "'pylon_camera_node/camera_info_url' = '"
+            << pylon_camera_parameter_set_.cameraInfoURL() << "' is invalid!");
+        ROS_DEBUG_STREAM("CameraInfoURL should have following style: "
+            << "'file:///full/path/to/local/file.yaml' or "
+            << "'file://${ROS_HOME}/camera_info/${NAME}.yaml'");
+        ROS_WARN("Will only provide distorted /image_raw images!");
+    }
+    else
+    {
+        // override initial camera info if the url is valid
+        if ( camera_info_manager_->loadCameraInfo(
+                                pylon_camera_parameter_set_.cameraInfoURL()) )
+        {
+            setupRectification();
+        }
+        else
+        {
+            ROS_WARN("Will only provide distorted /image_raw images!");
+        }
     }
 
     if ( pylon_camera_parameter_set_.binning_x_given_ )
@@ -287,208 +315,82 @@ bool PylonCameraNode::startGrabbing()
     }
     else if ( pylon_camera_parameter_set_.frameRate() == -1 )
     {
-        pylon_camera_parameter_set_.setFrameRate(nh_, pylon_camera_->maxPossibleFramerate());
-        ROS_INFO("Max possible framerate is %.2f Hz", pylon_camera_->maxPossibleFramerate());
+        pylon_camera_parameter_set_.setFrameRate(nh_,
+                                                 pylon_camera_->maxPossibleFramerate());
+        ROS_INFO("Max possible framerate is %.2f Hz",
+                 pylon_camera_->maxPossibleFramerate());
     }
-
-    // setting up the CameraInfo object with the data of the uncalibrated image
-    //setupCameraInfo(cam_info_msg_);
-
-    if ( !camera_info_manager_->validateURL(pylon_camera_parameter_set_.cameraInfoURL()) )
-    {
-        ROS_WARN_STREAM("CameraInfoURL invalid or empty, will only provide "
-            << "distorted (raw) images!");
-    }
-    camera_info_manager_->loadCameraInfo(pylon_camera_parameter_set_.cameraInfoURL());
-
-    img_raw_msg_.header.frame_id = pylon_camera_parameter_set_.cameraFrame();
-    // Encoding of pixels -- channel meaning, ordering, size
-    // taken from the list of strings in include/sensor_msgs/image_encodings.h
-    img_raw_msg_.encoding = pylon_camera_->imageEncoding();
-    img_raw_msg_.height = pylon_camera_->imageRows();
-    img_raw_msg_.width = pylon_camera_->imageCols();
-
-    // step = full row length in bytes
-    // img_raw_msg_.data // actual matrix data, size is (step * rows)
-    img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
-
     return true;
+}
+
+void PylonCameraNode::setupRectification()
+{
+    img_rect_pub_ =
+        new ros::Publisher(nh_.advertise<sensor_msgs::Image>("image_rect", 10));
+
+    grab_imgs_rect_as_ =
+        new GrabImagesAS(nh_,
+                         "grab_images_rect",
+                         boost::bind(
+                            &PylonCameraNode::grabImagesRectActionExecuteCB,
+                            this,
+                            _1),
+                         false);
+
+    pinhole_model_ = new image_geometry::PinholeCameraModel();
+    pinhole_model_->fromCameraInfo(camera_info_manager_->getCameraInfo());
+    grab_imgs_rect_as_->start();
+
+    cv_bridge_img_rect_ = new cv_bridge::CvImage();
+    cv_bridge_img_rect_->header = img_raw_msg_.header;
+    cv_bridge_img_rect_->encoding = pylon_camera_->imageEncoding();
 }
 
 void PylonCameraNode::spin()
 {
     if ( camera_info_manager_->isCalibrated() )
     {
-        ROS_INFO_ONCE("IS CALIBRATED");
+        ROS_INFO_ONCE("Camera is calibrated");
     }
     else
     {
-        ROS_INFO_ONCE("NOT CALIBRATED");
+        ROS_INFO_ONCE("Camera not calibrated");
     }
 
     // images were published if subscribers are available or if someone calls
     // the GrabImages Action
-    if ( getNumSubscribers() > 0 && !isSleeping() )
+    if ( !isSleeping() && ( img_raw_pub_.getNumSubscribers() > 0 ||
+                            getNumSubscribersRect() ) )
     {
-        if ( grabImage() )
+        if ( !grabImage() )
         {
-            img_raw_pub_.publish(img_raw_msg_, cam_info_msg_);
+            return;
+        }
+
+        if ( img_raw_pub_.getNumSubscribers() > 0 )
+        {
+            // get actual cam_info-object in every frame, because it might have
+            // changed due to a 'set_camera_info'-service call
+            sensor_msgs::CameraInfoPtr cam_info(
+                        new sensor_msgs::CameraInfo(
+                                        camera_info_manager_->getCameraInfo()));
+            cam_info->header.stamp = img_raw_msg_.header.stamp;
+
+            // Publish via image_transport
+            img_raw_pub_.publish(img_raw_msg_, *cam_info);
+        }
+
+        if ( getNumSubscribersRect() > 0 )
+        {
+            img_rect_pub_->publish(*cv_bridge_img_rect_);
         }
     }
-}
-
-bool PylonCameraNode::setDigitalOutputCB(const int& output_id,
-                                         camera_control_msgs::SetBool::Request &req,
-                                         camera_control_msgs::SetBool::Response &res)
-{
-    res.success = pylon_camera_->setUserOutput(output_id, req.data);
-    return true;
-}
-
-const double& PylonCameraNode::frameRate() const
-{
-    return pylon_camera_parameter_set_.frameRate();
-}
-
-const std::string& PylonCameraNode::cameraFrame() const
-{
-    return pylon_camera_parameter_set_.cameraFrame();
-}
-
-uint32_t PylonCameraNode::getNumSubscribers() const
-{
-    return img_raw_pub_.getNumSubscribers();
-}
-
-uint32_t PylonCameraNode::getNumSubscribersRect() const
-{
-    return hasIntrinsicCalib() ? img_rect_pub_->getNumSubscribers() : 0;
-}
-
-void PylonCameraNode::setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
-{
-    std_msgs::Header header;
-    header.frame_id = pylon_camera_parameter_set_.cameraFrame();
-    header.stamp = ros::Time::now();
-
-    // http://www.ros.org/reps/rep-0104.html
-    // If the camera is uncalibrated, the matrices D, K, R, P should be left
-    // zeroed out. In particular, clients may assume that K[0] == 0.0
-    // indicates an uncalibrated camera.
-    cam_info_msg.header = header;
-
-    // The image dimensions with which the camera was calibrated. Normally
-    // this will be the full camera resolution in pixels. They remain fix, even
-    // if binning is applied
-    cam_info_msg.height = pylon_camera_->imageRows();
-    cam_info_msg.width = pylon_camera_->imageCols();
-
-    // The distortion model used. Supported models are listed in
-    // sensor_msgs/distortion_models.h. For most cameras, "plumb_bob" - a
-    // simple model of radial and tangential distortion - is sufficient.
-    // Empty D and distortion_model indicate that the CameraInfo cannot be used
-    // to rectify points or images, either because the camera is not calibrated
-    // or because the rectified image was produced using an unsupported
-    // distortion model, e.g. the proprietary one used by Bumblebee cameras
-    // [http://www.ros.org/reps/rep-0104.html].
-    cam_info_msg.distortion_model = "";
-
-    // The distortion parameters, size depending on the distortion model.
-    // For "plumb_bob", the 5 parameters are: (k1, k2, t1, t2, k3) -> float64[] D.
-    cam_info_msg.D = std::vector<double>(5, 0.);
-
-    // Intrinsic camera matrix for the raw (distorted) images.
-    //     [fx  0 cx]
-    // K = [ 0 fy cy]  --> 3x3 row-major matrix
-    //     [ 0  0  1]
-    // Projects 3D points in the camera coordinate frame to 2D pixel coordinates
-    // using the focal lengths (fx, fy) and principal point (cx, cy).
-    cam_info_msg.K.assign(0.0);
-
-    // Rectification matrix (stereo cameras only)
-    // A rotation matrix aligning the camera coordinate system to the ideal
-    // stereo image plane so that epipolar lines in both stereo images are parallel.
-    cam_info_msg.R.assign(0.0);
-
-    // Projection/camera matrix
-    //     [fx'  0  cx' Tx]
-    // P = [ 0  fy' cy' Ty]  --> # 3x4 row-major matrix
-    //     [ 0   0   1   0]
-    // By convention, this matrix specifies the intrinsic (camera) matrix of the
-    // processed (rectified) image. That is, the left 3x3 portion is the normal
-    // camera intrinsic matrix for the rectified image. It projects 3D points
-    // in the camera coordinate frame to 2D pixel coordinates using the focal
-    // lengths (fx', fy') and principal point (cx', cy') - these may differ from
-    // the values in K. For monocular cameras, Tx = Ty = 0. Normally, monocular
-    // cameras will also have R = the identity and P[1:3,1:3] = K.
-    // For a stereo pair, the fourth column [Tx Ty 0]' is related to the
-    // position of the optical center of the second camera in the first
-    // camera's frame. We assume Tz = 0 so both cameras are in the same
-    // stereo image plane. The first camera always has Tx = Ty = 0.
-    // For the right (second) camera of a horizontal stereo pair,
-    // Ty = 0 and Tx = -fx' * B, where B is the baseline between the cameras.
-    // Given a 3D point [X Y Z]', the projection (x, y) of the point onto the
-    // rectified image is given by:
-    // [u v w]' = P * [X Y Z 1]'
-    //        x = u / w
-    //        y = v / w
-    //  This holds for both images of a stereo pair.
-    cam_info_msg.P.assign(0.0);
-
-    // Binning refers here to any camera setting which combines rectangular
-    // neighborhoods of pixels into larger "super-pixels." It reduces the
-    // resolution of the output image to (width / binning_x) x (height / binning_y).
-    // The default values binning_x = binning_y = 0 is considered the same as
-    // binning_x = binning_y = 1 (no subsampling).
-    cam_info_msg.binning_x = pylon_camera_->currentBinningX();
-    cam_info_msg.binning_y = pylon_camera_->currentBinningY();
-
-    // Region of interest (subwindow of full camera resolution), given in full
-    // resolution (unbinned) image coordinates. A particular ROI always denotes
-    // the same window of pixels on the camera sensor, regardless of binning
-    // settings. The default setting of roi (all values 0) is considered the same
-    // as full resolution (roi.width = width, roi.height = height).
-    cam_info_msg.roi.x_offset = cam_info_msg.roi.y_offset = 0;
-    cam_info_msg.roi.height = cam_info_msg.roi.width = 0;
-}
-
-/**
- * Waits till the pylon_camera_ isReady() observing a given timeout
- * @return true when the camera's state toggles to 'isReady()'
- */
-bool PylonCameraNode::waitForCamera(const ros::Duration& timeout) const
-{
-    bool result = false;
-    ros::Time start_time = ros::Time::now();
-
-    while ( ros::ok() )
-    {
-        if ( pylon_camera_->isReady() )
-        {
-            result = true;
-            break;
-        }
-        else
-        {
-            if ( timeout >= ros::Duration(0) )
-            {
-                if ( ros::Time::now() - start_time >= timeout )
-                {
-                    ROS_ERROR_STREAM("Setting brightness failed, because the interface is not ready." <<
-                        "This happens although waiting for " << timeout.sec << " seconds!");
-                    return false;
-                }
-            }
-            ros::Duration(0.02).sleep();
-        }
-    }
-    return result;
 }
 
 bool PylonCameraNode::grabImage()
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-    if (!pylon_camera_->grab(img_raw_msg_.data))
+    if ( !pylon_camera_->grab(img_raw_msg_.data) )
     {
         if ( pylon_camera_->isCamRemoved() )
         {
@@ -504,37 +406,63 @@ bool PylonCameraNode::grabImage()
         }
         return false;
     }
+
     img_raw_msg_.header.stamp = ros::Time::now();
-    cam_info_msg_ = camera_info_manager_->getCameraInfo();
-    cam_info_msg_.header.stamp = img_raw_msg_.header.stamp;
-    return true;
-}
 
-bool PylonCameraNode::grabImageRect()
-{
-    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-    if ( !grabImage() ) // fills img_raw_msg_
-    {
-        return false;
-    }
-
-    if ( hasIntrinsicCalib() )
+    if ( camera_info_manager_->isCalibrated() )
     {
         cv_bridge_img_rect_->header.stamp = img_raw_msg_.header.stamp;
-        assert(pinhole_model_.initialized());
+        assert(pinhole_model_->initialized());
         cv::Mat img_raw = cv::Mat(img_raw_msg_.height, img_raw_msg_.width,
                                   CV_8UC1, img_raw_msg_.data.data());
-
-        pinhole_model_.rectifyImage(img_raw, cv_bridge_img_rect_->image);
+        pinhole_model_->fromCameraInfo(camera_info_manager_->getCameraInfo());
+        pinhole_model_->rectifyImage(img_raw, cv_bridge_img_rect_->image);
     }
     return true;
 }
 
-void PylonCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::GrabImagesGoal::ConstPtr& goal)
+void PylonCameraNode::grabImagesRawActionExecuteCB(
+                    const camera_control_msgs::GrabImagesGoal::ConstPtr& goal)
 {
     camera_control_msgs::GrabImagesResult result;
     result = grabImagesRaw(goal, &grab_imgs_raw_as_);
     grab_imgs_raw_as_.setSucceeded(result);
+}
+
+void PylonCameraNode::grabImagesRectActionExecuteCB(
+                    const camera_control_msgs::GrabImagesGoal::ConstPtr& goal)
+{
+    camera_control_msgs::GrabImagesResult result;
+    if ( !camera_info_manager_->isCalibrated() )
+    {
+        result.success = false;
+        grab_imgs_rect_as_->setSucceeded(result);
+        return;
+    }
+    else
+    {
+        result = PylonCameraNode::grabImagesRaw(goal, grab_imgs_rect_as_);
+        if ( !result.success )
+        {
+            grab_imgs_rect_as_->setSucceeded(result);
+            return;
+        }
+
+        for ( std::size_t i = 0; i < result.images.size(); ++i)
+        {
+            cv_bridge::CvImage cv_bridge_img_rect;
+            cv::Mat cv_img_raw = cv::Mat(result.images[i].height,
+                    result.images[i].width,
+                    CV_8UC1,
+                    result.images[i].data.data());
+            pinhole_model_->fromCameraInfo(camera_info_manager_->getCameraInfo());
+            pinhole_model_->rectifyImage(cv_img_raw, cv_bridge_img_rect.image);
+
+            sensor_msgs::Image& res_image = result.images[i];
+            cv_bridge_img_rect.toImageMsg(res_image);
+        }
+        grab_imgs_rect_as_->setSucceeded(result);
+    }
 }
 
 camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
@@ -777,8 +705,13 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         img.header.stamp = ros::Time::now();
         img.header.frame_id = cameraFrame();
         feedback.curr_nr_images_taken = i+1;
-        action_server->publishFeedback(feedback);
+
+        if ( action_server != nullptr )
+        {
+            action_server->publishFeedback(feedback);
+        }
     }
+
     float reached_val;
     if ( !result.success )
     {
@@ -836,6 +769,154 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     return result;
 }
 
+bool PylonCameraNode::setDigitalOutputCB(const int& output_id,
+                                         camera_control_msgs::SetBool::Request &req,
+                                         camera_control_msgs::SetBool::Response &res)
+{
+    res.success = pylon_camera_->setUserOutput(output_id, req.data);
+    return true;
+}
+
+const double& PylonCameraNode::frameRate() const
+{
+    return pylon_camera_parameter_set_.frameRate();
+}
+
+const std::string& PylonCameraNode::cameraFrame() const
+{
+    return pylon_camera_parameter_set_.cameraFrame();
+}
+
+uint32_t PylonCameraNode::getNumSubscribersRect() const
+{
+    return camera_info_manager_->isCalibrated() ? img_rect_pub_->getNumSubscribers() : 0;
+}
+
+uint32_t PylonCameraNode::getNumSubscribers() const
+{
+    return img_raw_pub_.getNumSubscribers() + img_rect_pub_->getNumSubscribers();
+}
+
+void PylonCameraNode::setupInitialCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
+{
+    std_msgs::Header header;
+    header.frame_id = pylon_camera_parameter_set_.cameraFrame();
+    header.stamp = ros::Time::now();
+
+    // http://www.ros.org/reps/rep-0104.html
+    // If the camera is uncalibrated, the matrices D, K, R, P should be left
+    // zeroed out. In particular, clients may assume that K[0] == 0.0
+    // indicates an uncalibrated camera.
+    cam_info_msg.header = header;
+
+    // The image dimensions with which the camera was calibrated. Normally
+    // this will be the full camera resolution in pixels. They remain fix, even
+    // if binning is applied
+    cam_info_msg.height = pylon_camera_->imageRows();
+    cam_info_msg.width = pylon_camera_->imageCols();
+
+    // The distortion model used. Supported models are listed in
+    // sensor_msgs/distortion_models.h. For most cameras, "plumb_bob" - a
+    // simple model of radial and tangential distortion - is sufficient.
+    // Empty D and distortion_model indicate that the CameraInfo cannot be used
+    // to rectify points or images, either because the camera is not calibrated
+    // or because the rectified image was produced using an unsupported
+    // distortion model, e.g. the proprietary one used by Bumblebee cameras
+    // [http://www.ros.org/reps/rep-0104.html].
+    cam_info_msg.distortion_model = "";
+
+    // The distortion parameters, size depending on the distortion model.
+    // For "plumb_bob", the 5 parameters are: (k1, k2, t1, t2, k3) -> float64[] D.
+    cam_info_msg.D = std::vector<double>(5, 0.);
+
+    // Intrinsic camera matrix for the raw (distorted) images.
+    //     [fx  0 cx]
+    // K = [ 0 fy cy]  --> 3x3 row-major matrix
+    //     [ 0  0  1]
+    // Projects 3D points in the camera coordinate frame to 2D pixel coordinates
+    // using the focal lengths (fx, fy) and principal point (cx, cy).
+    cam_info_msg.K.assign(0.0);
+
+    // Rectification matrix (stereo cameras only)
+    // A rotation matrix aligning the camera coordinate system to the ideal
+    // stereo image plane so that epipolar lines in both stereo images are parallel.
+    cam_info_msg.R.assign(0.0);
+
+    // Projection/camera matrix
+    //     [fx'  0  cx' Tx]
+    // P = [ 0  fy' cy' Ty]  --> # 3x4 row-major matrix
+    //     [ 0   0   1   0]
+    // By convention, this matrix specifies the intrinsic (camera) matrix of the
+    // processed (rectified) image. That is, the left 3x3 portion is the normal
+    // camera intrinsic matrix for the rectified image. It projects 3D points
+    // in the camera coordinate frame to 2D pixel coordinates using the focal
+    // lengths (fx', fy') and principal point (cx', cy') - these may differ from
+    // the values in K. For monocular cameras, Tx = Ty = 0. Normally, monocular
+    // cameras will also have R = the identity and P[1:3,1:3] = K.
+    // For a stereo pair, the fourth column [Tx Ty 0]' is related to the
+    // position of the optical center of the second camera in the first
+    // camera's frame. We assume Tz = 0 so both cameras are in the same
+    // stereo image plane. The first camera always has Tx = Ty = 0.
+    // For the right (second) camera of a horizontal stereo pair,
+    // Ty = 0 and Tx = -fx' * B, where B is the baseline between the cameras.
+    // Given a 3D point [X Y Z]', the projection (x, y) of the point onto the
+    // rectified image is given by:
+    // [u v w]' = P * [X Y Z 1]'
+    //        x = u / w
+    //        y = v / w
+    //  This holds for both images of a stereo pair.
+    cam_info_msg.P.assign(0.0);
+
+    // Binning refers here to any camera setting which combines rectangular
+    // neighborhoods of pixels into larger "super-pixels." It reduces the
+    // resolution of the output image to (width / binning_x) x (height / binning_y).
+    // The default values binning_x = binning_y = 0 is considered the same as
+    // binning_x = binning_y = 1 (no subsampling).
+    cam_info_msg.binning_x = pylon_camera_->currentBinningX();
+    cam_info_msg.binning_y = pylon_camera_->currentBinningY();
+
+    // Region of interest (subwindow of full camera resolution), given in full
+    // resolution (unbinned) image coordinates. A particular ROI always denotes
+    // the same window of pixels on the camera sensor, regardless of binning
+    // settings. The default setting of roi (all values 0) is considered the same
+    // as full resolution (roi.width = width, roi.height = height).
+    cam_info_msg.roi.x_offset = cam_info_msg.roi.y_offset = 0;
+    cam_info_msg.roi.height = cam_info_msg.roi.width = 0;
+}
+
+/**
+ * Waits till the pylon_camera_ isReady() observing a given timeout
+ * @return true when the camera's state toggles to 'isReady()'
+ */
+bool PylonCameraNode::waitForCamera(const ros::Duration& timeout) const
+{
+    bool result = false;
+    ros::Time start_time = ros::Time::now();
+
+    while ( ros::ok() )
+    {
+        if ( pylon_camera_->isReady() )
+        {
+            result = true;
+            break;
+        }
+        else
+        {
+            if ( timeout >= ros::Duration(0) )
+            {
+                if ( ros::Time::now() - start_time >= timeout )
+                {
+                    ROS_ERROR_STREAM("Setting brightness failed, because the interface is not ready." <<
+                        "This happens although waiting for " << timeout.sec << " seconds!");
+                    return false;
+                }
+            }
+            ros::Duration(0.02).sleep();
+        }
+    }
+    return result;
+}
+
 bool PylonCameraNode::setBinningX(const size_t& target_binning_x,
                                   size_t& reached_binning_x)
 {
@@ -856,7 +937,9 @@ bool PylonCameraNode::setBinningX(const size_t& target_binning_x,
             {
                 ROS_ERROR_STREAM("Error in setBinningX(): Unable to set target "
                 << "binning_x factor before timeout");
-                cam_info_msg_.binning_x = pylon_camera_->currentBinningX();
+                CameraInfoPtr cam_info(new CameraInfo(camera_info_manager_->getCameraInfo()));
+                cam_info->binning_x = pylon_camera_->currentBinningX();
+                camera_info_manager_->setCameraInfo(*cam_info);
                 img_raw_msg_.width = pylon_camera_->imageCols();
                 // step = full row length in bytes
                 // img_raw_msg_.data // actual matrix data, size is (step * rows)
@@ -866,7 +949,9 @@ bool PylonCameraNode::setBinningX(const size_t& target_binning_x,
             r.sleep();
         }
     }
-    cam_info_msg_.binning_x = pylon_camera_->currentBinningX();
+    CameraInfoPtr cam_info(new CameraInfo(camera_info_manager_->getCameraInfo()));
+    cam_info->binning_x = pylon_camera_->currentBinningX();
+    camera_info_manager_->setCameraInfo(*cam_info);
     img_raw_msg_.width = pylon_camera_->imageCols();
     // step = full row length in bytes
     // img_raw_msg_.data // actual matrix data, size is (step * rows)
@@ -894,7 +979,9 @@ bool PylonCameraNode::setBinningY(const size_t& target_binning_y,
             {
                 ROS_ERROR_STREAM("Error in setBinningY(): Unable to set target "
                     << "binning_y factor before timeout");
-                cam_info_msg_.binning_y = pylon_camera_->currentBinningY();
+                CameraInfoPtr cam_info(new CameraInfo(camera_info_manager_->getCameraInfo()));
+                cam_info->binning_y = pylon_camera_->currentBinningY();
+                camera_info_manager_->setCameraInfo(*cam_info);
                 img_raw_msg_.height = pylon_camera_->imageRows();
                 // step = full row length in bytes
                 // img_raw_msg_.data // actual matrix data, size is (step * rows)
@@ -904,7 +991,9 @@ bool PylonCameraNode::setBinningY(const size_t& target_binning_y,
             r.sleep();
         }
     }
-    cam_info_msg_.binning_y = pylon_camera_->currentBinningY();
+    CameraInfoPtr cam_info(new CameraInfo(camera_info_manager_->getCameraInfo()));
+    cam_info->binning_y = pylon_camera_->currentBinningY();
+    camera_info_manager_->setCameraInfo(*cam_info);
     img_raw_msg_.height = pylon_camera_->imageRows();
     // step = full row length in bytes
     // img_raw_msg_.data // actual matrix data, size is (step * rows)

@@ -27,9 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-
 #include <pylon_camera/pylon_camera_parameter.h>
-#include <string>
 
 namespace pylon_camera
 {
@@ -37,6 +35,8 @@ namespace pylon_camera
 PylonCameraParameter::PylonCameraParameter() :
         camera_frame_("pylon_camera"),
         device_user_id_(""),
+        frame_rate_(5.0),
+        camera_info_url_(""),
         binning_x_(1),
         binning_y_(1),
         binning_x_given_(false),
@@ -56,8 +56,6 @@ PylonCameraParameter::PylonCameraParameter() :
         exposure_auto_(true),
         gain_auto_(true),
         // #########################
-        frame_rate_(5.0),
-        camera_info_url_(""),
         mtu_size_(3000),
         shutter_mode_(SM_DEFAULT),
         has_intrinsic_calib_(false)
@@ -96,8 +94,19 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     // handling of deprecated parameter naming behaviour
 
     nh.param<std::string>("camera_frame", camera_frame_, "pylon_camera");
+
     nh.param<std::string>("device_user_id", device_user_id_, "");
+
+    if ( nh.hasParam("frame_rate") )
+    {
+        nh.getParam("frame_rate", frame_rate_);
+    }
+
     nh.param<std::string>("camera_info_url", camera_info_url_, "");
+    if ( nh.hasParam("camera_info_url") )
+    {
+        nh.getParam("camera_info_url", camera_info_url_);
+    }
 
     binning_x_given_ = nh.hasParam("binning_x");
     if ( binning_x_given_ )
@@ -196,25 +205,11 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
             }
         }
     }
+    // ##########################
 
-    if ( nh.hasParam("frame_rate") )
-    {
-        nh.getParam("frame_rate", frame_rate_);
-    }
     if ( nh.hasParam("gige/mtu_size") )
     {
         nh.getParam("gige/mtu_size", mtu_size_);
-    }
-
-    if ( !device_user_id_.empty() )
-    {
-        ROS_INFO_STREAM("Trying to open the following camera: "
-            << device_user_id_.c_str());
-    }
-    else
-    {
-        ROS_INFO_STREAM("No Device User ID set -> Will open the camera device "
-                << "found first");
     }
 
     std::string shutter_param_string;
@@ -236,34 +231,31 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
         shutter_mode_ = SM_DEFAULT;
     }
 
-    std::string intrinsic_yaml_string("");
-    has_intrinsic_calib_ = nh.hasParam("intrinsic_yaml_string");
-    if ( has_intrinsic_calib_ )
-    {
-        nh.getParam("intrinsic_yaml_string", intrinsic_yaml_string);
-        if ( intrinsic_yaml_string.empty() )
-        {
-            ROS_WARN_STREAM("Yaml file string needed for rectification! "
-                << "ROS-Param: 'pylon_camera_node/intrinsic_yaml_string'"
-                << " is provided, but empty!");
-            ROS_WARN("Will only provide distorted /image_raw images!");
-            has_intrinsic_calib_ = false;
-        }
-    }
-    else
-    {
-        ROS_WARN_STREAM("Yaml file string needed for rectification! ROS-Param: "
-            << "'pylon_camera_node/intrinsic_yaml_string' is not set!");
-        ROS_WARN("Will only provide distorted /image_raw images!");
-        has_intrinsic_calib_ = false;
-    }
-
     validateParameterSet(nh);
     return;
 }
 
 void PylonCameraParameter::validateParameterSet(const ros::NodeHandle& nh)
 {
+    if ( !device_user_id_.empty() )
+    {
+        ROS_INFO_STREAM("Trying to open the following camera: "
+            << device_user_id_.c_str());
+    }
+    else
+    {
+        ROS_INFO_STREAM("No Device User ID set -> Will open the camera device "
+                << "found first");
+    }
+
+    if ( frame_rate_ < 0 && frame_rate_ != -1 )
+    {
+        ROS_WARN_STREAM("Unexpected frame rate (" << frame_rate_ << "). Will "
+                << "reset it to default value which is 5 Hz");
+        frame_rate_ = 5.0;
+        nh.setParam("frame_rate", frame_rate_);
+    }
+
     if ( exposure_given_ && ( exposure_ <= 0.0 || exposure_ > 1e7 ) )
     {
         ROS_WARN_STREAM("Desired exposure measured in microseconds not in "
@@ -287,13 +279,6 @@ void PylonCameraParameter::validateParameterSet(const ros::NodeHandle& nh)
         brightness_given_ = false;
     }
 
-    if ( frame_rate_ < 0 && frame_rate_ != -1 )
-    {
-        ROS_WARN_STREAM("Unexpected frame rate (" << frame_rate_ << "). Will "
-                << "reset it to default value which is 5 Hz");
-        frame_rate_ = 5.0;
-        nh.setParam("frame_rate", frame_rate_);
-    }
     return;
 }
 
@@ -327,9 +312,9 @@ const std::string& PylonCameraParameter::cameraFrame() const
     return camera_frame_;
 }
 
-const std::string& PylonCameraParameter::cameraInfoURL() const
+const double& PylonCameraParameter::frameRate() const
 {
-    return camera_info_url_;
+    return frame_rate_;
 }
 
 void PylonCameraParameter::setFrameRate(const ros::NodeHandle& nh,
@@ -339,9 +324,16 @@ void PylonCameraParameter::setFrameRate(const ros::NodeHandle& nh,
     nh.setParam("frame_rate", frame_rate_);
 }
 
-const double& PylonCameraParameter::frameRate() const
+const std::string& PylonCameraParameter::cameraInfoURL() const
 {
-    return frame_rate_;
+    return camera_info_url_;
+}
+
+void PylonCameraParameter::setCameraInfoURL(const ros::NodeHandle& nh,
+                                            const std::string& camera_info_url)
+{
+    camera_info_url_ = camera_info_url;
+    nh.setParam("camera_info_url", camera_info_url_);
 }
 
 }  // namespace pylon_camera

@@ -24,24 +24,26 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>actionlib</build_depend>
-  <build_depend>pylon</build_depend>
   <build_depend>camera_control_msgs</build_depend>
+  <build_depend>camera_info_manager</build_depend>
   <build_depend>cv_bridge</build_depend>
   <build_depend>image_geometry</build_depend>
   <build_depend>camera_info_manager</build_depend>
   <build_depend>image_transport</build_depend>
+  <build_depend>pylon</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <!--build_depend>std_srvs</build_depend-->
   <build_depend>roslint</build_depend>
 
   <run_depend>actionlib</run_depend>
-  <run_depend>pylon</run_depend>
   <run_depend>camera_control_msgs</run_depend>
+  <run_depend>camera_info_manager</run_depend>
   <run_depend>cv_bridge</run_depend>
   <run_depend>image_geometry</run_depend>
   <run_depend>camera_info_manager</run_depend>
   <run_depend>image_transport</run_depend>
+  <run_depend>pylon</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <!--run_depend>std_srvs</run_depend-->

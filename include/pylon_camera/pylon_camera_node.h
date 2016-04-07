@@ -34,14 +34,13 @@
 #include <string>
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
-#include <cv_bridge/cv_bridge.h>
-#include <image_transport/image_transport.h>
-#include <image_geometry/pinhole_camera_model.h>
 #include <camera_info_manager/camera_info_manager.h>
+#include <cv_bridge/cv_bridge.h>
+#include <image_geometry/pinhole_camera_model.h>
+#include <image_transport/image_transport.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
 
-#include <pylon_camera/intrinsic_calib_loader.h>
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/pylon_camera.h>
 
@@ -111,9 +110,22 @@ protected:
     bool startGrabbing();
 
     /**
+     * Initializing of img_rect_pub_, grab_img_rect_as_ and the pinhole_model_,
+     * in case that a vaid camera info has been set
+     * @return
+     */
+    void setupRectification();
+
+    /**
      * Returns the total number of subscribers on any advertised image topic.
      */
     uint32_t getNumSubscribers() const;
+
+    /**
+     * Returns the number of subscribers for the raw image topic
+     */
+    uint32_t getNumSubscribersRaw() const;
+
 
     /**
      * Returns the number of subscribers for the rect image topic
@@ -127,15 +139,9 @@ protected:
     virtual bool grabImage();
 
     /**
-     * Calls grabImage() and rectifies the result
-     * @return false if an error occurred.
-     */
-    virtual bool grabImageRect();
-
-    /**
      * Fills the ros CameraInfo-Object with the image dimensions
      */
-    virtual void setupCameraInfo(sensor_msgs::CameraInfo& cam_info_msg);
+    virtual void setupInitialCameraInfo(sensor_msgs::CameraInfo& cam_info_msg);
 
     /**
      * Update the horizontal binning_x factor to get downsampled images
@@ -302,14 +308,25 @@ protected:
      * Callback for the grab images action
      * @param goal the goal
      */
-    void grabImagesRawActionExecuteCB(const camera_control_msgs::GrabImagesGoal::ConstPtr& goal);
+    void grabImagesRawActionExecuteCB(
+                    const camera_control_msgs::GrabImagesGoal::ConstPtr& goal);
 
+    /**
+     * Callback for the grab rectified images action
+     * @param goal the goal
+     */
+    void grabImagesRectActionExecuteCB(
+                    const camera_control_msgs::GrabImagesGoal::ConstPtr& goal);
     /**
      * This function can also be called from the derived PylonCameraOpenCV-Class
      */
     camera_control_msgs::GrabImagesResult grabImagesRaw(
                     const camera_control_msgs::GrabImagesGoal::ConstPtr& goal,
                     GrabImagesAS* action_server);
+
+    void initCalibrationMatrices(sensor_msgs::CameraInfo& info,
+                                 const cv::Mat& D,
+                                 const cv::Mat& K);
 
     /**
      * Callback that sets the digital output
@@ -329,35 +346,32 @@ protected:
     bool waitForCamera(const ros::Duration& timeout) const;
 
     ros::NodeHandle nh_;
+    PylonCameraParameter pylon_camera_parameter_set_;
+    ros::ServiceServer set_binning_srv_;
+    ros::ServiceServer set_exposure_srv_;
+    ros::ServiceServer set_gain_srv_;
+    ros::ServiceServer set_gamma_srv_;
+    ros::ServiceServer set_brightness_srv_;
+    ros::ServiceServer set_sleeping_srv_;
+    ros::ServiceServer set_digital_output_1_service_;
+    // ################### DEPRECATED !
+    ros::ServiceServer set_exposure_srv_deprecated_;
+    ros::ServiceServer set_brightness_srv_deprecated_;
+    ros::ServiceServer set_sleeping_srv_deprecated_;
+    // ################### DEPRECATED !
 
     PylonCamera* pylon_camera_;
-    PylonCameraParameter pylon_camera_parameter_set_;
 
     image_transport::ImageTransport* it_;
     image_transport::CameraPublisher img_raw_pub_;
 
     ros::Publisher* img_rect_pub_;
-    image_geometry::PinholeCameraModel pinhole_model_;
-    IntrinsicCalibLoader calib_loader_;
+    image_geometry::PinholeCameraModel* pinhole_model_;
 
     GrabImagesAS grab_imgs_raw_as_;
     GrabImagesAS* grab_imgs_rect_as_;
 
-    ros::ServiceServer set_binning_service_;
-    ros::ServiceServer set_exposure_service_;
-    ros::ServiceServer set_brightness_service_;
-    ros::ServiceServer set_gain_service_;
-    ros::ServiceServer set_gamma_service_;
-    ros::ServiceServer set_sleeping_service_;
-    ros::ServiceServer set_digital_output_1_service_;
-    // ################### DEPRECATED !
-    ros::ServiceServer set_exposure_service_deprecated_;
-    ros::ServiceServer set_brightness_service_deprecated_;
-    ros::ServiceServer set_sleeping_service_deprecated_;
-    // ################### DEPRECATED !
-
     sensor_msgs::Image img_raw_msg_;
-    sensor_msgs::CameraInfo cam_info_msg_;
     cv_bridge::CvImage* cv_bridge_img_rect_;
 
     camera_info_manager::CameraInfoManager* camera_info_manager_;
