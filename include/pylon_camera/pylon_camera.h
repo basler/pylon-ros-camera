@@ -302,6 +302,12 @@ public:
     virtual bool setUserOutput(const int& output_id, const bool& value) = 0;
 
     /**
+     * Getter for the device user id of the used camera
+     * @return the device_user_id
+     */
+    const std::string& deviceUserID() const;
+
+    /**
      * Getter for the image height
      * @return number of rows in the image
      */
@@ -376,6 +382,11 @@ protected:
      * Parameters for the extended brightness search
      */
     BinaryExposureSearch* binary_exp_search_;
+
+    /**
+     * The DeviceUserID of the found camera
+     */
+    std::string device_user_id_;
 
     /**
      * Number of image rows.

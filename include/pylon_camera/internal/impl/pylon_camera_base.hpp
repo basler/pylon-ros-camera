@@ -246,6 +246,7 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
 
         cam_->StartGrabbing();
 
+        device_user_id_ = cam_->DeviceUserID.GetValue();
         img_rows_ = static_cast<size_t>(cam_->Height.GetValue());
         img_cols_ = static_cast<size_t>(cam_->Width.GetValue());
         image_encoding_ = cam_->PixelFormat.GetValue();
@@ -406,7 +407,7 @@ bool PylonCameraImpl<CameraTraitT>::setBinningX(const size_t& target_binning_x,
 
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setBinningY(const size_t& target_binning_y,
-                                                 size_t& reached_binning_y)
+                                                size_t& reached_binning_y)
 {
     try
     {

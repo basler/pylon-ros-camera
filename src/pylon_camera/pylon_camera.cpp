@@ -43,7 +43,8 @@ enum PYLON_CAM_TYPE
 };
 
 PylonCamera::PylonCamera()
-    : img_rows_(-1)
+    : device_user_id_("")
+    , img_rows_(-1)
     , img_cols_(-1)
     , img_size_byte_(-1)
     , grab_timeout_(-1.0)
@@ -195,6 +196,11 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
             << e.GetDescription());
         return NULL;
     }
+}
+
+const std::string& PylonCamera::deviceUserID() const
+{
+    return device_user_id_;
 }
 
 const size_t& PylonCamera::imageRows() const

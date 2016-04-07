@@ -69,6 +69,16 @@ public:
     const std::string& deviceUserID() const;
 
     /**
+     * Getter for the string describing the shutter mode
+     */
+    std::string shutterModeString() const;
+
+    /**
+     * Getter for the camera_frame_ set from ros-parameter server
+     */
+    const std::string& cameraFrame() const;
+
+    /**
      * Getter for the frame_rate_ read from ros-parameter server
      */
     const double& frameRate() const;
@@ -80,14 +90,17 @@ public:
     void setFrameRate(const ros::NodeHandle& nh, const double& frame_rate);
 
     /**
-     * Getter for the camera_frame_ set from ros-parameter server
+     * Getter for the camera_info_url set from ros-parameter server
      */
-    const std::string& cameraFrame() const;
+    const std::string& cameraInfoURL() const;
 
     /**
-     * Getter for the string describing the shutter mode
+     *
+     * Setter for the camera_info_url_ if a new CameraInfo-Msgs Object is
+     * provided via the SetCameraInfo-service from the CameraInfoManager
      */
-    std::string shutterModeString() const;
+    void setCameraInfoURL(const ros::NodeHandle& nh,
+                          const std::string& camera_info_url);
 
 public:
     /** Binning factor to get downsampled images. It refers here to any camera
@@ -212,12 +225,6 @@ public:
     */
     SHUTTER_MODE shutter_mode_;
 
-    /**
-     * Flag that indicates if the camera has been calibrated and the intrinsic
-     * calibration matrices are available
-     */
-    bool has_intrinsic_calib_;
-
 protected:
     /**
      * Validates the parameter set found on the ros parameter server.
@@ -244,6 +251,14 @@ protected:
      * Calling the GrabImages-Action can result in a higher framerate
      */
     double frame_rate_;
+
+    /**
+     * The CameraInfo URL (Uniform Resource Locator) where the optional
+     * intrinsic camera calibration parameters are stored. This URL string will
+     * be parsed from the CameraInfoManager:
+     * http://wiki.ros.org/camera_info_manager
+     */
+    std::string camera_info_url_;
 };
 
 }  // namespace pylon_camera
