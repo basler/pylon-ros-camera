@@ -52,7 +52,7 @@ BinaryExposureSearch::~BinaryExposureSearch()
 bool BinaryExposureSearch::update(const float& current_brightness,
                                   const float& current_exposure)
 {
-    if (is_initial_setting_ )
+    if ( is_initial_setting_ )
     {
         // no need to update the limits, the first time this function will
         // be called because limits were correctly set in the constructor
@@ -60,7 +60,7 @@ bool BinaryExposureSearch::update(const float& current_brightness,
         return true;
     }
 
-    if ( current_brightness > target_brightness_)
+    if ( current_brightness > target_brightness_ )
     {
         right_limit_ = current_exposure;
     }
@@ -80,7 +80,7 @@ bool BinaryExposureSearch::update(const float& current_brightness,
        last_exposure_ = current_exposure;
     }
 
-    if (last_unchanged_exposure_counter_ > 2)
+    if ( last_unchanged_exposure_counter_ > 2 )
     {
         ROS_ERROR_STREAM("BinaryExposureSearch failed, trying three times "
                 << "to set the same new exposure value");

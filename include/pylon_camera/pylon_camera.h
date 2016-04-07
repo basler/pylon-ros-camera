@@ -231,7 +231,6 @@ public:
                                const bool& exposure_auto,
                                const bool& gain_auto) = 0;
 
-
     /**
      * Checks if the camera currently tries to regulate towards a target brightness.
      * This can either be done by pylon for the range [50 - 205] or the own extendended binary search one

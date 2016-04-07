@@ -121,7 +121,7 @@ PylonCamera* createFromDevice(PYLON_CAM_TYPE cam_type, Pylon::IPylonDevice* devi
             return new PylonDARTCamera(device);
         case UNKNOWN:
         default:
-            return NULL;
+            return nullptr;
     }
 }
 
@@ -180,13 +180,13 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
                     << "given DeviceUserID: " << device_user_id_to_open << "!\r\n"
                     << "Maybe it's wrong or has not yet been written to the "
                     << "camera?!");
-                return NULL;
+                return nullptr;
             }
         }
         else
         {
             ROS_ERROR("No camera present.");
-            return NULL;
+            return nullptr;
         }
     }
     catch ( GenICam::GenericException &e )
@@ -194,7 +194,7 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
         ROS_ERROR_STREAM("An exception while opening the desired camera with "
             << "DeviceUserID: " << device_user_id_to_open << " occurred: \r\n"
             << e.GetDescription());
-        return NULL;
+        return nullptr;
     }
 }
 

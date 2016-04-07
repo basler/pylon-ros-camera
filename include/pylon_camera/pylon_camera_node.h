@@ -126,7 +126,6 @@ protected:
      */
     uint32_t getNumSubscribersRaw() const;
 
-
     /**
      * Returns the number of subscribers for the rect image topic
      */
@@ -284,13 +283,6 @@ protected:
      */
     bool setSleepingCallbackDeprecated(camera_control_msgs::SetSleepingSrv::Request &req,
                                        camera_control_msgs::SetSleepingSrv::Response &res);
-
-    /**
-     * Returns true if the camera has been calibrated and hence the intrinsic
-     * data is available
-     * @return true if the intrinsic camera data is available
-     */
-    const bool& hasIntrinsicCalib() const;
 
     /**
      * Returns true if the camera was put into sleep mode

@@ -1404,11 +1404,6 @@ bool PylonCameraNode::setSleepingCallbackDeprecated(camera_control_msgs::SetSlee
     return true;
 }
 
-const bool& PylonCameraNode::hasIntrinsicCalib() const
-{
-    return pylon_camera_parameter_set_.has_intrinsic_calib_;
-}
-
 bool PylonCameraNode::isSleeping()
 {
     return is_sleeping_;

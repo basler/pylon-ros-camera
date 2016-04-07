@@ -50,7 +50,7 @@ template <typename CameraTraitT>
 PylonCameraImpl<CameraTraitT>::~PylonCameraImpl()
 {
     delete cam_;
-    cam_ = NULL;
+    cam_ = nullptr;
 }
 
 template <typename CameraTraitT>
@@ -742,7 +742,7 @@ bool PylonCameraImpl<CameraTraitT>::setShutterMode(const SHUTTER_MODE &shutter_m
 {
     try
     {
-        switch (shutter_mode)
+        switch ( shutter_mode )
         {
         case pylon_camera::SM_ROLLING:
             cam_->ShutterMode.SetValue(ShutterModeEnums::ShutterMode_Rolling);
