@@ -92,7 +92,10 @@ PylonCameraNode::PylonCameraNode()
       camera_info_manager_(new camera_info_manager::CameraInfoManager(nh_)),
       is_sleeping_(false)
 {
-    init();
+    if (!init())
+    {
+        throw std::exception("Cannot open camera!");
+    }
 }
 
 bool PylonCameraNode::init()
