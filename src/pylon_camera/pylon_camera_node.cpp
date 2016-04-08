@@ -94,7 +94,7 @@ PylonCameraNode::PylonCameraNode()
 {
     if (!init())
     {
-        throw std::exception("Cannot open camera!");
+        throw std::runtime_error("Cannot open camera!");
     }
 }
 
