@@ -92,20 +92,23 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         // has Basler_GigECameraParams::GainSelector_All instead
         // cam_->GainSelector.SetValue(Basler_GigECameraParams::GainSelector_AnalogAll);
 
-        ROS_INFO_STREAM("Cam has binning range: x(hz) = ["
+        ROS_INFO_STREAM("Camera has binning range: x(hz) = ["
             << cam_->BinningHorizontal.GetMin() << " - "
             << cam_->BinningHorizontal.GetMax() << "], y(vt) = ["
             << cam_->BinningVertical.GetMin() << " - "
             << cam_->BinningVertical.GetMax() << "].");
-        ROS_INFO_STREAM("Cam has exposure time range: [" << cam_->ExposureTimeAbs.GetMin()
+        ROS_INFO_STREAM("Camera has exposure time range: ["
+                << cam_->ExposureTimeAbs.GetMin()
                 << " - " << cam_->ExposureTimeAbs.GetMax()
                 << "] measured in microseconds.");
-        ROS_INFO_STREAM("Cam has gain range: [" << cam_->GainRaw.GetMin() << " - "
-                << cam_->GainRaw.GetMax() << "] measured in decive specific units.");
-        ROS_INFO_STREAM("Cam has gammma range: ["
+        ROS_INFO_STREAM("Camera has gain range: ["
+                << cam_->GainRaw.GetMin() << " - "
+                << cam_->GainRaw.GetMax()
+                << "] measured in decive specific units.");
+        ROS_INFO_STREAM("Camera has gammma range: ["
                 << cam_->Gamma.GetMin() << " - "
                 << cam_->Gamma.GetMax() << "].");
-        ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
+        ROS_INFO_STREAM("Camera has pylon auto brightness range: ["
                 << cam_->AutoTargetValue.GetMin() << " - "
                 << cam_->AutoTargetValue.GetMax()
                 << "] which is the average pixel intensity.");

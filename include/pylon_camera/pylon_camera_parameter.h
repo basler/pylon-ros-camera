@@ -160,17 +160,17 @@ public:
     double gamma_;
 
     /**
-     * Flag which indicates if the gamma correction valus is provided and
+     * Flag which indicates if the gamma correction value is provided and
      * hence should be set during startup
      */
     bool gamma_given_;
 
     /**
-     * The average intensity value of the images. It depends the exposure time
-     * as well as the gain setting. If 'exposure' is provided, the interface
-     * will try to reach the desired brightness by only varying the gain.
-     * (What may often fail, because the range of possible exposure vaules is
-     * many times higher than the gain range).
+     * The average intensity value of the images. It depends on the exposure
+     * time as well as the gain setting. If 'exposure' is provided, the
+     * interface will try to reach the desired brightness by only varying the
+     * gain. (What may often fail, because the range of possible exposure
+     * vaules is many times higher than the gain range).
      * If 'gain' is provided, the interface will try to reach the desired
      * brightness by only varying the exposure time. If gain AND exposure are
      * given, it is not possible to reach the brightness, because both are

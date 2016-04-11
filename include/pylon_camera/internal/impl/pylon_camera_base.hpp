@@ -51,6 +51,12 @@ PylonCameraImpl<CameraTraitT>::~PylonCameraImpl()
 {
     delete cam_;
     cam_ = nullptr;
+
+    if ( binary_exp_search_ )
+    {
+        delete binary_exp_search_;
+        binary_exp_search_ = nullptr;
+    }
 }
 
 template <typename CameraTraitT>
@@ -120,7 +126,7 @@ GenApi::IFloat& PylonCameraImpl<CameraTraitT>::gamma()
     }
     else
     {
-        throw std::runtime_error("Error while accessing Gamma in PylonCameraImpl<CameraTraitT");
+        throw std::runtime_error("Error while accessing Gamma in PylonCameraImpl<CameraTraitT>");
     }
 }
 
