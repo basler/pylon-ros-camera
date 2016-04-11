@@ -92,7 +92,7 @@ PylonCameraNode::PylonCameraNode()
       camera_info_manager_(new camera_info_manager::CameraInfoManager(nh_)),
       is_sleeping_(false)
 {
-    if (!init())
+    if ( !init() )
     {
         throw std::runtime_error("Cannot open camera!");
     }
@@ -1262,7 +1262,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
         {
             // cancel all running brightness search by deactivating ExposureAuto
             pylon_camera_->disableAllRunningAutoBrightessFunctions();
-            ROS_ERROR_STREAM("Did not reach the target brightness before "
+            ROS_WARN_STREAM("Did not reach the target brightness before "
                 << "timeout of " << (ros::Time::now() - start_time).sec
                 << " sec! Stuck at brightness " << current_brightness);
             reached_brightness = static_cast<int>(current_brightness);
@@ -1285,7 +1285,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
 
         if ( ( fail_safe_ctr > fail_safe_ctr_limit ) && !is_brightness_reached )
         {
-            ROS_ERROR_STREAM("Seems like the desired brightness (" << target_brightness
+            ROS_WARN_STREAM("Seems like the desired brightness (" << target_brightness
                     << ") is not reachable! Stuck at brightness "<< current_brightness);
             pylon_camera_->disableAllRunningAutoBrightessFunctions();
             reached_brightness = static_cast<int>(current_brightness);
