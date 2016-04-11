@@ -52,11 +52,6 @@
 #include <camera_control_msgs/SetGamma.h>
 #include <camera_control_msgs/SetSleeping.h>
 #include <camera_control_msgs/GrabImagesAction.h>
-// ###################################### Deprecated !
-#include <camera_control_msgs/SetBrightnessSrv.h>
-#include <camera_control_msgs/SetExposureSrv.h>
-#include <camera_control_msgs/SetSleepingSrv.h>
-// ###################################### Deprecated !
 
 namespace pylon_camera
 {
@@ -187,14 +182,6 @@ protected:
     bool setExposureCallback(camera_control_msgs::SetExposure::Request &req,
                              camera_control_msgs::SetExposure::Response &res);
 
-    /** DEPRECATED handling
-     * Service callback for setting the exposure
-     * @param req request
-     * @param res response
-     * @return true on success
-     */
-    bool setExposureCallbackDeprecated(camera_control_msgs::SetExposureSrv::Request &req,
-                                       camera_control_msgs::SetExposureSrv::Response &res);
     /**
      * Sets the target brightness which is the intensity-mean over all pixels.
      * If the target exposure time is not in the range of Pylon's auto target
@@ -222,15 +209,6 @@ protected:
      */
     bool setBrightnessCallback(camera_control_msgs::SetBrightness::Request &req,
                                camera_control_msgs::SetBrightness::Response &res);
-
-    /**
-     * Service callback for setting the brightness
-     * @param req request
-     * @param res response
-     * @return true on success
-     */
-    bool setBrightnessCallbackDeprecated(camera_control_msgs::SetBrightnessSrv::Request &req,
-                                         camera_control_msgs::SetBrightnessSrv::Response &res);
 
     /**
      * Update the gain from the camera to a target gain in percent
@@ -274,15 +252,6 @@ protected:
      */
     bool setSleepingCallback(camera_control_msgs::SetSleeping::Request &req,
                              camera_control_msgs::SetSleeping::Response &res);
-
-    /**
-     * Callback that puts the camera to sleep
-     * @param req request
-     * @param res response
-     * @return true on success
-     */
-    bool setSleepingCallbackDeprecated(camera_control_msgs::SetSleepingSrv::Request &req,
-                                       camera_control_msgs::SetSleepingSrv::Response &res);
 
     /**
      * Returns true if the camera was put into sleep mode
@@ -346,11 +315,6 @@ protected:
     ros::ServiceServer set_brightness_srv_;
     ros::ServiceServer set_sleeping_srv_;
     ros::ServiceServer set_digital_output_1_service_;
-    // ################### DEPRECATED !
-    ros::ServiceServer set_exposure_srv_deprecated_;
-    ros::ServiceServer set_brightness_srv_deprecated_;
-    ros::ServiceServer set_sleeping_srv_deprecated_;
-    // ################### DEPRECATED !
 
     PylonCamera* pylon_camera_;
 

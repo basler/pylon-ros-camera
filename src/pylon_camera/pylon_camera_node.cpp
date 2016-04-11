@@ -61,20 +61,6 @@ PylonCameraNode::PylonCameraNode()
       set_sleeping_srv_(nh_.advertiseService("set_sleeping",
                                              &PylonCameraNode::setSleepingCallback,
                                              this)),
-      // ##################### DEPRECATED !
-      set_exposure_srv_deprecated_(nh_.advertiseService(
-                                        "set_exposure_srv",
-                                        &PylonCameraNode::setExposureCallbackDeprecated,
-                                        this)),
-      set_brightness_srv_deprecated_(nh_.advertiseService(
-                                        "set_brightness_srv",
-                                        &PylonCameraNode::setBrightnessCallbackDeprecated,
-                                        this)),
-      set_sleeping_srv_deprecated_(nh_.advertiseService(
-                                        "set_sleeping_srv",
-                                        &PylonCameraNode::setSleepingCallbackDeprecated,
-                                        this)),
-      // ##################### DEPRECATED !
       pylon_camera_(nullptr),
       it_(new image_transport::ImageTransport(nh_)),
       img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
@@ -1067,16 +1053,6 @@ bool PylonCameraNode::setExposureCallback(camera_control_msgs::SetExposure::Requ
     return true;
 }
 
-bool PylonCameraNode::setExposureCallbackDeprecated(camera_control_msgs::SetExposureSrv::Request &req,
-                                                    camera_control_msgs::SetExposureSrv::Response &res)
-{
-    ROS_WARN_STREAM("The usage of the '/set_exposure_srv' with the "
-        << "'SetExposureSrv.srv' service is DEPRECATED! Please switch to "
-        << "'/set_exposure' and make use of the 'SetExposure.srv'!");
-    res.success = setExposure(req.target_exposure, res.reached_exposure);
-    return true;
-}
-
 bool PylonCameraNode::setGain(const float& target_gain, float& reached_gain)
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
@@ -1335,32 +1311,6 @@ bool PylonCameraNode::setBrightnessCallback(camera_control_msgs::SetBrightness::
     return true;
 }
 
-bool PylonCameraNode::setBrightnessCallbackDeprecated(camera_control_msgs::SetBrightnessSrv::Request &req,
-                                                      camera_control_msgs::SetBrightnessSrv::Response &res)
-{
-    ROS_WARN_STREAM("The usage of the '/set_brightness_srv' with the "
-        << "'SetBrightnessSrv.srv' service is DEPRECATED! Please switch to "
-        << "'/set_brightness' and make use of the 'SetBrightness.srv'!");
-    res.success = setBrightness(req.target_brightness,
-                                res.reached_brightness,
-                                req.exposure_auto,
-                                req.gain_auto);
-    if ( req.brightness_continuous )
-    {
-        if ( req.exposure_auto )
-        {
-            pylon_camera_->enableContinuousAutoExposure();
-        }
-        if ( req.gain_auto )
-        {
-            pylon_camera_->enableContinuousAutoGain();
-        }
-    }
-    res.reached_exposure_time = pylon_camera_->currentExposure();
-    res.reached_gain_value = pylon_camera_->currentGain();
-    return true;
-}
-
 float PylonCameraNode::calcCurrentBrightness()
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
@@ -1373,27 +1323,6 @@ float PylonCameraNode::calcCurrentBrightness()
 bool PylonCameraNode::setSleepingCallback(camera_control_msgs::SetSleeping::Request &req,
                                           camera_control_msgs::SetSleeping::Response &res)
 {
-    is_sleeping_ = req.set_sleeping;
-
-    if ( is_sleeping_ )
-    {
-        ROS_INFO("Seting Pylon Camera Node to sleep...");
-    }
-    else
-    {
-        ROS_INFO("Pylon Camera Node continues grabbing");
-    }
-
-    res.success = true;
-    return true;
-}
-
-bool PylonCameraNode::setSleepingCallbackDeprecated(camera_control_msgs::SetSleepingSrv::Request &req,
-                                                    camera_control_msgs::SetSleepingSrv::Response &res)
-{
-    ROS_WARN_STREAM("The usage of the '/set_sleeping_srv' with the "
-        << "'SetSleepingSrv.srv' service is DEPRECATED! Please switch to "
-        << "'/set_sleeping' and make use of the 'SetSleeping.srv'!");
     is_sleeping_ = req.set_sleeping;
 
     if ( is_sleeping_ )

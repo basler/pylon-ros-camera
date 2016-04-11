@@ -66,33 +66,6 @@ PylonCameraParameter::~PylonCameraParameter()
 
 void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
 {
-    // handling of deprecated parameter naming behaviour
-    {
-        if ( nh.hasParam("desired_framerate") )
-        {
-            ROS_WARN_STREAM("Using parameter 'desired_framerate' is deprecated! "
-                << "Please rename it to 'frame_rate'");
-            nh.getParam("desired_framerate", frame_rate_);
-        }
-        if ( nh.hasParam("start_exposure") )
-        {
-            ROS_WARN_STREAM("Using parameter 'start_exposure' is deprecated! "
-                << "Please look at the default.yaml config file in the "
-                << "pylon_camera pkg to see how you should use it. The parameter "
-                << "name has changed to 'exposure'");
-            nh.getParam("start_exposure", exposure_);
-        }
-        if ( nh.hasParam("target_gain") )
-        {
-            ROS_WARN_STREAM("Using parameter 'target_gain' is deprecated! "
-                << "Please look at the default.yaml config file in the "
-                << "pylon_camera pkg to see how you should use it. The parameter "
-                << "name has changed to 'gain'");
-            nh.getParam("target_gain", gain_);
-        }
-    }
-    // handling of deprecated parameter naming behaviour
-
     nh.param<std::string>("camera_frame", camera_frame_, "pylon_camera");
 
     nh.param<std::string>("device_user_id", device_user_id_, "");
@@ -150,14 +123,14 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     // ##########################
 
     // > 0: Exposure time in microseconds
-    exposure_given_ = nh.hasParam("exposure") || nh.hasParam("start_exposure");
+    exposure_given_ = nh.hasParam("exposure");
     if ( exposure_given_ )
     {
         nh.getParam("exposure", exposure_);
         std::cout << "exposure is given and has value " << exposure_ << std::endl;
     }
 
-    gain_given_ = nh.hasParam("gain") || nh.hasParam("target_gain");
+    gain_given_ = nh.hasParam("gain");
     if ( gain_given_ )
     {
         nh.getParam("gain", gain_);
