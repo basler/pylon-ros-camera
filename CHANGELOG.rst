@@ -2,8 +2,8 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.50 (2016-04-12)
+-------------------
 * removed deprecated 'SetBrightnessSrv', 'SetExposureSrv' and 'SetSleepingSrv'. Please adapt to the new interface
 * ROS_WARN instead of ROS_ERR if the desired brightness could not be reached
 * 0.0.47
