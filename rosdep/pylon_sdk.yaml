@@ -1,0 +1,4 @@
+libpylon-dev:
+    ubuntu: [libpylon-dev]
+libpylon:
+    ubuntu: [libpylon]
