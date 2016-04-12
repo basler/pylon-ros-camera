@@ -10,11 +10,17 @@
 This package offers many functions of the Basler-PylonAPI inside the ROS-Framwork.
 
 The package supports Baslers USB 3.0, GigE as well as the DART cameras.
-Images can continuously be published over *\/image\_raw* or the *\/image\_rect* topic. (The latter just in case the intrinsic calibration matrices are provided through the **camera_info_url** parameter). The camera-characteristic parameter such as hight, width, projection matrices and camera_frame were published over the *\/camera\_info* topic.
+
+Images can continuously be published over *\/image\_raw* or the *\/image\_rect* topic. 
+The latter just in case the intrinsic calibration matrices are provided through the **camera_info_url** parameter.
+
+The camera-characteristic parameter such as hight, width, projection matrices and camera_frame were published over the *\/camera\_info* topic.
 Furthermore an action-based image grabbing with desired exposure, gain, gamma and / or brightness is provided.
 Hence one can grab a sequence of images with above target settings as well as a single image.
+
 Adapting camera's settings regarding binning (in x and y direction), exposure, gain, gamma and brightness can be done using provided 'set_*' services.
 These changes effect the continuous image acquisition and hence the images provided through the image topics.
+
 The default node operates in Software-Trigger Mode.
 This means that the image acquisition is triggered with a certain rate and the camera is not running in the continuous mode.
 
@@ -64,7 +70,8 @@ All parameters are listed in the default config file:  ``config/default.yaml``
   The DeviceUserID of the camera. If empty, the first camera found in the device list will be used
 
 - **camera_info_url**
-  The CameraInfo URL (Uniform Resource Locator) where the optional intrinsic camera calibration parameters are stored. This URL string will be parsed from the CameraInfoManager: http://docs.ros.org/api/camera_info_manager/html/classcamera__info__manager_1_1CameraInfoManager.html#details
+  The CameraInfo URL (Uniform Resource Locator) where the optional intrinsic camera calibration parameters are stored. This URL string will be parsed from the CameraInfoManager: 
+  http://docs.ros.org/api/camera_info_manager/html/classcamera__info__manager_1_1CameraInfoManager.html#details
  
 - **binning_x & binning_y**
   Binning factor to get downsampled images. It refers here to any camera setting which combines rectangular neighborhoods of pixels into larger "super-pixels." It reduces the resolution of the output image to (width / binning_x) x (height / binning_y). The default values binning_x = binning_y = 0 are considered the same as binning_x = binning_y = 1 (no subsampling).
