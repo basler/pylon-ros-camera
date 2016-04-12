@@ -2,8 +2,8 @@
 Changelog for package camera_control_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.10 (2016-04-12)
+-------------------
 * removed outdated 'SetBrightnessSrv.srv', 'SetExposureSrv.srv', and 'SetSleepingSrv.srv'
 * 0.0.8
 * added LICENSE.rst file
