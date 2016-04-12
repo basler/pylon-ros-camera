@@ -10,7 +10,7 @@
 This package offers many functions of the Basler-PylonAPI inside the ROS-Framwork.
 
 The package supports Baslers USB 3.0, GigE as well as the DART cameras.
-Images can continuously be published over *\/image\_raw* topic. The camera-characteristic parameter such as hight, width and camera_frame were published over the *\/camera\_info* topic.
+Images can continuously be published over *\/image\_raw* or the *\/image\_rect* topic. (The latter just in case the intrinsic calibration matrices are provided through the **camera_info_url** parameter). The camera-characteristic parameter such as hight, width, projection matrices and camera_frame were published over the *\/camera\_info* topic.
 Furthermore an action-based image grabbing with desired exposure, gain, gamma and / or brightness is provided.
 Hence one can grab a sequence of images with above target settings as well as a single image.
 Adapting camera's settings regarding binning (in x and y direction), exposure, gain, gamma and brightness can be done using provided 'set_*' services.
@@ -29,19 +29,21 @@ The package opens either a predefined camera (using a given 'device_user_id' par
 Add our Ubuntu PPA for the Pylon SDK:
 
 ``sudo apt-add-repository ppa:grimm-5/ppa``
+
 ``sudo apt-get update``
 
 After adding the aptitude repository you need to point rosdep to our rosdep
 configuration file by running the following commands:
 
 ``sudo sh -c 'echo "yaml https://raw.githubusercontent.com/magazino/pylon_camera/master/rosdep/pylon_sdk.yaml" > /etc/ros/rosdep/sources.list.d/15-plyon_camera.list'``
+
 ``rosdep update``
 
 Then, install the Pylon SDK:
 
 ``rosdep install --from-paths . --ignore-src --rosdistro=indigo -y``
 
-Build the PylonCamera package as you would build a standard ROS-package unsing p.e.
+Build the pylon_camera package as you would build a standard ROS-package unsing p.e.
 
 ``catkin_make``
 
@@ -60,10 +62,16 @@ All parameters are listed in the default config file:  ``config/default.yaml``
  
 - **device_user_id**
   The DeviceUserID of the camera. If empty, the first camera found in the device list will be used
+
+- **camera_info_url**
+  The CameraInfo URL (Uniform Resource Locator) where the optional intrinsic camera calibration parameters are stored. This URL string will be parsed from the CameraInfoManager: http://docs.ros.org/api/camera_info_manager/html/classcamera__info__manager_1_1CameraInfoManager.html#details
  
 - **binning_x & binning_y**
   Binning factor to get downsampled images. It refers here to any camera setting which combines rectangular neighborhoods of pixels into larger "super-pixels." It reduces the resolution of the output image to (width / binning_x) x (height / binning_y). The default values binning_x = binning_y = 0 are considered the same as binning_x = binning_y = 1 (no subsampling).
 
+
+- **frame_rate**
+  The desired publisher frame rate if listening to the topics. This parameter can only be set once at start-up. Calling the GrabImages-Action can result in a higher frame rate.
 
 **Image Intensity Settings**
 
@@ -87,14 +95,15 @@ The following settings do **NOT** have to be set. Each camera has default values
 - **exposure_auto & gain_auto**
   Only relevant, if '**brightness**' is set: If the camera should try to reach and / or keep the brightness, hence adapting to changing light conditions, at least one of the following flags must be set. If both are set, the interface will use the profile that tries to keep the gain at minimum to reduce white noise. The exposure_auto flag indicates, that the desired brightness will be reached by adapting the exposure time. The gain_auto flag indicates, that the desired brightness will be reached by adapting the gain.
 
-- **frame_rate**
-  The desired publisher frame rate if listening to the topics. This parameter can only be set once at start-up. Calling the GrabImages-Action can result in a higher frame rate.
-
 **Optional and device specific parameter**
 
 - **gige/mtu_size**
   The MTU size. Only used for GigE cameras. To prevent lost frames configure the camera has to be configured with the MTU size the network card supports. A value greater 3000 should be good (1500 for RaspberryPI)
 
+- **gige/inter_pkg_delay**
+  The inter-package delay in ticks. Only used for GigE cameras. To prevent lost frames it should be greater 0. For most of GigE-Cameras, a value of 1000 is reasonable. For GigE-Cameras used on a RaspberryPI this value should be set to 11772.
+
+ 
 ******
 **Usage**
 ******
