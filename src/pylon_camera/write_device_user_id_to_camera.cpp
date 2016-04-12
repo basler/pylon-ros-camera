@@ -28,44 +28,29 @@
  *****************************************************************************/
 
 /*
- This program will open a Basler Pylon Camera and write a desired Magazino Cam ID to it.
- Naming-Convention:
- ######################
- # PROJECT_NR_CAM-POS #
- ######################
+ This program will open a Basler Pylon Camera and write a desired camera id.
 */
 
-// Include files to use the PYLON API.
 #include <pylon/PylonIncludes.h>
-
 #include <algorithm>
 #include <unistd.h>
 #include <string>
 
-// TODO: Smoke-Test with Signal Handler
 int main(int argc, char* argv[])
 {
-    if (argc < 2)
+    if ( argc < 2 )
     {
-        std::cerr << "ERROR: No Magazino Cam ID set!" << std::endl;
-        std::cout << "USAGE: write_magazino_id_to_camera MAGAZINO_ID" << std::endl;
+        std::cerr << "ERROR: No device_user_id set!" << std::endl;
+        std::cout << "USAGE: write_device_user_id_to_camera DEVICE_USER_ID" << std::endl;
         return 1;
     }
 
     // TODO: regular expression, instead of only catching 2 '_'
-    std::string magazino_id(reinterpret_cast<char *>(argv[1]));
-    if (std::count(magazino_id.begin(), magazino_id.end(), '_') != 2)
+    std::string desired_device_user_id(reinterpret_cast<char *>(argv[1]));
+    if ( desired_device_user_id.empty() )
     {
         std::cout << "ERROR:" << std::endl;
-        std::cout << "Your desired Magazino ID (" << magazino_id << ") does not follow the naming conventions:"
-                  << std::endl;
-        std::cout << "--------------------------------------------------------------------" << std::endl;
-        std::cout << "###########################" << std::endl;
-        std::cout << "# PROJECT-NAME_NR_CAM-POS #" << std::endl;
-        std::cout << "###########################" << std::endl;
-        std::cout << "Example:" << std::endl;
-        std::cout << "ABC_0001_XYZ -> Camera XYZ for project ABC" << std::endl;
-        std::cout << "--------------------------------------------------------------------" << std::endl;
+        std::cout << "Your desired device_user_id is empty!" << std::endl;
         return 2;
     }
 
@@ -90,10 +75,10 @@ int main(int argc, char* argv[])
         }
 
         GenApi::INodeMap& node_map = camera.GetNodeMap();
-        GenApi::CStringPtr device_user_id(node_map.GetNode("DeviceUserID"));
-        device_user_id->SetValue(Pylon::String_t(magazino_id.c_str()));
+        GenApi::CStringPtr current_device_user_id(node_map.GetNode("DeviceUserID"));
+        current_device_user_id->SetValue(Pylon::String_t(desired_device_user_id.c_str()));
 
-        std::cout << "Successfully wrote " << device_user_id->GetValue() << " to the camera "
+        std::cout << "Successfully wrote " << current_device_user_id->GetValue() << " to the camera "
                   << camera.GetDeviceInfo().GetModelName() << std::endl;
         camera.Close();
     }

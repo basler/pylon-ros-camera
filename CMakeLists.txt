@@ -46,7 +46,7 @@ roslint_cpp(
     src/${PROJECT_NAME}/pylon_camera_node.cpp
     src/${PROJECT_NAME}/pylon_camera_parameter.cpp
     src/${PROJECT_NAME}/pylon_camera.cpp
-    src/${PROJECT_NAME}/write_magazino_id_to_camera.cpp
+    src/${PROJECT_NAME}/write_device_user_id_to_camera.cpp
     include/${PROJECT_NAME}/binary_exposure_search.h
     include/${PROJECT_NAME}/pylon_camera_node.h
     include/${PROJECT_NAME}/pylon_camera_parameter.h
@@ -97,12 +97,12 @@ target_link_libraries(
 )
 
 add_executable(
-    write_magazino_id_to_camera
-     src/${PROJECT_NAME}/write_magazino_id_to_camera.cpp
+    write_device_user_id_to_camera
+     src/${PROJECT_NAME}/write_device_user_id_to_camera.cpp
 )
 
 target_link_libraries(
-    write_magazino_id_to_camera
+    write_device_user_id_to_camera
      ${Pylon_LIBRARIES}
 )
 
@@ -145,7 +145,7 @@ install(
     TARGETS
      ${PROJECT_NAME}
      ${PROJECT_NAME}_node
-     write_magazino_id_to_camera
+     write_device_user_id_to_camera
     LIBRARY DESTINATION
      ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION
