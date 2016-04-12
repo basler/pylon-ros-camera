@@ -25,9 +25,21 @@ The package opens either a predefined camera (using a given 'device_user_id' par
 ******
 **Installation**
 ******
-Download and install the latest Version of the PylonAPI from
 
-``http://www.baslerweb.com/de/support/download-uebersicht/downloads-software``
+Add our Ubuntu PPA for the Pylon SDK:
+
+``sudo apt-add-repository ppa:grimm-5/ppa``
+``sudo apt-get update``
+
+After adding the aptitude repository you need to point rosdep to our rosdep
+configuration file by running the following commands:
+
+``sudo sh -c 'echo "yaml https://raw.githubusercontent.com/magazino/pylon_camera/master/rosdep/pylon_sdk.yaml" > /etc/ros/rosdep/sources.list.d/15-plyon_camera.list'``
+``rosdep update``
+
+Then, install the Pylon SDK:
+
+``rosdep install --from-paths . --ignore-src --rosdistro=indigo -y``
 
 Build the PylonCamera package as you would build a standard ROS-package unsing p.e.
 
