@@ -41,7 +41,7 @@ Add our Ubuntu PPA for the Pylon SDK:
 After adding the aptitude repository you need to point rosdep to our rosdep
 configuration file by running the following commands:
 
-``sudo sh -c 'echo "yaml https://raw.githubusercontent.com/magazino/pylon_camera/master/rosdep/pylon_sdk.yaml" > /etc/ros/rosdep/sources.list.d/15-plyon_camera.list'``
+``sudo sh -c 'echo "yaml https://raw.githubusercontent.com/magazino/pylon_camera/indigo-devel/rosdep/pylon_sdk.yaml" > /etc/ros/rosdep/sources.list.d/15-plyon_camera.list'``
 
 ``rosdep update``
 
