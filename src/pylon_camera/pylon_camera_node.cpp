@@ -203,6 +203,11 @@ bool PylonCameraNode::startGrabbing()
                                 pylon_camera_parameter_set_.cameraInfoURL()) )
         {
             setupRectification();
+            // set the correct tf frame_id
+            CameraInfoPtr cam_info(new CameraInfo(
+                                        camera_info_manager_->getCameraInfo()));
+            cam_info->header.frame_id = img_raw_msg_.header.frame_id;
+            camera_info_manager_->setCameraInfo(*cam_info);
         }
         else
         {
