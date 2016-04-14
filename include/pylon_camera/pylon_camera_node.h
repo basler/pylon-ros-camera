@@ -69,9 +69,9 @@ public:
 
     /**
      * initialize the camera and the ros node.
-     * @return false if an error occurred.
+     * calls ros::shutdown if an error occours.
      */
-    bool init();
+    void init();
 
     /**
      * spin the node

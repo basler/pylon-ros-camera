@@ -78,13 +78,10 @@ PylonCameraNode::PylonCameraNode()
       camera_info_manager_(new camera_info_manager::CameraInfoManager(nh_)),
       is_sleeping_(false)
 {
-    if ( !init() )
-    {
-        throw std::runtime_error("Cannot open camera!");
-    }
+    init();
 }
 
-bool PylonCameraNode::init()
+void PylonCameraNode::init()
 {
     // reading all necessary parameter to open the desired camera from the
     // ros-parameter-server. In case that invalid parameter values can be
@@ -98,17 +95,16 @@ bool PylonCameraNode::init()
     // communication with the device and enabling the desired startup-settings
     if ( !initAndRegister() )
     {
-        ros::shutdown();
-        return false;
+	ros::shutdown();
+	return;
     }
 
     // starting the grabbing procedure with the desired image-settings
     if ( !startGrabbing() )
     {
-        ros::shutdown();
-        return false;
+	ros::shutdown();
+	return;
     }
-    return true;
 }
 
 bool PylonCameraNode::initAndRegister()
@@ -1234,8 +1230,11 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
             pylon_camera_->disableAllRunningAutoBrightessFunctions();
             break;
         }
-
-        grabImage();
+	
+	if ( !grabImage() )
+	{
+	    return false;
+	}
 
         current_brightness = calcCurrentBrightness();
 
