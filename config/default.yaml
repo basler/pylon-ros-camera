@@ -5,6 +5,13 @@ camera_frame: pylon_camera
 #  device list will be used
 device_user_id: ""
 
+#  The CameraInfo URL (Uniform Resource Locator) where the optional intrinsic
+#  camera calibration parameters are stored. This URL string will be parsed
+#  from the ROS-CameraInfoManager:
+#  http://docs.ros.org/api/camera_info_manager/html/classcamera__info__manager_
+#  1_1CameraInfoManager.html#details
+camera_info_url: ""
+
 #  Binning factor to get downsampled images. It refers here to any camera
 #  setting which combines rectangular neighborhoods of pixels into larger
 #  "super-pixels." It reduces the resolution of the output image to
@@ -13,6 +20,11 @@ device_user_id: ""
 #  as binning_x = binning_y = 1 (no subsampling).
 #binning_x: 1
 #binning_y: 1
+
+#  The desired publisher frame rate if listening to the topics.
+#  This paramter can only be set once at startup
+#  Calling the GrabImages-Action can result in a higher framerate
+frame_rate: 5.0
 
 ##########################################################################
 ######################## Image Intensity Settings ########################
@@ -70,11 +82,6 @@ device_user_id: ""
 # gain_auto: true
 
 ##########################################################################
-
-#  The desired publisher frame rate if listening to the topics.
-#  This paramter can only be set once at startup
-#  Calling the GrabImages-Action can result in a higher framerate
-frame_rate: 5.0
 
 #  The MTU size. Only used for GigE cameras.
 #  To prevent lost frames configure the camera has to be configured
