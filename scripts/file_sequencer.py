@@ -1,14 +1,15 @@
 #! /usr/bin/env python
-
-__author__ = 'nikolas'
-
+#pylint: disable=E0611
 import os
-import rospy
 import cv2
-from cv_bridge import CvBridge
+
+import rospy
 import actionlib
+from cv_bridge import CvBridge
 
 from camera_control_msgs.msg import GrabSequenceAction, GrabSequenceResult
+
+__author__ = 'nikolas'
 
 server = None
 bridge = CvBridge()
