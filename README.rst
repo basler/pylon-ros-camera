@@ -7,11 +7,11 @@
    :width: 130 %
    :align: center
 
-This package offers many functions of the Basler-PylonAPI inside the ROS-Framwork.
+This package offers many functions of the Basler pylon API inside the ROS-Framwork.
 
 The package supports Baslers USB 3.0, GigE as well as the DART cameras.
 
-Images can continuously be published over *\/image\_raw* or the *\/image\_rect* topic. 
+Images can continuously be published over *\/image\_raw* or the *\/image\_rect* topic.
 The latter just in case the intrinsic calibration matrices are provided through the **camera_info_url** parameter.
 
 The camera-characteristic parameter such as hight, width, projection matrices and camera_frame were published over the *\/camera\_info* topic.
@@ -32,7 +32,7 @@ The package opens either a predefined camera (using a given 'device_user_id' par
 **Installation**
 ******
 
-Add our Ubuntu PPA for the Pylon SDK:
+Add our Ubuntu PPA for the pylon SDK:
 
 ``sudo apt-add-repository ppa:grimm-5/ppa``
 
@@ -45,7 +45,7 @@ configuration file by running the following commands:
 
 ``rosdep update``
 
-Then, clone the pylon_camera-pkg, and the camera_control_msgs-pkg and install the Pylon SDK in your catkin_ws:
+Then, clone the pylon_camera-pkg, and the camera_control_msgs-pkg and install the pylon SDK in your catkin_ws:
 
 ``cd ~/catkin_ws/src/ && git clone git@github.com:magazino/pylon_camera.git && git clone git@github.com:magazino/camera_control_msgs.git``
 
@@ -112,12 +112,12 @@ The following settings do **NOT** have to be set. Each camera has default values
 - **gige/inter_pkg_delay**
   The inter-package delay in ticks. Only used for GigE cameras. To prevent lost frames it should be greater 0. For most of GigE-Cameras, a value of 1000 is reasonable. For GigE-Cameras used on a RaspberryPI this value should be set to 11772.
 
- 
+
 ******
 **Usage**
 ******
 
-The Pylon Camera Node can be started over the launch file which includes a config file with desired Parameter as frame rate or exposure time
+The pylon_camera_node can be started over the launch file which includes a config file with desired parameters as frame rate or exposure time
 
 ``roslaunch pylon_camera pylon_camera_node.launch``     or     ``rosrun pylon_camera pylon_camera_node``
 
