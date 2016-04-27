@@ -1,4 +1,8 @@
 libpylon-dev:
-    ubuntu: [libpylon-dev]
+  ubuntu:
+    source:
+      uri: "http://www/files/rosdep/rdmanifest/pylon_sdk.rdmanifest"
 libpylon:
-    ubuntu: [libpylon]
+  ubuntu:
+    source:
+      uri: "http://www/files/rosdep/rdmanifest/pylon_sdk.rdmanifest"

@@ -18,7 +18,10 @@ set(
      #std_srvs
 )
 
-find_package(Pylon QUIET REQUIRED)
+find_package(Pylon QUIET)
+if (NOT ${Pylon_FOUND})
+    include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindPylon.cmake")
+endif()
 find_package(
     catkin REQUIRED
     COMPONENTS

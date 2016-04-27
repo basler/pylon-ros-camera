@@ -1,0 +1,75 @@
+#uri: https://raw.githubusercontent.com/magazino/pylon_camera/rosdep/empty.tar"
+uri: "http://www.magazino.local/files/rosdep/required-empty.tar"
+md5sum: df41600634ca08cb5082877eb64220c9
+install-script: |
+  #!/bin/bash
+  if ( [ "${PYLON_ROOT}" != "" ] && [ -d "${PYLON_ROOT}" ] ); then
+    MAJOR=`${PYLON_ROOT}/bin/pylon-config --version-major`
+    if [ "$MAJOR" = "5" ]; then
+      exit 0
+    else
+      echo "Found an existing Pylon installation in PYLON_ROOT but the version is too low"
+      exit 1
+    fi
+  fi
+
+  arch="$(uname -m)"
+  version="5.0.1.6388"
+  if [ "$arch" == "armv7l" ]; then
+    pkgarch="armhf"
+  elif [ "$arch" == "x86_64" ]; then
+    pkgarch="x86_64"
+  else
+    pkgarch="x86"
+  fi
+
+  pkg=pylon-${version}-${pkgarch}.tar.gz
+  url="http://s.baslerweb.com/media/documents/${pkg}"
+
+  wget --no-check-certificate -O $pkg $url
+  tar xzvf $pkg
+  cd pylon-${version}-${pkgarch}
+  mkdir -p untarred
+  tar xzvf pylonSDK-${version}-${pkgarch}.tar.gz -C untarred
+
+  if [ "${PYLON_ROOT}" = "" ]; then
+    sudo mv untarred/pylon5 /opt
+  elif ( [ -d "${PYLON_ROOT}" ] && [ "$(ls ${PYLON_ROOT})" ] ); then
+    echo "PYLON_ROOT not empty. Not installing!"
+    exit 1
+  else
+    sudo mv untarred/pylon5/* $PYLON_ROOT/
+  fi
+
+check-presence-script: |
+  #!/bin/bash
+  if [ "${PYLON_ROOT}" = "" ]; then
+    find /opt -type f -name pylon-config
+    FOUND=$?
+    if [ "$FOUND" -eq 0 ]; then
+      for pylon_install in `find /opt -type f -name pylon-config`; do
+        MAJOR=`${pylon_install} --version-major`
+        if [ "$MAJOR" = "5" ]; then
+          echo "Found a pylon Installation with version 5 or greater"
+          exit 0
+        fi
+      done
+    fi
+    echo "Could not find any pylon Installation with version 5 or greater"
+    exit 1
+  else
+    if [ -d "${PYLON_ROOT}" ]; then
+      MAJOR=`${PYLON_ROOT}/bin/pylon-config --version-major`
+      if [ "$MAJOR" = "5" ]; then
+        exit 0
+      else
+        echo "Found an existing Pylon installation in PYLON_ROOT but the version is too low"
+        exit 2
+      fi
+      exit 0
+    else
+      echo "PYLON_ROOT is set but folder does not exist."
+      exit 1
+    fi
+  fi
+
