@@ -118,6 +118,7 @@ install(
      launch/
     DESTINATION
      ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+    FILES_MATCHING PATTERN "*.launch"
 )
 
 install(
@@ -125,11 +126,7 @@ install(
      config/
     DESTINATION
      ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
-)
-
-file(
-    GLOB
-     ${PROJECT_NAME}_SCRIPTS "scripts/*.py"
+    FILES_MATCHING PATTERN "*.yaml"
 )
 
 install(
