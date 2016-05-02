@@ -95,15 +95,15 @@ void PylonCameraNode::init()
     // communication with the device and enabling the desired startup-settings
     if ( !initAndRegister() )
     {
-	ros::shutdown();
-	return;
+        ros::shutdown();
+        return;
     }
 
     // starting the grabbing procedure with the desired image-settings
     if ( !startGrabbing() )
     {
-	ros::shutdown();
-	return;
+        ros::shutdown();
+        return;
     }
 }
 
@@ -1230,11 +1230,11 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
             pylon_camera_->disableAllRunningAutoBrightessFunctions();
             break;
         }
-	
-	if ( !grabImage() )
-	{
-	    return false;
-	}
+
+        if ( !grabImage() )
+        {
+            return false;
+        }
 
         current_brightness = calcCurrentBrightness();
 
