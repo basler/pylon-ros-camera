@@ -643,9 +643,6 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         previous_exp = pylon_camera_->currentExposure();
     }
 
-    float reached_gain, reached_gamma, reached_exposure;
-    int reached_brightness;
-
     for ( std::size_t i = 0; i < n_images; ++i )
     {
         if ( exposure_given )
@@ -665,6 +662,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         }
         if ( brightness_given )
         {
+            int reached_brightness;
             result.success = setBrightness(brightness_values[i],
                                            reached_brightness,
                                            exposure_auto,

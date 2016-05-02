@@ -135,7 +135,6 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
         Pylon::CTlFactory& tl_factory = Pylon::CTlFactory::GetInstance();
         Pylon::DeviceInfoList_t device_list;
         tl_factory.EnumerateDevices(device_list);
-        bool found_desired_device = false;
         Pylon::DeviceInfoList_t::const_iterator it;
 
         if ( !device_list.empty() )
@@ -149,6 +148,7 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
                 return createFromDevice(cam_type,
                                         tl_factory.CreateDevice(device_list.front()));
             }
+            bool found_desired_device = false;
             for ( it = device_list.begin(); it != device_list.end(); ++it )
             {
                 std::string device_user_id_found(it->GetUserDefinedName());
