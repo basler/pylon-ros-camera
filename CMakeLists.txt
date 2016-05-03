@@ -13,6 +13,7 @@ set(
      camera_info_manager
      image_transport
      roscpp
+     roslaunch
      sensor_msgs
      #std_srvs
 )
@@ -57,6 +58,8 @@ roslint_cpp(
     include/${PROJECT_NAME}/internal/impl/pylon_camera_gige.hpp
     include/${PROJECT_NAME}/internal/impl/pylon_camera_usb.hpp
 )
+
+roslaunch_add_file_check(launch)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
