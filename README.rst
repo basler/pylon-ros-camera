@@ -47,7 +47,7 @@ configuration file by running the following commands:
 
 Then, clone the pylon_camera-pkg, and the camera_control_msgs-pkg and install the pylon SDK in your catkin_ws:
 
-``cd ~/catkin_ws/src/ && git clone git@github.com:magazino/pylon_camera.git && git clone git@github.com:magazino/camera_control_msgs.git``
+``cd ~/catkin_ws/src/ && git clone https://github.com/magazino/pylon_camera.git && git clone https://github.com/magazino/camera_control_msgs.git``
 
 ``rosdep install --from-paths pylon_camera --ignore-src --rosdistro=indigo -y``
 
