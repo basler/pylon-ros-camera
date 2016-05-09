@@ -1,8 +1,8 @@
 libpylon-dev:
   ubuntu:
     source:
-      uri: "http://www/files/rosdep/rdmanifest/pylon_sdk.rdmanifest"
+      uri: "https://raw.githubusercontent.com/magazino/pylon_camera/indigo-devel/rosdep/pylon_sdk.rdmanifest"
 libpylon:
   ubuntu:
     source:
-      uri: "http://www/files/rosdep/rdmanifest/pylon_sdk.rdmanifest"
+      uri: "https://raw.githubusercontent.com/magazino/pylon_camera/indigo-devel/rosdep/pylon_sdk.rdmanifest"
