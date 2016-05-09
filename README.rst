@@ -32,14 +32,9 @@ The package opens either a predefined camera (using a given 'device_user_id' par
 **Installation**
 ******
 
-Add our Ubuntu PPA for the pylon SDK:
-
-``sudo apt-add-repository ppa:grimm-5/ppa``
-
-``sudo apt-get update``
-
-After adding the aptitude repository you need to point rosdep to our rosdep
-configuration file by running the following commands:
+The pylon_camera-pkg requires the pylonSDK to be installed on your system.
+In order to build the package, you need to configure rosdep (i.e. the ROS command-line tool for checking and installing system dependencies for ROS packages) such that
+it knows how to resolve this dependency. This can be achived by executing the following commands:
 
 ``sudo sh -c 'echo "yaml https://raw.githubusercontent.com/magazino/pylon_camera/indigo-devel/rosdep/pylon_sdk.yaml" > /etc/ros/rosdep/sources.list.d/15-plyon_camera.list'``
 
@@ -49,7 +44,7 @@ Then, clone the pylon_camera-pkg, and the camera_control_msgs-pkg and install th
 
 ``cd ~/catkin_ws/src/ && git clone https://github.com/magazino/pylon_camera.git && git clone https://github.com/magazino/camera_control_msgs.git``
 
-``rosdep install --from-paths pylon_camera --ignore-src --rosdistro=indigo -y``
+``rosdep install --from-paths . --ignore-src --rosdistro=$ROS_DISTRO -y``
 
 Build the pylon_camera package as you would build a standard ROS-package unsing p.e.
 
