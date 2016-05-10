@@ -37,7 +37,7 @@ The pylon_camera-pkg requires the pylonSDK to be installed on your system.
 In order to build the package, you need to configure rosdep (i.e. the ROS command-line tool for checking and installing system dependencies for ROS packages) such that
 it knows how to resolve this dependency. This can be achived by executing the following commands:
 
-``sudo sh -c 'echo "yaml https://raw.githubusercontent.com/magazino/pylon_camera/indigo-devel/rosdep/pylon_sdk.yaml" > /etc/ros/rosdep/sources.list.d/15-plyon_camera.list'``
+``sudo sh -c 'echo "yaml https://raw.githubusercontent.com/magazino/pylon_camera/indigo-devel/rosdep/pylon_sdk.yaml " > /etc/ros/rosdep/sources.list.d/15-plyon_camera.list'``
 
 ``rosdep update``
 
