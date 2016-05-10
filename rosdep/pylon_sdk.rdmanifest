@@ -1,4 +1,4 @@
-uri: https://raw.githubusercontent.com/magazino/pylon_camera/indigo-devel/rosdep/empty.tar"
+uri: 'https://raw.githubusercontent.com/magazino/pylon_camera/indigo-devel/rosdep/empty.tar'
 md5sum: df41600634ca08cb5082877eb64220c9
 install-script: |
   #!/bin/bash
