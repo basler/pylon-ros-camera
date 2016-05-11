@@ -114,6 +114,25 @@ bool PylonCameraNode::initAndRegister()
 
     if ( pylon_camera_ == nullptr )
     {
+        // wait and retry until a camera is present
+        ros::Time end = ros::Time::now() + ros::Duration(15.0);
+        ros::Rate r(0.5);
+        while ( ros::ok() && pylon_camera_ == nullptr )
+        {
+            pylon_camera_ = PylonCamera::create(
+                                    pylon_camera_parameter_set_.deviceUserID());
+            if ( ros::Time::now() > end )
+            {
+                ROS_WARN_STREAM("No camera present. Keep waiting ...");
+                end = ros::Time::now() + ros::Duration(15.0);
+            }
+            r.sleep();
+            ros::spinOnce();
+        }
+    }
+
+    if ( !ros::ok() )
+    {
         return false;
     }
 

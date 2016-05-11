@@ -134,11 +134,17 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
 
         Pylon::CTlFactory& tl_factory = Pylon::CTlFactory::GetInstance();
         Pylon::DeviceInfoList_t device_list;
-        tl_factory.EnumerateDevices(device_list);
-        Pylon::DeviceInfoList_t::const_iterator it;
 
-        if ( !device_list.empty() )
+        // EnumerateDevices() returns the number of devices found
+        if ( 0 == tl_factory.EnumerateDevices(device_list) )
         {
+            Pylon::PylonTerminate();
+            ROS_ERROR_ONCE("No camera present");
+            return nullptr;
+        }
+        else
+        {
+            Pylon::DeviceInfoList_t::const_iterator it;
             if ( device_user_id_to_open.empty() )
             {
                 ROS_INFO_STREAM("Found camera with DeviceUserID "
@@ -182,11 +188,6 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
                     << "camera?!");
                 return nullptr;
             }
-        }
-        else
-        {
-            ROS_ERROR("No camera present.");
-            return nullptr;
         }
     }
     catch ( GenICam::GenericException &e )
