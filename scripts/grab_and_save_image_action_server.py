@@ -44,8 +44,8 @@ class GrabAndSaveImageActionServers():
             rospy.loginfo('Found action server at '
                           '{}/grab_images_raw'.format(camera_name))
         else:
-            rospy.logwarn('Could not connect to action server at '
-                          '{}/grab_images_raw'.format(camera_name))
+            rospy.logerr('Could not connect to action server at '
+                         '{}/grab_images_raw'.format(camera_name))
 
         if self._grab_imgs_rect_ac.wait_for_server(rospy.Duration(2.0)):
             self._grab_and_save_img_rect_as = SimpleActionServer(
