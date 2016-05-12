@@ -22,8 +22,8 @@ class GrabAndSaveImageActionServers():
     def __init__(self):
         camera_name = rospy.get_param('~camera_name', '')
         if not camera_name:
-            rospy.logwarn('No camera name given! Assuming pylon_camera_node as'
-                          ' camera name')
+            rospy.logwarn("No camera name given! Assuming 'pylon_camera_node' as"
+                          " camera name")
             camera_name = '/pylon_camera_node'
         else:
             rospy.loginfo('Camera name is: ' + camera_name)
@@ -41,14 +41,24 @@ class GrabAndSaveImageActionServers():
                 execute_cb=self.grab_and_save_img_raw_execute_cb,
                 auto_start=False)
             self._grab_and_save_img_raw_as.start()
+            rospy.loginfo('Found action server at '
+                          '{}/grab_images_raw'.format(camera_name))
+        else:
+            rospy.logwarn('Could not connect to action server at '
+                          '{}/grab_images_raw'.format(camera_name))
 
         if self._grab_imgs_rect_ac.wait_for_server(rospy.Duration(2.0)):
-            self._grab_and_save_img_raw_as = SimpleActionServer(
+            self._grab_and_save_img_rect_as = SimpleActionServer(
                 "/grab_and_save_image_rect",
                 GrabAndSaveImageAction,
                 execute_cb=self.grab_and_save_img_rect_execute_cb,
                 auto_start=False)
             self._grab_and_save_img_rect_as.start()
+            rospy.loginfo('Found action server at '
+                          '{}/grab_images_rect'.format(camera_name))
+        else:
+            rospy.logwarn('Could not connect to action server at '
+                          '{}/grab_images_rect'.format(camera_name))
 
     def convert_goals(self, grab_and_save_img_goal, grab_imgs_goal):
         grab_imgs_goal.exposure_given = grab_and_save_img_goal.exposure_given
