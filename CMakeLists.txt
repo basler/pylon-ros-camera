@@ -140,6 +140,7 @@ install(
      scripts/file_sequencer.py
      scripts/result_bag_to_action.py
      scripts/sequence_to_file.py
+     scripts/grab_and_save_image_action_server.py
     DESTINATION
      ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
