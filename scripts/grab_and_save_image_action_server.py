@@ -95,18 +95,21 @@ class GrabAndSaveImageActionServers():
         action_client.wait_for_result(rospy.Duration.from_sec(10.0))
         grab_imgs_result = action_client.get_result()
 
-        try:
-            cv_img = CvBridge().imgmsg_to_cv2(grab_imgs_result.images[0],
-                                              desired_encoding='passthrough')
-        except CvBridgeError as exception:
-            rospy.logerr('Error converting img_msg_to_cv_img: %s' +
-                         str(exception))
-
-        filename = grab_and_save_img_goal.img_storage_path_and_name
-        cv2.imwrite(filename, cv_img)
-
         grab_and_save_img_result = GrabAndSaveImageResult()
-        grab_and_save_img_result.success = True
+
+        if grab_imgs_result is not None and grab_imgs_result.success:
+            try:
+                cv_img = CvBridge().imgmsg_to_cv2(grab_imgs_result.images[0],
+                                                  desired_encoding='passthrough')
+            except CvBridgeError as exception:
+                rospy.logerr('Error converting img_msg_to_cv_img: %s' +
+                             str(exception))
+
+            filename = grab_and_save_img_goal.img_storage_path_and_name
+            cv2.imwrite(filename, cv_img)
+            grab_and_save_img_result.success = True
+        else:
+            grab_and_save_img_result.success = False
         action_server.set_succeeded(grab_and_save_img_result)
 
     def spin(self):
