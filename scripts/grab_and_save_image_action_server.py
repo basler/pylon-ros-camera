@@ -36,7 +36,7 @@ class GrabAndSaveImageActionServers():
 
         if self._grab_imgs_raw_ac.wait_for_server(rospy.Duration(10.0)):
             self._grab_and_save_img_raw_as = SimpleActionServer(
-                "/grab_and_save_image_raw",
+                "~grab_and_save_image_raw",
                 GrabAndSaveImageAction,
                 execute_cb=self.grab_and_save_img_raw_execute_cb,
                 auto_start=False)
@@ -49,7 +49,7 @@ class GrabAndSaveImageActionServers():
 
         if self._grab_imgs_rect_ac.wait_for_server(rospy.Duration(2.0)):
             self._grab_and_save_img_rect_as = SimpleActionServer(
-                "/grab_and_save_image_rect",
+                "~grab_and_save_image_rect",
                 GrabAndSaveImageAction,
                 execute_cb=self.grab_and_save_img_rect_execute_cb,
                 auto_start=False)
@@ -98,14 +98,16 @@ class GrabAndSaveImageActionServers():
         grab_and_save_img_result = GrabAndSaveImageResult()
 
         if grab_imgs_result is not None and grab_imgs_result.success:
+            filename = grab_and_save_img_goal.img_storage_path_and_name
             try:
                 cv_img = CvBridge().imgmsg_to_cv2(grab_imgs_result.images[0],
                                                   desired_encoding='passthrough')
             except CvBridgeError as exception:
-                rospy.logerr('Error converting img_msg_to_cv_img: %s' +
+                rospy.logerr('Error converting img_msg_to_cv_img: ' +
                              str(exception))
+                grab_and_save_img_result.success = False
 
-            filename = grab_and_save_img_goal.img_storage_path_and_name
+            rospy.loginfo('Writing image to ' + filename)
             cv2.imwrite(filename, cv_img)
             grab_and_save_img_result.success = True
         else:
