@@ -459,18 +459,16 @@ void PylonCameraNode::grabImagesRectActionExecuteCB(
 
         for ( std::size_t i = 0; i < result.images.size(); ++i)
         {
-            cv_bridge::CvImage cv_bridge_img_rect;
             cv::Mat cv_img_raw = cv::Mat(result.images[i].height,
                     result.images[i].width,
                     CV_8UC1,
                     result.images[i].data.data());
             pinhole_model_->fromCameraInfo(camera_info_manager_->getCameraInfo());
+            cv_bridge::CvImage cv_bridge_img_rect;
+            cv_bridge_img_rect.header = result.images[i].header;
+            cv_bridge_img_rect.encoding = result.images[i].encoding;
             pinhole_model_->rectifyImage(cv_img_raw, cv_bridge_img_rect.image);
-
-            sensor_msgs::Image& res_image = result.images[i];
-            std_msgs::Header header = result.images[i].header;
-            cv_bridge_img_rect.toImageMsg(res_image);
-            result.images[i].header = header;
+            cv_bridge_img_rect.toImageMsg(result.images[i]);
         }
         grab_imgs_rect_as_->setSucceeded(result);
     }
