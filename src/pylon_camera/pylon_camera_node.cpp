@@ -1251,17 +1251,21 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
             return false;
         }
 
-        current_brightness = calcCurrentBrightness();
-
-        if ( ros::Time::now() > timeout )
+        if ( pylon_camera_->isPylonAutoBrightnessFunctionRunning() )
         {
-            // cancel all running brightness search by deactivating ExposureAuto
+            // do nothing if the pylon auto function is running, we need to
+            // wait till it's finished
+            continue;
+        }
+
+        current_brightness = calcCurrentBrightness();
+        is_brightness_reached = fabs(current_brightness - static_cast<float>(target_brightness))
+                                < pylon_camera_->maxBrightnessTolerance();
+
+        if ( is_brightness_reached )
+        {
             pylon_camera_->disableAllRunningAutoBrightessFunctions();
-            ROS_WARN_STREAM("Did not reach the target brightness before "
-                << "timeout of " << (ros::Time::now() - start_time).sec
-                << " sec! Stuck at brightness " << current_brightness);
-            reached_brightness = static_cast<int>(current_brightness);
-            return false;
+            break;
         }
 
         if ( fabs(last_brightness - current_brightness) <= 1.0 )
@@ -1275,9 +1279,6 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
 
         last_brightness = current_brightness;
 
-        is_brightness_reached = fabs(current_brightness - static_cast<float>(target_brightness))
-                                < pylon_camera_->maxBrightnessTolerance();
-
         if ( ( fail_safe_ctr > fail_safe_ctr_limit ) && !is_brightness_reached )
         {
             ROS_WARN_STREAM("Seems like the desired brightness (" << target_brightness
@@ -1287,17 +1288,15 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
             return false;
         }
 
-        if ( pylon_camera_->isPylonAutoBrightnessFunctionRunning() )
+        if ( ros::Time::now() > timeout )
         {
-            // do nothing if the pylon auto function is running, we need to
-            // wait till it's finished
-            continue;
-        }
-
-        if ( is_brightness_reached )
-        {
+            // cancel all running brightness search by deactivating ExposureAuto
             pylon_camera_->disableAllRunningAutoBrightessFunctions();
-            break;
+            ROS_WARN_STREAM("Did not reach the target brightness before "
+                << "timeout of " << (ros::Time::now() - start_time).sec
+                << " sec! Stuck at brightness " << current_brightness);
+            reached_brightness = static_cast<int>(current_brightness);
+            return false;
         }
     }
 
