@@ -268,7 +268,7 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         {
             cam_->PixelFormat.SetValue(PixelFormatEnums::PixelFormat_Mono8);
             image_encoding_ = cam_->PixelFormat.GetValue();
-            ROS_WARNi_STREAM("Image encoding differing from 8-Bit Mono not yet "
+            ROS_WARN_STREAM("Image encoding differing from 8-Bit Mono not yet "
                 << "implemented! Will switch to 8-Bit Mono");
         }
 
