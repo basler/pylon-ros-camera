@@ -61,6 +61,7 @@ PylonCameraNode::PylonCameraNode()
       set_sleeping_srv_(nh_.advertiseService("set_sleeping",
                                              &PylonCameraNode::setSleepingCallback,
                                              this)),
+      set_user_output_srvs_(),
       pylon_camera_(nullptr),
       it_(new image_transport::ImageTransport(nh_)),
       img_raw_pub_(it_->advertiseCamera("image_raw", 10)),
@@ -156,12 +157,25 @@ bool PylonCameraNode::initAndRegister()
         return false;
     }
 
+    set_user_output_srvs_.resize(pylon_camera_->numUserOutputs());
+    for ( std::size_t i = 0; i < set_user_output_srvs_.size(); ++i )
+    {
+        std::string srv_name = "set_user_output_" + std::to_string(i);
+        set_user_output_srvs_.at(i) = nh_.advertiseService< camera_control_msgs::SetBool::Request,
+                                                            camera_control_msgs::SetBool::Response >(
+                                            srv_name,
+                                            boost::bind(&PylonCameraNode::setUserOutputCB,
+                                                        this,
+                                                        i,
+                                                        _1,
+                                                        _2));
+    }
     if ( pylon_camera_->typeName() != "DART" )
     {
         set_digital_output_1_service_ = nh_.advertiseService< camera_control_msgs::SetBool::Request,
                                                               camera_control_msgs::SetBool::Response >(
                                             "set_output_1",
-                                            boost::bind(&PylonCameraNode::setDigitalOutputCB, this, 1, _1, _2));
+                                            boost::bind(&PylonCameraNode::setUserOutputCB, this, 1, _1, _2));
     }
 
     return true;
@@ -776,7 +790,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     return result;
 }
 
-bool PylonCameraNode::setDigitalOutputCB(const int& output_id,
+bool PylonCameraNode::setUserOutputCB(const std::size_t& output_id,
                                          camera_control_msgs::SetBool::Request &req,
                                          camera_control_msgs::SetBool::Response &res)
 {

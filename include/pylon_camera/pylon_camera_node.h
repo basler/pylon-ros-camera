@@ -290,15 +290,15 @@ protected:
                                  const cv::Mat& K);
 
     /**
-     * Callback that sets the digital output
-     * @param output_id the ID of the output to set
+     * Callback that sets the digital user output
+     * @param output_id the ID of the user output to set
      * @param req request
      * @param res response
      * @return true on success
      */
-    bool setDigitalOutputCB(const int& output_id,
-                            camera_control_msgs::SetBool::Request &req,
-                            camera_control_msgs::SetBool::Response &res);
+    bool setUserOutputCB(const std::size_t& output_id,
+                         camera_control_msgs::SetBool::Request &req,
+                         camera_control_msgs::SetBool::Response &res);
 
     /**
      * Waits till the pylon_camera_ isReady() observing a given timeout
@@ -314,6 +314,7 @@ protected:
     ros::ServiceServer set_gamma_srv_;
     ros::ServiceServer set_brightness_srv_;
     ros::ServiceServer set_sleeping_srv_;
+    std::vector<ros::ServiceServer> set_user_output_srvs_;
     ros::ServiceServer set_digital_output_1_service_;
 
     PylonCamera* pylon_camera_;

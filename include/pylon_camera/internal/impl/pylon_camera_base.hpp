@@ -843,10 +843,11 @@ float PylonCameraImpl<CameraTraitT>::maxPossibleFramerate()
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setUserOutput(const int& output_id,
+bool PylonCameraImpl<CameraTraitT>::setUserOutput(const std::size_t& output_id,
                                                   const bool& value)
 {
-    ROS_INFO("PylonGigECamera: Setting output id %i to %i", output_id, value);
+    ROS_INFO_STREAM("PylonGigECamera: Setting output id " << output_id << " to "
+            << value);
 
     try
     {
@@ -855,13 +856,15 @@ bool PylonCameraImpl<CameraTraitT>::setUserOutput(const int& output_id,
     }
     catch ( const std::exception& ex )
     {
-        ROS_ERROR("Could not set user output %i: %s", output_id, ex.what());
+        ROS_ERROR_STREAM("Could not set user output "  << output_id << ": "
+                << ex.what());
         return false;
     }
 
     if ( value != cam_->UserOutputValue.GetValue() )
     {
-        ROS_ERROR("Value %i could not be set to output %i", value, output_id);
+        ROS_ERROR_STREAM("Value " << value << " could not be set to output "
+                << output_id);
         return false;
     }
 

@@ -298,7 +298,7 @@ public:
      * @param value goal value for output
      * @return true if value was set
      */
-    virtual bool setUserOutput(const int& output_id, const bool& value) = 0;
+    virtual bool setUserOutput(const std::size_t& output_id, const bool& value) = 0;
 
     /**
      * Getter for the device user id of the used camera
@@ -325,6 +325,14 @@ public:
      * @return true if the interfeace is ready
      */
     const bool& isReady() const;
+
+    /**
+     * Returns the number of digital user outputs, which can be set by the the
+     * camera. Might be zero for some cameras. The size affects the number of
+     * 'set' ros-services the camera node will provide
+     * @return numer of digital user outputs
+     */
+    const std::size_t& numUserOutputs() const;
 
     /**
      * Returns the image size in bytes
@@ -413,6 +421,13 @@ protected:
      * acquisition contains valid data
      */
     bool is_ready_;
+
+    /**
+     * The number of digital user outputs, which can be set by the camera.
+     * Might be zero for some cameras. The size affects the number of 'set'
+     * ros-services the camera will provide
+     */
+    std::size_t num_user_outputs_;
 
     /**
      * True if the camera device removal from the PC has been detected.
