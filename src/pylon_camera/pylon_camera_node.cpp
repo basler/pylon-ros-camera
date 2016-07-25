@@ -157,6 +157,17 @@ bool PylonCameraNode::initAndRegister()
         return false;
     }
 
+    return true;
+}
+
+bool PylonCameraNode::startGrabbing()
+{
+    if ( !pylon_camera_->startGrabbing(pylon_camera_parameter_set_) )
+    {
+        ROS_ERROR("Error while start grabbing");
+        return false;
+    }
+
     set_user_output_srvs_.resize(pylon_camera_->numUserOutputs());
     for ( std::size_t i = 0; i < set_user_output_srvs_.size(); ++i )
     {
@@ -176,17 +187,6 @@ bool PylonCameraNode::initAndRegister()
                                                               camera_control_msgs::SetBool::Response >(
                                             "set_output_1",
                                             boost::bind(&PylonCameraNode::setUserOutputCB, this, 1, _1, _2));
-    }
-
-    return true;
-}
-
-bool PylonCameraNode::startGrabbing()
-{
-    if ( !pylon_camera_->startGrabbing(pylon_camera_parameter_set_) )
-    {
-        ROS_ERROR("Error while start grabbing");
-        return false;
     }
 
     img_raw_msg_.header.frame_id = pylon_camera_parameter_set_.cameraFrame();

@@ -273,7 +273,8 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         }
 
         cam_->StartGrabbing();
-
+        num_user_outputs_ = countNumUserOutputs();
+        std::cout << "FOUND " << num_user_outputs_ << " user outputs" << std::endl;
         device_user_id_ = cam_->DeviceUserID.GetValue();
         img_rows_ = static_cast<size_t>(cam_->Height.GetValue());
         img_cols_ = static_cast<size_t>(cam_->Width.GetValue());
@@ -840,6 +841,30 @@ template <typename CameraTraitT>
 float PylonCameraImpl<CameraTraitT>::maxPossibleFramerate()
 {
     return static_cast<float>(resultingFrameRate().GetValue());
+}
+
+template <typename CameraTraitT>
+std::size_t PylonCameraImpl<CameraTraitT>::countNumUserOutputs()
+{
+    std::size_t n = 0;
+    GenApi::INodeMap& nodemap = cam_->GetNodeMap();
+    GenApi::CEnumerationPtr output_selector_enumeration_ptr(
+                                        nodemap.GetNode("UserOutputSelector"));
+    GenApi::NodeList_t featurelist;
+	output_selector_enumeration_ptr->GetEntries(featurelist);
+    std::cout << "Following Entries are available: " << std::endl;
+    std::cout << featurelist.size() << std::endl;
+	for (GenApi::NodeList_t::iterator it = featurelist.begin(); it != featurelist.end(); ++it)
+	{
+        if ( GenApi::IsAvailable(*it) )
+        {
+            GenApi::CEnumEntryPtr enum_entry(*it);
+			GenICam::gcstring symbolic_name = enum_entry->GetSymbolic().c_str();
+            std::cout << symbolic_name << "  is available on this camera   " << std::endl;
+            ++n;
+		}
+    }
+    return n;
 }
 
 template <typename CameraTraitT>

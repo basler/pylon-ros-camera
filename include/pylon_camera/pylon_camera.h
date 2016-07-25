@@ -293,6 +293,12 @@ public:
     virtual float exposureStep() = 0;
 
     /**
+     * @brief counts the number of user-settable-outputs the cam provides
+     * @return the number of user settable outputs
+     */
+    virtual std::size_t countNumUserOutputs() = 0;
+
+    /**
      * @brief setUserOutput sets the digital output
      * @param output_id
      * @param value goal value for output
