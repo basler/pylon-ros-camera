@@ -296,7 +296,7 @@ protected:
      * @param res response
      * @return true on success
      */
-    bool setUserOutputCB(const std::size_t& output_id,
+    bool setUserOutputCB(int output_id,
                          camera_control_msgs::SetBool::Request &req,
                          camera_control_msgs::SetBool::Response &res);
 
@@ -315,7 +315,6 @@ protected:
     ros::ServiceServer set_brightness_srv_;
     ros::ServiceServer set_sleeping_srv_;
     std::vector<ros::ServiceServer> set_user_output_srvs_;
-    ros::ServiceServer set_digital_output_1_service_;
 
     PylonCamera* pylon_camera_;
 

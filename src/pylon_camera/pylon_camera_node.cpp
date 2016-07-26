@@ -169,7 +169,7 @@ bool PylonCameraNode::startGrabbing()
     }
 
     set_user_output_srvs_.resize(pylon_camera_->numUserOutputs());
-    for ( std::size_t i = 0; i < set_user_output_srvs_.size(); ++i )
+    for ( int i = 0; i < set_user_output_srvs_.size(); ++i )
     {
         std::string srv_name = "set_user_output_" + std::to_string(i);
         set_user_output_srvs_.at(i) = nh_.advertiseService< camera_control_msgs::SetBool::Request,
@@ -180,13 +180,6 @@ bool PylonCameraNode::startGrabbing()
                                                         i,
                                                         _1,
                                                         _2));
-    }
-    if ( pylon_camera_->typeName() != "DART" )
-    {
-        set_digital_output_1_service_ = nh_.advertiseService< camera_control_msgs::SetBool::Request,
-                                                              camera_control_msgs::SetBool::Response >(
-                                            "set_output_1",
-                                            boost::bind(&PylonCameraNode::setUserOutputCB, this, 1, _1, _2));
     }
 
     img_raw_msg_.header.frame_id = pylon_camera_parameter_set_.cameraFrame();
@@ -790,9 +783,9 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     return result;
 }
 
-bool PylonCameraNode::setUserOutputCB(const std::size_t& output_id,
-                                         camera_control_msgs::SetBool::Request &req,
-                                         camera_control_msgs::SetBool::Response &res)
+bool PylonCameraNode::setUserOutputCB(const int output_id,
+                                      camera_control_msgs::SetBool::Request &req,
+                                      camera_control_msgs::SetBool::Response &res)
 {
     res.success = pylon_camera_->setUserOutput(output_id, req.data);
     return true;

@@ -274,7 +274,6 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
 
         cam_->StartGrabbing();
         user_output_selector_enums_ = detectAndCountNumUserOutputs();
-        std::cout << "FOUND " << numUserOutputs() << " user outputs" << std::endl;
         device_user_id_ = cam_->DeviceUserID.GetValue();
         img_rows_ = static_cast<size_t>(cam_->Height.GetValue());
         img_cols_ = static_cast<size_t>(cam_->Width.GetValue());
@@ -844,16 +843,14 @@ float PylonCameraImpl<CameraTraitT>::maxPossibleFramerate()
 }
 
 template <typename CameraTraitT>
-std::vector<double> PylonCameraImpl<CameraTraitT>::detectAndCountNumUserOutputs()
+std::vector<int> PylonCameraImpl<CameraTraitT>::detectAndCountNumUserOutputs()
 {
-    std::vector<double> user_output_vec;
+    std::vector<int> user_output_vec;
     GenApi::INodeMap& node_map = cam_->GetNodeMap();
     GenApi::CEnumerationPtr output_selector_enumeration_ptr(
                                         node_map.GetNode("UserOutputSelector"));
     GenApi::NodeList_t feature_list;
 	output_selector_enumeration_ptr->GetEntries(feature_list);
-    std::cout << "feature_list size(): " << feature_list.size() << std::endl;
-    std::cout << "Following Entries are available: " << std::endl;
 	for (GenApi::NodeList_t::iterator it = feature_list.begin();
          it != feature_list.end();
          ++it)
@@ -862,27 +859,28 @@ std::vector<double> PylonCameraImpl<CameraTraitT>::detectAndCountNumUserOutputs(
         {
             GenApi::CEnumEntryPtr enum_entry(*it);
 			GenICam::gcstring symbolic_name = enum_entry->GetSymbolic().c_str();
-			double num_value = enum_entry->GetNumericValue();
-            std::cout << symbolic_name << " ( = " << num_value << ") "
-                      << "is available on this camera" << std::endl;
-            user_output_vec.push_back(enum_entry->GetNumericValue());
+            int num_value = enum_entry->GetNumericValue();
+            if ( 0 != typeName().compare("GigE") )
+            {
+                // TODO: @marcel: Contact Basler support why this is necessary
+                // for all USB-cameras
+                num_value += 1;
+            }
+            user_output_vec.push_back(num_value);
 		}
     }
     return user_output_vec;
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setUserOutput(const std::size_t& output_id,
+bool PylonCameraImpl<CameraTraitT>::setUserOutput(const int& output_id,
                                                   const bool& value)
 {
-    ROS_INFO_STREAM("Setting output id " << output_id << " to "
-            << value);
-
+    ROS_DEBUG_STREAM("Setting user_output " << output_id << " to " << value);
     try
     {
-        cam_->UserOutputSelector.SetValue(
-            static_cast<UserOutputSelectorEnums>(
-                user_output_selector_enums_.at(output_id)));
+        cam_->UserOutputSelector.SetValue(static_cast<UserOutputSelectorEnums>(
+                    user_output_selector_enums_.at(output_id)));
         cam_->UserOutputValue.SetValue(value);
     }
     catch ( const std::exception& ex )
@@ -891,14 +889,12 @@ bool PylonCameraImpl<CameraTraitT>::setUserOutput(const std::size_t& output_id,
                 << ex.what());
         return false;
     }
-
     if ( value != cam_->UserOutputValue.GetValue() )
     {
         ROS_ERROR_STREAM("Value " << value << " could not be set to output "
                 << output_id);
         return false;
     }
-
     return true;
 }
 }  // namespace pylon_camera

@@ -302,7 +302,7 @@ public:
      *        user_output_selector_enums_.at(1).
      * @return the UserOutputSelector enum list
      */
-    virtual std::vector<double> detectAndCountNumUserOutputs() = 0;
+    virtual std::vector<int> detectAndCountNumUserOutputs() = 0;
 
     /**
      * @brief setUserOutput sets the digital output
@@ -310,7 +310,7 @@ public:
      * @param value goal value for output
      * @return true if value was set
      */
-    virtual bool setUserOutput(const std::size_t& output_id, const bool& value) = 0;
+    virtual bool setUserOutput(const int& output_id, const bool& value) = 0;
 
     /**
      * Getter for the device user id of the used camera
@@ -454,7 +454,7 @@ protected:
      */
     std::vector<float> seq_exp_times_;
 
-    std::vector<double> user_output_selector_enums_;
+    std::vector<int> user_output_selector_enums_;
 };
 
 }  // namespace pylon_camera
