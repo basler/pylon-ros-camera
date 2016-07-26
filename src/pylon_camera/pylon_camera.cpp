@@ -49,7 +49,6 @@ PylonCamera::PylonCamera()
     , img_size_byte_(0)
     , grab_timeout_(-1.0)
     , is_ready_(false)
-    , num_user_outputs_(0)
     , is_cam_removed_(false)
     , is_binary_exposure_search_running_(false)
     , max_brightness_tolerance_(2.5)
@@ -235,9 +234,9 @@ const bool& PylonCamera::isReady() const
     return is_ready_;
 }
 
-const std::size_t& PylonCamera::numUserOutputs() const
+std::size_t PylonCamera::numUserOutputs() const
 {
-    return num_user_outputs_;
+    return user_output_selector_enums_.size();
 }
 
 const std::vector<float>& PylonCamera::sequencerExposureTimes() const

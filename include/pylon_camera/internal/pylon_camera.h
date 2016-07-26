@@ -85,7 +85,7 @@ public:
                                const bool& exposure_auto,
                                const bool& gain_auto);
 
-    virtual std::size_t countNumUserOutputs();
+    virtual std::vector<double> detectAndCountNumUserOutputs();
 
     virtual bool setUserOutput(const std::size_t& output_id, const bool& value);
 
