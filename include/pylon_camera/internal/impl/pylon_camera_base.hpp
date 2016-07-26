@@ -850,15 +850,15 @@ std::vector<int> PylonCameraImpl<CameraTraitT>::detectAndCountNumUserOutputs()
     GenApi::CEnumerationPtr output_selector_enumeration_ptr(
                                         node_map.GetNode("UserOutputSelector"));
     GenApi::NodeList_t feature_list;
-	output_selector_enumeration_ptr->GetEntries(feature_list);
-	for (GenApi::NodeList_t::iterator it = feature_list.begin();
+    output_selector_enumeration_ptr->GetEntries(feature_list);
+    for (GenApi::NodeList_t::iterator it = feature_list.begin();
          it != feature_list.end();
          ++it)
-	{
+    {
         if ( GenApi::IsAvailable(*it) )
         {
             GenApi::CEnumEntryPtr enum_entry(*it);
-			GenICam::gcstring symbolic_name = enum_entry->GetSymbolic().c_str();
+            GenICam::gcstring symbolic_name = enum_entry->GetSymbolic().c_str();
             int num_value = enum_entry->GetNumericValue();
             if ( 0 != typeName().compare("GigE") )
             {
@@ -867,7 +867,7 @@ std::vector<int> PylonCameraImpl<CameraTraitT>::detectAndCountNumUserOutputs()
                 num_value += 1;
             }
             user_output_vec.push_back(num_value);
-		}
+        }
     }
     return user_output_vec;
 }
