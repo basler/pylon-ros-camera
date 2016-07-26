@@ -234,6 +234,11 @@ const bool& PylonCamera::isReady() const
     return is_ready_;
 }
 
+std::size_t PylonCamera::numUserOutputs() const
+{
+    return user_output_selector_enums_.size();
+}
+
 const std::vector<float>& PylonCamera::sequencerExposureTimes() const
 {
     return seq_exp_times_;

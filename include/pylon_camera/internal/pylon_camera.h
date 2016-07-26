@@ -85,6 +85,8 @@ public:
                                const bool& exposure_auto,
                                const bool& gain_auto);
 
+    virtual std::vector<int> detectAndCountNumUserOutputs();
+
     virtual bool setUserOutput(const int& output_id, const bool& value);
 
     virtual size_t currentBinningX();

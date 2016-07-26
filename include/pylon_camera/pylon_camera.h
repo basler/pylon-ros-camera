@@ -53,7 +53,8 @@ public:
 
     /**
      * Create a new PylonCamera instance based on the DeviceUserID of the camera.
-     * @param device_user_id Pylon DeviceUserID. If the string is empty, the first camera that could be found is returned.
+     * @param device_user_id Pylon DeviceUserID. If the string is empty, the
+     * first camera that could be found is returned.
      * @return new PylonCamera instance or NULL if the camera was not found.
      */
     static PylonCamera* create(const std::string& device_user_id);
@@ -293,6 +294,17 @@ public:
     virtual float exposureStep() = 0;
 
     /**
+     * @brief Detects and counts the number of user-settable-outputs the cam
+     *        provides. This might be zero for some cameras. The size affects
+     *        the number of 'set' ros-services the camera_node will provide.
+     *        A vector wich length equals the number of user-settable outputs
+     *        will be generated. Hence e.g. output '1' can be accessed via
+     *        user_output_selector_enums_.at(1).
+     * @return the UserOutputSelector enum list
+     */
+    virtual std::vector<int> detectAndCountNumUserOutputs() = 0;
+
+    /**
      * @brief setUserOutput sets the digital output
      * @param output_id
      * @param value goal value for output
@@ -325,6 +337,14 @@ public:
      * @return true if the interfeace is ready
      */
     const bool& isReady() const;
+
+    /**
+     * Returns the number of digital user outputs, which can be set by the the
+     * camera. Might be zero for some cameras. The size affects the number of
+     * 'set' ros-services the camera node will provide
+     * @return numer of digital user outputs
+     */
+    std::size_t numUserOutputs() const;
 
     /**
      * Returns the image size in bytes
@@ -433,6 +453,8 @@ protected:
      * Exposure times to use when in sequencer mode.
      */
     std::vector<float> seq_exp_times_;
+
+    std::vector<int> user_output_selector_enums_;
 };
 
 }  // namespace pylon_camera
