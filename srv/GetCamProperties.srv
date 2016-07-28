@@ -17,9 +17,9 @@ int32 current_binning_y
 float32 max_framerate
 float32 current_framerate
 
-float32 min_exposure_time
-float32 max_exposure_time
-float32 current_exposure_time
+float32 min_exposure
+float32 max_exposure
+float32 current_exposure
 
 float32 min_gain_in_cam_units
 float32 max_gain_in_cam_units
