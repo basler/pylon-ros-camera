@@ -1192,9 +1192,9 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
     // stored in img_raw_msg_.data vector
     float current_brightness = calcCurrentBrightness();
 
-    ROS_INFO_STREAM("New brightness request for target brightness "
-                    << target_brightness << ", current brightness = "
-                    << current_brightness);
+    ROS_DEBUG_STREAM("New brightness request for target brightness "
+            << target_brightness << ", current brightness = "
+            << current_brightness);
 
     if ( fabs(current_brightness - static_cast<float>(target_brightness)) <= 1.0 )
     {
