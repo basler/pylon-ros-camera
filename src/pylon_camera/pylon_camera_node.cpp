@@ -1307,7 +1307,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
         }
     }
 
-    ROS_INFO_STREAM("Finally reached brightness: " << current_brightness);
+    ROS_DEBUG_STREAM("Finally reached brightness: " << current_brightness);
     reached_brightness = static_cast<int>(current_brightness);
 
     return is_brightness_reached;
