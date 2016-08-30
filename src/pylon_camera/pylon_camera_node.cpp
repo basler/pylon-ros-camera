@@ -443,8 +443,17 @@ bool PylonCameraNode::grabImage()
     {
         cv_bridge_img_rect_->header.stamp = img_raw_msg_.header.stamp;
         assert(pinhole_model_->initialized());
-        cv::Mat img_raw = cv::Mat(img_raw_msg_.height, img_raw_msg_.width,
-                                  CV_8UC1, img_raw_msg_.data.data());
+        cv::Mat img_raw;
+        if ( pylon_camera_->imageEncoding() == "rgb8" )
+        {
+            img_raw = cv::Mat(img_raw_msg_.height, img_raw_msg_.width,
+                              CV_8UC3, img_raw_msg_.data.data());
+        }
+        else
+        {
+            img_raw = cv::Mat(img_raw_msg_.height, img_raw_msg_.width,
+                              CV_8UC1, img_raw_msg_.data.data());
+        }
         pinhole_model_->fromCameraInfo(camera_info_manager_->getCameraInfo());
         pinhole_model_->rectifyImage(img_raw, cv_bridge_img_rect_->image);
     }
@@ -480,10 +489,21 @@ void PylonCameraNode::grabImagesRectActionExecuteCB(
 
         for ( std::size_t i = 0; i < result.images.size(); ++i)
         {
-            cv::Mat cv_img_raw = cv::Mat(result.images[i].height,
-                    result.images[i].width,
-                    CV_8UC1,
-                    result.images[i].data.data());
+            cv::Mat cv_img_raw;
+            if ( pylon_camera_->imageEncoding() == "rgb8" )
+            {
+                cv_img_raw = cv::Mat(result.images[i].height,
+                                     result.images[i].width,
+                                     CV_8UC3,
+                                     result.images[i].data.data());
+            }
+            else
+            {
+                cv_img_raw = cv::Mat(result.images[i].height,
+                                     result.images[i].width,
+                                     CV_8UC1,
+                                     result.images[i].data.data());
+            }
             pinhole_model_->fromCameraInfo(camera_info_manager_->getCameraInfo());
             cv_bridge::CvImage cv_bridge_img_rect;
             cv_bridge_img_rect.header = result.images[i].header;
