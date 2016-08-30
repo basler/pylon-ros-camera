@@ -801,26 +801,15 @@ bool PylonCameraImpl<CameraTraitT>::setShutterMode(const SHUTTER_MODE &shutter_m
 }
 
 template <typename CameraTraitT>
-std::string PylonCameraImpl<CameraTraitT>::imageEncoding() const
-{
-    switch ( image_encoding_ )
-    {
-        case PixelFormatEnums::PixelFormat_Mono8:
-            return sensor_msgs::image_encodings::MONO8;
-        default:
-            throw std::runtime_error("Currently, only mono8 cameras are supported");
-    }
-}
-
-template <typename CameraTraitT>
 int PylonCameraImpl<CameraTraitT>::imagePixelDepth() const
 {
-    switch ( image_pixel_depth_ )
+    if ( imageEncoding() == sensor_msgs::image_encodings::MONO8)
     {
-        case PixelSizeEnums::PixelSize_Bpp8:
-            return sizeof(uint8_t);
-        default:
-            throw std::runtime_error("Currently, only 8bit images are supported");
+        return (sizeof(uint8_t) * CHANNEL_MONO8);
+    }
+    else
+    {
+        return (sizeof(uint8_t) * CHANNEL_RGB8);
     }
 }
 

@@ -39,6 +39,10 @@
 namespace pylon_camera
 {
 
+// Number of channels for image encoding
+#define CHANNEL_MONO8 1
+#define CHANNEL_RGB8  3
+
 /**
  * The PylonCamera base class. Create a new instance using the static create() functions.
  */

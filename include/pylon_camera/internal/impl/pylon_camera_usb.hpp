@@ -148,6 +148,21 @@ bool PylonUSBCamera::setImageEncoding(const PylonCameraParameter& parameters)
     }
 }
 
+template <>
+std::string PylonUSBCamera::imageEncoding() const
+{
+    switch ( image_encoding_ )
+    {
+        case PixelFormatEnums::PixelFormat_Mono8:
+            return sensor_msgs::image_encodings::MONO8;
+
+        case PixelFormatEnums::PixelFormat_RGB8:
+            return sensor_msgs::image_encodings::RGB8;
+
+        default:
+            throw std::runtime_error("Currently, only mono8 and rgb8 cameras are supported");
+    }
+}
 
 template <>
 bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times,
