@@ -84,6 +84,11 @@ public:
     const double& frameRate() const;
 
     /**
+     * Getter for the image_encoding_ read from ros-parameter server
+     */
+    std::string imageEncoding() const;
+
+    /**
      * Setter for the frame_rate_ initially set from ros-parameter server
      * The frame rate needs to be updated with the value the camera supports
      */
@@ -279,6 +284,11 @@ protected:
      * http://wiki.ros.org/camera_info_manager
      */
     std::string camera_info_url_;
+
+    /**
+     * Image encoding
+     */
+    std::string image_encoding_;
 };
 
 }  // namespace pylon_camera

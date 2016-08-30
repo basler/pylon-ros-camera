@@ -37,6 +37,7 @@ PylonCameraParameter::PylonCameraParameter() :
         device_user_id_(""),
         frame_rate_(5.0),
         camera_info_url_(""),
+        image_encoding_("mono8"),
         binning_x_(1),
         binning_y_(1),
         binning_x_given_(false),
@@ -81,6 +82,8 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     {
         nh.getParam("camera_info_url", camera_info_url_);
     }
+
+    nh.param<std::string>("image_encoding", image_encoding_, "mono8");
 
     binning_x_given_ = nh.hasParam("binning_x");
     if ( binning_x_given_ )
@@ -286,6 +289,11 @@ std::string PylonCameraParameter::shutterModeString() const
     {
         return "default_shutter_mode";
     }
+}
+
+std::string PylonCameraParameter::imageEncoding() const
+{
+    return image_encoding_;
 }
 
 const std::string& PylonCameraParameter::cameraFrame() const

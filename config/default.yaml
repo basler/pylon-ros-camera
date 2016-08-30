@@ -12,6 +12,10 @@ device_user_id: ""
 #  1_1CameraInfoManager.html#details
 camera_info_url: ""
 
+#  The image encoding format under which camera takes picture.
+#  The supported encoding are "mono8" and "rgb8"
+#image_encoding: mono8
+
 #  Binning factor to get downsampled images. It refers here to any camera
 #  setting which combines rectangular neighborhoods of pixels into larger
 #  "super-pixels." It reduces the resolution of the output image to
