@@ -60,6 +60,8 @@ public:
 
     virtual bool applyCamSpecificStartupSettings(const PylonCameraParameter& parameters);
 
+    virtual bool setImageEncoding(const PylonCameraParameter& parameters);
+
     virtual bool startGrabbing(const PylonCameraParameter& parameters);
 
     virtual bool grab(std::vector<uint8_t>& image);

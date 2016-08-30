@@ -264,13 +264,7 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
             setShutterMode(parameters.shutter_mode_);
         }
 
-        if ( image_encoding_ != PixelFormatEnums::PixelFormat_Mono8 )
-        {
-            cam_->PixelFormat.SetValue(PixelFormatEnums::PixelFormat_Mono8);
-            image_encoding_ = cam_->PixelFormat.GetValue();
-            ROS_WARN_STREAM("Image encoding differing from 8-Bit Mono not yet "
-                << "implemented! Will switch to 8-Bit Mono");
-        }
+        setImageEncoding(parameters);
 
         cam_->StartGrabbing();
         user_output_selector_enums_ = detectAndCountNumUserOutputs();

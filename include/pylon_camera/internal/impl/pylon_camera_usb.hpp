@@ -126,6 +126,30 @@ bool PylonUSBCamera::applyCamSpecificStartupSettings(const PylonCameraParameter&
 }
 
 template <>
+bool PylonUSBCamera::setImageEncoding(const PylonCameraParameter& parameters)
+{
+    try
+    {
+        if (parameters.imageEncoding() == "rgb8")
+        {
+            cam_->PixelFormat.SetValue(PixelFormatEnums::PixelFormat_RGB8);
+        }
+        else
+        {
+            cam_->PixelFormat.SetValue(PixelFormatEnums::PixelFormat_Mono8);
+        }
+        return true;
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("Error applying image encoding to USB cameras: "
+                << e.GetDescription());
+        return false;
+    }
+}
+
+
+template <>
 bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times,
                                     std::vector<float>& exposure_times_set)
 {
