@@ -86,7 +86,7 @@ public:
     /**
      * Getter for the image_encoding_ read from ros-parameter server
      */
-    std::string imageEncoding() const;
+    const std::string& imageEncoding() const;
 
     /**
      * Setter for the frame_rate_ initially set from ros-parameter server
@@ -286,7 +286,10 @@ protected:
     std::string camera_info_url_;
 
     /**
-     * Image encoding
+     * The encoding of the pixels -- channel meaning, ordering, size taken
+     * from the list of strings in include/sensor_msgs/image_encodings.h
+     * The supported encodings are 'mono8', 'bgr8', 'rgb8', 'bayer_bggr8',
+     * 'bayer_gbrg8', 'bayer_rggb8' and 'yuv422'
      */
     std::string image_encoding_;
 };

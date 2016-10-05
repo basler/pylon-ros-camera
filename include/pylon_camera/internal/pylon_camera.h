@@ -60,8 +60,6 @@ public:
 
     virtual bool applyCamSpecificStartupSettings(const PylonCameraParameter& parameters);
 
-    virtual bool setImageEncoding(const PylonCameraParameter& parameters);
-
     virtual bool startGrabbing(const PylonCameraParameter& parameters);
 
     virtual bool grab(std::vector<uint8_t>& image);
@@ -75,6 +73,8 @@ public:
 
     virtual bool setBinningY(const size_t& target_binning_y,
                              size_t& reached_binning_y);
+
+    virtual bool setImageEncoding(const std::string& target_ros_encoding);
 
     virtual bool setExposure(const float& target_exposure, float& reached_exposure);
 
@@ -95,6 +95,12 @@ public:
 
     virtual size_t currentBinningY();
 
+    virtual std::vector<std::string> detectAvailableImageEncodings();
+
+    virtual std::string currentROSEncoding() const;
+
+    virtual int imagePixelDepth() const;
+
     virtual float currentExposure();
 
     virtual float currentAutoExposureTimeLowerLimit();
@@ -103,11 +109,11 @@ public:
 
     virtual float currentGain();
 
-    virtual float currentGamma();
-
     virtual float currentAutoGainLowerLimit();
 
     virtual float currentAutoGainUpperLimit();
+
+    virtual float currentGamma();
 
     virtual float maxPossibleFramerate();
 
@@ -120,10 +126,6 @@ public:
     virtual void enableContinuousAutoExposure();
 
     virtual void enableContinuousAutoGain();
-
-    virtual std::string imageEncoding() const;
-
-    virtual int imagePixelDepth() const;
 
     virtual std::string typeName() const;
 
@@ -139,6 +141,8 @@ protected:
     typedef typename CameraTraitT::GainType GainType;
     typedef typename CameraTraitT::ShutterModeEnums ShutterModeEnums;
     typedef typename CameraTraitT::UserOutputSelectorEnums UserOutputSelectorEnums;
+
+    CBaslerInstantCameraT* cam_;
 
     // Each camera has it's own getter for GenApi accessors that are named
     // differently for USB and GigE
@@ -159,12 +163,6 @@ protected:
 
     virtual bool setupSequencer(const std::vector<float>& exposure_times,
                                 std::vector<float>& exposure_times_set);
-
-    CBaslerInstantCameraT* cam_;
-
-    PixelFormatEnums image_encoding_;
-
-    PixelSizeEnums image_pixel_depth_;
 };
 
 }  // namespace pylon_camera

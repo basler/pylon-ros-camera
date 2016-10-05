@@ -187,12 +187,11 @@ bool PylonCameraNode::startGrabbing()
     img_raw_msg_.header.frame_id = pylon_camera_parameter_set_.cameraFrame();
     // Encoding of pixels -- channel meaning, ordering, size
     // taken from the list of strings in include/sensor_msgs/image_encodings.h
-    img_raw_msg_.encoding = pylon_camera_->imageEncoding();
+    img_raw_msg_.encoding = pylon_camera_->currentROSEncoding();
     img_raw_msg_.height = pylon_camera_->imageRows();
     img_raw_msg_.width = pylon_camera_->imageCols();
-
-    // step = full row length in bytes
-    // img_raw_msg_.data // actual matrix data, size is (step * rows)
+    // step = full row length in bytes, img_size = (step * rows), imagePixelDepth
+    // already contains the number of channels
     img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
 
     if ( !camera_info_manager_->setCameraName(pylon_camera_->deviceUserID()) )
@@ -313,6 +312,7 @@ bool PylonCameraNode::startGrabbing()
     }
 
     ROS_INFO_STREAM("Startup settings: "
+            << "encoding = '" << pylon_camera_->currentROSEncoding() << "', "
             << "binning = [" << pylon_camera_->currentBinningX() << ", "
             << pylon_camera_->currentBinningY() << "], "
             << "exposure = " << pylon_camera_->currentExposure() << ", "
@@ -373,7 +373,7 @@ void PylonCameraNode::setupRectification()
 
     cv_bridge_img_rect_ = new cv_bridge::CvImage();
     cv_bridge_img_rect_->header = img_raw_msg_.header;
-    cv_bridge_img_rect_->encoding = pylon_camera_->imageEncoding();
+    cv_bridge_img_rect_->encoding = img_raw_msg_.encoding;
 }
 
 void PylonCameraNode::spin()
@@ -443,19 +443,11 @@ bool PylonCameraNode::grabImage()
     {
         cv_bridge_img_rect_->header.stamp = img_raw_msg_.header.stamp;
         assert(pinhole_model_->initialized());
-        cv::Mat img_raw;
-        if ( pylon_camera_->imageEncoding() == "rgb8" )
-        {
-            img_raw = cv::Mat(img_raw_msg_.height, img_raw_msg_.width,
-                              CV_8UC3, img_raw_msg_.data.data());
-        }
-        else
-        {
-            img_raw = cv::Mat(img_raw_msg_.height, img_raw_msg_.width,
-                              CV_8UC1, img_raw_msg_.data.data());
-        }
+        cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(
+                                                        img_raw_msg_,
+                                                        img_raw_msg_.encoding);
         pinhole_model_->fromCameraInfo(camera_info_manager_->getCameraInfo());
-        pinhole_model_->rectifyImage(img_raw, cv_bridge_img_rect_->image);
+        pinhole_model_->rectifyImage(cv_img_raw->image, cv_bridge_img_rect_->image);
     }
     return true;
 }
@@ -489,26 +481,14 @@ void PylonCameraNode::grabImagesRectActionExecuteCB(
 
         for ( std::size_t i = 0; i < result.images.size(); ++i)
         {
-            cv::Mat cv_img_raw;
-            if ( pylon_camera_->imageEncoding() == "rgb8" )
-            {
-                cv_img_raw = cv::Mat(result.images[i].height,
-                                     result.images[i].width,
-                                     CV_8UC3,
-                                     result.images[i].data.data());
-            }
-            else
-            {
-                cv_img_raw = cv::Mat(result.images[i].height,
-                                     result.images[i].width,
-                                     CV_8UC1,
-                                     result.images[i].data.data());
-            }
+            cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(
+                                                        result.images[i],
+                                                        result.images[i].encoding);
             pinhole_model_->fromCameraInfo(camera_info_manager_->getCameraInfo());
             cv_bridge::CvImage cv_bridge_img_rect;
             cv_bridge_img_rect.header = result.images[i].header;
             cv_bridge_img_rect.encoding = result.images[i].encoding;
-            pinhole_model_->rectifyImage(cv_img_raw, cv_bridge_img_rect.image);
+            pinhole_model_->rectifyImage(cv_img_raw->image, cv_bridge_img_rect.image);
             cv_bridge_img_rect.toImageMsg(result.images[i]);
         }
         grab_imgs_rect_as_->setSucceeded(result);
@@ -738,10 +718,11 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         }
 
         sensor_msgs::Image& img = result.images[i];
-        img.encoding = pylon_camera_->imageEncoding();
+        img.encoding = pylon_camera_->currentROSEncoding();
         img.height = pylon_camera_->imageRows();
         img.width = pylon_camera_->imageCols();
-        // step = full row length in bytes
+        // step = full row length in bytes, img_size = (step * rows), imagePixelDepth
+        // already contains the number of channels
         img.step = img.width * pylon_camera_->imagePixelDepth();
 
         if ( !pylon_camera_->grab(img.data) )
@@ -980,7 +961,6 @@ bool PylonCameraNode::setBinningX(const size_t& target_binning_x,
             {
                 break;
             }
-
             if ( ros::Time::now() > timeout )
             {
                 ROS_ERROR_STREAM("Error in setBinningX(): Unable to set target "
@@ -989,8 +969,8 @@ bool PylonCameraNode::setBinningX(const size_t& target_binning_x,
                 cam_info->binning_x = pylon_camera_->currentBinningX();
                 camera_info_manager_->setCameraInfo(*cam_info);
                 img_raw_msg_.width = pylon_camera_->imageCols();
-                // step = full row length in bytes
-                // img_raw_msg_.data // actual matrix data, size is (step * rows)
+                // step = full row length in bytes, img_size = (step * rows), imagePixelDepth
+                // already contains the number of channels
                 img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
                 return false;
             }
@@ -1001,8 +981,8 @@ bool PylonCameraNode::setBinningX(const size_t& target_binning_x,
     cam_info->binning_x = pylon_camera_->currentBinningX();
     camera_info_manager_->setCameraInfo(*cam_info);
     img_raw_msg_.width = pylon_camera_->imageCols();
-    // step = full row length in bytes
-    // img_raw_msg_.data // actual matrix data, size is (step * rows)
+    // step = full row length in bytes, img_size = (step * rows), imagePixelDepth
+    // already contains the number of channels
     img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
     return true;
 }
@@ -1022,7 +1002,6 @@ bool PylonCameraNode::setBinningY(const size_t& target_binning_y,
             {
                 break;
             }
-
             if ( ros::Time::now() > timeout )
             {
                 ROS_ERROR_STREAM("Error in setBinningY(): Unable to set target "
@@ -1031,8 +1010,8 @@ bool PylonCameraNode::setBinningY(const size_t& target_binning_y,
                 cam_info->binning_y = pylon_camera_->currentBinningY();
                 camera_info_manager_->setCameraInfo(*cam_info);
                 img_raw_msg_.height = pylon_camera_->imageRows();
-                // step = full row length in bytes
-                // img_raw_msg_.data // actual matrix data, size is (step * rows)
+                // step = full row length in bytes, img_size = (step * rows), imagePixelDepth
+                // already contains the number of channels
                 img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
                 return false;
             }
@@ -1043,8 +1022,8 @@ bool PylonCameraNode::setBinningY(const size_t& target_binning_y,
     cam_info->binning_y = pylon_camera_->currentBinningY();
     camera_info_manager_->setCameraInfo(*cam_info);
     img_raw_msg_.height = pylon_camera_->imageRows();
-    // step = full row length in bytes
-    // img_raw_msg_.data // actual matrix data, size is (step * rows)
+    // step = full row length in bytes, img_size = (step * rows), imagePixelDepth
+    // already contains the number of channels
     img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
     return true;
 }

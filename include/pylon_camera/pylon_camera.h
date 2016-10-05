@@ -76,15 +76,6 @@ public:
     virtual bool openCamera() = 0;
 
     /**
-     * Configures the camera according to the provided ros parameters.
-     * This will use the device specific parameters as e.g. the mtu size for
-     * GigE-Cameras
-     * @param parameters The PylonCameraParameter set to use
-     * @return true if all parameters could be sent to the camera.
-     */
-    virtual bool applyCamSpecificStartupSettings(const PylonCameraParameter& parameters) = 0;
-
-    /**
      * Configure the sequencer exposure times.
      * @param exposure_times the list of exposure times.
      * @return true if all parameters could be sent to the camera.
@@ -92,11 +83,13 @@ public:
     virtual bool setupSequencer(const std::vector<float>& exposure_times) = 0;
 
     /**
-     * @brief sets shutter mode for the camera (rolling or global_reset)
-     * @param mode
-     * @return
+     * Configures the camera according to the provided ros parameters.
+     * This will use the device specific parameters as e.g. the mtu size for
+     * GigE-Cameras
+     * @param parameters The PylonCameraParameter set to use
+     * @return true if all parameters could be sent to the camera.
      */
-    virtual bool setShutterMode(const pylon_camera::SHUTTER_MODE& mode) = 0;
+    virtual bool applyCamSpecificStartupSettings(const PylonCameraParameter& parameters) = 0;
 
     /**
      * Initializes the internal parameters of the PylonCamera instance.
@@ -121,58 +114,11 @@ public:
     virtual bool grab(uint8_t* image) = 0;
 
     /**
-     * Returns the current horizontal binning_x setting.
-     * @return the horizontal binning_x setting.
+     * @brief sets shutter mode for the camera (rolling or global_reset)
+     * @param mode
+     * @return
      */
-    virtual size_t currentBinningX() = 0;
-
-    /**
-     * Returns the current vertical binning_y setting.
-     * @return the vertical binning_y setting.
-     */
-    virtual size_t currentBinningY() = 0;
-
-    /**
-     * Returns the current exposure time in microseconds.
-     * @return the exposure time in microseconds.
-     */
-    virtual float currentExposure() = 0;
-
-    /**
-     * Returns the current auto exposure time lower limit
-     * @return the current auto exposure time lower limit
-     */
-    virtual float currentAutoExposureTimeLowerLimit() = 0;
-
-    /**
-     * Returns the current auto exposure time upper limit
-     * @return the current auto exposure time upper limit
-     */
-    virtual float currentAutoExposureTimeUpperLimit() = 0;
-
-    /**
-     * Returns the current gain in percent.
-     * @return the gain time percent.
-     */
-    virtual float currentGain() = 0;
-
-    /**
-     * Returns the current gamma value.
-     * @return the gamma value.
-     */
-    virtual float currentGamma() = 0;
-
-    /**
-     * Returns the current auto gain lower limit
-     * @return the current auto gain lower limit
-     */
-    virtual float currentAutoGainLowerLimit() = 0;
-
-    /**
-     * Returns the current auto gain upper limit
-     * @return the current auto gain upper limit
-     */
-    virtual float currentAutoGainUpperLimit() = 0;
+    virtual bool setShutterMode(const pylon_camera::SHUTTER_MODE& mode) = 0;
 
     /**
      * Sets the target horizontal binning_x factor
@@ -191,6 +137,24 @@ public:
      */
     virtual bool setBinningY(const size_t& target_binning_y,
                              size_t& reached_binning_y) = 0;
+
+    /**
+     * Detects the supported image pixel encodings of the camera an stores
+     * them in a vector.
+     * @return a list of strings describing the supported encodings in GenAPI
+     *         language.
+     */
+    virtual std::vector<std::string> detectAvailableImageEncodings() = 0;
+
+    /**
+     * Sets the desired image pixel encoding (channel meaning, ordering, size)
+     * taken from the list of strings in include/sensor_msgs/image_encodings.h
+     * The supported encodings are 'mono8', 'bgr8', 'rgb8', 'bayer_bggr8',
+     * 'bayer_gbrg8', 'bayer_rggb8' and 'yuv422'
+     * @param target_ros_endcoding: string describing the encoding.
+     * @return false if a communication error occurred or true otherwise.
+     */
+    virtual bool setImageEncoding(const std::string& target_ros_encoding) = 0;
 
     /**
      * Sets the exposure time in microseconds
@@ -237,6 +201,92 @@ public:
                                const bool& gain_auto) = 0;
 
     /**
+     * @brief Detects and counts the number of user-settable-outputs the cam
+     *        provides. This might be zero for some cameras. The size affects
+     *        the number of 'set' ros-services the camera_node will provide.
+     *        A vector wich length equals the number of user-settable outputs
+     *        will be generated. Hence e.g. output '1' can be accessed via
+     *        user_output_selector_enums_.at(1).
+     * @return the UserOutputSelector enum list
+     */
+    virtual std::vector<int> detectAndCountNumUserOutputs() = 0;
+
+    /**
+     * @brief setUserOutput sets the digital output
+     * @param output_id
+     * @param value goal value for output
+     * @return true if value was set
+     */
+    virtual bool setUserOutput(const int& output_id, const bool& value) = 0;
+
+    /**
+     * Returns the current horizontal binning_x setting.
+     * @return the horizontal binning_x setting.
+     */
+    virtual size_t currentBinningX() = 0;
+
+    /**
+     * Returns the current vertical binning_y setting.
+     * @return the vertical binning_y setting.
+     */
+    virtual size_t currentBinningY() = 0;
+
+    /**
+     * Get the camera image encoding according to sensor_msgs::image_encodings
+     * The supported encodings are 'mono8', 'bgr8', 'rgb8', 'bayer_bggr8',
+     * 'bayer_gbrg8', 'bayer_rggb8' and 'yuv422'
+     * @return the current ros image pixel encoding.
+     */
+    virtual std::string currentROSEncoding() const = 0;
+
+    /**
+     * Get the number of bytes per pixel
+     * @return number of bytes per pixel
+     */
+    virtual int imagePixelDepth() const = 0;
+
+    /**
+     * Returns the current exposure time in microseconds.
+     * @return the exposure time in microseconds.
+     */
+    virtual float currentExposure() = 0;
+
+    /**
+     * Returns the current auto exposure time lower limit
+     * @return the current auto exposure time lower limit
+     */
+    virtual float currentAutoExposureTimeLowerLimit() = 0;
+
+    /**
+     * Returns the current auto exposure time upper limit
+     * @return the current auto exposure time upper limit
+     */
+    virtual float currentAutoExposureTimeUpperLimit() = 0;
+
+    /**
+     * Returns the current gain in percent.
+     * @return the gain time percent.
+     */
+    virtual float currentGain() = 0;
+
+    /**
+     * Returns the current auto gain lower limit
+     * @return the current auto gain lower limit
+     */
+    virtual float currentAutoGainLowerLimit() = 0;
+
+    /**
+     * Returns the current auto gain upper limit
+     * @return the current auto gain upper limit
+     */
+    virtual float currentAutoGainUpperLimit() = 0;
+    /**
+     * Returns the current gamma value.
+     * @return the gamma value.
+     */
+    virtual float currentGamma() = 0;
+
+    /**
      * Checks if the camera currently tries to regulate towards a target brightness.
      * This can either be done by pylon for the range [50 - 205] or the own extendended binary search one
      * for the ranges [1 - 49] and [206 - 254].
@@ -273,19 +323,6 @@ public:
     virtual void enableContinuousAutoGain() = 0;
 
     /**
-     * Get the camera image encoding according to sensor_msgs::image_encodings
-     * Currently, only mono8 cameras are supported.
-     * @return the image encoding.
-     */
-    virtual std::string imageEncoding() const = 0;
-
-    /**
-     * Get the number of bytes per pixel
-     * @return number of bytes per pixel
-     */
-    virtual int imagePixelDepth() const = 0;
-
-    /**
      * Get the camera type. Currently supported cameras are USB, DART and GigE
      * @return camera type as string
      */
@@ -296,25 +333,6 @@ public:
      * @return the minimum possible increment between two possible exposure values
      */
     virtual float exposureStep() = 0;
-
-    /**
-     * @brief Detects and counts the number of user-settable-outputs the cam
-     *        provides. This might be zero for some cameras. The size affects
-     *        the number of 'set' ros-services the camera_node will provide.
-     *        A vector wich length equals the number of user-settable outputs
-     *        will be generated. Hence e.g. output '1' can be accessed via
-     *        user_output_selector_enums_.at(1).
-     * @return the UserOutputSelector enum list
-     */
-    virtual std::vector<int> detectAndCountNumUserOutputs() = 0;
-
-    /**
-     * @brief setUserOutput sets the digital output
-     * @param output_id
-     * @param value goal value for output
-     * @return true if value was set
-     */
-    virtual bool setUserOutput(const int& output_id, const bool& value) = 0;
 
     /**
      * Getter for the device user id of the used camera
@@ -458,7 +476,16 @@ protected:
      */
     std::vector<float> seq_exp_times_;
 
+    /**
+     * Vector containing all available user outputs.
+     */
     std::vector<int> user_output_selector_enums_;
+
+    /**
+     * Vector that contains the available image_encodings the camera supports.
+     * The strings describe the GenAPI encoding.
+     */
+    std::vector<std::string> available_image_encodings_;
 };
 
 }  // namespace pylon_camera

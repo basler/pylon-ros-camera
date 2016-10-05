@@ -105,6 +105,7 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         {
             ROS_INFO_STREAM("Cam does not support binning.");
         }
+
         ROS_INFO_STREAM("Cam has exposure time range: ["
                 << cam_->ExposureTimeAbs.GetMin()
                 << " - " << cam_->ExposureTimeAbs.GetMax()
@@ -142,45 +143,6 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         return false;
     }
     return true;
-}
-
-template <>
-bool PylonGigECamera::setImageEncoding(const PylonCameraParameter& parameters)
-{
-    try
-    {
-        if (parameters.imageEncoding() == "rgb8")
-        {
-            cam_->PixelFormat.SetValue(PixelFormatEnums::PixelFormat_RGB8Planar);
-        }
-        else
-        {
-            cam_->PixelFormat.SetValue(PixelFormatEnums::PixelFormat_Mono8);
-        }
-        return true;
-    }
-    catch ( const GenICam::GenericException &e )
-    {
-        ROS_ERROR_STREAM("Error applying image encoding to GigE cameras: "
-                << e.GetDescription());
-        return false;
-    }
-}
-
-template <>
-std::string PylonGigECamera::imageEncoding() const
-{
-    switch ( image_encoding_ )
-    {
-        case PixelFormatEnums::PixelFormat_Mono8:
-            return sensor_msgs::image_encodings::MONO8;
-
-        case PixelFormatEnums::PixelFormat_RGB8Planar:
-            return sensor_msgs::image_encodings::RGB8;
-
-        default:
-            throw std::runtime_error("Currently, only mono8 and rgb8 cameras are supported");
-    }
 }
 
 template <>

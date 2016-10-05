@@ -35,6 +35,7 @@
 #include <vector>
 
 #include <pylon_camera/internal/pylon_camera.h>
+#include <pylon_camera/encoding_conversions.h>
 #include <sensor_msgs/image_encodings.h>
 
 namespace pylon_camera
@@ -115,6 +116,22 @@ size_t PylonCameraImpl<CameraTraitT>::currentBinningY()
     {
         return 1;
     }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::currentROSEncoding() const
+{
+    std::string gen_api_encoding(cam_->PixelFormat.ToString().c_str());
+    std::string ros_encoding("");
+    if ( !encoding_conversions::genAPI2Ros(gen_api_encoding, ros_encoding) )
+    {
+        std::stringstream ss;
+        ss << "No ROS equivalent to GenApi encoding '" << gen_api_encoding
+           << "' found! This is bad because this case should never occur!";
+        throw std::runtime_error(ss.str());
+        return "NO_ENCODING";
+    }
+    return ros_encoding;
 }
 
 template <typename CameraTraitT>
@@ -264,15 +281,14 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
             setShutterMode(parameters.shutter_mode_);
         }
 
-        setImageEncoding(parameters);
+        available_image_encodings_ = detectAvailableImageEncodings();
+        setImageEncoding(parameters.imageEncoding());
 
         cam_->StartGrabbing();
         user_output_selector_enums_ = detectAndCountNumUserOutputs();
         device_user_id_ = cam_->DeviceUserID.GetValue();
         img_rows_ = static_cast<size_t>(cam_->Height.GetValue());
         img_cols_ = static_cast<size_t>(cam_->Width.GetValue());
-        image_encoding_ = cam_->PixelFormat.GetValue();
-        image_pixel_depth_ = cam_->PixelSize.GetValue();
         img_size_byte_ =  img_cols_ * img_rows_ * imagePixelDepth();
 
         grab_timeout_ = exposureTime().GetMax() * 1.05;
@@ -378,8 +394,120 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
                 << grab_result->GetErrorDescription());
         return false;
     }
-
     return true;
+}
+
+template <typename CameraTraitT>
+std::vector<std::string> PylonCameraImpl<CameraTraitT>::detectAvailableImageEncodings()
+{
+    std::vector<std::string> available_encodings;
+    GenApi::INodeMap& node_map = cam_->GetNodeMap();
+    GenApi::CEnumerationPtr img_encoding_enumeration_ptr(
+                                        node_map.GetNode("PixelFormat"));
+    GenApi::NodeList_t feature_list;
+    img_encoding_enumeration_ptr->GetEntries(feature_list);
+    std::stringstream ss;
+    ss << "Cam supports the following [GenAPI|ROS] image encodings: ";
+    for (GenApi::NodeList_t::iterator it = feature_list.begin();
+         it != feature_list.end();
+         ++it)
+    {
+        if ( GenApi::IsAvailable(*it) )
+        {
+            GenApi::CEnumEntryPtr enum_entry(*it);
+            std::string encoding_gen_api = enum_entry->GetSymbolic().c_str();
+            std::string encoding_ros("NO_ROS_EQUIVALENT");
+            encoding_conversions::genAPI2Ros(encoding_gen_api, encoding_ros);
+            ss << "['" << encoding_gen_api << "'|'" << encoding_ros << "'] ";
+            available_encodings.push_back(encoding_gen_api);
+        }
+    }
+    ROS_INFO_STREAM(ss.str().c_str());
+    return available_encodings;
+}
+
+template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& ros_encoding)
+{
+    std::string gen_api_encoding;
+    if ( !encoding_conversions::ros2GenAPI(ros_encoding, gen_api_encoding) )
+    {
+        ROS_ERROR_STREAM("Can't convert ROS encoding '" << ros_encoding << "' to "
+            << " a corresponding GenAPI encoding! Will keep the current "
+            << "encoding!");
+        return false;
+    }
+
+    bool supports_desired_encoding = false;
+    bool supports_ycbcr_encoding = false;
+    for ( const std::string& enc : available_image_encodings_ )
+    {
+        supports_desired_encoding = (gen_api_encoding == enc);
+        supports_ycbcr_encoding = ("YCbCr422_8" == enc);
+        if ( supports_desired_encoding )
+        {
+            break;
+        }
+    }
+    if ( !supports_desired_encoding )
+    {
+        /*
+         *if ( (ros_enc == sensor_msgs::image_encodings::RGB8 || ros_enc == sensor_msgs::image_encodings::BGR8 )
+         *     && supports_ycbcr_encoding )
+         *{
+         *    ROS_INFO_STREAM("Desired ros encoding '" << ros_enc << "' is not "
+         *        << "directly supported by the camera. Instead the camera supports "
+         *        << "'YCbCr422_8' encoding. Will siwtch to the latter and convert "
+         *        << "the aquired stream to the desired encoding.");
+         *    gen_api_encoding = "YCbCr422_8";
+         *}
+         *else
+         *{
+         */
+            ROS_WARN_STREAM("Camera does not support the desired image pixel "
+                << "encoding '" << ros_encoding << "'! Will keep the current "
+                << "encoding!");
+            return false;
+    }
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->PixelFormat) )
+        {
+            GenApi::INodeMap& node_map = cam_->GetNodeMap();
+            GenApi::CEnumerationPtr(node_map.GetNode("PixelFormat"))->FromString(gen_api_encoding.c_str());
+        }
+        else
+        {
+            ROS_WARN_STREAM("Camera does not support variable image pixel "
+                << "encoding. Will keep the current encoding!");
+            return false;
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting target image encoding to '"
+            << ros_encoding << "' occurred: " << e.GetDescription());
+        return false;
+    }
+    return true;
+}
+
+template <typename CameraTraitT>
+int PylonCameraImpl<CameraTraitT>::imagePixelDepth() const
+{
+    int pixel_depth(0);
+    try
+    {
+        // pylon PixelSize already contains the number of channels
+        // the size is given in bit, wheras ROS provides it in byte
+        pixel_depth = cam_->PixelSize.GetIntValue() / 8;
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while reading image pixel size occurred: "
+                << e.GetDescription());
+    }
+    return pixel_depth;
 }
 
 template <typename CameraTraitT>
@@ -502,7 +630,7 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const float& target_exposure,
         exposureTime().SetValue(exposure_to_set);
         reached_exposure = currentExposure();
 
-        if ( fabs(reached_exposure - exposure_to_set) > exposureStep() )
+        if ( std::fabs(reached_exposure - exposure_to_set) > exposureStep() )
         {
             // no success if the delta between target and reached exposure
             // is greater then the exposure step in ms
@@ -801,19 +929,6 @@ bool PylonCameraImpl<CameraTraitT>::setShutterMode(const SHUTTER_MODE &shutter_m
 }
 
 template <typename CameraTraitT>
-int PylonCameraImpl<CameraTraitT>::imagePixelDepth() const
-{
-    if ( imageEncoding() == sensor_msgs::image_encodings::MONO8)
-    {
-        return (sizeof(uint8_t) * CHANNEL_MONO8);
-    }
-    else
-    {
-        return (sizeof(uint8_t) * CHANNEL_RGB8);
-    }
-}
-
-template <typename CameraTraitT>
 float PylonCameraImpl<CameraTraitT>::exposureStep()
 {
     return static_cast<float>(exposureTime().GetMin());
@@ -880,6 +995,7 @@ bool PylonCameraImpl<CameraTraitT>::setUserOutput(const int& output_id,
     }
     return true;
 }
+
 }  // namespace pylon_camera
 
 #endif  // PYLON_CAMERA_INTERNAL_BASE_HPP_
