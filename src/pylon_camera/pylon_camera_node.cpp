@@ -34,6 +34,8 @@
 #include <vector>
 #include "boost/multi_array.hpp"
 
+#include <opencv2/opencv.hpp>
+
 namespace pylon_camera
 {
 
@@ -321,22 +323,26 @@ bool PylonCameraNode::startGrabbing()
             << pylon_camera_parameter_set_.shutterModeString());
 
     std::vector<cv::Point2i> pts;
-    size_t min_row_size = pylon_camera_->imageRows()/10.0;
+    cv::Point2i start_pt(0, 0);
+    cv::Point2i end_pt(pylon_camera_->imageCols(),
+                       pylon_camera_->imageRows());
+
+    sampling_indices_.push_back(0.5 * end_pt.x * end_pt.y);
+    pts.push_back((end_pt - start_pt) * 0.5);
+    size_t min_row_size = pylon_camera_->imageRows() / pylon_camera_parameter_set_.downsampling_factor_brightness_search_;
     genSamplingIndices(pts,
                        sampling_indices_,
                        min_row_size,
-                       cv::Point2i(0, 0),
-                       cv::Point2i(pylon_camera_->imageCols(),
-                                   pylon_camera_->imageRows()));
-    std::cout << "rows: " << pylon_camera_->imageRows() << ", cols: "
-              << pylon_camera_->imageCols() << ", min_row_size: "
-              << min_row_size << std::endl;
+                       start_pt,
+                       end_pt);
     std::cout << sampling_indices_.size() << std::endl;
     std::sort(sampling_indices_.begin(), sampling_indices_.end());
-    for ( const std::size_t& i : sampling_indices_ )
+    cv::Mat m = cv::Mat::ones(pylon_camera_->imageRows(), pylon_camera_->imageCols(), CV_8UC3);
+    for ( const cv::Point2i& pt : pts )
     {
-        std::cout << i << std::endl;
+        cv::circle(m, pt, 1, cv::Scalar(0, 0, 255), -1);
     }
+    cv::imwrite("/tmp/test.png",m);
 
     // Framerate Settings
     if ( pylon_camera_->maxPossibleFramerate() < pylon_camera_parameter_set_.frameRate() )
@@ -1361,7 +1367,7 @@ void PylonCameraNode::genSamplingIndices(std::vector<cv::Point2i>& pts,
                         cv::Point2i s,   // start
                         cv::Point2i e)   // end
 {
-    if ( e.x - s.x <= min_row_size )
+    if ( std::abs(e.y - s.y) <= min_row_size )
     {
         return;  // abort criteria -> min_rows size reached
     }
@@ -1375,15 +1381,14 @@ void PylonCameraNode::genSamplingIndices(std::vector<cv::Point2i>& pts,
      * 0 0 0 b 0 0 0
      * 0 0 0 0 0 0 e
      */
-    cv::Point2i a, b, c, d, f;
-    a = 0.5 * (e - s);  // center point
-    b  = cv::Point2i(a.x,       1.5 * a.y);
-    c  = cv::Point2i(0.5 * a.x, a.y);
-    d  = cv::Point2i(a.x,       0.5 * a.y);
-    f  = cv::Point2i(1.5 * a.x, a.y);
-
-    pts.push_back(a); pts.push_back(b); pts.push_back(c); pts.push_back(d); pts.push_back(f);
-    indices.push_back(a.x * a.y * 0.5);
+    cv::Point2i a, b, c, d, f, delta;
+    a = s + 0.5 * (e - s);  // center point
+    delta = 0.5 * (e - s);
+    b = s + cv::Point2i(delta.x,       1.5 * delta.y);
+    c = s + cv::Point2i(0.5 * delta.x, delta.y);
+    d = s + cv::Point2i(delta.x,       0.5 * delta.y);
+    f = s + cv::Point2i(1.5 * delta.x, delta.y);
+    pts.push_back(b); pts.push_back(c); pts.push_back(d); pts.push_back(f);
     indices.push_back(b.y * a.x + b.x);
     indices.push_back(c.y * a.x + c.x);
     indices.push_back(d.y * a.x + d.x);
@@ -1392,6 +1397,7 @@ void PylonCameraNode::genSamplingIndices(std::vector<cv::Point2i>& pts,
     genSamplingIndices(pts, indices, min_row_size, a, e);
     genSamplingIndices(pts, indices, min_row_size, cv::Point2i(s.x, a.y), cv::Point2i(a.x, e.y));
     genSamplingIndices(pts, indices, min_row_size, cv::Point2i(a.x, s.y), cv::Point2i(e.x, a.y));
+    return;
 }
 
 float PylonCameraNode::calcCurrentBrightness()
@@ -1401,14 +1407,20 @@ float PylonCameraNode::calcCurrentBrightness()
     {
         return 0.0;
     }
-    cv::Mat cv_img = cv::Mat(img_raw_msg_.height, img_raw_msg_.width, CV_8UC1,
-                             img_raw_msg_.data.data());
-    cv::Mat img_pyr_down;
-    cv::pyrDown(cv_img, img_pyr_down, cv::Size(cv_img.cols*0.01, cv_img.rows*0.01));
-    float mean2 = cv::mean(img_pyr_down).val[0];
+    ros::Time begin = ros::Time::now();
     int sum = std::accumulate(img_raw_msg_.data.begin(), img_raw_msg_.data.end(), 0);
     float mean = static_cast<float>(sum) / img_raw_msg_.data.size();
-    std::cout << "mean1 = " << mean << ", pyr mean = " << mean2 << std::endl;
+    ros::Time end = ros::Time::now();
+    ROS_INFO_STREAM("old mean = " << mean << ", duration = " << (end-begin).toSec());
+    sum = 0;
+    begin = ros::Time::now();
+    for ( const std::size_t& idx : sampling_indices_ )
+    {
+       sum += img_raw_msg_.data.at(idx);
+    }
+    float mean2 = static_cast<float>(sum) / sampling_indices_.size();
+    end = ros::Time::now();
+    ROS_INFO_STREAM("new mean = " << mean2 << ", duration = " << (end-begin).toSec());
     return mean;
 }
 

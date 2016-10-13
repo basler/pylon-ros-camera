@@ -41,7 +41,7 @@ PylonCameraParameter::PylonCameraParameter() :
         binning_y_(1),
         binning_x_given_(false),
         binning_y_given_(false),
-        downsampling_factor_brightness_search_(10.0),
+        downsampling_factor_brightness_search_(1000.0),
         // ##########################
         //  image intensity settings
         // ##########################
@@ -120,7 +120,7 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     }
     nh.param<double>("downsampling_factor_brightness_search",
                      downsampling_factor_brightness_search_,
-                     10.0);
+                     1000.0);
 
     // ##########################
     //  image intensity settings
