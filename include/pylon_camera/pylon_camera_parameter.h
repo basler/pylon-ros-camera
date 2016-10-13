@@ -119,6 +119,12 @@ public:
     bool binning_x_given_;
     bool binning_y_given_;
 
+    /**
+     * Factor that describes the image downsampling to speed up the brightness
+     * search
+     */
+    double downsampling_factor_brightness_search_;
+
     // #######################################################################
     // ###################### Image Intensity Settings  ######################
     // #######################################################################

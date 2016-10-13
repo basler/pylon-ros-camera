@@ -77,6 +77,7 @@ PylonCameraNode::PylonCameraNode()
       pinhole_model_(nullptr),
       cv_bridge_img_rect_(nullptr),
       camera_info_manager_(new camera_info_manager::CameraInfoManager(nh_)),
+      sampling_indices_(),
       is_sleeping_(false)
 {
     init();
@@ -318,6 +319,24 @@ bool PylonCameraNode::startGrabbing()
             << "gamma = " <<  pylon_camera_->currentGamma() << ", "
             << "shutter mode = "
             << pylon_camera_parameter_set_.shutterModeString());
+
+    std::vector<cv::Point2i> pts;
+    size_t min_row_size = pylon_camera_->imageRows()/10.0;
+    genSamplingIndices(pts,
+                       sampling_indices_,
+                       min_row_size,
+                       cv::Point2i(0, 0),
+                       cv::Point2i(pylon_camera_->imageCols(),
+                                   pylon_camera_->imageRows()));
+    std::cout << "rows: " << pylon_camera_->imageRows() << ", cols: "
+              << pylon_camera_->imageCols() << ", min_row_size: "
+              << min_row_size << std::endl;
+    std::cout << sampling_indices_.size() << std::endl;
+    std::sort(sampling_indices_.begin(), sampling_indices_.end());
+    for ( const std::size_t& i : sampling_indices_ )
+    {
+        std::cout << i << std::endl;
+    }
 
     // Framerate Settings
     if ( pylon_camera_->maxPossibleFramerate() < pylon_camera_parameter_set_.frameRate() )
@@ -1336,12 +1355,60 @@ bool PylonCameraNode::setBrightnessCallback(camera_control_msgs::SetBrightness::
     return true;
 }
 
+void PylonCameraNode::genSamplingIndices(std::vector<cv::Point2i>& pts,
+                        std::vector<std::size_t>& indices,
+                        float min_row_size,
+                        cv::Point2i s,   // start
+                        cv::Point2i e)   // end
+{
+    if ( e.x - s.x <= min_row_size )
+    {
+        return;  // abort criteria -> min_rows size reached
+    }
+    /*
+     * sampled img:      point:                             idx:
+     * s 0 0 0 0 0 0  a) [(e.x-s.x)*0.5, (e.y-s.y)*0.5]     a.x*a.y*0.5
+     * 0 0 0 d 0 0 0  b) [a.x,           1.5*a.y]           b.y*a.x+b.x
+     * 0 0 0 0 0 0 0  c) [0.5*a.x,       a.y]               c.y*a.x+c.x
+     * 0 c 0 a 0 f 0  d) [a.x,           0.5*a.y]           d.y*a.x+d.x
+     * 0 0 0 0 0 0 0  f) [1.5*a.x,       a.y]               f.y*a.x+f.x
+     * 0 0 0 b 0 0 0
+     * 0 0 0 0 0 0 e
+     */
+    cv::Point2i a, b, c, d, f;
+    a = 0.5 * (e - s);  // center point
+    b  = cv::Point2i(a.x,       1.5 * a.y);
+    c  = cv::Point2i(0.5 * a.x, a.y);
+    d  = cv::Point2i(a.x,       0.5 * a.y);
+    f  = cv::Point2i(1.5 * a.x, a.y);
+
+    pts.push_back(a); pts.push_back(b); pts.push_back(c); pts.push_back(d); pts.push_back(f);
+    indices.push_back(a.x * a.y * 0.5);
+    indices.push_back(b.y * a.x + b.x);
+    indices.push_back(c.y * a.x + c.x);
+    indices.push_back(d.y * a.x + d.x);
+    indices.push_back(f.y * a.x + f.x);
+    genSamplingIndices(pts, indices, min_row_size, s, a);
+    genSamplingIndices(pts, indices, min_row_size, a, e);
+    genSamplingIndices(pts, indices, min_row_size, cv::Point2i(s.x, a.y), cv::Point2i(a.x, e.y));
+    genSamplingIndices(pts, indices, min_row_size, cv::Point2i(a.x, s.y), cv::Point2i(e.x, a.y));
+}
+
 float PylonCameraNode::calcCurrentBrightness()
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-    assert(img_raw_msg_.data.size() > 0);
+    if ( img_raw_msg_.data.empty() )
+    {
+        return 0.0;
+    }
+    cv::Mat cv_img = cv::Mat(img_raw_msg_.height, img_raw_msg_.width, CV_8UC1,
+                             img_raw_msg_.data.data());
+    cv::Mat img_pyr_down;
+    cv::pyrDown(cv_img, img_pyr_down, cv::Size(cv_img.cols*0.01, cv_img.rows*0.01));
+    float mean2 = cv::mean(img_pyr_down).val[0];
     int sum = std::accumulate(img_raw_msg_.data.begin(), img_raw_msg_.data.end(), 0);
     float mean = static_cast<float>(sum) / img_raw_msg_.data.size();
+    std::cout << "mean1 = " << mean << ", pyr mean = " << mean2 << std::endl;
     return mean;
 }
 

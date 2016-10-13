@@ -260,6 +260,17 @@ protected:
     bool isSleeping();
 
     /**
+     * Generates the subset of points on which the brightness search will be
+     * executed in order to speed it up
+     * @return the subset of points
+     */
+    void genSamplingIndices(std::vector<cv::Point2i>& pts,
+                            std::vector<std::size_t>& indices,
+                            float min_row_size,
+                            cv::Point2i start,   // start
+                            cv::Point2i end);   // end
+
+    /**
      * Calculates the mean brightness of the image
      * @return the mean brightness of the image
      */
@@ -331,6 +342,8 @@ protected:
     cv_bridge::CvImage* cv_bridge_img_rect_;
 
     camera_info_manager::CameraInfoManager* camera_info_manager_;
+    std::vector<cv::Point2i> downsampled_img_pts_;
+    std::vector<std::size_t> sampling_indices_;
 
     bool is_sleeping_;
     boost::recursive_mutex grab_mutex_;
