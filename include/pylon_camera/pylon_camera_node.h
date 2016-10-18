@@ -268,7 +268,7 @@ protected:
                             std::vector<std::size_t>& indices,
                             float min_row_size,
                             cv::Point2i start,   // start
-                            cv::Point2i end);   // end
+                            cv::Point2i end);    // end
 
     /**
      * Calculates the mean brightness of the image
@@ -344,6 +344,7 @@ protected:
     camera_info_manager::CameraInfoManager* camera_info_manager_;
     std::vector<cv::Point2i> downsampled_img_pts_;
     std::vector<std::size_t> sampling_indices_;
+    std::array<float, 255> brightness_exp_lut_;
 
     bool is_sleeping_;
     boost::recursive_mutex grab_mutex_;
