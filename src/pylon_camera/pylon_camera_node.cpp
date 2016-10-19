@@ -77,6 +77,8 @@ PylonCameraNode::PylonCameraNode()
       pinhole_model_(nullptr),
       cv_bridge_img_rect_(nullptr),
       camera_info_manager_(new camera_info_manager::CameraInfoManager(nh_)),
+      sampling_indices_(),
+      brightness_exp_lut_(),
       is_sleeping_(false)
 {
     init();
@@ -318,6 +320,18 @@ bool PylonCameraNode::startGrabbing()
             << "gamma = " <<  pylon_camera_->currentGamma() << ", "
             << "shutter mode = "
             << pylon_camera_parameter_set_.shutterModeString());
+
+    std::size_t min_window_height = static_cast<float>(pylon_camera_->imageRows()) /
+                                    static_cast<float>(pylon_camera_parameter_set_.downsampling_factor_exp_search_);
+    cv::Point2i start_pt(0, 0);
+    cv::Point2i end_pt(pylon_camera_->imageCols(), pylon_camera_->imageRows());
+    // add the iamge center point only once
+    sampling_indices_.push_back(0.5 * pylon_camera_->imageRows() * pylon_camera_->imageCols());
+    genSamplingIndices(sampling_indices_,
+                       min_window_height,
+                       start_pt,
+                       end_pt);
+    std::sort(sampling_indices_.begin(), sampling_indices_.end());
 
     // Framerate Settings
     if ( pylon_camera_->maxPossibleFramerate() < pylon_camera_parameter_set_.frameRate() )
@@ -1170,6 +1184,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
                                     const bool& gain_auto)
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    ros::Time begin = ros::Time::now();  // time measurement for the exposure search
 
     // brightness service can only work, if an image has already been grabbed,
     // because it calculates the mean on the current image. The interface is
@@ -1179,6 +1194,16 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
     {
         ROS_ERROR("Setting brightness failed: interface not ready, although waiting for 3 sec!");
         return false;
+    }
+
+    // smart brightness search initially sets the last rememberd exposure time
+    if ( brightness_exp_lut_.at(target_brightness) != 0.0 )
+    {
+        float reached_exp;
+        if ( !setExposure(brightness_exp_lut_.at(target_brightness), reached_exp) )
+        {
+            ROS_WARN("Tried to speed-up exposure search with initial guess, but setting the exposure failed!");
+        }
     }
 
     // get actual image -> fills img_raw_msg_.data vector
@@ -1196,9 +1221,12 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
             << target_brightness << ", current brightness = "
             << current_brightness);
 
-    if ( fabs(current_brightness - static_cast<float>(target_brightness)) <= 1.0 )
+    if ( std::fabs(current_brightness - static_cast<float>(target_brightness)) <= 1.0 )
     {
         reached_brightness = static_cast<int>(current_brightness);
+        ros::Time end = ros::Time::now();
+        ROS_DEBUG_STREAM("Brightness reached without exposure search, duration: "
+                << (end-begin).toSec());
         return true;  // target brightness already reached
     }
 
@@ -1275,7 +1303,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
             break;
         }
 
-        if ( fabs(last_brightness - current_brightness) <= 1.0 )
+        if ( std::fabs(last_brightness - current_brightness) <= 1.0 )
         {
             fail_safe_ctr++;
         }
@@ -1310,6 +1338,30 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
     ROS_DEBUG_STREAM("Finally reached brightness: " << current_brightness);
     reached_brightness = static_cast<int>(current_brightness);
 
+    // store reached brightness - exposure tuple for next times search
+    if ( is_brightness_reached )
+    {
+        if ( brightness_exp_lut_.at(reached_brightness) == 0.0 )
+        {
+            brightness_exp_lut_.at(reached_brightness) = pylon_camera_->currentExposure();
+        }
+        else
+        {
+            brightness_exp_lut_.at(reached_brightness) += pylon_camera_->currentExposure();
+            brightness_exp_lut_.at(reached_brightness) *= 0.5;
+        }
+        if ( brightness_exp_lut_.at(target_brightness) == 0.0 )
+        {
+            brightness_exp_lut_.at(target_brightness) = pylon_camera_->currentExposure();
+        }
+        else
+        {
+            brightness_exp_lut_.at(target_brightness) += pylon_camera_->currentExposure();
+            brightness_exp_lut_.at(target_brightness) *= 0.5;
+        }
+    }
+    ros::Time end = ros::Time::now();
+    ROS_DEBUG_STREAM("Brightness search duration: " << (end-begin).toSec());
     return is_brightness_reached;
 }
 
@@ -1336,13 +1388,57 @@ bool PylonCameraNode::setBrightnessCallback(camera_control_msgs::SetBrightness::
     return true;
 }
 
+void PylonCameraNode::genSamplingIndices(std::vector<std::size_t>& indices,
+                                         const std::size_t& min_window_height,
+                                         const cv::Point2i& s,   // start
+                                         const cv::Point2i& e)   // end
+{
+    if ( static_cast<std::size_t>(std::abs(e.y - s.y)) <= min_window_height )
+    {
+        return;  // abort criteria -> shrinked window has the min_col_size
+    }
+    /*
+     * sampled img:      point:                             idx:
+     * s 0 0 0 0 0 0  a) [(e.x-s.x)*0.5, (e.y-s.y)*0.5]     a.x*a.y*0.5
+     * 0 0 0 d 0 0 0  b) [a.x,           1.5*a.y]           b.y*img_rows+b.x
+     * 0 0 0 0 0 0 0  c) [0.5*a.x,       a.y]               c.y*img_rows+c.x
+     * 0 c 0 a 0 f 0  d) [a.x,           0.5*a.y]           d.y*img_rows+d.x
+     * 0 0 0 0 0 0 0  f) [1.5*a.x,       a.y]               f.y*img_rows+f.x
+     * 0 0 0 b 0 0 0
+     * 0 0 0 0 0 0 e
+     */
+    cv::Point2i a, b, c, d, f, delta;
+    a = s + 0.5 * (e - s);  // center point
+    delta = 0.5 * (e - s);
+    b = s + cv::Point2i(delta.x,       1.5 * delta.y);
+    c = s + cv::Point2i(0.5 * delta.x, delta.y);
+    d = s + cv::Point2i(delta.x,       0.5 * delta.y);
+    f = s + cv::Point2i(1.5 * delta.x, delta.y);
+    indices.push_back(b.y * pylon_camera_->imageCols() + b.x);
+    indices.push_back(c.y * pylon_camera_->imageCols() + c.x);
+    indices.push_back(d.y * pylon_camera_->imageCols() + d.x);
+    indices.push_back(f.y * pylon_camera_->imageCols() + f.x);
+    genSamplingIndices(indices, min_window_height, s, a);
+    genSamplingIndices(indices, min_window_height, a, e);
+    genSamplingIndices(indices, min_window_height, cv::Point2i(s.x, a.y), cv::Point2i(a.x, e.y));
+    genSamplingIndices(indices, min_window_height, cv::Point2i(a.x, s.y), cv::Point2i(e.x, a.y));
+    return;
+}
+
 float PylonCameraNode::calcCurrentBrightness()
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-    assert(img_raw_msg_.data.size() > 0);
-    int sum = std::accumulate(img_raw_msg_.data.begin(), img_raw_msg_.data.end(), 0);
-    float mean = static_cast<float>(sum) / img_raw_msg_.data.size();
-    return mean;
+    if ( img_raw_msg_.data.empty() )
+    {
+        return 0.0;
+    }
+    float sum = 0.0;
+    // The mean brightness is calculaten using  a subset of all pixels
+    for ( const std::size_t& idx : sampling_indices_ )
+    {
+       sum += img_raw_msg_.data.at(idx);
+    }
+    return sum / static_cast<float>(sampling_indices_.size());
 }
 
 bool PylonCameraNode::setSleepingCallback(camera_control_msgs::SetSleeping::Request &req,

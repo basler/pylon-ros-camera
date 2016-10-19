@@ -119,6 +119,13 @@ public:
     bool binning_x_given_;
     bool binning_y_given_;
 
+    /**
+     * Factor that describes the image downsampling to speed up the exposure
+     * search to find the desired brightness.
+     * The smallest window height is img_rows/downsampling_factor
+     */
+    int downsampling_factor_exp_search_;
+
     // #######################################################################
     // ###################### Image Intensity Settings  ######################
     // #######################################################################
