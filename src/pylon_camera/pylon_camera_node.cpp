@@ -34,8 +34,6 @@
 #include <vector>
 #include "boost/multi_array.hpp"
 
-#include <opencv2/opencv.hpp>
-
 namespace pylon_camera
 {
 
@@ -1440,8 +1438,7 @@ float PylonCameraNode::calcCurrentBrightness()
     {
        sum += img_raw_msg_.data.at(idx);
     }
-    float mean = sum / static_cast<float>(sampling_indices_.size());
-    return mean;
+    return sum / static_cast<float>(sampling_indices_.size());
 }
 
 bool PylonCameraNode::setSleepingCallback(camera_control_msgs::SetSleeping::Request &req,
