@@ -261,8 +261,9 @@ protected:
 
     /**
      * Generates the subset of points on which the brightness search will be
-     * executed in order to speed it up
-     * @return the subset of points
+     * executed in order to speed it up. The subset are the indices of the
+     * one-dimensional image_raw data vector
+     * @return indices describing the subset of points
      */
     void genSamplingIndices(std::vector<std::size_t>& indices,
                             const std::size_t& min_window_height,
@@ -270,7 +271,7 @@ protected:
                             const cv::Point2i& end);
 
     /**
-     * Calculates the mean brightness of the image
+     * Calculates the mean brightness of the image based on the subset indices
      * @return the mean brightness of the image
      */
     float calcCurrentBrightness();
@@ -341,7 +342,7 @@ protected:
     cv_bridge::CvImage* cv_bridge_img_rect_;
 
     camera_info_manager::CameraInfoManager* camera_info_manager_;
-    std::vector<cv::Point2i> downsampled_img_pts_;
+
     std::vector<std::size_t> sampling_indices_;
     std::array<float, 255> brightness_exp_lut_;
 

@@ -326,9 +326,8 @@ bool PylonCameraNode::startGrabbing()
     std::size_t min_window_height = static_cast<float>(pylon_camera_->imageRows()) /
                                     static_cast<float>(pylon_camera_parameter_set_.downsampling_factor_exp_search_);
     cv::Point2i start_pt(0, 0);
-    cv::Point2i end_pt(pylon_camera_->imageCols(),
-                       pylon_camera_->imageRows());
-    // add the iamge center point
+    cv::Point2i end_pt(pylon_camera_->imageCols(), pylon_camera_->imageRows());
+    // add the iamge center point only once
     sampling_indices_.push_back(0.5 * pylon_camera_->imageRows() * pylon_camera_->imageCols());
     genSamplingIndices(sampling_indices_,
                        min_window_height,
@@ -1187,7 +1186,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
                                     const bool& gain_auto)
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-    ros::Time begin = ros::Time::now(); // time measurement for the exposure search
+    ros::Time begin = ros::Time::now();  // time measurement for the exposure search
 
     // brightness service can only work, if an image has already been grabbed,
     // because it calculates the mean on the current image. The interface is
@@ -1202,11 +1201,10 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
     // smart brightness search initially sets the last rememberd exposure time
     if ( brightness_exp_lut_.at(target_brightness) != 0.0 )
     {
-        ROS_DEBUG("Got LUT entry -> trying to speed-up");
         float reached_exp;
         if ( !setExposure(brightness_exp_lut_.at(target_brightness), reached_exp) )
         {
-            ROS_WARN("Tried to mspeed-up exposure search with initial guess, but setting the exposure failed!");
+            ROS_WARN("Tried to speed-up exposure search with initial guess, but setting the exposure failed!");
         }
     }
 
