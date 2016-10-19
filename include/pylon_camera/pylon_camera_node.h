@@ -264,11 +264,10 @@ protected:
      * executed in order to speed it up
      * @return the subset of points
      */
-    void genSamplingIndices(std::vector<cv::Point2i>& pts,
-                            std::vector<std::size_t>& indices,
-                            float min_row_size,
-                            cv::Point2i start,   // start
-                            cv::Point2i end);    // end
+    void genSamplingIndices(std::vector<std::size_t>& indices,
+                            const std::size_t& min_window_height,
+                            const cv::Point2i& start,
+                            const cv::Point2i& end);
 
     /**
      * Calculates the mean brightness of the image
