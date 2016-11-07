@@ -2,8 +2,8 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.7 (2016-11-07)
+------------------
 * Changed default behavior (no_ros_enc given)
   Non-provided encoding is indicated via empty string right-now.
   Default values are mono8 and rgb8 which are checked afterwards.
