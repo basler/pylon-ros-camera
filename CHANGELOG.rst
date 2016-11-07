@@ -2,6 +2,48 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Changed default behavior (no_ros_enc given)
+  Non-provided encoding is indicated via empty string right-now.
+  Default values are mono8 and rgb8 which are checked afterwards.
+  Moved YUV422 support to 'future work'.
+  Still TODO: - Update documentation
+  - Fix brightness search that is evaluating various colored
+  pixels for now
+  See: https://github.com/magazino/pylon_camera/pull/7
+  Resolves: AL-87
+* Merged 'master' with the superfast_brightness_search into unstable/rgb8_support
+  Conflicts:
+  src/pylon_camera/pylon_camera_parameter.cpp
+* First working color image version with Bayer Support
+  - Moved imagePixelDepth() and the setEncoding() Method to the base
+  implementation.
+  - Added functionallity to detect and store the available image encodings from
+  the used camera.
+  - Added conversion methods to convert between ROS and GenAPI encodings
+  Still TODO: - Update documentation
+  - Test code with a camera that supports 'rgb8' and 'bgr8'
+  - Provide 'bgr8' iamges in case the camera does not support
+  'BGR8' but has 'YCbCr422_8' instead
+  - Test brightness search
+  See: https://github.com/magazino/pylon_camera/pull/7
+  Resolves: AL-87
+* Updated rectify image to support rgb8 encoding.
+  Updated grabImage function to create "img_raw" variable with correct
+  format based on current image encoding.
+* Updated imageEncoding and imagePixelDepth function
+  - Modified imageEncoding function to support RGB8 format.
+  - Modified imagePixelDepth function to return correct pixel size based
+  on current image encoding.
+* Added function to set PixelFormat
+  Baed on image_encoding\_ paramter, the function set appropriate
+  PixelFormat depending on USB camera or GigE camera.
+* Added image_encoding as parameter
+  Added image_encoding as one of the parameters defined in yaml file. User
+  can choose between "MONO8" and "RGB8".
+* Contributors: Kazumi Malhan, Marcel Debout
+
 0.0.50 (2016-04-12)
 -------------------
 * removed deprecated 'SetBrightnessSrv', 'SetExposureSrv' and 'SetSleepingSrv'. Please adapt to the new interface

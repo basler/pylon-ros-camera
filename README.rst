@@ -31,7 +31,7 @@ The package opens either a predefined camera (using a given 'device_user_id' par
 ******
 **Installation**
 ******
-The package has been tested for ROS-Indigo. For other ROS versions, please replace 'indigo' with your desired ROS-Version in the following install instructions. 
+The package has been tested for ROS-Indigo. For other ROS versions, please replace 'indigo' with your desired ROS-Version in the following install instructions.
 
 The pylon_camera-pkg requires the pylonSDK to be installed on your system.
 In order to build the package, you need to configure rosdep (i.e. the ROS command-line tool for checking and installing system dependencies for ROS packages) such that
@@ -70,10 +70,16 @@ All parameters are listed in the default config file:  ``config/default.yaml``
 - **camera_info_url**
   The CameraInfo URL (Uniform Resource Locator) where the optional intrinsic camera calibration parameters are stored. This URL string will be parsed from the CameraInfoManager: 
   http://docs.ros.org/api/camera_info_manager/html/classcamera__info__manager_1_1CameraInfoManager.html#details
- 
+
+- **image_encoding**
+  The encoding of the pixels -- channel meaning, ordering, size taken from the list of strings in include/sensor_msgs/image_encodings.h. The supported encodings are 'mono8', 'bgr8', 'rgb8', 'bayer_bggr8', 'bayer_gbrg8' and 'bayer_rggb8'.
+  Default values are 'mono8' and 'rgb8'
+
 - **binning_x & binning_y**
   Binning factor to get downsampled images. It refers here to any camera setting which combines rectangular neighborhoods of pixels into larger "super-pixels." It reduces the resolution of the output image to (width / binning_x) x (height / binning_y). The default values binning_x = binning_y = 0 are considered the same as binning_x = binning_y = 1 (no subsampling).
 
+- **downsampling_factor_exposure_search**
+  To speed up the exposure search, the mean brightness is not calculated on the entire image, but on a subset instead. The image is downsampled until a desired window hight is reached. The window hight is calculated out of the image height divided by the downsampling_factor_exposure search
 
 - **frame_rate**
   The desired publisher frame rate if listening to the topics. This parameter can only be set once at start-up. Calling the GrabImages-Action can result in a higher frame rate.
