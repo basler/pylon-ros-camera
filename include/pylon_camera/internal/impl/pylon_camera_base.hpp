@@ -282,7 +282,10 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         }
 
         available_image_encodings_ = detectAvailableImageEncodings();
-        setImageEncoding(parameters.imageEncoding());
+        if ( !setImageEncoding(parameters.imageEncoding()) )
+        {
+            return false;
+        }
 
         cam_->StartGrabbing();
         user_output_selector_enums_ = detectAndCountNumUserOutputs();
@@ -430,20 +433,41 @@ template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& ros_encoding)
 {
     std::string gen_api_encoding;
-    if ( !encoding_conversions::ros2GenAPI(ros_encoding, gen_api_encoding) )
+    bool conversion_found = encoding_conversions::ros2GenAPI(ros_encoding, gen_api_encoding);
+    if ( !conversion_found )
     {
-        ROS_ERROR_STREAM("Can't convert ROS encoding '" << ros_encoding << "' to "
-            << " a corresponding GenAPI encoding! Will keep the current "
-            << "encoding!");
-        return false;
+        if ( ros_encoding.empty() )
+        {
+            ROS_WARN_STREAM("No image encoding provided. Will use 'mono8' or "
+                << "'rgb8' as fallback!");
+        }
+        else
+        {
+            ROS_ERROR_STREAM("Can't convert ROS encoding '" << ros_encoding
+                << "' to a corresponding GenAPI encoding! Will use 'mono8' or "
+                << "'rgb8' as fallback!");
+        }
+        bool fallback_found = false;
+        for ( const std::string& enc : available_image_encodings_ )
+        {
+            if ( enc == "Mono8" || enc == "RGB8" )
+            {
+                fallback_found = true;
+                gen_api_encoding = enc;
+                break;
+            }
+        }
+        if ( !fallback_found )
+        {
+            ROS_ERROR_STREAM("Couldn't find a fallback solution!");
+            return false;
+        }
     }
 
     bool supports_desired_encoding = false;
-    bool supports_ycbcr_encoding = false;
     for ( const std::string& enc : available_image_encodings_ )
     {
         supports_desired_encoding = (gen_api_encoding == enc);
-        supports_ycbcr_encoding = ("YCbCr422_8" == enc);
         if ( supports_desired_encoding )
         {
             break;
@@ -451,23 +475,9 @@ bool PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& ros_enco
     }
     if ( !supports_desired_encoding )
     {
-        /*
-         *if ( (ros_enc == sensor_msgs::image_encodings::RGB8 || ros_enc == sensor_msgs::image_encodings::BGR8 )
-         *     && supports_ycbcr_encoding )
-         *{
-         *    ROS_INFO_STREAM("Desired ros encoding '" << ros_enc << "' is not "
-         *        << "directly supported by the camera. Instead the camera supports "
-         *        << "'YCbCr422_8' encoding. Will siwtch to the latter and convert "
-         *        << "the aquired stream to the desired encoding.");
-         *    gen_api_encoding = "YCbCr422_8";
-         *}
-         *else
-         *{
-         */
-            ROS_WARN_STREAM("Camera does not support the desired image pixel "
-                << "encoding '" << ros_encoding << "'! Will keep the current "
-                << "encoding!");
-            return false;
+        ROS_WARN_STREAM("Camera does not support the desired image pixel "
+            << "encoding '" << ros_encoding << "'!");
+        return false;
     }
     try
     {
@@ -479,7 +489,7 @@ bool PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& ros_enco
         else
         {
             ROS_WARN_STREAM("Camera does not support variable image pixel "
-                << "encoding. Will keep the current encoding!");
+                << "encoding!");
             return false;
         }
     }

@@ -15,9 +15,9 @@ camera_info_url: ""
 #  The encoding of the pixels -- channel meaning, ordering, size
 #  taken from the list of strings in include/sensor_msgs/image_encodings.h
 #  The supported encodings are 'mono8', 'bgr8', 'rgb8', 'bayer_bggr8',
-#  'bayer_gbrg8', 'bayer_rggb8' and 'yuv422'
-#  Default value is 'mono8'
-image_encoding: mono8
+#  'bayer_gbrg8' and 'bayer_rggb8'
+#  Default values are 'mono8' and 'rgb8'
+# image_encoding: "mono8"
 
 #  Binning factor to get downsampled images. It refers here to any camera
 #  setting which combines rectangular neighborhoods of pixels into larger

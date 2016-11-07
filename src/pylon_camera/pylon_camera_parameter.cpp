@@ -38,7 +38,7 @@ PylonCameraParameter::PylonCameraParameter() :
         device_user_id_(""),
         frame_rate_(5.0),
         camera_info_url_(""),
-        image_encoding_(sensor_msgs::image_encodings::MONO8),
+        image_encoding_(""),
         binning_x_(1),
         binning_y_(1),
         binning_x_given_(false),
@@ -128,15 +128,16 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     {
         std::string encoding;
         nh.getParam("image_encoding", encoding);
-        if ( !sensor_msgs::image_encodings::isMono(encoding) &&
+        if ( !encoding.empty() &&
+             !sensor_msgs::image_encodings::isMono(encoding) &&
              !sensor_msgs::image_encodings::isColor(encoding) &&
              !sensor_msgs::image_encodings::isBayer(encoding) &&
              encoding != sensor_msgs::image_encodings::YUV422 )
         {
             ROS_WARN_STREAM("Desired image encoding parameter: '" << encoding
                 << "' is not part of the 'sensor_msgs/image_encodings.h' list!"
-                << " Will reset it to default value ('mono8')");
-            encoding = sensor_msgs::image_encodings::MONO8;
+                << " Will not set encoding");
+            encoding = std::string("");
         }
         image_encoding_ = encoding;
     }
