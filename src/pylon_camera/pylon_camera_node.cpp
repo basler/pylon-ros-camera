@@ -201,6 +201,18 @@ bool PylonCameraNode::startGrabbing()
                 << "] name not valid for camera_info_manger");
     }
 
+    std::size_t min_window_height = static_cast<float>(pylon_camera_->imageRows()) /
+                                    static_cast<float>(pylon_camera_parameter_set_.downsampling_factor_exp_search_);
+    cv::Point2i start_pt(0, 0);
+    cv::Point2i end_pt(pylon_camera_->imageCols(), pylon_camera_->imageRows());
+    // add the iamge center point only once
+    sampling_indices_.push_back(0.5 * pylon_camera_->imageRows() * pylon_camera_->imageCols());
+    genSamplingIndices(sampling_indices_,
+                       min_window_height,
+                       start_pt,
+                       end_pt);
+    std::sort(sampling_indices_.begin(), sampling_indices_.end());
+
     grab_imgs_raw_as_.start();
 
     // Initial setting of the CameraInfo-msg, assuming no calibration given
@@ -320,18 +332,6 @@ bool PylonCameraNode::startGrabbing()
             << "gamma = " <<  pylon_camera_->currentGamma() << ", "
             << "shutter mode = "
             << pylon_camera_parameter_set_.shutterModeString());
-
-    std::size_t min_window_height = static_cast<float>(pylon_camera_->imageRows()) /
-                                    static_cast<float>(pylon_camera_parameter_set_.downsampling_factor_exp_search_);
-    cv::Point2i start_pt(0, 0);
-    cv::Point2i end_pt(pylon_camera_->imageCols(), pylon_camera_->imageRows());
-    // add the iamge center point only once
-    sampling_indices_.push_back(0.5 * pylon_camera_->imageRows() * pylon_camera_->imageCols());
-    genSamplingIndices(sampling_indices_,
-                       min_window_height,
-                       start_pt,
-                       end_pt);
-    std::sort(sampling_indices_.begin(), sampling_indices_.end());
 
     // Framerate Settings
     if ( pylon_camera_->maxPossibleFramerate() < pylon_camera_parameter_set_.frameRate() )
