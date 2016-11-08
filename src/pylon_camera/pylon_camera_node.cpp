@@ -1432,12 +1432,28 @@ float PylonCameraNode::calcCurrentBrightness()
         return 0.0;
     }
     float sum = 0.0;
-    // The mean brightness is calculaten using  a subset of all pixels
-    for ( const std::size_t& idx : sampling_indices_ )
+    if ( sensor_msgs::image_encodings::isMono(img_raw_msg_.encoding) )
     {
-       sum += img_raw_msg_.data.at(idx);
+        // The mean brightness is calculated using a subset of all pixels
+        for ( const std::size_t& idx : sampling_indices_ )
+        {
+           sum += img_raw_msg_.data.at(idx);
+        }
+        if ( sum > 0.0 )
+        {
+            sum /= static_cast<float>(sampling_indices_.size());
+        }
     }
-    return sum / static_cast<float>(sampling_indices_.size());
+    else
+    {
+        // The mean brightness is calculated using all pixels and all channels
+        sum = std::accumulate(img_raw_msg_.data.begin(), img_raw_msg_.data.end(), 0);
+        if ( sum > 0.0 )
+        {
+            sum /= static_cast<float>(img_raw_msg_.data.size());
+        }
+    }
+    return sum;
 }
 
 bool PylonCameraNode::setSleepingCallback(camera_control_msgs::SetSleeping::Request &req,
