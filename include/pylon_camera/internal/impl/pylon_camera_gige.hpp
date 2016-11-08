@@ -115,15 +115,6 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
                 << cam_->GainRaw.GetMax()
                 << "] measured in decive specific units.");
 
-        if ( GenApi::IsAvailable(cam_->GammaEnable) )
-        {
-            cam_->GammaEnable.SetValue(true);
-            if ( GenApi::IsAvailable(cam_->GammaSelector) )
-            {
-                cam_->GammaSelector.SetValue(Basler_GigECameraParams::GammaSelector_User);
-            }
-        }
-
         ROS_INFO_STREAM("Cam has gammma range: ["
                 << cam_->Gamma.GetMin() << " - "
                 << cam_->Gamma.GetMax() << "].");
