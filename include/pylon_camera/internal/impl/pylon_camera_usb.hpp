@@ -217,6 +217,43 @@ USBCameraTrait::GainType& PylonUSBCamera::gain()
 }
 
 template <>
+bool PylonUSBCamera::setGamma(const float& target_gamma, float& reached_gamma)
+{
+    if ( !GenApi::IsAvailable(cam_->Gamma) )
+    {
+        ROS_ERROR_STREAM("Error while trying to set gamma: cam.Gamma NodeMap is"
+               << " not available!");
+        return false;
+    }
+
+    try
+    {
+        float gamma_to_set = target_gamma;
+        if ( gamma().GetMin() > gamma_to_set )
+        {
+            gamma_to_set = gamma().GetMin();
+            ROS_WARN_STREAM("Desired gamma unreachable! Setting to lower limit: "
+                                  << gamma_to_set);
+        }
+        else if ( gamma().GetMax() < gamma_to_set )
+        {
+            gamma_to_set = gamma().GetMax();
+            ROS_WARN_STREAM("Desired gamma unreachable! Setting to upper limit: "
+                                  << gamma_to_set);
+        }
+        gamma().SetValue(gamma_to_set);
+        reached_gamma = currentGamma();
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting target gamma to "
+                << target_gamma << " occurred: " << e.GetDescription());
+        return false;
+    }
+    return true;
+}
+
+template <>
 GenApi::IFloat& PylonUSBCamera::autoExposureTimeLowerLimit()
 {
     if ( GenApi::IsAvailable(cam_->AutoExposureTimeLowerLimit) )
