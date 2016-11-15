@@ -1236,22 +1236,19 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
     // timeout for the brightness search -> need more time for great exposure values
     ros::Time start_time = ros::Time::now();
     ros::Time timeout;
-    float brightness_timeout;
-    if ( ros::param::get("brightness_timeout", brightness_timeout) )
+    float exposure_search_time;
+    exposure_search_time = pylon_camera_parameter_set_.exposure_search_time_;
+    if ( target_brightness > 205)
     {
-        timeout = start_time + ros::Duration(brightness_timeout);
+        exposure_search_time += 10;
     }
-    else
+
+    if ( pylon_camera_parameter_set_.exposure_search_time_ < 5.)
     {
-        if ( target_brightness > 205 )
-        {
-            timeout = start_time + ros::Duration(15.0);
-        }
-        else
-        {
-            timeout = start_time + ros::Duration(5.0);
-        }
+        ROS_WARN_STREAM("Low exposure search time set!"
+                        <<" Hence brightness search could fail.");
     }
+    timeout = start_time + ros::Duration(exposure_search_time);
     if ( !exposure_auto && !gain_auto )
     {
         ROS_WARN_STREAM("Neither Auto Exposure Time ('exposure_auto') nor Auto "

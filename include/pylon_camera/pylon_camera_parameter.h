@@ -149,7 +149,11 @@ public:
      * be set during startup
      */
     bool exposure_given_;
-
+    /**
+     * The time to wait until the exposure is reached. For slow system this has
+     * to be increased.
+     */
+    double exposure_search_time_;
     /**
      * The target gain in percent of the maximal value the camera supports
      * For USB-Cameras, the gain is in dB, for GigE-Cameras it is given in so
@@ -207,7 +211,6 @@ public:
      * e.g. [50 - 205] for acA2500-14um and acA1920-40gm
      */
     bool brightness_continuous_;
-
     /**
      * Only relevant, if 'brightness' is given as ros-parameter:
      * If the camera should try to reach and / or keep the brightness, hence
