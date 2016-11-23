@@ -1229,26 +1229,10 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
         return true;  // target brightness already reached
     }
 
-    // initially cancel all running brightness search by deactivating
+    // initially cancel all running exposure search by deactivating
     // ExposureAuto & AutoGain
     pylon_camera_->disableAllRunningAutoBrightessFunctions();
 
-    // timeout for the brightness search -> need more time for great exposure values
-    ros::Time start_time = ros::Time::now();
-    ros::Time timeout;
-    float exposure_search_time;
-    exposure_search_time = pylon_camera_parameter_set_.exposure_search_time_;
-    if ( target_brightness > 205)
-    {
-        exposure_search_time += 10;
-    }
-
-    if ( pylon_camera_parameter_set_.exposure_search_time_ < 5.)
-    {
-        ROS_WARN_STREAM("Low exposure search time set!"
-                        <<" Hence brightness search could fail.");
-    }
-    timeout = start_time + ros::Duration(exposure_search_time);
     if ( !exposure_auto && !gain_auto )
     {
         ROS_WARN_STREAM("Neither Auto Exposure Time ('exposure_auto') nor Auto "
@@ -1268,6 +1252,19 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
         fail_safe_ctr_limit = 50;
     }
     float last_brightness = std::numeric_limits<float>::max();
+
+    // timeout for the exposure search -> need more time for great exposure values
+    ros::Time start_time = ros::Time::now();
+    ros::Time timeout = start_time;
+    if ( target_brightness < 205)
+    {
+        timeout += ros::Duration(pylon_camera_parameter_set_.exposure_search_timeout_);
+    }
+    else
+    {
+        timeout += ros::Duration(10.0 + pylon_camera_parameter_set_.exposure_search_timeout_);
+    }
+
     while ( ros::ok() )
     {
         // calling setBrightness in every cycle would not be necessary for the pylon auto

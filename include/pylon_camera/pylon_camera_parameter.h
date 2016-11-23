@@ -149,11 +149,7 @@ public:
      * be set during startup
      */
     bool exposure_given_;
-    /**
-     * The time to wait until the exposure is reached. For slow system this has
-     * to be increased.
-     */
-    double exposure_search_time_;
+
     /**
      * The target gain in percent of the maximal value the camera supports
      * For USB-Cameras, the gain is in dB, for GigE-Cameras it is given in so
@@ -225,6 +221,12 @@ public:
     bool exposure_auto_;
     bool gain_auto_;
     // #######################################################################
+
+    /**
+     * The timeout while searching the exposure which is connected to the
+     * desired brightness. For slow system this has to be increased.
+     */
+    double exposure_search_timeout_;
 
     /**
      * The MTU size. Only used for GigE cameras.

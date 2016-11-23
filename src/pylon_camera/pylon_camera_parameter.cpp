@@ -58,8 +58,8 @@ PylonCameraParameter::PylonCameraParameter() :
         brightness_continuous_(false),
         exposure_auto_(true),
         gain_auto_(true),
-        exposure_search_time_(5.),
         // #########################
+        exposure_search_timeout_(5.),
         mtu_size_(3000),
         inter_pkg_delay_(1000),
         shutter_mode_(SM_DEFAULT)
@@ -71,8 +71,6 @@ PylonCameraParameter::~PylonCameraParameter()
 void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
 {
     nh.param<std::string>("camera_frame", camera_frame_, "pylon_camera");
-
-    nh.param<double>("exposure_search_time", exposure_search_time_, 5.);
 
     nh.param<std::string>("device_user_id", device_user_id_, "");
 
@@ -207,6 +205,8 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     }
     // ##########################
 
+    nh.param<double>("exposure_search_timeout", exposure_search_timeout_, 5.);
+
     if ( nh.hasParam("gige/mtu_size") )
     {
         nh.getParam("gige/mtu_size", mtu_size_);
@@ -284,6 +284,11 @@ void PylonCameraParameter::validateParameterSet(const ros::NodeHandle& nh)
         brightness_given_ = false;
     }
 
+    if ( exposure_search_timeout_ < 5.)
+    {
+        ROS_WARN_STREAM("Low timeout for exposure search detected! Exposure "
+            << "search may fail.");
+    }
     return;
 }
 
