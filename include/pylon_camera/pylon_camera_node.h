@@ -344,7 +344,7 @@ protected:
     camera_info_manager::CameraInfoManager* camera_info_manager_;
 
     std::vector<std::size_t> sampling_indices_;
-    std::array<float, 255> brightness_exp_lut_;
+    std::array<float, 256> brightness_exp_lut_;
 
     bool is_sleeping_;
     boost::recursive_mutex grab_mutex_;
