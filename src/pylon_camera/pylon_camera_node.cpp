@@ -1196,7 +1196,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
     }
 
     // smart brightness search initially sets the last rememberd exposure time
-    if ( brightness_exp_lut_.at(target_brightness) != 0.0 )
+    if ( brightness_exp_lut_.at(std::min(255, target_brightness)) != 0.0 )
     {
         float reached_exp;
         if ( !setExposure(brightness_exp_lut_.at(target_brightness), reached_exp) )
