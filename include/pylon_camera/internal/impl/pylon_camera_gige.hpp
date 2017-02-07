@@ -115,9 +115,18 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
                 << cam_->GainRaw.GetMax()
                 << "] measured in decive specific units.");
 
-        ROS_INFO_STREAM("Cam has gammma range: ["
+        // Check if Gamma is available, print range
+        if( !GenApi::IsAvailable(cam_->Gamma) ) 
+        {
+            ROS_WARN_STREAM("Cam gamma not available, probably set to AUTO.");
+        } 
+        else 
+        {
+            ROS_INFO_STREAM("Cam has gammma range: ["
                 << cam_->Gamma.GetMin() << " - "
                 << cam_->Gamma.GetMax() << "].");
+        }
+        
         ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
                 << cam_->AutoTargetValue.GetMin() << " - "
                 << cam_->AutoTargetValue.GetMax()
@@ -212,36 +221,55 @@ GigECameraTrait::GainType& PylonGigECamera::gain()
     }
 }
 
+/**
+ * @override
+ * Overrides default implementation as the Gamma object might not be available for GigE cameras, 
+ * when the auto gamma mode is activated (see setGamma()).
+ * 
+ * @returns -1 iff Gamma is set to AUTO, returns gamma value iff Gamma is set to USER.
+ */
+template <>
+float PylonGigECamera::currentGamma()
+{
+    if ( !GenApi::IsAvailable(cam_->Gamma) )
+    {
+        ROS_WARN_STREAM("Gamma set to AUTO, use set_gamma to claim gamma control. ");
+        return -1;
+    }
+
+    return static_cast<float>(gamma().GetValue());
+}
+
 template <>
 bool PylonGigECamera::setGamma(const float& target_gamma, float& reached_gamma)
 {
     if ( !GenApi::IsAvailable(cam_->Gamma) )
     {
-        ROS_ERROR_STREAM("Error while trying to set gamma: cam.Gamma NodeMap is"
-               << " not available!");
-        return false;
-    }
+        ROS_WARN_STREAM("Gamma was set to AUTO, setting it to USER in order to assign wanted gamma value.");
 
-    // for GigE cameras you have to enable gamma first
-    if ( GenApi::IsAvailable(cam_->GammaEnable) )
-    {
-        cam_->GammaEnable.SetValue(true);
-    }
-
-    if ( GenApi::IsAvailable(cam_->GammaSelector) )
-    {
-        // set gamma selector to user, so that the gamma value has an influence
-        try
+        // for GigE cameras you have to enable gamma first
+        if ( GenApi::IsAvailable(cam_->GammaEnable) )
         {
-            cam_->GammaSelector.SetValue(Basler_GigECameraParams::GammaSelector_User);
+            cam_->GammaEnable.SetValue(true);
         }
-        catch ( const GenICam::GenericException &e )
+
+        if ( GenApi::IsAvailable(cam_->GammaSelector) )
         {
-            ROS_ERROR_STREAM("An exception while setting gamma selector to"
-                << " USER occurred: " << e.GetDescription());
-            return false;
+            // set gamma selector to USER, so that the gamma value has an influence
+            try
+            {
+                cam_->GammaSelector.SetValue(Basler_GigECameraParams::GammaSelector_User);
+            }
+            catch ( const GenICam::GenericException &e )
+            {
+                ROS_ERROR_STREAM("An exception while setting gamma selector to"
+                    << " USER occurred: " << e.GetDescription());
+                return false;
+            }
         }
     }
+
+    
 
     try
     {
