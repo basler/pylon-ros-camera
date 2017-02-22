@@ -39,6 +39,14 @@ install-script: |
   else
     sudo mv untarred/pylon5/* $PYLON_ROOT/
   fi
+  
+  RULES_DIR=/etc/udev/rules.d
+  RULE_FILE=69-basler-cameras.rules
+  echo "install udev rules to ${RULES_DIR}/${RULE_FILE}"
+  sudo cp $RULE_FILE $RULES_DIR
+  sudo udevadm control --reload-rules
+
+  
 
 check-presence-script: |
   #!/bin/bash
