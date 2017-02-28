@@ -44,8 +44,8 @@ install-script: |
   RULE_FILE=69-basler-cameras.rules
   echo "install udev rules to ${RULES_DIR}/${RULE_FILE}"
   sudo cp $RULE_FILE $RULES_DIR
-  sudo udevadm control --reload-rules
-
+  sudo udevadm control --reload-rules || true
+  echo "udev rules installed"
   
 
 check-presence-script: |
