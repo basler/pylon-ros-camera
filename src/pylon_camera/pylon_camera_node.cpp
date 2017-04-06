@@ -1195,15 +1195,21 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
         return false;
     }
 
-
     int target_brightness_co = std::min(255, target_brightness);
     // smart brightness search initially sets the last rememberd exposure time
     if ( brightness_exp_lut_.at(target_brightness_co) != 0.0 )
     {
         float reached_exp;
-        if ( !setExposure(brightness_exp_lut_.at(target_brightness_co), reached_exp) )
+        if ( !setExposure(brightness_exp_lut_.at(target_brightness_co),
+                          reached_exp) )
         {
-            ROS_WARN("Tried to speed-up exposure search with initial guess, but setting the exposure failed!");
+            ROS_WARN_STREAM("Tried to speed-up exposure search with initial"
+                    << " guess, but setting the exposure failed!");
+        }
+        else
+        {
+            ROS_DEBUG_STREAM("Speed-up exposure search with initial exposure"
+                    << " guess of " << reached_exp);
         }
     }
 
@@ -1234,6 +1240,26 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
     // initially cancel all running exposure search by deactivating
     // ExposureAuto & AutoGain
     pylon_camera_->disableAllRunningAutoBrightessFunctions();
+
+    if ( target_brightness_co <= 50 )
+    {
+        // own binary-exp search: we need to have the upper bound -> PylonAuto
+        // exposure to a initial start value of 50 provides it
+        if ( brightness_exp_lut_.at(50) != 0.0 )
+        {
+            float reached_exp;
+            if ( !setExposure(brightness_exp_lut_.at(50), reached_exp) )
+            {
+                ROS_WARN_STREAM("Tried to speed-up exposure search with initial"
+                    << " guess, but setting the exposure failed!");
+            }
+            else
+            {
+                ROS_DEBUG_STREAM("Speed-up exposure search with initial exposure"
+                    << " guess of " << reached_exp);
+            }
+        }
+    }
 
     if ( !exposure_auto && !gain_auto )
     {
