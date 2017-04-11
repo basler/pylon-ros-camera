@@ -94,6 +94,11 @@ frame_rate: 5.0
 #  desired brightness. For slow system this has to be increased.
 # exposure_search_timeout: 5.0
 
+#  The exposure search can be limited with an upper bound. This is to prevent
+#  very high exposure times and resulting timeouts.
+#  A typical value for this upper bound is ~2000000us.
+# auto_exposure_upper_limit: 2000000.0
+
 #  The MTU size. Only used for GigE cameras.
 #  To prevent lost frames configure the camera has to be configured
 #  with the MTU size the network card supports. A value greater 3000

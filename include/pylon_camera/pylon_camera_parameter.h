@@ -229,6 +229,13 @@ public:
     double exposure_search_timeout_;
 
     /**
+     * The exposure search can be limited with an upper bound. This is to
+     * prevent very high exposure times and resulting timeouts.
+     * A typical value for this upper bound is ~2000000us.
+     */
+    double auto_exp_upper_lim_;
+
+    /**
      * The MTU size. Only used for GigE cameras.
      * To prevent lost frames the camera has to be configured
      * with the MTU size the network card supports. A value greater 3000

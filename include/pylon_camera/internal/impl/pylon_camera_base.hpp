@@ -827,7 +827,7 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brig
         if ( brightness_to_set < autoTargetBrightness().GetMin() )  // Range from [0 - 49]
         {
             binary_exp_search_ = new BinaryExposureSearch(target_brightness,
-                                                          exposureTime().GetMin(),
+                                                          currentAutoExposureTimeLowerLimit(),
                                                           currentExposure(),
                                                           currentExposure());
         }
@@ -835,7 +835,7 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brig
         {
             binary_exp_search_ = new BinaryExposureSearch(target_brightness,
                                                           currentExposure(),
-                                                          exposureTime().GetMax(),
+                                                          currentAutoExposureTimeUpperLimit(),
                                                           currentExposure());
         }
     }

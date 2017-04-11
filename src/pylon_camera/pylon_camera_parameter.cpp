@@ -60,6 +60,7 @@ PylonCameraParameter::PylonCameraParameter() :
         gain_auto_(true),
         // #########################
         exposure_search_timeout_(5.),
+        auto_exp_upper_lim_(0.0),
         mtu_size_(3000),
         inter_pkg_delay_(1000),
         shutter_mode_(SM_DEFAULT)
@@ -206,6 +207,7 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     // ##########################
 
     nh.param<double>("exposure_search_timeout", exposure_search_timeout_, 5.);
+    nh.param<double>("auto_exposure_upper_limit", auto_exp_upper_lim_, 10000000.);
 
     if ( nh.hasParam("gige/mtu_size") )
     {
