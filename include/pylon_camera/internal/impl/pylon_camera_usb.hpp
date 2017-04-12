@@ -81,7 +81,6 @@ bool PylonUSBCamera::applyCamSpecificStartupSettings(const PylonCameraParameter&
           */
         double upper_lim = std::min(parameters.auto_exp_upper_lim_,
                                     cam_->ExposureTime.GetMax());
-        std::cout << cam_->AutoExposureTimeUpperLimit.GetValue() << " " << upper_lim << std::endl;
         cam_->AutoExposureTimeLowerLimit.SetValue(cam_->ExposureTime.GetMin());
         cam_->AutoExposureTimeUpperLimit.SetValue(upper_lim);
 

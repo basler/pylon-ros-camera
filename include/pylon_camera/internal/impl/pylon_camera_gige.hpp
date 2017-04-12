@@ -81,7 +81,6 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
          */
         double upper_lim = std::min(parameters.auto_exp_upper_lim_,
                                     cam_->ExposureTimeAbs.GetMax());
-        std::cout << cam_->AutoExposureTimeAbsUpperLimit.GetValue() << " " << upper_lim << std::endl;
         cam_->AutoExposureTimeAbsLowerLimit.SetValue(cam_->ExposureTimeAbs.GetMin());
         cam_->AutoExposureTimeAbsUpperLimit.SetValue(upper_lim);
 
