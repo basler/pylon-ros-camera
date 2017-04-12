@@ -186,3 +186,4 @@ foreach(child ${children})
   endif()
 endforeach()
 add_custom_target(dummy_${PROJECT_NAME} SOURCES ${${PROJECT_NAME}_extra_files})
+
