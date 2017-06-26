@@ -10,8 +10,6 @@
 
     <node name="$(arg node_name)" pkg="pylon_camera" type="pylon_camera_node" output="screen"
           respawn="$(arg respawn)" launch-prefix="$(arg launch_prefix)">
-
-        <param name="camera_frame" value="$(arg node_name)" type="string" />
         <rosparam command="load" file="$(arg config_file)" />
     </node>
 </launch>
