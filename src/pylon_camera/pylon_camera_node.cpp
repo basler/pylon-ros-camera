@@ -558,8 +558,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         return result;
     }
 
-    if ( exposure_given && exposure_times.size() == 1
-                        && exposure_times.front() == 0.0 )
+    if ( exposure_given && exposure_times.empty() )
     {
         ROS_ERROR_STREAM("GrabImagesRaw action server received request and "
             << "'exposure_given' is true, but the 'exposure_times' vector is "
@@ -568,8 +567,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         return result;
     }
 
-    if ( goal->gain_given && goal->gain_values.size() == 1
-                          && goal->gain_values.front() == 0.0 )
+    if ( goal->gain_given && goal->gain_values.empty() )
     {
         ROS_ERROR_STREAM("GrabImagesRaw action server received request and "
             << "'gain_given' is true, but the 'gain_values' vector is "
@@ -578,8 +576,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         return result;
     }
 
-    if ( brightness_given && brightness_values.size() == 1
-                          && brightness_values.front() == 0.0 )
+    if ( brightness_given && brightness_values.empty() )
     {
         ROS_ERROR_STREAM("GrabImagesRaw action server received request and "
             << "'brightness_given' is true, but the 'brightness_values' vector"
@@ -588,8 +585,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         return result;
     }
 
-    if ( goal->gamma_given && goal->gamma_values.size() == 1
-                           && goal->gain_values.front() == 0.0 )
+    if ( goal->gamma_given && goal->gamma_values.empty() )
     {
         ROS_ERROR_STREAM("GrabImagesRaw action server received request and "
             << "'gamma_given' is true, but the 'gamma_values' vector is "
