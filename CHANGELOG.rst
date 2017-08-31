@@ -2,8 +2,10 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.3 (2017-08-31)
+-------------------
+* Removed all non-ascii symbols from the changelog
+  -> fixed changelog 2.0
 
 0.10.2 (2017-08-31 12:09)
 -------------------------
