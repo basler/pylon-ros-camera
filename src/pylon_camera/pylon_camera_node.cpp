@@ -201,17 +201,10 @@ bool PylonCameraNode::startGrabbing()
                 << "] name not valid for camera_info_manger");
     }
 
-    std::size_t min_window_height = static_cast<float>(pylon_camera_->imageRows()) /
-                                    static_cast<float>(pylon_camera_parameter_set_.downsampling_factor_exp_search_);
-    cv::Point2i start_pt(0, 0);
-    cv::Point2i end_pt(pylon_camera_->imageCols(), pylon_camera_->imageRows());
-    // add the iamge center point only once
-    sampling_indices_.push_back(0.5 * pylon_camera_->imageRows() * pylon_camera_->imageCols());
-    genSamplingIndices(sampling_indices_,
-                       min_window_height,
-                       start_pt,
-                       end_pt);
-    std::sort(sampling_indices_.begin(), sampling_indices_.end());
+    setupSamplingIndices(sampling_indices_,
+                         pylon_camera_->imageRows(),
+                         pylon_camera_->imageCols(),
+                         pylon_camera_parameter_set_.downsampling_factor_exp_search_);
 
     grab_imgs_raw_as_.start();
 
@@ -980,6 +973,10 @@ bool PylonCameraNode::setBinningX(const size_t& target_binning_x,
     // step = full row length in bytes, img_size = (step * rows), imagePixelDepth
     // already contains the number of channels
     img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
+    setupSamplingIndices(sampling_indices_,
+                         pylon_camera_->imageRows(),
+                         pylon_camera_->imageCols(),
+                         pylon_camera_parameter_set_.downsampling_factor_exp_search_);
     return true;
 }
 
@@ -1021,6 +1018,10 @@ bool PylonCameraNode::setBinningY(const size_t& target_binning_y,
     // step = full row length in bytes, img_size = (step * rows), imagePixelDepth
     // already contains the number of channels
     img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
+    setupSamplingIndices(sampling_indices_,
+                         pylon_camera_->imageRows(),
+                         pylon_camera_->imageCols(),
+                         pylon_camera_parameter_set_.downsampling_factor_exp_search_);
     return true;
 }
 
@@ -1418,10 +1419,30 @@ bool PylonCameraNode::setBrightnessCallback(camera_control_msgs::SetBrightness::
     return true;
 }
 
-void PylonCameraNode::genSamplingIndices(std::vector<std::size_t>& indices,
-                                         const std::size_t& min_window_height,
-                                         const cv::Point2i& s,   // start
-                                         const cv::Point2i& e)   // end
+void PylonCameraNode::setupSamplingIndices(std::vector<std::size_t>& indices,
+                                           std::size_t rows,
+                                           std::size_t cols,
+                                           int downsampling_factor)
+{
+    indices.clear();
+    std::size_t min_window_height = static_cast<float>(rows) /
+                                    static_cast<float>(downsampling_factor);
+    cv::Point2i start_pt(0, 0);
+    cv::Point2i end_pt(cols, rows);
+    // add the iamge center point only once
+    sampling_indices_.push_back(0.5 * rows * cols);
+    genSamplingIndicesRec(indices,
+                          min_window_height,
+                          start_pt,
+                          end_pt);
+    std::sort(indices.begin(), indices.end());
+    return;
+}
+
+void PylonCameraNode::genSamplingIndicesRec(std::vector<std::size_t>& indices,
+                                            const std::size_t& min_window_height,
+                                            const cv::Point2i& s,   // start
+                                            const cv::Point2i& e)   // end
 {
     if ( static_cast<std::size_t>(std::abs(e.y - s.y)) <= min_window_height )
     {
@@ -1448,10 +1469,10 @@ void PylonCameraNode::genSamplingIndices(std::vector<std::size_t>& indices,
     indices.push_back(c.y * pylon_camera_->imageCols() + c.x);
     indices.push_back(d.y * pylon_camera_->imageCols() + d.x);
     indices.push_back(f.y * pylon_camera_->imageCols() + f.x);
-    genSamplingIndices(indices, min_window_height, s, a);
-    genSamplingIndices(indices, min_window_height, a, e);
-    genSamplingIndices(indices, min_window_height, cv::Point2i(s.x, a.y), cv::Point2i(a.x, e.y));
-    genSamplingIndices(indices, min_window_height, cv::Point2i(a.x, s.y), cv::Point2i(e.x, a.y));
+    genSamplingIndicesRec(indices, min_window_height, s, a);
+    genSamplingIndicesRec(indices, min_window_height, a, e);
+    genSamplingIndicesRec(indices, min_window_height, cv::Point2i(s.x, a.y), cv::Point2i(a.x, e.y));
+    genSamplingIndicesRec(indices, min_window_height, cv::Point2i(a.x, s.y), cv::Point2i(e.x, a.y));
     return;
 }
 

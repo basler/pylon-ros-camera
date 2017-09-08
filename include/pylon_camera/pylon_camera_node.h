@@ -262,13 +262,24 @@ protected:
     /**
      * Generates the subset of points on which the brightness search will be
      * executed in order to speed it up. The subset are the indices of the
-     * one-dimensional image_raw data vector
+     * one-dimensional image_raw data vector. The base generation is done in a
+     * recursive manner, by calling genSamplingIndicesRec
      * @return indices describing the subset of points
      */
-    void genSamplingIndices(std::vector<std::size_t>& indices,
-                            const std::size_t& min_window_height,
-                            const cv::Point2i& start,
-                            const cv::Point2i& end);
+    void setupSamplingIndices(std::vector<std::size_t>& indices,
+                              std::size_t rows,
+                              std::size_t cols,
+                              int downsampling_factor);
+
+    /**
+     * This funcion will recursivly be called from above setupSamplingIndices()
+     * to generate the indices of pixels given the actual ROI.
+     * @return indices describing the subset of points
+     */
+    void genSamplingIndicesRec(std::vector<std::size_t>& indices,
+                               const std::size_t& min_window_height,
+                               const cv::Point2i& start,
+                               const cv::Point2i& end);
 
     /**
      * Calculates the mean brightness of the image based on the subset indices
