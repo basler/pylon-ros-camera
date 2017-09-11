@@ -2,6 +2,11 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.4 (2017-09-11)
+-------------------
+* Regeneration of brightness indices after binning change
+  Resolves: https://github.com/magazino/pylon_camera/issues/26
+
 0.10.3 (2017-08-31)
 -------------------
 * Removed all non-ascii symbols from the changelog
