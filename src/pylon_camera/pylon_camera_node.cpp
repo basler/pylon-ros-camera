@@ -540,17 +540,6 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     }
     // handling of deprecated interface
 
-    // Can only grab images if either exposure times, or brightness or gain
-    // values are provided:
-    if ( !exposure_given && !brightness_given && !goal->gain_given )
-    {
-        ROS_ERROR_STREAM("GrabImagesRaw action server received request but "
-            << "'exposure_given', 'gain_given' and 'brightness_given' are set "
-            << "to false! Not enough information to execute acquisition!");
-        result.success = false;
-        return result;
-    }
-
     if ( exposure_given && exposure_times.empty() )
     {
         ROS_ERROR_STREAM("GrabImagesRaw action server received request and "
