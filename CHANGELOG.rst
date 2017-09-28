@@ -2,6 +2,13 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.5 (2017-09-28)
+-------------------
+* Empty action goal now leads to undefined returned image
+* Updated README
+* Corrected install instructions
+  Basler finally provides a debian package for the pylon-sdk
+
 0.10.4 (2017-09-11)
 -------------------
 * Regeneration of brightness indices after binning change
