@@ -1,5 +1,5 @@
 set(PYLON_ROOT $ENV{PYLON_ROOT})
-if (NOT "${PYLON_ROOT}")
+if (NOT DEFINED ENV{PYLON_ROOT})
     set(PYLON_ROOT "/opt/pylon5")
 endif()
 
