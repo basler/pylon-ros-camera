@@ -2,6 +2,11 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.6 (2017-10-13)
+-------------------
+* fix Pylon find script (`#27 <https://github.com/magazino/pylon_camera/issues/27>`_)
+* Contributors: tlindbloom
+
 0.10.5 (2017-09-28)
 -------------------
 * Empty action goal now leads to undefined returned image
