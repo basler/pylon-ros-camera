@@ -465,7 +465,7 @@ void PylonCameraNode::grabImagesRectActionExecuteCB(
     }
     else
     {
-        result = PylonCameraNode::grabImagesRaw(goal, grab_imgs_rect_as_);
+        result = grabImagesRaw(goal, std::ref(grab_imgs_rect_as_));
         if ( !result.success )
         {
             grab_imgs_rect_as_->setSucceeded(result);
