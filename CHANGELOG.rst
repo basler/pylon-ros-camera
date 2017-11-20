@@ -2,6 +2,10 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.7 (2017-11-20)
+-------------------
+* Bugfix: lost this because of PylonCameraNode::grabImagesRaw()
+
 0.10.6 (2017-10-13)
 -------------------
 * fix Pylon find script (`#27 <https://github.com/magazino/pylon_camera/issues/27>`_)
