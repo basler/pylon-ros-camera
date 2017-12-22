@@ -1522,10 +1522,16 @@ bool PylonCameraNode::isSleeping()
 
 PylonCameraNode::~PylonCameraNode()
 {
-    delete pylon_camera_;
-    pylon_camera_ = NULL;
-    delete it_;
-    it_ = NULL;
+    if (pylon_camera_)
+    {
+        delete pylon_camera_;
+        pylon_camera_ = nullptr;
+    }
+    if (it_)
+    {
+        delete it_;
+        it_ = nullptr;
+    }
 }
 
 }  // namespace pylon_camera
