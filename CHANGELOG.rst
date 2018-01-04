@@ -2,6 +2,10 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.8 (2018-01-04)
+-------------------
+* prevent double free
+
 0.10.7 (2017-11-20)
 -------------------
 * Bugfix: lost this because of PylonCameraNode::grabImagesRaw()
