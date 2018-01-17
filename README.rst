@@ -3,7 +3,7 @@
 ====
 **developed by Magazino GmbH, using the pylon Software Camera Suite by Basler AG**
 
-.. image:: https://bytebucket.org/Magazino/pylon_camera/raw/7a1f3e06388b9254b579a6a91904558b89917b63/wiki_imgs/logos.png?token=148cff5689b245f6c4ea99172bd9e4637b633a1f
+.. image:: https://raw.githubusercontent.com/magazino/pylon_camera/indigo-devel/wiki_imgs/logos.png
    :width: 130 %
    :align: center
 
