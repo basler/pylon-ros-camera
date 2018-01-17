@@ -2,6 +2,10 @@
 Changelog for package camera_control_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.0.15 (2018-01-17)
+-------------------
+* Fixed logo-path in README
+
 0.0.10 (2016-04-12)
 -------------------
 * removed outdated 'SetBrightnessSrv.srv', 'SetExposureSrv.srv', and 'SetSleepingSrv.srv'
