@@ -91,7 +91,6 @@ target_link_libraries(
 add_dependencies(
     ${PROJECT_NAME}
      ${catkin_EXPORTED_TARGETS}
-     camera_control_msgs
 )
 
 # Add pylon_camera_node

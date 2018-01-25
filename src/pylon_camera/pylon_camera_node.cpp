@@ -348,23 +348,35 @@ bool PylonCameraNode::startGrabbing()
 
 void PylonCameraNode::setupRectification()
 {
-    img_rect_pub_ =
-        new ros::Publisher(nh_.advertise<sensor_msgs::Image>("image_rect", 1));
+    if (!img_rect_pub_)
+    {
+        img_rect_pub_ =
+            new ros::Publisher(nh_.advertise<sensor_msgs::Image>("image_rect", 1));
+    }
 
-    grab_imgs_rect_as_ =
-        new GrabImagesAS(nh_,
-                         "grab_images_rect",
-                         boost::bind(
-                            &PylonCameraNode::grabImagesRectActionExecuteCB,
-                            this,
-                            _1),
-                         false);
+    if (!grab_imgs_rect_as_)
+    {
+        grab_imgs_rect_as_ =
+            new GrabImagesAS(nh_,
+                             "grab_images_rect",
+                             boost::bind(
+                                &PylonCameraNode::grabImagesRectActionExecuteCB,
+                                this,
+                                _1),
+                             false);
+        grab_imgs_rect_as_->start();
+    }
 
-    pinhole_model_ = new image_geometry::PinholeCameraModel();
+    if (!pinhole_model_)
+    {
+        pinhole_model_ = new image_geometry::PinholeCameraModel();
+    }
+
     pinhole_model_->fromCameraInfo(camera_info_manager_->getCameraInfo());
-    grab_imgs_rect_as_->start();
-
-    cv_bridge_img_rect_ = new cv_bridge::CvImage();
+    if (!cv_bridge_img_rect_)
+    {
+        cv_bridge_img_rect_ = new cv_bridge::CvImage();
+    }
     cv_bridge_img_rect_->header = img_raw_msg_.header;
     cv_bridge_img_rect_->encoding = img_raw_msg_.encoding;
 }
@@ -1532,6 +1544,20 @@ PylonCameraNode::~PylonCameraNode()
         delete it_;
         it_ = nullptr;
     }
+    if (grab_imgs_rect_as_)
+    {
+        grab_imgs_rect_as_->shutdown();
+        delete grab_imgs_rect_as_;
+    }
+
+    if (img_rect_pub_)
+        delete img_rect_pub_;
+
+    if (cv_bridge_img_rect_)
+        delete cv_bridge_img_rect_;
+
+    if (pinhole_model_)
+        delete pinhole_model_;
 }
 
 }  // namespace pylon_camera
