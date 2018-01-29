@@ -348,13 +348,13 @@ bool PylonCameraNode::startGrabbing()
 
 void PylonCameraNode::setupRectification()
 {
-    if (!img_rect_pub_)
+    if ( !img_rect_pub_ )
     {
-        img_rect_pub_ =
-            new ros::Publisher(nh_.advertise<sensor_msgs::Image>("image_rect", 1));
+        img_rect_pub_ = new ros::Publisher(
+                            nh_.advertise<sensor_msgs::Image>("image_rect", 1));
     }
 
-    if (!grab_imgs_rect_as_)
+    if ( !grab_imgs_rect_as_ )
     {
         grab_imgs_rect_as_ =
             new GrabImagesAS(nh_,
@@ -367,13 +367,13 @@ void PylonCameraNode::setupRectification()
         grab_imgs_rect_as_->start();
     }
 
-    if (!pinhole_model_)
+    if ( !pinhole_model_ )
     {
         pinhole_model_ = new image_geometry::PinholeCameraModel();
     }
 
     pinhole_model_->fromCameraInfo(camera_info_manager_->getCameraInfo());
-    if (!cv_bridge_img_rect_)
+    if ( !cv_bridge_img_rect_ )
     {
         cv_bridge_img_rect_ = new cv_bridge::CvImage();
     }
@@ -925,8 +925,9 @@ bool PylonCameraNode::waitForCamera(const ros::Duration& timeout) const
             {
                 if ( ros::Time::now() - start_time >= timeout )
                 {
-                    ROS_ERROR_STREAM("Setting brightness failed, because the interface is not ready." <<
-                        "This happens although waiting for " << timeout.sec << " seconds!");
+                    ROS_ERROR_STREAM("Setting brightness failed, because the "
+                        << "interface is not ready. This happens although "
+                        << "waiting for " << timeout.sec << " seconds!");
                     return false;
                 }
             }
@@ -1534,30 +1535,40 @@ bool PylonCameraNode::isSleeping()
 
 PylonCameraNode::~PylonCameraNode()
 {
-    if (pylon_camera_)
+    if ( pylon_camera_ )
     {
         delete pylon_camera_;
         pylon_camera_ = nullptr;
     }
-    if (it_)
+    if ( it_ )
     {
         delete it_;
         it_ = nullptr;
     }
-    if (grab_imgs_rect_as_)
+    if ( grab_imgs_rect_as_ )
     {
         grab_imgs_rect_as_->shutdown();
         delete grab_imgs_rect_as_;
+        grab_imgs_rect_as_ = nullptr;
     }
 
-    if (img_rect_pub_)
+    if ( img_rect_pub_ )
+    {
         delete img_rect_pub_;
+        img_rect_pub_ = nullptr;
+    }
 
-    if (cv_bridge_img_rect_)
+    if ( cv_bridge_img_rect_ )
+    {
         delete cv_bridge_img_rect_;
+        cv_bridge_img_rect_ = nullptr;
+    }
 
-    if (pinhole_model_)
+    if ( pinhole_model_ )
+    {
         delete pinhole_model_;
+        pinhole_model_ = nullptr;
+    }
 }
 
 }  // namespace pylon_camera
