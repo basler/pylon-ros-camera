@@ -2,6 +2,12 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.9 (2018-01-29)
+-------------------
+* Reviewd bugfix: init() is called within action -> multiple server
+  Resolves: SW-6342
+* Create action server and data for rectification only once, delete allocated data conditionally
+
 0.10.8 (2018-01-04)
 -------------------
 * prevent double free
