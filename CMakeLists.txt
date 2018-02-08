@@ -10,7 +10,6 @@ set(
      camera_info_manager
      cv_bridge
      image_geometry
-     camera_info_manager
      image_transport
      roscpp
      roslaunch
