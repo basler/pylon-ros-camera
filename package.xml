@@ -28,8 +28,7 @@
   <build_depend>cv_bridge</build_depend>
   <build_depend>image_geometry</build_depend>
   <build_depend>image_transport</build_depend>
-  <build_depend>libpylon-dev</build_depend>
-  <build_depend>libpylon</build_depend>
+  <build_depend>pylon</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>roslaunch</build_depend>
@@ -42,7 +41,7 @@
   <run_depend>cv_bridge</run_depend>
   <run_depend>image_geometry</run_depend>
   <run_depend>image_transport</run_depend>
-  <run_depend>libpylon</run_depend>
+  <run_depend>pylon</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>roslaunch</run_depend>
   <run_depend>sensor_msgs</run_depend>

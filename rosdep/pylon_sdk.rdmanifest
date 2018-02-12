@@ -13,40 +13,23 @@ install-script: |
   fi
 
   arch="$(uname -m)"
-  version="5.0.1.6388"
   if [ "$arch" == "armv7l" ]; then
     pkgarch="armhf"
+  elif [ "$arch" == "arm64" ]; then
+    pkgarch="arm64"
   elif [ "$arch" == "x86_64" ]; then
-    pkgarch="x86_64"
+    pkgarch="amd64"
   else
-    pkgarch="x86"
+    pkgarch="i386"
   fi
 
-  pkg=pylon-${version}-${pkgarch}.tar.gz
-  url="http://s.baslerweb.com/media/documents/${pkg}"
+  version="5.0.11.10914"
+  pkg=pylon_${version}-deb0_${pkgarch}.deb
+  url="https://www.baslerweb.com/media/downloads/software/pylon_software/${pkg}"
 
   wget --no-check-certificate -O $pkg $url
-  tar xzvf $pkg
-  cd pylon-${version}-${pkgarch}
-  mkdir -p untarred
-  tar xzvf pylonSDK-${version}-${pkgarch}.tar.gz -C untarred
-
-  if [ "${PYLON_ROOT}" = "" ]; then
-    sudo mv untarred/pylon5 /opt
-  elif ( [ -d "${PYLON_ROOT}" ] && [ "$(ls ${PYLON_ROOT})" ] ); then
-    echo "PYLON_ROOT not empty. Not installing!"
-    exit 1
-  else
-    sudo mv untarred/pylon5/* $PYLON_ROOT/
-  fi
-  
-  RULES_DIR=/etc/udev/rules.d
-  RULE_FILE=69-basler-cameras.rules
-  echo "install udev rules to ${RULES_DIR}/${RULE_FILE}"
-  sudo cp $RULE_FILE $RULES_DIR
+  sudo dpkg -i $pkg
   sudo udevadm control --reload-rules || true
-  echo "udev rules installed"
-  
 
 check-presence-script: |
   #!/bin/bash
