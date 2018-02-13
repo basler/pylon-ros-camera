@@ -2,6 +2,12 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.10 (2018-02-13)
+--------------------
+* Installation via pylon-debian pkg
+  This fixes #22, fixes #31
+* Added missing camera_info_manager dependency
+
 0.10.9 (2018-01-29)
 -------------------
 * Reviewd bugfix: init() is called within action -> multiple server
