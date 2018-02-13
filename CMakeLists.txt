@@ -47,20 +47,20 @@ roslint_cpp(
     src/${PROJECT_NAME}/binary_exposure_search.cpp
     src/${PROJECT_NAME}/encoding_conversions.cpp
     src/${PROJECT_NAME}/main.cpp
-    src/${PROJECT_NAME}/pylon_camera_node.cpp
-    src/${PROJECT_NAME}/pylon_camera_parameter.cpp
-    src/${PROJECT_NAME}/pylon_camera.cpp
+    src/${PROJECT_NAME}/${PROJECT_NAME}_node.cpp
+    src/${PROJECT_NAME}/${PROJECT_NAME}_parameter.cpp
+    src/${PROJECT_NAME}/${PROJECT_NAME}.cpp
     src/${PROJECT_NAME}/write_device_user_id_to_camera.cpp
     include/${PROJECT_NAME}/binary_exposure_search.h
     include/${PROJECT_NAME}/encoding_conversions.h
-    include/${PROJECT_NAME}/pylon_camera_node.h
-    include/${PROJECT_NAME}/pylon_camera_parameter.h
-    include/${PROJECT_NAME}/pylon_camera.h
-    include/${PROJECT_NAME}/internal/pylon_camera.h
-    include/${PROJECT_NAME}/internal/impl/pylon_camera_base.hpp
-    include/${PROJECT_NAME}/internal/impl/pylon_camera_dart.hpp
-    include/${PROJECT_NAME}/internal/impl/pylon_camera_gige.hpp
-    include/${PROJECT_NAME}/internal/impl/pylon_camera_usb.hpp
+    include/${PROJECT_NAME}/${PROJECT_NAME}_node.h
+    include/${PROJECT_NAME}/${PROJECT_NAME}_parameter.h
+    include/${PROJECT_NAME}/${PROJECT_NAME}.h
+    include/${PROJECT_NAME}/internal/${PROJECT_NAME}.h
+    include/${PROJECT_NAME}/internal/impl/${PROJECT_NAME}_base.hpp
+    include/${PROJECT_NAME}/internal/impl/${PROJECT_NAME}_dart.hpp
+    include/${PROJECT_NAME}/internal/impl/${PROJECT_NAME}_gige.hpp
+    include/${PROJECT_NAME}/internal/impl/${PROJECT_NAME}_usb.hpp
 )
 
 roslaunch_add_file_check(launch)
@@ -76,9 +76,9 @@ add_library(
     ${PROJECT_NAME}
      src/${PROJECT_NAME}/binary_exposure_search.cpp
      src/${PROJECT_NAME}/encoding_conversions.cpp
-     src/${PROJECT_NAME}/pylon_camera.cpp
-     src/${PROJECT_NAME}/pylon_camera_node.cpp
-     src/${PROJECT_NAME}/pylon_camera_parameter.cpp
+     src/${PROJECT_NAME}/${PROJECT_NAME}.cpp
+     src/${PROJECT_NAME}/${PROJECT_NAME}_node.cpp
+     src/${PROJECT_NAME}/${PROJECT_NAME}_parameter.cpp
 )
 
 target_link_libraries(
@@ -139,9 +139,9 @@ install(
 install(
     PROGRAMS
      scripts/file_sequencer.py
+     scripts/grab_and_save_image_action_server.py
      scripts/result_bag_to_action.py
      scripts/sequence_to_file.py
-     scripts/grab_and_save_image_action_server.py
      scripts/toggle_camera
     DESTINATION
      ${CATKIN_PACKAGE_SHARE_DESTINATION}

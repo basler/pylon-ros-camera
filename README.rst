@@ -33,12 +33,12 @@ The package opens either a predefined camera (using a given 'device_user_id' par
 ******
 The package has been tested for ROS-Indigo and ROS-Kinetic. For other ROS versions than Indigo, please replace 'indigo' with your installed ROS-version in the following install instructions.
 
-The pylon_camera-pkg requires the pylonSDK to be installed on your system. Please install the pylon debian package from:
+The pylon_camera-pkg requires the pylonSDK to be installed on your system. Please download and install the pylon debian package for your architecture from:
 
-``https://www.baslerweb.com/en/support/downloads/software-downloads/pylon-5-0-9-linux-x86-64-bit-debian/``
+``https://www.baslerweb.com/de/support/downloads/downloads-software/``
 
 In order to build the package, you need to configure rosdep (i.e. the ROS command-line tool for checking and installing system dependencies for ROS packages) such that
-it knows how to resolve this dependency. This can be achived by executing the following commands:
+it knows how to resolve this dependency. This can be achieved by executing the following commands:
 
 ``sudo sh -c 'echo "yaml https://raw.githubusercontent.com/magazino/pylon_camera/indigo-devel/rosdep/pylon_sdk.yaml " > /etc/ros/rosdep/sources.list.d/15-plyon_camera.list'``
 
@@ -66,12 +66,12 @@ All parameters are listed in the default config file:  ``config/default.yaml``
 
 - **camera_frame**
   The tf frame under which the images were published
- 
+
 - **device_user_id**
   The DeviceUserID of the camera. If empty, the first camera found in the device list will be used
 
 - **camera_info_url**
-  The CameraInfo URL (Uniform Resource Locator) where the optional intrinsic camera calibration parameters are stored. This URL string will be parsed from the CameraInfoManager: 
+  The CameraInfo URL (Uniform Resource Locator) where the optional intrinsic camera calibration parameters are stored. This URL string will be parsed from the CameraInfoManager:
   http://docs.ros.org/api/camera_info_manager/html/classcamera__info__manager_1_1CameraInfoManager.html#details
 
 - **image_encoding**
@@ -99,7 +99,7 @@ The following settings do **NOT** have to be set. Each camera has default values
 
 - **gamma**
   Gamma correction of pixel intensity. Adjusts the brightness of the pixel values output by the camera's sensor to account for a non-linearity in the human perception of brightness or of the display system (such as CRT).
- 
+
 - **brightness**
   The average intensity value of the images. It depends the exposure time as well as the gain setting. If '**exposure**' is provided, the interface will try to reach the desired brightness by only varying the gain. (What may often fail, because the range of possible exposure values is many times higher than the gain range). If '**gain**' is provided, the interface will try to reach the desired brightness by only varying the exposure time. If '**gain**' AND '**exposure**' are given, it is not possible to reach the brightness, because both are assumed to be fix.
 
