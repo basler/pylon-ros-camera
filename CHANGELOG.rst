@@ -6,6 +6,11 @@ Changelog for package pylon_camera
 --------------------
 * Updated install instructions in README.rst, catkin_lint
 
+0.10.12 (2018-02-13)
+--------------------
+* 0.10.11
+* Updated install intructions in README.rst, catkin_lint
+
 0.10.10 (2018-02-13)
 --------------------
 * Installation via pylon-debian pkg
