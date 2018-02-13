@@ -511,48 +511,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     std::cout << *goal << std::endl;
 #endif
 
-    // handling of deprecated interface
-    bool using_deprecated_interface = goal->target_type == 1 ||
-                                      goal->target_type == 2;
-    bool exposure_given = false;
-    std::vector<float> exposure_times;
-    bool brightness_given = false;
-    std::vector<float> brightness_values;
-    bool gain_auto = false;
-    bool exposure_auto = false;
-    if ( using_deprecated_interface )
-    {
-        ROS_WARN_STREAM("The use of 'target_type' && 'target_values' in the "
-                << "'GrabImages-Action' of the camera_control_msgs-pkg is "
-                << "deprecated! Will map your desired values to the new "
-                << "interface, but please fix your code and make ake use of "
-                << "the new interface!");
-        if ( goal->target_type == goal->EXPOSURE )
-        {
-            exposure_given = true;
-            exposure_times = goal->target_values;
-        }
-        if ( goal->target_type == goal->BRIGHTNESS )
-        {
-            brightness_given = true;
-            brightness_values = goal->target_values;
-            // behaviour of the deprecated interface: gain fix, exposure auto
-            gain_auto = false;
-            exposure_auto = true;
-        }
-    }
-    else
-    {
-        exposure_given = goal->exposure_given;
-        exposure_times = goal->exposure_times;
-        brightness_given = goal->brightness_given;
-        brightness_values = goal->brightness_values;
-        gain_auto = goal->gain_auto;
-        exposure_auto = goal->exposure_auto;
-    }
-    // handling of deprecated interface
-
-    if ( exposure_given && exposure_times.empty() )
+    if ( goal->exposure_given && goal->exposure_times.empty() )
     {
         ROS_ERROR_STREAM("GrabImagesRaw action server received request and "
             << "'exposure_given' is true, but the 'exposure_times' vector is "
@@ -570,7 +529,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         return result;
     }
 
-    if ( brightness_given && brightness_values.empty() )
+    if ( goal->brightness_given && goal->brightness_values.empty() )
     {
         ROS_ERROR_STREAM("GrabImagesRaw action server received request and "
             << "'brightness_given' is true, but the 'brightness_values' vector"
@@ -591,13 +550,13 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     std::vector<size_t> candidates;
     candidates.resize(4);  // gain, exposure, gamma, brightness
     candidates.at(0) = goal->gain_given ? goal->gain_values.size() : 0;
-    candidates.at(1) = exposure_given ? exposure_times.size() : 0;
-    candidates.at(2) = brightness_given ? brightness_values.size() : 0;
+    candidates.at(1) = goal->exposure_given ? goal->exposure_times.size() : 0;
+    candidates.at(2) = goal->brightness_given ? goal->brightness_values.size() : 0;
     candidates.at(3) = goal->gamma_given ? goal->gamma_values.size() : 0;
 
     size_t n_images = *std::max_element(candidates.begin(), candidates.end());
 
-    if ( exposure_given && exposure_times.size() != n_images )
+    if ( goal->exposure_given && goal->exposure_times.size() != n_images )
     {
         ROS_ERROR_STREAM("Size of requested exposure times does not match to "
             << "the size of the requested vaules of brightness, gain or "
@@ -624,7 +583,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         return result;
     }
 
-    if ( brightness_given && brightness_values.size() != n_images )
+    if ( goal->brightness_given && goal->brightness_values.size() != n_images )
     {
         ROS_ERROR_STREAM("Size of requested brightness values does not match to "
             << "the size of the requested exposure times or the vaules of gain or "
@@ -633,7 +592,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         return result;
     }
 
-    if ( brightness_given && !( exposure_auto || gain_auto ) )
+    if ( goal->brightness_given && !( goal->exposure_auto || goal->gain_auto ) )
     {
         ROS_ERROR_STREAM("Error while executing the GrabImagesRawAction: A "
             << "target brightness is provided but Exposure time AND gain are "
@@ -653,7 +612,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
 
     float previous_exp, previous_gain, previous_gamma;
-    if ( exposure_given )
+    if ( goal->exposure_given )
     {
         previous_exp = pylon_camera_->currentExposure();
     }
@@ -665,7 +624,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     {
         previous_gamma = pylon_camera_->currentGamma();
     }
-    if ( brightness_given )
+    if ( goal->brightness_given )
     {
         previous_gain = pylon_camera_->currentGain();
         previous_exp = pylon_camera_->currentExposure();
@@ -673,9 +632,9 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
 
     for ( std::size_t i = 0; i < n_images; ++i )
     {
-        if ( exposure_given )
+        if ( goal->exposure_given )
         {
-            result.success = setExposure(exposure_times[i],
+            result.success = setExposure(goal->exposure_times[i],
                                          result.reached_exposure_times[i]);
         }
         if ( goal->gain_given )
@@ -688,13 +647,13 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
             result.success = setGamma(goal->gamma_values[i],
                                       result.reached_gamma_values[i]);
         }
-        if ( brightness_given )
+        if ( goal->brightness_given )
         {
             int reached_brightness;
-            result.success = setBrightness(brightness_values[i],
+            result.success = setBrightness(goal->brightness_values[i],
                                            reached_brightness,
-                                           exposure_auto,
-                                           gain_auto);
+                                           goal->exposure_auto,
+                                           goal->gain_auto);
             result.reached_brightness_values[i] = static_cast<float>(
                                                             reached_brightness);
             result.reached_exposure_times[i] = pylon_camera_->currentExposure();
@@ -731,44 +690,9 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         }
     }
 
-    float reached_val;
-    if ( !result.success )
-    {
-        // restore previous settings:
-        if ( exposure_given )
-        {
-            setExposure(previous_exp, reached_val);
-        }
-        if ( goal->gain_given )
-        {
-            setGain(previous_gain, reached_val);
-        }
-        if ( goal->gamma_given )
-        {
-            setGamma(previous_gamma, reached_val);
-        }
-        if ( brightness_given )
-        {
-            setGain(previous_gain, reached_val);
-            setExposure(previous_exp, reached_val);
-        }
-        return result;
-    }
-
-    if ( using_deprecated_interface )
-    {
-        if ( goal->target_type == goal->BRIGHTNESS )
-        {
-            result.reached_values = result.reached_brightness_values;
-        }
-        if ( goal->target_type == goal->EXPOSURE )
-        {
-            result.reached_values = result.reached_exposure_times;
-        }
-    }
-
     // restore previous settings:
-    if ( exposure_given )
+    float reached_val;
+    if ( goal->exposure_given )
     {
         setExposure(previous_exp, reached_val);
     }
@@ -780,7 +704,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     {
         setGamma(previous_gamma, reached_val);
     }
-    if ( brightness_given )
+    if ( goal->brightness_given )
     {
         setGain(previous_gain, reached_val);
         setExposure(previous_exp, reached_val);
