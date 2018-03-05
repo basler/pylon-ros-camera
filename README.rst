@@ -31,7 +31,7 @@ The package opens either a predefined camera (using a given 'device_user_id' par
 ******
 **Installation**
 ******
-The package has been tested for ROS-Indigo and ROS-Kinetic. For other ROS versions than Indigo, please replace 'indigo' with your installed ROS-version in the following install instructions.
+The package has been tested for ROS-Indigo and ROS-Kinetic.
 
 The pylon_camera-pkg requires the pylonSDK to be installed on your system. Please download and install the pylon debian package for your architecture from:
 
