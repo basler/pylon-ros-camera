@@ -2,9 +2,10 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.11 (2018-02-13)
+0.10.14 (2018-03-05)
 --------------------
-* Updated install instructions in README.rst, catkin_lint
+* Updated outdated/confusing install instructions
+  This resolves #21
 
 0.10.13 (2018-03-05)
 --------------------
