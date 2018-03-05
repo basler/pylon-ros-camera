@@ -6,6 +6,11 @@ Changelog for package pylon_camera
 --------------------
 * Updated install instructions in README.rst, catkin_lint
 
+0.10.13 (2018-03-05)
+--------------------
+* Add aarch64 architecture (`#32 <https://github.com/magazino/pylon_camera/pull/32>`_)
+* Contributors: lalten
+
 0.10.12 (2018-02-13)
 --------------------
 * 0.10.11
