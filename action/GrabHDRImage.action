@@ -2,15 +2,6 @@
 ################## GOAL ##################
 ##########################################
 
-########################################## DEPRECATED !!!
-uint8 BRIGHTNESS = 1
-uint8 EXPOSURE = 2
-# select between desired mean brightness or exposure
-uint8 target_type
-# list of target exposures/brightness -> resulting 'images' list has same size
-float32[] target_values
-########################################## DEPRECATED !!!
-
 # Flag which indicates if the exposure times are provided and hence should be
 # set before grabbing
 bool exposure_given
@@ -79,11 +70,6 @@ float32[] gamma_values
 ##########################################
 ################# RESULT #################
 ##########################################
-
-########################################## DEPRECATED !!!
-# target values can not always be reached
-float32[] reached_values
-########################################## DEPRECATED !!!
 
 # The resulting HDR image generated out of several images with the inquired
 # image intensity settings.
