@@ -2,6 +2,16 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.11.0 (2018-03-06)
+-------------------
+* Removed deprectated msg-flags
+  There were deprecated flags in camera_control_msgs/GrabImagesAction,
+  that have been removed, namely
+  uint8 BRIGHTNESS = 1
+  uint8 EXPOSURE = 2
+  uint8 target_type
+  float32[] target_values
+
 0.10.14 (2018-03-05)
 --------------------
 * Updated outdated/confusing install instructions
