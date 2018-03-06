@@ -2,6 +2,16 @@
 Changelog for package camera_control_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.1.0 (2018-03-06)
+------------------
+* Removed deprectated msg-flags
+  There were deprecated flags in camera_control_msgs/GrabImagesAction,
+  that have been removed, namely
+  uint8 BRIGHTNESS = 1
+  uint8 EXPOSURE = 2
+  uint8 target_type
+  float32[] target_values
+
 0.0.15 (2018-01-17)
 -------------------
 * Fixed logo-path in README
