@@ -98,7 +98,6 @@ bool PylonDARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
     {
         if ( cam_->IsCameraDeviceRemoved() )
         {
-            is_cam_removed_ = true;
             ROS_ERROR("Camera was removed");
         }
         else

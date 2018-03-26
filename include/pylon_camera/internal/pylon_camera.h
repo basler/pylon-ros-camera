@@ -56,6 +56,8 @@ public:
 
     virtual bool openCamera();
 
+    virtual bool isCamRemoved();
+
     virtual bool setupSequencer(const std::vector<float>& exposure_times);
 
     virtual bool applyCamSpecificStartupSettings(const PylonCameraParameter& parameters);

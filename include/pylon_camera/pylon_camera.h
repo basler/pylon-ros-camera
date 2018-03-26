@@ -76,6 +76,12 @@ public:
     virtual bool openCamera() = 0;
 
     /**
+     * Returns the connection state of the camera device.
+     * @return true if the camera device removal from the PC has been detected.
+     */
+    virtual bool isCamRemoved() = 0;
+
+    /**
      * Configure the sequencer exposure times.
      * @param exposure_times the list of exposure times.
      * @return true if all parameters could be sent to the camera.
@@ -393,12 +399,6 @@ public:
     const float& maxBrightnessTolerance() const;
 
     /**
-     * Returns the connection state of the camera device.
-     * @return true if the camera device removal from the PC has been detected.
-     */
-    const bool& isCamRemoved() const;
-
-    /**
      * Getter for the sequencer exposure times.
      * @return the list of exposure times
      */
@@ -455,11 +455,6 @@ protected:
      * acquisition contains valid data
      */
     bool is_ready_;
-
-    /**
-     * True if the camera device removal from the PC has been detected.
-     */
-    bool is_cam_removed_;
 
     /**
      * True if the extended binary exposure search is running.

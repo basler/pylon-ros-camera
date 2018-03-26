@@ -174,14 +174,15 @@ bool PylonCameraNode::startGrabbing()
     for ( int i = 0; i < set_user_output_srvs_.size(); ++i )
     {
         std::string srv_name = "set_user_output_" + std::to_string(i);
-        set_user_output_srvs_.at(i) = nh_.advertiseService< camera_control_msgs::SetBool::Request,
-                                                            camera_control_msgs::SetBool::Response >(
-                                            srv_name,
-                                            boost::bind(&PylonCameraNode::setUserOutputCB,
-                                                        this,
-                                                        i,
-                                                        _1,
-                                                        _2));
+        set_user_output_srvs_.at(i) =
+            nh_.advertiseService< camera_control_msgs::SetBool::Request,
+                                  camera_control_msgs::SetBool::Response >(
+                                    srv_name,
+                                    boost::bind(&PylonCameraNode::setUserOutputCB,
+                                                this,
+                                                i,
+                                                _1,
+                                                _2));
     }
 
     img_raw_msg_.header.frame_id = pylon_camera_parameter_set_.cameraFrame();
@@ -392,6 +393,20 @@ void PylonCameraNode::spin()
         ROS_INFO_ONCE("Camera not calibrated");
     }
 
+    if ( pylon_camera_->isCamRemoved() )
+    {
+        ROS_ERROR("Pylon camera has been removed, trying to reset");
+        delete pylon_camera_;
+        pylon_camera_ = nullptr;
+        for ( ros::ServiceServer& user_output_srv : set_user_output_srvs_ )
+        {
+            user_output_srv.shutdown();
+        }
+        set_user_output_srvs_.clear();
+        ros::Duration(0.5).sleep();  // sleep for half a second
+        init();
+        return;
+    }
     // images were published if subscribers are available or if someone calls
     // the GrabImages Action
     if ( !isSleeping() && ( img_raw_pub_.getNumSubscribers() > 0 ||
@@ -427,18 +442,7 @@ bool PylonCameraNode::grabImage()
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     if ( !pylon_camera_->grab(img_raw_msg_.data) )
     {
-        if ( pylon_camera_->isCamRemoved() )
-        {
-            ROS_ERROR("Pylon camera has been removed!");
-            delete pylon_camera_;
-            pylon_camera_ = nullptr;
-            ros::Duration(0.5).sleep();  // sleep for half a second
-            init();
-        }
-        else
-        {
-            ROS_WARN("Pylon camera returned invalid image! Skipping");
-        }
+        ROS_WARN("Pylon camera returned invalid image! Skipping");
         return false;
     }
 

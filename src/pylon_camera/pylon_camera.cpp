@@ -49,7 +49,6 @@ PylonCamera::PylonCamera()
     , img_size_byte_(0)
     , grab_timeout_(-1.0)
     , is_ready_(false)
-    , is_cam_removed_(false)
     , is_binary_exposure_search_running_(false)
     , max_brightness_tolerance_(2.5)
     , binary_exp_search_(nullptr)
@@ -182,10 +181,9 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
             }
             else
             {
-                ROS_ERROR_STREAM("Couldn't find the camera, that matches the "
-                    << "given DeviceUserID: " << device_user_id_to_open << "!\r\n"
-                    << "Maybe it's wrong or has not yet been written to the "
-                    << "camera?!");
+                ROS_ERROR_STREAM("Couldn't find the camera that matches the "
+                    << "given DeviceUserID: " << device_user_id_to_open << "! "
+                    << "Either the ID is wrong or the cam is not yet conneted");
                 return nullptr;
             }
         }
@@ -222,11 +220,6 @@ const size_t& PylonCamera::imageSize() const
 const float& PylonCamera::maxBrightnessTolerance() const
 {
     return max_brightness_tolerance_;
-}
-
-const bool& PylonCamera::isCamRemoved() const
-{
-    return is_cam_removed_;
 }
 
 const bool& PylonCamera::isReady() const

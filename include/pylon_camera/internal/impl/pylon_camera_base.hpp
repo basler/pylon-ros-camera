@@ -93,6 +93,12 @@ bool PylonCameraImpl<CameraTraitT>::openCamera()
 }
 
 template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::isCamRemoved()
+{
+    return cam_->IsCameraDeviceRemoved();
+}
+
+template <typename CameraTraitT>
 size_t PylonCameraImpl<CameraTraitT>::currentBinningX()
 {
     if ( GenApi::IsAvailable(cam_->BinningHorizontal) )
@@ -375,8 +381,7 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
     {
         if ( cam_->IsCameraDeviceRemoved() )
         {
-            is_cam_removed_ = true;
-            ROS_ERROR("Camera was removed, trying to re-open . . .");
+            ROS_ERROR("Lost connection to the camera . . .");
         }
         else
         {
