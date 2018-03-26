@@ -2,6 +2,13 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.11.1 (2018-03-26)
+-------------------
+* Improved re-connection behavior
+  ...by resetting the set_user_output services
+  Furthermore the spin method now checks if the camera might have lost connection
+  and toggles a re-init.
+
 0.11.0 (2018-03-06)
 -------------------
 * Removed deprectated msg-flags
