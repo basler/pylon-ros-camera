@@ -430,8 +430,15 @@ void PylonCameraNode::spin()
             img_raw_pub_.publish(img_raw_msg_, *cam_info);
         }
 
-        if ( getNumSubscribersRect() > 0 )
+        if ( getNumSubscribersRect() > 0 && camera_info_manager_->isCalibrated() )
         {
+            cv_bridge_img_rect_->header.stamp = img_raw_msg_.header.stamp;
+            assert(pinhole_model_->initialized());
+            cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(
+                    img_raw_msg_,
+                    img_raw_msg_.encoding);
+            pinhole_model_->fromCameraInfo(camera_info_manager_->getCameraInfo());
+            pinhole_model_->rectifyImage(cv_img_raw->image, cv_bridge_img_rect_->image);
             img_rect_pub_->publish(*cv_bridge_img_rect_);
         }
     }
@@ -445,19 +452,7 @@ bool PylonCameraNode::grabImage()
         ROS_WARN("Pylon camera returned invalid image! Skipping");
         return false;
     }
-
     img_raw_msg_.header.stamp = ros::Time::now();
-
-    if ( camera_info_manager_->isCalibrated() )
-    {
-        cv_bridge_img_rect_->header.stamp = img_raw_msg_.header.stamp;
-        assert(pinhole_model_->initialized());
-        cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(
-                                                        img_raw_msg_,
-                                                        img_raw_msg_.encoding);
-        pinhole_model_->fromCameraInfo(camera_info_manager_->getCameraInfo());
-        pinhole_model_->rectifyImage(cv_img_raw->image, cv_bridge_img_rect_->image);
-    }
     return true;
 }
 
