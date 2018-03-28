@@ -2,6 +2,13 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.11.2 (2018-03-28)
+-------------------
+* Bugfix for useless rectification
+  Moved rectification part in the scope of publishing the result.
+  This resolves #36.
+  Thanks to @flajolet for your contribution
+
 0.11.1 (2018-03-26)
 -------------------
 * Improved re-connection behavior
