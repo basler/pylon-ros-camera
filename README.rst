@@ -87,6 +87,10 @@ All parameters are listed in the default config file:  ``config/default.yaml``
 - **frame_rate**
   The desired publisher frame rate if listening to the topics. This parameter can only be set once at start-up. Calling the GrabImages-Action can result in a higher frame rate.
 
+- **shutter_mode**
+  Set mode of camera's shutter if the value is not empty. The supported modes are 'rolling', 'global' and 'global_reset'.
+  Default value is '' (empty)
+
 **Image Intensity Settings**
 
 The following settings do **NOT** have to be set. Each camera has default values which provide an automatic image adjustment resulting in valid images
