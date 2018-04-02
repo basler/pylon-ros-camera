@@ -199,7 +199,7 @@ bool PylonCameraNode::startGrabbing()
     {
         // valid name contains only alphanumerc signs and '_'
         ROS_WARN_STREAM("[" << pylon_camera_->deviceUserID()
-                << "] name not valid for camera_info_manger");
+                << "] name not valid for camera_info_manager");
     }
 
     setupSamplingIndices(sampling_indices_,
