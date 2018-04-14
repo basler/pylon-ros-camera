@@ -69,7 +69,7 @@ public:
 
     /**
      * initialize the camera and the ros node.
-     * calls ros::shutdown if an error occours.
+     * calls ros::shutdown if an error occurs.
      */
     void init();
 
@@ -106,7 +106,7 @@ protected:
 
     /**
      * Initializing of img_rect_pub_, grab_img_rect_as_ and the pinhole_model_,
-     * in case that a vaid camera info has been set
+     * in case that a valid camera info has been set
      * @return
      */
     void setupRectification();
@@ -272,7 +272,7 @@ protected:
                               int downsampling_factor);
 
     /**
-     * This funcion will recursivly be called from above setupSamplingIndices()
+     * This function will recursively be called from above setupSamplingIndices()
      * to generate the indices of pixels given the actual ROI.
      * @return indices describing the subset of points
      */

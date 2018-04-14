@@ -183,7 +183,7 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
             {
                 ROS_ERROR_STREAM("Couldn't find the camera that matches the "
                     << "given DeviceUserID: " << device_user_id_to_open << "! "
-                    << "Either the ID is wrong or the cam is not yet conneted");
+                    << "Either the ID is wrong or the cam is not yet connected");
                 return nullptr;
             }
         }

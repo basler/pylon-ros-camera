@@ -74,7 +74,7 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         cam_->TriggerSource.SetValue(Basler_GigECameraParams::TriggerSource_Software);
         cam_->TriggerMode.SetValue(Basler_GigECameraParams::TriggerMode_On);
 
-        /* Thresholds for the AutoExposure Funcitons:
+        /* Thresholds for the AutoExposure Functions:
          *  - lower limit can be used to get rid of changing light conditions
          *    due to 50Hz lamps (-> 20ms cycle duration)
          *  - upper limit is to prevent motion blur
@@ -90,7 +90,7 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         // The gain auto function and the exposure auto function can be used at the
         // same time. In this case, however, you must also set the
         // Auto Function Profile feature.
-        // acA1920-40gm does not suppert Basler_GigECameraParams::GainSelector_AnalogAll
+        // acA1920-40gm does not support Basler_GigECameraParams::GainSelector_AnalogAll
         // has Basler_GigECameraParams::GainSelector_All instead
         // cam_->GainSelector.SetValue(Basler_GigECameraParams::GainSelector_AnalogAll);
 
@@ -124,7 +124,7 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         }
         else
         {
-            ROS_INFO_STREAM("Cam has gammma range: ["
+            ROS_INFO_STREAM("Cam has gamma range: ["
                 << cam_->Gamma.GetMin() << " - "
                 << cam_->Gamma.GetMax() << "].");
         }

@@ -36,7 +36,7 @@ namespace pylon_camera
 {
 
 /**
- * Class for the extended brighntess search using a binary
+ * Class for the extended brightness search using a binary
  * exposure search method
  */
 class BinaryExposureSearch

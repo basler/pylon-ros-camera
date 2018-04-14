@@ -118,7 +118,7 @@ public:
     size_t binning_y_;
 
     /**
-     * Flagis which indicate if the binning factors are provided and hence
+     * Flags which indicate if the binning factors are provided and hence
      * should be set during startup
      */
     bool binning_x_given_;
@@ -182,7 +182,7 @@ public:
      * time as well as the gain setting. If 'exposure' is provided, the
      * interface will try to reach the desired brightness by only varying the
      * gain. (What may often fail, because the range of possible exposure
-     * vaules is many times higher than the gain range).
+     * values is many times higher than the gain range).
      * If 'gain' is provided, the interface will try to reach the desired
      * brightness by only varying the exposure time. If gain AND exposure are
      * given, it is not possible to reach the brightness, because both are
@@ -284,7 +284,7 @@ protected:
 
     /**
      * The desired publisher frame rate if listening to the topics.
-     * This paramter can only be set once at startup
+     * This parameter can only be set once at startup
      * Calling the GrabImages-Action can result in a higher framerate
      */
     double frame_rate_;

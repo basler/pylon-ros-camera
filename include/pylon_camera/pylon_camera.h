@@ -71,7 +71,7 @@ public:
 
     /**
      * Opens the desired camera, the communication starts from now on.
-     * @return true if the camera could be opend.
+     * @return true if the camera could be opened.
      */
     virtual bool openCamera() = 0;
 
@@ -210,7 +210,7 @@ public:
      * @brief Detects and counts the number of user-settable-outputs the cam
      *        provides. This might be zero for some cameras. The size affects
      *        the number of 'set' ros-services the camera_node will provide.
-     *        A vector wich length equals the number of user-settable outputs
+     *        A vector which length equals the number of user-settable outputs
      *        will be generated. Hence e.g. output '1' can be accessed via
      *        user_output_selector_enums_.at(1).
      * @return the UserOutputSelector enum list
@@ -314,7 +314,7 @@ public:
 
     /**
      * Disables all currently running brightness search methods in case that
-     * the desired brightness is reached or a timeout occoured
+     * the desired brightness is reached or a timeout occurred
      */
     virtual void disableAllRunningAutoBrightessFunctions() = 0;
 
@@ -362,15 +362,15 @@ public:
      * Getter for the is_ready_ flag. This is set in case that the
      * grab-result-pointer of the first acquisition contains valid data.
      * Hence this is the current state of the interface
-     * @return true if the interfeace is ready
+     * @return true if the interface is ready
      */
     const bool& isReady() const;
 
     /**
-     * Returns the number of digital user outputs, which can be set by the the
+     * Returns the number of digital user outputs, which can be set by the
      * camera. Might be zero for some cameras. The size affects the number of
      * 'set' ros-services the camera node will provide
-     * @return numer of digital user outputs
+     * @return number of digital user outputs
      */
     std::size_t numUserOutputs() const;
 
@@ -445,7 +445,7 @@ protected:
     size_t img_size_byte_;
 
     /**
-     * The max time a single grab is allwed to take. This value should always
+     * The max time a single grab is allowed to take. This value should always
      * be greater then the max possible exposure time of the camera
      */
     float grab_timeout_;
