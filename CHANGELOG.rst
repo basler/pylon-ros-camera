@@ -2,6 +2,11 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.11.5 (2018-05-07)
+-------------------
+* Updated license year
+* Issue found -> wrong year -> renamed back
+
 0.11.4 (2018-05-07)
 -------------------
 * Again renamed the LICENSE file
