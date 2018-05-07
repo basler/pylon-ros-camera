@@ -2,6 +2,10 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.11.3 (2018-05-07)
+-------------------
+* Renamed LICENSE.rst
+
 0.11.2 (2018-03-28)
 -------------------
 * Bugfix for useless rectification
