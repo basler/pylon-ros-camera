@@ -2,6 +2,13 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.11.6 (2018-05-15)
+-------------------
+* Added definition in default config and readme description of missed parameter 'shutter_mode'
+* fix typos.
+* Fixed typo in message in method PylonCameraNode::startGrabbing
+* Tried to fix LICENSE-issue
+
 0.11.5 (2018-05-07)
 -------------------
 * Updated license year
