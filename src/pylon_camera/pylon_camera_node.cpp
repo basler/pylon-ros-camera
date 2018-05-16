@@ -382,6 +382,14 @@ void PylonCameraNode::setupRectification()
     cv_bridge_img_rect_->encoding = img_raw_msg_.encoding;
 }
 
+struct CameraPublisherImpl
+{
+  image_transport::Publisher image_pub_;
+  ros::Publisher info_pub_;
+  bool unadvertised_;
+  //double constructed_;
+};
+
 void PylonCameraNode::spin()
 {
     if ( camera_info_manager_->isCalibrated() )
@@ -409,7 +417,7 @@ void PylonCameraNode::spin()
     }
     // images were published if subscribers are available or if someone calls
     // the GrabImages Action
-    if ( !isSleeping() && ( img_raw_pub_.getNumSubscribers() > 0 ||
+    if ( !isSleeping() && ( ((CameraPublisherImpl*)(void*)img_raw_pub_)->image_pub_.getNumSubscribers() > 0 ||
                             getNumSubscribersRect() ) )
     {
         if ( !grabImage() )
