@@ -687,6 +687,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
             action_server->publishFeedback(feedback);
         }
     }
+    result.cam_info = pinhole_model_->cameraInfo();
 
     // restore previous settings:
     float reached_val;
