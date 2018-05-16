@@ -2,6 +2,12 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.11.8 (2018-05-16)
+-------------------
+* Last change from Marcel as a member of the Magazino-Team. Bye Bye :-)
+* Bugfix: CameraPublisherImpl leads to crash
+* Added CameraInfo to the GrabImagesResult
+
 0.11.7 (2018-05-16)
 -------------------
 * Revied PR, Moved CameraPublisherImpl struct to method
