@@ -2,6 +2,12 @@
 Changelog for package camera_control_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.0 (2018-05-16)
+------------------
+* Added camera-info-object the the GrabResults
+  This will allow variable binning settings.
+* Updated license year
+
 0.1.0 (2018-03-06)
 ------------------
 * Removed deprectated msg-flags
