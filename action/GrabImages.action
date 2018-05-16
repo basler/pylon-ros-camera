@@ -67,6 +67,10 @@ bool gain_auto
 # brightness_values-vector
 sensor_msgs/Image[] images
 
+# The CameraInfo obejct describing the camera properties for the above image
+# sequence. Static in many cases, but can also support variable binning setting
+sensor_msgs/CameraInfo cam_info
+
 # The reached values of the images e.g. the values that were set to the camera
 # before the grab
 float32[] reached_exposure_times
@@ -81,7 +85,6 @@ float32[] reached_gamma_values
 # In case of failure, the images-vector contains only the images, that could be
 # grabbed before the failure occurred.
 bool success
-
 ---
 ##########################################
 ################ FEEDBACK ################
