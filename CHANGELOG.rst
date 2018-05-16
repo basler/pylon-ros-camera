@@ -2,6 +2,11 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.11.7 (2018-05-16)
+-------------------
+* Revied PR, Moved CameraPublisherImpl struct to method
+* Workaround for overestimated wrong numbers of subscribers on image_raw
+
 0.11.6 (2018-05-15)
 -------------------
 * Added definition in default config and readme description of missed parameter 'shutter_mode'
