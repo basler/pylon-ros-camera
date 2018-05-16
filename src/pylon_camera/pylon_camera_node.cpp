@@ -687,7 +687,13 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
             action_server->publishFeedback(feedback);
         }
     }
-    result.cam_info = pinhole_model_->cameraInfo();
+    if ( camera_info_manager_ )
+    {
+        sensor_msgs::CameraInfoPtr cam_info(
+                                new sensor_msgs::CameraInfo(
+                                    camera_info_manager_->getCameraInfo()));
+        result.cam_info = *cam_info;
+    }
 
     // restore previous settings:
     float reached_val;
@@ -741,8 +747,10 @@ uint32_t PylonCameraNode::getNumSubscribersRaw() const
     {
         image_transport::Publisher image_pub_;
         ros::Publisher info_pub_;
+        bool unadvertised_;
     };
-    return ((CameraPublisherImpl*)(void*)img_raw_pub_)->image_pub_.getNumSubscribers();
+    return img_raw_pub_.getNumSubscribers();
+    // return ((CameraPublisherImpl*)(void*)img_raw_pub_)->image_pub_.getNumSubscribers();
 }
 
 uint32_t PylonCameraNode::getNumSubscribersRect() const
