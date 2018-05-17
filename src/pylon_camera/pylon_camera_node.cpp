@@ -438,13 +438,16 @@ void PylonCameraNode::spin()
     }
     // images were published if subscribers are available or if someone calls
     // the GrabImages Action
-    if ( !isSleeping() && ( getNumSubscribersRaw() || getNumSubscribersRect() ) )
+    if ( !isSleeping() && (img_raw_pub_.getNumSubscribers() || getNumSubscribersRect() ) )
     {
-        if ( !grabImage() )
+        if ( getNumSubscribersRaw() || getNumSubscribersRect())
         {
-            return;
+            if (!grabImage() )
+            {
+                return;
+            }
         }
-
+    
         if ( img_raw_pub_.getNumSubscribers() > 0 )
         {
             // get actual cam_info-object in every frame, because it might have
