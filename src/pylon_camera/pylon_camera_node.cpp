@@ -387,6 +387,30 @@ void PylonCameraNode::setupRectification()
     cv_bridge_img_rect_->encoding = img_raw_msg_.encoding;
 }
 
+
+struct CameraPublisherImpl
+{
+  image_transport::Publisher image_pub_;
+  ros::Publisher info_pub_;
+  bool unadvertised_;
+  //double constructed_;
+};
+
+class CameraPublisherLocal
+{
+public:
+  struct Impl;
+  typedef boost::shared_ptr<Impl> ImplPtr;
+  typedef boost::weak_ptr<Impl> ImplWPtr;
+  
+  CameraPublisherImpl* impl_;
+};
+
+uint32_t  PylonCameraNode::getNumSubscribersRaw() const
+{
+    return ((CameraPublisherLocal*)(&img_raw_pub_))->impl_->image_pub_.getNumSubscribers();
+}
+
 void PylonCameraNode::spin()
 {
     if ( camera_info_manager_->isCalibrated() )
@@ -738,24 +762,6 @@ const double& PylonCameraNode::frameRate() const
 const std::string& PylonCameraNode::cameraFrame() const
 {
     return pylon_camera_parameter_set_.cameraFrame();
-}
-
-uint32_t PylonCameraNode::getNumSubscribersRaw() const
-{
-    // The image_transport::CameraPublisher couples the image_raw and the
-    // camera_info object. getNumSubscribers() returns the max number of
-    // subscriptions on the camera_info and the image_raw topic.
-    // Therefore it's not possible to know when a subscription to only the
-    // cam-info is active and no image has to be taken. Workaround:
-    // Forward declaration of the CameraPublisherImpl
-    struct CameraPublisherImpl
-    {
-        image_transport::Publisher image_pub_;
-        ros::Publisher info_pub_;
-        bool unadvertised_;
-    };
-    return img_raw_pub_.getNumSubscribers();
-    // return ((CameraPublisherImpl*)(void*)img_raw_pub_)->image_pub_.getNumSubscribers();
 }
 
 uint32_t PylonCameraNode::getNumSubscribersRect() const
