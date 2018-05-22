@@ -134,6 +134,11 @@ bool PylonCameraNode::initAndRegister()
         }
     }
 
+    if (pylon_camera_ != nullptr && pylon_camera_parameter_set_.deviceUserID().empty())
+    {
+        pylon_camera_parameter_set_.adaptDeviceUserId(nh_, pylon_camera_->deviceUserID());
+    }
+
     if ( !ros::ok() )
     {
         return false;

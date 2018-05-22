@@ -242,6 +242,12 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     return;
 }
 
+void PylonCameraParameter::adaptDeviceUserId(const ros::NodeHandle& nh, const std::string& device_user_id)
+{
+    device_user_id_ = device_user_id;
+    nh.setParam("device_user_id", device_user_id_);
+}
+
 void PylonCameraParameter::validateParameterSet(const ros::NodeHandle& nh)
 {
     if ( !device_user_id_.empty() )
