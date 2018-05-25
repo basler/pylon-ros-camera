@@ -77,9 +77,12 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         cam_->TriggerSource.SetValue(Basler_GigECameraParams::TriggerSource_Software);
         cam_->TriggerMode.SetValue(Basler_GigECameraParams::TriggerMode_On);
 
-        cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line3);
-        cam_->LineMode.SetValue(Basler_GigECameraParams::LineMode_Output);
-        cam_->LineSource.SetValue(Basler_GigECameraParams::LineSource_ExposureActive);
+        if (parameters.auto_flash_)
+        {
+            cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line3);
+            cam_->LineMode.SetValue(Basler_GigECameraParams::LineMode_Output);
+            cam_->LineSource.SetValue(Basler_GigECameraParams::LineSource_ExposureActive);
+        }
         /* Thresholds for the AutoExposure Functions:
          *  - lower limit can be used to get rid of changing light conditions
          *    due to 50Hz lamps (-> 20ms cycle duration)
