@@ -63,7 +63,8 @@ PylonCameraParameter::PylonCameraParameter() :
         auto_exp_upper_lim_(0.0),
         mtu_size_(3000),
         inter_pkg_delay_(1000),
-        shutter_mode_(SM_DEFAULT)
+        shutter_mode_(SM_DEFAULT),
+        auto_flash_(false)
 {}
 
 PylonCameraParameter::~PylonCameraParameter()
@@ -238,6 +239,8 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
         shutter_mode_ = SM_DEFAULT;
     }
 
+    nh.param<bool>("auto_flash", auto_flash_, false);
+    
     validateParameterSet(nh);
     return;
 }

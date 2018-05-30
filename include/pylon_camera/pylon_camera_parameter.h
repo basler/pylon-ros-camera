@@ -268,6 +268,12 @@ public:
      */
     bool has_intrinsic_calib_;
 
+    /**
+     * Flag that indicates if the camera has a flash connected on line 3 which should be on on exposure
+     * Only supported for GigE cameras.
+     */
+    bool auto_flash_;
+
 protected:
     /**
      * Validates the parameter set found on the ros parameter server.
