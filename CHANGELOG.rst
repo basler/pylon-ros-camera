@@ -2,6 +2,14 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.12.0 (2018-06-19)
+-------------------
+* Parameter for auto flash control
+* Publish camera info when requested, but deactivate images grabbed when not
+* Hard coded line_3 as output for gigE cameras
+* possible fix for setting device_user_id if it was not set by user
+* Propagating the device user id back to ros params server, if not set
+
 0.11.8 (2018-05-16)
 -------------------
 * Last change from Marcel as a member of the Magazino-Team. Bye Bye :-)
