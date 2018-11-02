@@ -37,6 +37,7 @@
 #include <GenApi/IEnumEntry.h>
 #include <string>
 #include <vector>
+#include <map>
 
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/pylon_camera.h>
@@ -79,6 +80,8 @@ public:
     virtual bool setImageEncoding(const std::string& target_ros_encoding);
 
     virtual bool setExposure(const float& target_exposure, float& reached_exposure);
+
+    virtual bool setAutoflash(const std::map<int, bool> flash_on_lines);
 
     virtual bool setGain(const float& target_gain, float& reached_gain);
 

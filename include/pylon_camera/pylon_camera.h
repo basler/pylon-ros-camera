@@ -32,6 +32,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/binary_exposure_search.h>
@@ -171,6 +172,13 @@ public:
     virtual bool setExposure(const float& target_exposure,
                              float& reached_exposure) = 0;
 
+    /**
+     * Sets autoflash active for the specified lines
+     * @param flash_on_lines map from line e.g. 1 or 2 to a boolean to 
+              activate or deactivate the autoflash for this line .
+     * @return false if a communication error occurred or true otherwise.
+     */
+    virtual bool setAutoflash(const std::map<int, bool> flash_on_lines) = 0;
     /**
      * Sets the gain in percent independent of the camera type
      * @param target_gain the target gain in percent.

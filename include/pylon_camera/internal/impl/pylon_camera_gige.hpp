@@ -64,6 +64,54 @@ struct GigECameraTrait
 
 typedef PylonCameraImpl<GigECameraTrait> PylonGigECamera;
 
+
+template <>
+bool PylonGigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
+{
+    bool acc_auto_flash = false;
+    for (const std::pair<int, bool> p : flash_on_lines)
+    {
+        try
+        {
+            if (p.first == 2)
+            {
+                if (p.second)
+                {
+                    cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line2);
+                    cam_->LineMode.SetValue(Basler_GigECameraParams::LineMode_Output);
+                    cam_->LineSource.SetValue(Basler_GigECameraParams::LineSource_ExposureActive);
+                }
+                else
+                {
+                    cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line2);
+                    cam_->LineSource.SetValue(Basler_GigECameraParams::LineSource_UserOutput1);
+                }
+            }
+            if (p.first == 3)
+            {
+                if (p.second)
+                {
+                    cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line3);
+                    cam_->LineMode.SetValue(Basler_GigECameraParams::LineMode_Output);
+                    cam_->LineSource.SetValue(Basler_GigECameraParams::LineSource_ExposureActive);
+                }
+                else
+                {
+                    cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line3);
+                    cam_->LineSource.SetValue(Basler_GigECameraParams::LineSource_UserOutput2);
+                }
+            }
+        }
+        catch ( const GenICam::GenericException &e )
+        {
+            ROS_ERROR_STREAM("Error applying cam specific startup setting for GigE cameras: "
+                    << e.GetDescription());
+            return false;
+        }
+    }
+    return true;
+}
+
 template <>
 bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter& parameters)
 {
@@ -77,12 +125,6 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         cam_->TriggerSource.SetValue(Basler_GigECameraParams::TriggerSource_Software);
         cam_->TriggerMode.SetValue(Basler_GigECameraParams::TriggerMode_On);
 
-        if (parameters.auto_flash_)
-        {
-            cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line3);
-            cam_->LineMode.SetValue(Basler_GigECameraParams::LineMode_Output);
-            cam_->LineSource.SetValue(Basler_GigECameraParams::LineSource_ExposureActive);
-        }
         /* Thresholds for the AutoExposure Functions:
          *  - lower limit can be used to get rid of changing light conditions
          *    due to 50Hz lamps (-> 20ms cycle duration)
@@ -149,6 +191,13 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         // from 'automatic' to 3000 if card supports it
         // Raspberry PI has MTU = 1500, max value for some cards: 9000
         cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
+        if (parameters.auto_flash_)
+        {
+            std::map<int, bool> flash_on_lines;
+            flash_on_lines[2] = parameters.auto_flash_line_2_;
+            flash_on_lines[3] = parameters.auto_flash_line_3_;
+            setAutoflash(flash_on_lines);
+        }
 
         // http://www.baslerweb.com/media/documents/AW00064902000%20Control%20Packet%20Timing%20With%20Delays.pdf
         // inter package delay in ticks (? -> mathi said in nanosec) -> prevent lost frames
@@ -165,6 +214,7 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
     }
     return true;
 }
+
 
 template <>
 bool PylonGigECamera::setupSequencer(const std::vector<float>& exposure_times,
@@ -284,7 +334,7 @@ bool PylonGigECamera::setGamma(const float& target_gamma, float& reached_gamma)
             return false;
         }
     }
-
+    
     try
     {
         float gamma_to_set = target_gamma;

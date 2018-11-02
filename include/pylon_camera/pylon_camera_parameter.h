@@ -269,10 +269,20 @@ public:
     bool has_intrinsic_calib_;
 
     /**
-     * Flag that indicates if the camera has a flash connected on line 3 which should be on on exposure
-     * Only supported for GigE cameras.
+     * Flag that indicates if the camera has a flash connected which should be on on exposure
+     * Only supported for GigE cameras. Default: false
      */
     bool auto_flash_;
+    /**
+     * Flag that indicates if the camera, when using auto_flash == true, a flash connected on line 2 which should be on on exposure
+     * Only supported for GigE cameras. Default: true
+     */
+    bool auto_flash_line_2_;
+    /**
+     * Flag that indicates if the camera has, when using auto_flash == true,  a flash connected on line 3 which should be on on exposure
+     * Only supported for GigE cameras. Default: true
+     */
+    bool auto_flash_line_3_;
 
 protected:
     /**
