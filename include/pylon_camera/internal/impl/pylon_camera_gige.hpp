@@ -77,13 +77,16 @@ bool PylonGigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
             {
                 if (p.second)
                 {
+                    // Set to flash
                     cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line2);
                     cam_->LineMode.SetValue(Basler_GigECameraParams::LineMode_Output);
                     cam_->LineSource.SetValue(Basler_GigECameraParams::LineSource_ExposureActive);
                 }
                 else
                 {
+                    // Set to default
                     cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line2);
+                    cam_->LineMode.SetValue(Basler_GigECameraParams::LineMode_Output);
                     cam_->LineSource.SetValue(Basler_GigECameraParams::LineSource_UserOutput1);
                 }
             }
@@ -91,14 +94,16 @@ bool PylonGigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
             {
                 if (p.second)
                 {
+                    // Set to flash
                     cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line3);
                     cam_->LineMode.SetValue(Basler_GigECameraParams::LineMode_Output);
                     cam_->LineSource.SetValue(Basler_GigECameraParams::LineSource_ExposureActive);
                 }
                 else
                 {
+                    // Set to default
                     cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line3);
-                    cam_->LineSource.SetValue(Basler_GigECameraParams::LineSource_UserOutput2);
+                    cam_->LineMode.SetValue(Basler_GigECameraParams::LineMode_Input);
                 }
             }
         }
@@ -106,7 +111,6 @@ bool PylonGigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
         {
             ROS_ERROR_STREAM("Error applying cam specific startup setting for GigE cameras: "
                     << e.GetDescription());
-            return false;
         }
     }
     return true;

@@ -190,7 +190,7 @@ bool PylonCameraNode::startGrabbing()
                                                 i,
                                                 _1,
                                                 _2));
-        set_user_output_srvs_.at(2*num_user_outputs+i) =
+        set_user_output_srvs_.at(num_user_outputs+i) =
             nh_.advertiseService< camera_control_msgs::SetBool::Request,
                                   camera_control_msgs::SetBool::Response >(
                                     srv_name_af,
