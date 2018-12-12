@@ -27,22 +27,23 @@ rospy.set_param("~camera_name", camera_name)
 
 if exposure > 0:
     rospy.loginfo("Setting exposure to %i ns" % exposure)
-
-    exp_service_name = camera_name+'/set_exposure'
-    exp_client = rospy.ServiceProxy(exp_service_name, SetExposure)
-    exp_client.wait_for_service(3)
-    #    rospy.logerr("No service at %s, terminating", exp_service_name)
-    #    exit(1)
+    exp_client = rospy.ServiceProxy(camera_name+'/set_exposure', SetExposure)
+    try:
+        exp_client.wait_for_service(3)
+    except Exception as e:
+       rospy.logerr("%s, terminating" % str(e))
+       exit(1)
     print exp_client.call(target_exposure=exposure)
 
 # establish service clients for outputs
 clients = list()
 for i in [0, 1]:
-    srv_name = camera_name + "/activate_autoflash_output_" + str(i)
-    client = rospy.ServiceProxy(srv_name, SetBool)
-    client.wait_for_service(3)
-    #    rospy.logerr("No service at %s, terminating", srv_name)
-    #    exit(2)
+    client = rospy.ServiceProxy(camera_name + "/activate_autoflash_output_" + str(i), SetBool)
+    try:
+        client.wait_for_service(3)
+    except Exception as e:
+        rospy.logerr("%s, terminating" % str(e))
+        exit(1)
     clients.append(client)
 
 assert len(clients) == 2
