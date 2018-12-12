@@ -73,6 +73,7 @@ bool PylonGigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
     {
         try
         {
+            ROS_INFO("Executing SetAutoFlash: %i -> %i", p.first, p.second);
             if (p.first == 2)
             {
                 if (p.second)
@@ -89,6 +90,7 @@ bool PylonGigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
                     cam_->LineMode.SetValue(Basler_GigECameraParams::LineMode_Output);
                     cam_->LineSource.SetValue(Basler_GigECameraParams::LineSource_UserOutput1);
                 }
+                continue;
             }
             if (p.first == 3)
             {
@@ -105,7 +107,9 @@ bool PylonGigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
                     cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line3);
                     cam_->LineMode.SetValue(Basler_GigECameraParams::LineMode_Input);
                 }
-            }
+                continue;
+           }
+           ROS_WARN("Got request to set Flash for line %i, but only 2 and 3 are implemented!", p.first);
         }
         catch ( const GenICam::GenericException &e )
         {

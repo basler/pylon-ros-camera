@@ -192,7 +192,7 @@ bool PylonCameraNode::startGrabbing()
                                   camera_control_msgs::SetBool::Response >(
                                     srv_name_af,
                                     boost::bind(&PylonCameraNode::setAutoflash,
-                                                this, i, _1, _2));
+                                                this, i+2, _1, _2)); // ! using lines 2 and 3
     }
 
     img_raw_msg_.header.frame_id = pylon_camera_parameter_set_.cameraFrame();
@@ -766,6 +766,7 @@ bool PylonCameraNode::setAutoflash(const int output_id,
                                    camera_control_msgs::SetBool::Request &req,
                                    camera_control_msgs::SetBool::Response &res)
 {
+    ROS_INFO("AUtoFlashCB: %i -> %i", output_id, req.data);
     std::map<int, bool> auto_flashs;
     auto_flashs[output_id] = req.data;
     pylon_camera_->setAutoflash(auto_flashs);
