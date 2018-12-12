@@ -2,6 +2,7 @@
 ## folders ##
 #############
 build
+cmake-*
 
 #############
 ##  files  ##

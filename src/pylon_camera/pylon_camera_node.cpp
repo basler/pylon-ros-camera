@@ -186,19 +186,13 @@ bool PylonCameraNode::startGrabbing()
                                   camera_control_msgs::SetBool::Response >(
                                     srv_name,
                                     boost::bind(&PylonCameraNode::setUserOutputCB,
-                                                this,
-                                                i,
-                                                _1,
-                                                _2));
+                                                this, i ,_1 ,_2));
         set_user_output_srvs_.at(num_user_outputs+i) =
             nh_.advertiseService< camera_control_msgs::SetBool::Request,
                                   camera_control_msgs::SetBool::Response >(
                                     srv_name_af,
                                     boost::bind(&PylonCameraNode::setAutoflash,
-                                                this,
-                                                i,
-                                                _1,
-                                                _2));
+                                                this, i, _1, _2));
     }
 
     img_raw_msg_.header.frame_id = pylon_camera_parameter_set_.cameraFrame();

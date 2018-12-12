@@ -68,7 +68,7 @@ typedef PylonCameraImpl<GigECameraTrait> PylonGigECamera;
 template <>
 bool PylonGigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
 {
-    bool acc_auto_flash = false;
+    // bool acc_auto_flash = false;
     for (const std::pair<int, bool> p : flash_on_lines)
     {
         try
@@ -198,6 +198,9 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         if (parameters.auto_flash_)
         {
             std::map<int, bool> flash_on_lines;
+            ROS_INFO("Flash 2: %i", parameters.auto_flash_line_2_);
+            ROS_INFO("Flash 3: %i", parameters.auto_flash_line_3_);
+
             flash_on_lines[2] = parameters.auto_flash_line_2_;
             flash_on_lines[3] = parameters.auto_flash_line_3_;
             setAutoflash(flash_on_lines);

@@ -240,8 +240,8 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     }
 
     nh.param<bool>("auto_flash", auto_flash_, false);
-    nh.param<bool>("auto_flash_line_2", auto_flash_, true);
-    nh.param<bool>("auto_flash_line_3", auto_flash_, true);
+    nh.param<bool>("auto_flash_line_2", auto_flash_line_2_, true);
+    nh.param<bool>("auto_flash_line_3", auto_flash_line_3_, true);
     
     validateParameterSet(nh);
     return;
