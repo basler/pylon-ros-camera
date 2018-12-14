@@ -2,6 +2,7 @@
 ## folders ##
 #############
 build
+cmake-*
 
 #############
 ##  files  ##
@@ -15,3 +16,4 @@ CATKIN_IGNORE
 *~
 *.idea
 *.pyc
+*.save

@@ -662,6 +662,15 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const float& target_exposure,
     return true;
 }
 
+
+template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::setAutoflash(
+                        const std::map<int, bool> flash_on_lines)
+{
+    ROS_ERROR_STREAM("Not implemented for this camera type");
+    return false;
+}
+
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setGain(const float& target_gain,
                                             float& reached_gain)

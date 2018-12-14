@@ -323,6 +323,19 @@ protected:
                          camera_control_msgs::SetBool::Response &res);
 
     /**
+     * Callback that activates the digital user output to
+      be used as autoflash
+     * @param output_id the ID of the user output to set
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setAutoflash(const int output_id,
+                      camera_control_msgs::SetBool::Request &req,
+                      camera_control_msgs::SetBool::Response &res);
+
+
+    /**
      * Waits till the pylon_camera_ isReady() observing a given timeout
      * @return true when the camera's state toggles to 'isReady()'
      */
