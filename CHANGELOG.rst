@@ -2,6 +2,18 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.13.0 (2018-12-20)
+-------------------
+* Added script to collect images with different flashes
+* filling auto_flash_line_2\_ (3) parameter from parameter server
+* Support for online change of autoflash
+  Allow activating and deactivating lines as active on exposure
+  A new service is provided per output line, which allows it to be
+  configured as autoflash. Internally GiGe Cameras will
+  default to switch all outputs on if autoflash is set to True
+  whenever exposure is active.
+* Removed maintainer
+
 0.12.0 (2018-06-19)
 -------------------
 * Parameter for auto flash control
