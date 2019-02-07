@@ -34,6 +34,8 @@
 #include <vector>
 #include "boost/multi_array.hpp"
 
+using diagnostic_msgs::DiagnosticStatus;
+
 namespace pylon_camera
 {
 
@@ -81,7 +83,46 @@ PylonCameraNode::PylonCameraNode()
       brightness_exp_lut_(),
       is_sleeping_(false)
 {
+    diagnostics_updater_.setHardwareID("none");
+    diagnostics_updater_.add("camera_availability", this, &PylonCameraNode::create_diagnostics);
+    diagnostics_updater_.add("intrinsic_calibration", this, &PylonCameraNode::create_camera_info_diagnostics);
+    diagnostics_trigger_ = nh_.createTimer(ros::Duration(2), &PylonCameraNode::diagnostics_timer_callback_, this);
+
     init();
+}
+
+void PylonCameraNode::create_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
+{
+    if (pylon_camera_parameter_set_.deviceUserID().empty())
+    {
+        return;
+    }
+
+    if (pylon_camera_)
+    {
+        diagnostics_updater_.setHardwareID( pylon_camera_->deviceUserID());
+        stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Device is connected");
+    }
+    else
+    {
+        diagnostics_updater_.setHardwareID(pylon_camera_parameter_set_.deviceUserID());
+        stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "No camera connected");
+    }
+}
+
+void PylonCameraNode::create_camera_info_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
+{
+    if (camera_info_manager_->isCalibrated())
+    {
+        stat.summaryf(DiagnosticStatus::OK, "Intrinsic calibration found");
+    }else{
+        stat.summaryf(DiagnosticStatus::ERROR, "No intrinsic calibration found");
+    }
+}
+
+void PylonCameraNode::diagnostics_timer_callback_(const ros::TimerEvent&)
+{
+    diagnostics_updater_.update();
 }
 
 void PylonCameraNode::init()

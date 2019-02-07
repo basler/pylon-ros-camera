@@ -53,6 +53,9 @@
 #include <camera_control_msgs/SetSleeping.h>
 #include <camera_control_msgs/GrabImagesAction.h>
 
+#include <diagnostic_updater/diagnostic_updater.h>
+#include <diagnostic_updater/publisher.h>
+
 namespace pylon_camera
 {
 
@@ -372,6 +375,13 @@ protected:
 
     bool is_sleeping_;
     boost::recursive_mutex grab_mutex_;
+
+    /// diagnostics:
+    diagnostic_updater::Updater diagnostics_updater_;
+    void diagnostics_timer_callback_(const ros::TimerEvent&);
+    ros::Timer diagnostics_trigger_;
+    void create_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);
+    void create_camera_info_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);
 };
 
 }  // namespace pylon_camera

@@ -9,12 +9,12 @@ set(
      camera_control_msgs
      camera_info_manager
      cv_bridge
+     diagnostic_updater
      image_geometry
      image_transport
      roscpp
      roslaunch
      sensor_msgs
-     #std_srvs
 )
 
 find_package(Pylon QUIET)
