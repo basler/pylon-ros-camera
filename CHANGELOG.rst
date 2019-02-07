@@ -2,6 +2,10 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.14.0 (2019-02-07)
+-------------------
+* added diagnostics
+
 0.13.0 (2018-12-20)
 -------------------
 * Added script to collect images with different flashes
