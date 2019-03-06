@@ -50,7 +50,9 @@
 #include <camera_control_msgs/SetExposure.h>
 #include <camera_control_msgs/SetGain.h>
 #include <camera_control_msgs/SetGamma.h>
+#include <camera_control_msgs/SetROI.h>
 #include <camera_control_msgs/SetSleeping.h>
+
 #include <camera_control_msgs/GrabImagesAction.h>
 
 #include <diagnostic_updater/diagnostic_updater.h>
@@ -141,6 +143,15 @@ protected:
     virtual void setupInitialCameraInfo(sensor_msgs::CameraInfo& cam_info_msg);
 
     /**
+     * Update area of interest in the camera image
+     * @param target_roi the target roi
+     * @param reached_roi the roi that could be set
+     * @return true if the targeted roi could be reached
+     */
+    bool setROI(const sensor_msgs::RegionOfInterest target_roi,
+                sensor_msgs::RegionOfInterest& reached_roi);
+    
+    /**
      * Update the horizontal binning_x factor to get downsampled images
      * @param target_binning_x the target horizontal binning_x factor
      * @param reached_binning_x the horizontal binning_x factor that could be
@@ -168,6 +179,16 @@ protected:
      */
     bool setBinningCallback(camera_control_msgs::SetBinning::Request &req,
                             camera_control_msgs::SetBinning::Response &res);
+    
+    /**
+     * Service callback for updating the cameras roi setting
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setROICallback(camera_control_msgs::SetROI::Request &req,
+			camera_control_msgs::SetROI::Response &res);
+    
     /**
      * Update the exposure value on the camera
      * @param target_exposure the targeted exposure
@@ -347,6 +368,7 @@ protected:
     ros::NodeHandle nh_;
     PylonCameraParameter pylon_camera_parameter_set_;
     ros::ServiceServer set_binning_srv_;
+    ros::ServiceServer set_roi_srv_;
     ros::ServiceServer set_exposure_srv_;
     ros::ServiceServer set_gain_srv_;
     ros::ServiceServer set_gamma_srv_;

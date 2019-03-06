@@ -71,6 +71,9 @@ public:
 
     virtual bool setShutterMode(const pylon_camera::SHUTTER_MODE& mode);
 
+    virtual bool setROI(const sensor_msgs::RegionOfInterest target_roi,
+                        sensor_msgs::RegionOfInterest& reached_roi);
+    
     virtual bool setBinningX(const size_t& target_binning_x,
                              size_t& reached_binning_x);
 
@@ -95,6 +98,12 @@ public:
     virtual std::vector<int> detectAndCountNumUserOutputs();
 
     virtual bool setUserOutput(const int& output_id, const bool& value);
+    
+    virtual size_t currentOffsetX();
+
+    virtual size_t currentOffsetY();
+    
+    virtual sensor_msgs::RegionOfInterest currentROI();
 
     virtual size_t currentBinningX();
 
