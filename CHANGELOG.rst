@@ -2,6 +2,12 @@
 Changelog for package camera_control_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.1 (2019-03-13)
+------------------
+* Cleanup CMakelists.txt
+* Add setROI.srv for cropped image acquisition
+* Removed maintainer
+
 0.2.0 (2018-05-16)
 ------------------
 * Added camera-info-object the the GrabResults
