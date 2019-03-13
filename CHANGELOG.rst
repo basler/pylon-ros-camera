@@ -2,6 +2,10 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.14.1 (2019-03-13)
+-------------------
+* If no device id is given, loop over all available devices until finding a valid one
+
 0.14.0 (2019-02-07)
 -------------------
 * added diagnostics
