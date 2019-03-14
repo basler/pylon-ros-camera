@@ -36,6 +36,7 @@
 
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/binary_exposure_search.h>
+#include <sensor_msgs/RegionOfInterest.h>
 
 namespace pylon_camera
 {
@@ -128,6 +129,15 @@ public:
     virtual bool setShutterMode(const pylon_camera::SHUTTER_MODE& mode) = 0;
 
     /**
+     * Update area of interest in the camera image
+     * @param target_roi the target roi
+     * @param reached_roi the roi that could be set
+     * @return true if the targeted roi could be reached
+     */
+    virtual bool setROI(const sensor_msgs::RegionOfInterest target_roi,
+			sensor_msgs::RegionOfInterest& reached_roi) = 0;
+    
+    /**
      * Sets the target horizontal binning_x factor
      * @param target_binning_x the target horizontal binning_x factor.
      * @param reached_binning_x the reached horizontal binning_x factor.
@@ -135,7 +145,7 @@ public:
      */
     virtual bool setBinningX(const size_t& target_binning_x,
                              size_t& reached_binning_x) = 0;
-
+    
     /**
      * Sets the target vertical binning_y factor
      * @param target_binning_y the target vertical binning_y factor.
@@ -233,6 +243,24 @@ public:
      */
     virtual bool setUserOutput(const int& output_id, const bool& value) = 0;
 
+    /**
+     * Returns the current x offset setting.
+     * @return the horizontal x offset setting.
+     */
+    virtual size_t currentOffsetX() = 0;
+
+    /**
+     * Returns the current y offset setting.
+     * @return the horizontal y offset setting.
+     */
+    virtual size_t currentOffsetY() = 0;
+    
+    /**
+     * Returns the current roi setting.
+     * @return the roi setting.
+     */
+    virtual sensor_msgs::RegionOfInterest currentROI() = 0;
+    
     /**
      * Returns the current horizontal binning_x setting.
      * @return the horizontal binning_x setting.

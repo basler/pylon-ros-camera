@@ -38,6 +38,7 @@
 #include <pylon_camera/encoding_conversions.h>
 #include <sensor_msgs/image_encodings.h>
 
+
 namespace pylon_camera
 {
 
@@ -96,6 +97,43 @@ template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::isCamRemoved()
 {
     return cam_->IsCameraDeviceRemoved();
+}
+
+template <typename CameraTraitT>
+size_t PylonCameraImpl<CameraTraitT>::currentOffsetX()
+{
+    if ( GenApi::IsAvailable(cam_->OffsetX) )
+    {
+        return static_cast<size_t>(cam_->OffsetX.GetValue());
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+template <typename CameraTraitT>
+size_t PylonCameraImpl<CameraTraitT>::currentOffsetY()
+{
+    if ( GenApi::IsAvailable(cam_->OffsetY) )
+    {
+        return static_cast<size_t>(cam_->OffsetY.GetValue());
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+template <typename CameraTraitT>
+sensor_msgs::RegionOfInterest PylonCameraImpl<CameraTraitT>::currentROI()
+{
+    sensor_msgs::RegionOfInterest roi;
+    roi.width = cam_->Width.GetValue();
+    roi.height = cam_->Height.GetValue();
+    roi.x_offset = currentOffsetX();
+    roi.y_offset = currentOffsetY();
+    return roi;
 }
 
 template <typename CameraTraitT>
@@ -524,6 +562,137 @@ int PylonCameraImpl<CameraTraitT>::imagePixelDepth() const
     }
     return pixel_depth;
 }
+
+template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::setROI(const sensor_msgs::RegionOfInterest target_roi,
+                                           sensor_msgs::RegionOfInterest& reached_roi)
+{
+    size_t width_to_set = target_roi.width;
+    size_t height_to_set = target_roi.height;
+    size_t offset_x_to_set = target_roi.x_offset;
+    size_t offset_y_to_set = target_roi.y_offset;
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->Width) && GenApi::IsAvailable(cam_->Height) && GenApi::IsAvailable(cam_->OffsetX) && GenApi::IsAvailable(cam_->OffsetY))
+        {
+            cam_->StopGrabbing();
+            int64_t max_image_width = cam_->WidthMax.GetValue();
+            int64_t min_image_width = cam_->Width.GetMin();
+            int64_t max_image_height = cam_->HeightMax.GetValue();
+            int64_t min_image_height = cam_->Height.GetMin();
+            int64_t width_inc = cam_->Width.GetInc();
+            int64_t height_inc = cam_->Height.GetInc();
+            // reset roi to avoid exceptions while setting Width and Height values
+            cam_->OffsetX.SetValue(0);
+            cam_->OffsetY.SetValue(0);
+            cam_->Width.SetValue(max_image_width);
+            cam_->Height.SetValue(max_image_height);
+            sensor_msgs::RegionOfInterest current_roi = currentROI();
+            // Force minimum increment of 2 as some cameras wrongly declare that 
+            // they have an increment of 1 while it is 2
+            if (height_inc == 1)
+                height_inc = 2;
+            if (width_inc == 1)
+                width_inc = 2;
+
+            if (width_to_set > max_image_width)
+            {
+                ROS_WARN_STREAM("Desired width("
+                        << width_to_set << ") unreachable! Setting to upper "
+                        << "limit: " << max_image_width);
+                width_to_set = max_image_width;
+            }
+            else if (width_to_set < min_image_width)
+            {
+                ROS_WARN_STREAM("Desired width("
+                        << width_to_set << ") unreachable! Setting to lower "
+                        << "limit: " << min_image_width);
+                width_to_set = min_image_width;
+            }
+
+            if (height_to_set > max_image_height)
+            {
+                ROS_WARN_STREAM("Desired height("
+                        <<height_to_set << ") unreachable! Setting to upper "
+                        << "limit: " << max_image_height);
+                height_to_set = max_image_height;
+            }
+            else if (height_to_set < min_image_height)
+            {
+                ROS_WARN_STREAM("Desired height("
+                        << height_to_set << ") unreachable! Setting to lower "
+                        << "limit: " << min_image_height);
+                height_to_set = min_image_height;
+            }
+            if (offset_x_to_set % width_inc != 0)
+            {
+                int64_t adapted_offset_x = offset_x_to_set + (width_inc - offset_x_to_set % width_inc);
+                ROS_WARN_STREAM("Desired x offset ("
+                        << offset_x_to_set << ") not an multiple of width increment("
+                        << width_inc <<")! Setting to next possible value higher multiple: ("
+                        << adapted_offset_x <<")");
+                offset_x_to_set = adapted_offset_x;
+            }
+            if (width_to_set + offset_x_to_set >  max_image_width)
+            {
+                int64_t adapted_offset_x = max_image_width - width_to_set;
+                adapted_offset_x -= adapted_offset_x % width_inc;
+                ROS_WARN_STREAM("Desired x offset("
+                        << offset_x_to_set << ") impossible for desired width("
+                        << width_to_set << ")! Setting to next possible value " 
+                        << adapted_offset_x);
+                offset_x_to_set = adapted_offset_x;
+            }
+            if (offset_y_to_set % height_inc != 0)
+            {
+                int64_t adapted_offset_y = offset_y_to_set + (height_inc - offset_y_to_set % height_inc);
+                ROS_WARN_STREAM("Desired y offset ("
+                        << offset_y_to_set << ") not an multiple ofheight increment("
+                        << height_inc <<")! Setting to next possible value higher multiple: ("
+                        << adapted_offset_y <<")");
+                offset_y_to_set = adapted_offset_y;
+            }
+            if (height_to_set + offset_y_to_set >  max_image_height)
+            {
+                int64_t adapted_offset_y = max_image_height - height_to_set;
+                adapted_offset_y -= adapted_offset_y % height_inc;
+                ROS_WARN_STREAM("Desired y offset("
+                        << offset_y_to_set << ") impossible for desired height("
+                        << height_to_set << ")! Setting to next possible value " 
+                        << adapted_offset_y);
+                offset_y_to_set = adapted_offset_y;
+            }
+
+            cam_->Width.SetValue(width_to_set);
+            cam_->Height.SetValue(height_to_set);
+            cam_->OffsetX.SetValue(offset_x_to_set);
+            cam_->OffsetY.SetValue(offset_y_to_set);
+            reached_roi = currentROI();
+            cam_->StartGrabbing();
+            img_cols_ = static_cast<size_t>(cam_->Width.GetValue());
+            img_rows_ = static_cast<size_t>(cam_->Height.GetValue());
+            img_size_byte_ =  img_cols_ * img_rows_ * imagePixelDepth();
+
+        }
+        else
+        {
+            ROS_WARN_STREAM("Camera does not support area of interest. Will keep the "
+                    << "current settings");
+            reached_roi = currentROI();
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting target area of interest "
+                << "(width, height, x_offset, y_offset) to:  (" << width_to_set << ", "
+                << height_to_set << ", " << offset_x_to_set << ", " << offset_y_to_set <<
+                ") occurred: "
+                << e.GetDescription());
+        return false;
+    }
+    return true;
+}
+
 
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setBinningX(const size_t& target_binning_x,

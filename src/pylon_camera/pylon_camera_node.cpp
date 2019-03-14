@@ -48,6 +48,9 @@ PylonCameraNode::PylonCameraNode()
       set_binning_srv_(nh_.advertiseService("set_binning",
                                             &PylonCameraNode::setBinningCallback,
                                             this)),
+      set_roi_srv_(nh_.advertiseService("set_roi",
+                                        &PylonCameraNode::setROICallback,
+                                        this)),
       set_exposure_srv_(nh_.advertiseService("set_exposure",
                                              &PylonCameraNode::setExposureCallback,
                                              this)),
@@ -956,6 +959,51 @@ bool PylonCameraNode::waitForCamera(const ros::Duration& timeout) const
     return result;
 }
 
+
+bool PylonCameraNode::setROI(const sensor_msgs::RegionOfInterest target_roi,
+			     sensor_msgs::RegionOfInterest& reached_roi)
+{
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if ( !pylon_camera_->setROI(target_roi, reached_roi) )
+    {
+        // retry till timeout
+        ros::Rate r(10.0);
+        ros::Time timeout(ros::Time::now() + ros::Duration(2.0));
+        while ( ros::ok() )
+        {
+            if ( pylon_camera_->setROI(target_roi, reached_roi) )
+            {
+                break;
+            }
+            if ( ros::Time::now() > timeout )
+            {
+                ROS_ERROR_STREAM("Error in setROI(): Unable to set target "
+                << "roi before timeout");
+                CameraInfoPtr cam_info(new CameraInfo(camera_info_manager_->getCameraInfo()));
+                cam_info->roi = pylon_camera_->currentROI();
+                camera_info_manager_->setCameraInfo(*cam_info);
+                img_raw_msg_.width = pylon_camera_->imageCols();
+		img_raw_msg_.height = pylon_camera_->imageRows();
+                // step = full row length in bytes, img_size = (step * rows), imagePixelDepth
+                // already contains the number of channels
+                img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
+                return false;
+            }
+            r.sleep();
+        }
+    }
+    CameraInfoPtr cam_info(new CameraInfo(camera_info_manager_->getCameraInfo()));
+    cam_info->roi = pylon_camera_->currentROI();
+    camera_info_manager_->setCameraInfo(*cam_info);
+    img_raw_msg_.height = pylon_camera_->imageRows();
+    img_raw_msg_.width = pylon_camera_->imageCols();
+    // step = full row length in bytes, img_size = (step * rows), imagePixelDepth
+    // already contains the number of channels
+    img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
+    return true;
+}
+
+
 bool PylonCameraNode::setBinningX(const size_t& target_binning_x,
                                   size_t& reached_binning_x)
 {
@@ -1059,6 +1107,14 @@ bool PylonCameraNode::setBinningCallback(camera_control_msgs::SetBinning::Reques
     res.success = success_x && success_y;
     return true;
 }
+
+bool PylonCameraNode::setROICallback(camera_control_msgs::SetROI::Request &req,
+                                     camera_control_msgs::SetROI::Response &res)
+{
+    res.success = setROI(req.target_roi, res.reached_roi);
+    return true;
+}
+  
 
 bool PylonCameraNode::setExposure(const float& target_exposure,
                                   float& reached_exposure)
