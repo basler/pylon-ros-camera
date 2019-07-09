@@ -1,4 +1,4 @@
-uri: 'https://raw.githubusercontent.com/magazino/pylon_camera/indigo-devel/rosdep/empty.tar'
+uri: 'https://raw.githubusercontent.com/dragandbot/pylon_camera/master/rosdep/empty.tar'
 md5sum: df41600634ca08cb5082877eb64220c9
 install-script: |
   #!/bin/bash
@@ -30,8 +30,8 @@ install-script: |
   url="https://www.baslerweb.com/media/downloads/software/pylon_software/${pkg}"
 
   wget --no-check-certificate -O $pkg $url
-  sudo dpkg -i $pkg
-  sudo udevadm control --reload-rules || true
+  dpkg -i $pkg
+  udevadm control --reload-rules || true
 
 check-presence-script: |
   #!/bin/bash

@@ -1,0 +1,12 @@
+package: pylon_camera
+name: 'Basler Camera'
+description: 'Camera with integrated machine vision features'
+type: driver/camera/basler
+roslaunch: pylon_camera_node.launch
+configuration:
+  []
+
+nodes:
+  - node_callerid: /pylon_camera_node # The name of the node inside the launch file
+    type: pylon_camera_node.cpp # The file which is started inside the node
+status_topic: /pylon_camera/status

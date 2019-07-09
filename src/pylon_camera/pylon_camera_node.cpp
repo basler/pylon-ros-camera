@@ -33,6 +33,7 @@
 #include <cmath>
 #include <vector>
 #include "boost/multi_array.hpp"
+#include <dnb_msgs/ComponentStatus.h>
 
 using diagnostic_msgs::DiagnosticStatus;
 
@@ -90,6 +91,7 @@ PylonCameraNode::PylonCameraNode()
     diagnostics_updater_.add("camera_availability", this, &PylonCameraNode::create_diagnostics);
     diagnostics_updater_.add("intrinsic_calibration", this, &PylonCameraNode::create_camera_info_diagnostics);
     diagnostics_trigger_ = nh_.createTimer(ros::Duration(2), &PylonCameraNode::diagnostics_timer_callback_, this);
+    componentStatusPublisher = nh_.advertise<dnb_msgs::ComponentStatus>("/pylon_camera/status", 5, true); // DNB component status publisher
 
     init();
 }
@@ -105,11 +107,18 @@ void PylonCameraNode::create_diagnostics(diagnostic_updater::DiagnosticStatusWra
     {
         diagnostics_updater_.setHardwareID( pylon_camera_->deviceUserID());
         stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Device is connected");
+        //cm_status.status_id = dnb_msgs::ComponentStatus::RUNNING;
+        //cm_status.status_msg = "running";
+        //componentStatusPublisher.publish(cm_status);
+        //componentStatusPublisher.publish(cm_status);
     }
     else
     {
         diagnostics_updater_.setHardwareID(pylon_camera_parameter_set_.deviceUserID());
         stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "No camera connected");
+        cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
+        cm_status.status_msg = "No camera connected";
+        componentStatusPublisher.publish(cm_status);
     }
 }
 
@@ -171,6 +180,9 @@ bool PylonCameraNode::initAndRegister()
             if ( ros::Time::now() > end )
             {
                 ROS_WARN_STREAM("No camera present. Keep waiting ...");
+                cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
+                cm_status.status_msg = "No camera present";
+                componentStatusPublisher.publish(cm_status);
                 end = ros::Time::now() + ros::Duration(15.0);
             }
             r.sleep();
@@ -181,6 +193,9 @@ bool PylonCameraNode::initAndRegister()
     if (pylon_camera_ != nullptr && pylon_camera_parameter_set_.deviceUserID().empty())
     {
         pylon_camera_parameter_set_.adaptDeviceUserId(nh_, pylon_camera_->deviceUserID());
+        cm_status.status_id = dnb_msgs::ComponentStatus::RUNNING;
+        cm_status.status_msg = "running";
+        componentStatusPublisher.publish(cm_status);
     }
 
     if ( !ros::ok() )
@@ -192,12 +207,18 @@ bool PylonCameraNode::initAndRegister()
     {
         ROS_ERROR_STREAM("Error while registering the camera configuration to "
             << "software-trigger mode!");
+        cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
+        cm_status.status_msg = "Error while registering the camera configuration";
+        componentStatusPublisher.publish(cm_status);
         return false;
     }
 
     if ( !pylon_camera_->openCamera() )
     {
         ROS_ERROR("Error while trying to open the desired camera!");
+        cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
+        cm_status.status_msg = "Error while trying to open the desired camera!";
+        componentStatusPublisher.publish(cm_status);
         return false;
     }
 
@@ -205,6 +226,9 @@ bool PylonCameraNode::initAndRegister()
     {
         ROS_ERROR_STREAM("Error while applying the cam specific startup settings "
                 << "(e.g. mtu size for GigE, ...) to the camera!");
+        cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
+        cm_status.status_msg = "Error while applying the cam specific startup settings";
+        componentStatusPublisher.publish(cm_status);
         return false;
     }
 
@@ -462,6 +486,8 @@ uint32_t  PylonCameraNode::getNumSubscribersRaw() const
 
 void PylonCameraNode::spin()
 {
+    //cm_status.status_id = dnb_msgs::ComponentStatus::RUNNING;
+    //cm_status.status_msg = "running";
     if ( camera_info_manager_->isCalibrated() )
     {
         ROS_INFO_ONCE("Camera is calibrated");
@@ -474,6 +500,9 @@ void PylonCameraNode::spin()
     if ( pylon_camera_->isCamRemoved() )
     {
         ROS_ERROR("Pylon camera has been removed, trying to reset");
+        cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
+        cm_status.status_msg = "Pylon camera has been removed, trying to reset";
+        componentStatusPublisher.publish(cm_status);
         delete pylon_camera_;
         pylon_camera_ = nullptr;
         for ( ros::ServiceServer& user_output_srv : set_user_output_srvs_ )
@@ -521,7 +550,9 @@ void PylonCameraNode::spin()
             pinhole_model_->rectifyImage(cv_img_raw->image, cv_bridge_img_rect_->image);
             img_rect_pub_->publish(*cv_bridge_img_rect_);
         }
+
     }
+    componentStatusPublisher.publish(cm_status);
 }
 
 bool PylonCameraNode::grabImage()

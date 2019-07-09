@@ -58,6 +58,9 @@
 #include <diagnostic_updater/diagnostic_updater.h>
 #include <diagnostic_updater/publisher.h>
 
+#include <dnb_msgs/ComponentStatus.h>
+
+
 namespace pylon_camera
 {
 
@@ -69,6 +72,7 @@ typedef actionlib::SimpleActionServer<camera_control_msgs::GrabImagesAction> Gra
 class PylonCameraNode
 {
 public:
+
     PylonCameraNode();
     virtual ~PylonCameraNode();
 
@@ -375,6 +379,11 @@ protected:
     ros::ServiceServer set_brightness_srv_;
     ros::ServiceServer set_sleeping_srv_;
     std::vector<ros::ServiceServer> set_user_output_srvs_;
+
+    // DNB component status publisher
+    ros::Publisher componentStatusPublisher;
+    dnb_msgs::ComponentStatus cm_status;
+
 
     PylonCamera* pylon_camera_;
 
