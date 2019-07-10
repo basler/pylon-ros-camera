@@ -1,5 +1,5 @@
-uri: 'https://bitbucket.org/drag-and-bot/pylon_camera/raw/master/rpsdep/empty.tar'
-
+uri: 'https://raw.githubusercontent.com/magazino/pylon_camera/indigo-devel/rosdep/empty.tar'
+md5sum: df41600634ca08cb5082877eb64220c9
 install-script: |
   #!/bin/bash
   if ( [ "${PYLON_ROOT}" != "" ] && [ -d "${PYLON_ROOT}" ] ); then
