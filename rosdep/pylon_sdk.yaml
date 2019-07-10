@@ -1,7 +1,7 @@
 pylon:
   ubuntu:
     source:
-      uri: "https://bitbucket.org/drag-and-bot/pylon_camera/raw/d603024ea6891fa18db1eded8f36f8d753c7f164/rosdep/pylon_sdk.rdmanifest"
+      uri: "https://bitbucket.org/drag-and-bot/pylon_camera/raw/master/rosdep/pylon_sdk.rdmanifest"
 
 
       
