@@ -25,9 +25,9 @@ install-script: |
     pkgarch="i386"
   fi
 
-  version="5.0.11.10914"
+  version="5.2.0.13457"
   pkg=pylon_${version}-deb0_${pkgarch}.deb
-  url="https://www.baslerweb.com/media/downloads/software/pylon_software/${pkg}"
+  url="https://bitbucket.org/drag-and-bot/pylon_camera/downloads/${pkg}"
 
   wget --no-check-certificate -O $pkg $url
   dpkg -i $pkg
