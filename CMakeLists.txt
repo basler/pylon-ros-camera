@@ -138,6 +138,14 @@ install(
 )
 
 install(
+    DIRECTORY
+     module_config/
+    DESTINATION
+     ${CATKIN_PACKAGE_SHARE_DESTINATION}/module_config
+    FILES_MATCHING PATTERN "*.yaml"
+)
+
+install(
     PROGRAMS
      scripts/file_sequencer.py
      scripts/grab_and_save_image_action_server.py
@@ -145,7 +153,7 @@ install(
      scripts/sequence_to_file.py
      scripts/toggle_camera
     DESTINATION
-     ${CATKIN_PACKAGE_SHARE_DESTINATION}
+     ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 install(
