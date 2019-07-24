@@ -84,6 +84,10 @@ public:
 
     virtual bool setExposure(const float& target_exposure, float& reached_exposure);
 
+    virtual bool reverseXY(const bool& reverse_x,bool around_x);
+
+    virtual std::string setBlackLevel(const int& value) ;
+
     virtual bool setAutoflash(const std::map<int, bool> flash_on_lines);
 
     virtual bool setGain(const float& target_gain, float& reached_gain);

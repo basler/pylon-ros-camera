@@ -256,6 +256,31 @@ bool PylonUSBCamera::setGamma(const float& target_gamma, float& reached_gamma)
 }
 
 template <>
+std::string PylonUSBCamera::setBlackLevel(const int& value)
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->BlackLevel) )
+        {
+            cam_->BlackLevel.SetValue(value);   
+            return "done";
+        }
+        else 
+        {
+             ROS_ERROR_STREAM("Trying to change the image black level, but the camera not having this feature");
+             return "Trying to change the image black level, but the camera not having this feature";
+        }
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while changing the image black level occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <>
 GenApi::IFloat& PylonUSBCamera::autoExposureTimeLowerLimit()
 {
     if ( GenApi::IsAvailable(cam_->AutoExposureTimeLowerLimit) )

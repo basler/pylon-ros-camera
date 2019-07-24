@@ -831,6 +831,28 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const float& target_exposure,
     return true;
 }
 
+template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::reverseXY(const bool& data, bool around_x)
+{
+    try
+    {
+        if (around_x)
+        {
+            cam_->ReverseX.SetValue(data);
+        }
+        else
+        {
+            cam_->ReverseY.SetValue(data);   
+        }  
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while reversing the image around X and/or Y occurred:" << e.GetDescription());
+        return false;
+    }
+    return true;
+}
 
 template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setAutoflash(

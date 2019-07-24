@@ -183,6 +183,21 @@ public:
                              float& reached_exposure) = 0;
 
     /**
+     * Reverse the image around x-axis and/or y-axis
+     * @param data activate / diactivate reversing of the image.
+     * @param around_x true-> reverse around x-axis , false-> reverse around y-axis
+     * @return false if an error occurred or true otherwise.
+     */
+    virtual bool reverseXY(const bool& data, bool around_x) = 0;
+
+    /**
+     * Set the image black level 
+     * @param data the desired increase/degress value in the black level.
+     * @return false if an error occurred or true otherwise.
+     */
+    virtual std::string setBlackLevel(const int& data) = 0;
+
+    /**
      * Sets autoflash active for the specified lines
      * @param flash_on_lines map from line e.g. 1 or 2 to a boolean to 
               activate or deactivate the autoflash for this line .

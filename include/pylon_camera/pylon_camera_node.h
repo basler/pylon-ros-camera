@@ -52,6 +52,9 @@
 #include <camera_control_msgs/SetGamma.h>
 #include <camera_control_msgs/SetROI.h>
 #include <camera_control_msgs/SetSleeping.h>
+#include <camera_control_msgs/SetIntegerValue.h>   
+
+#include <std_srvs/SetBool.h>
 
 #include <camera_control_msgs/GrabImagesAction.h>
 
@@ -209,6 +212,45 @@ protected:
      */
     bool setExposureCallback(camera_control_msgs::SetExposure::Request &req,
                              camera_control_msgs::SetExposure::Response &res);
+
+    /**
+     * reverse X, Y on the camera
+     * @param reverse_x reverse the image around x-axis
+     * @param reverse_y reverse the image around y-axis
+     * @return true if the image reversing success
+     */
+    bool reverseXY(const bool& data, bool around_x);
+
+    /**
+     * Service callback for reversing X
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setReverseXCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
+
+    /**
+     * Service callback for reversing Y
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setReverseYCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
+
+    /**
+     * method for increasing/decreasing the image black level 
+     * @param value the value to be reduced/increase
+     * @return true on success
+     */
+    std::string setBlackLevel(const int& value);
+
+    /**
+     * Service callback for increasing/decreasing the image black level 
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+   bool setBlackLevelCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
 
     /**
      * Sets the target brightness which is the intensity-mean over all pixels.
@@ -378,6 +420,9 @@ protected:
     ros::ServiceServer set_gamma_srv_;
     ros::ServiceServer set_brightness_srv_;
     ros::ServiceServer set_sleeping_srv_;
+    ros::ServiceServer reverse_x_srv_;
+    ros::ServiceServer reverse_y_srv_;
+    ros::ServiceServer set_black_level_;
     std::vector<ros::ServiceServer> set_user_output_srvs_;
 
     // DNB component status publisher

@@ -61,7 +61,7 @@ PylonCameraParameter::PylonCameraParameter() :
         // #########################
         exposure_search_timeout_(5.),
         auto_exp_upper_lim_(0.0),
-        mtu_size_(3000),
+        mtu_size_(1500),
         inter_pkg_delay_(1000),
         shutter_mode_(SM_DEFAULT),
         auto_flash_(false)

@@ -374,6 +374,13 @@ bool PylonGigECamera::setGamma(const float& target_gamma, float& reached_gamma)
 }
 
 template <>
+std::string PylonGigECamera::setBlackLevel(const int& value)
+{
+    ROS_ERROR_STREAM("Trying to change the image black level, but the camera not having this feature");
+    return "Trying to change the image black level, but the camera not having this feature";
+}
+
+template <>
 GenApi::IFloat& PylonGigECamera::autoExposureTimeLowerLimit()
 {
     if ( GenApi::IsAvailable(cam_->AutoExposureTimeAbsLowerLimit) )

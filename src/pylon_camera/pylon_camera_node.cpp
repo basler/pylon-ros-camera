@@ -55,6 +55,15 @@ PylonCameraNode::PylonCameraNode()
       set_exposure_srv_(nh_.advertiseService("set_exposure",
                                              &PylonCameraNode::setExposureCallback,
                                              this)),
+      reverse_x_srv_(nh_.advertiseService("set_reverse_x",
+                                             &PylonCameraNode::setReverseXCallback,
+                                             this)),
+      reverse_y_srv_(nh_.advertiseService("set_reverse_y",
+                                             &PylonCameraNode::setReverseYCallback,
+                                             this)),
+      set_black_level_(nh_.advertiseService("set_black_level",
+                                             &PylonCameraNode::setBlackLevelCallback,
+                                             this)),
       set_gain_srv_(nh_.advertiseService("set_gain",
                                          &PylonCameraNode::setGainCallback,
                                          this)),
@@ -107,10 +116,6 @@ void PylonCameraNode::create_diagnostics(diagnostic_updater::DiagnosticStatusWra
     {
         diagnostics_updater_.setHardwareID( pylon_camera_->deviceUserID());
         stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "Device is connected");
-        //cm_status.status_id = dnb_msgs::ComponentStatus::RUNNING;
-        //cm_status.status_msg = "running";
-        //componentStatusPublisher.publish(cm_status);
-        //componentStatusPublisher.publish(cm_status);
     }
     else
     {
@@ -486,8 +491,6 @@ uint32_t  PylonCameraNode::getNumSubscribersRaw() const
 
 void PylonCameraNode::spin()
 {
-    //cm_status.status_id = dnb_msgs::ComponentStatus::RUNNING;
-    //cm_status.status_msg = "running";
     if ( camera_info_manager_->isCalibrated() )
     {
         ROS_INFO_ONCE("Camera is calibrated");
@@ -1191,6 +1194,64 @@ bool PylonCameraNode::setExposureCallback(camera_control_msgs::SetExposure::Requ
                                           camera_control_msgs::SetExposure::Response &res)
 {
     res.success = setExposure(req.target_exposure, res.reached_exposure);
+    return true;
+}
+
+bool PylonCameraNode::reverseXY(const bool& data, bool around_x)
+{
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if ( !pylon_camera_->isReady() )
+    {
+        ROS_WARN("Error in reverseXY(): pylon_camera_ is not ready!");
+        return false;
+    }
+
+    if ( pylon_camera_->reverseXY(data, around_x) )
+    {
+        return true;
+    }
+    else  
+    {
+        ROS_ERROR_STREAM("Error in reverseXY(): Unable reverse the image");
+        return false;
+    }
+}
+
+bool PylonCameraNode::setReverseXCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
+{
+    res.success = reverseXY(req.data, true);
+    return true;
+}
+
+bool PylonCameraNode::setReverseYCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
+{
+    res.success = reverseXY(req.data, false);
+    return true;
+}
+
+std::string PylonCameraNode::setBlackLevel(const int& value)
+{
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if ( !pylon_camera_->isReady() )
+    {
+        ROS_WARN("Error in setBlackLevel(): pylon_camera_ is not ready!");
+        return "pylon_camera_ is not ready!";
+    }
+
+    return pylon_camera_->setBlackLevel(value) ;
+}
+
+bool PylonCameraNode::setBlackLevelCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res)
+{   
+    res.message = setBlackLevel(req.value);
+    if (res.message == "done")
+    {
+        res.success = true;
+    }
+    else 
+    {
+        res.success = false;
+    }
     return true;
 }
 
