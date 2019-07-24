@@ -1197,35 +1197,42 @@ bool PylonCameraNode::setExposureCallback(camera_control_msgs::SetExposure::Requ
     return true;
 }
 
-bool PylonCameraNode::reverseXY(const bool& data, bool around_x)
+std::string PylonCameraNode::reverseXY(const bool& data, bool around_x)
 {
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     if ( !pylon_camera_->isReady() )
     {
         ROS_WARN("Error in reverseXY(): pylon_camera_ is not ready!");
-        return false;
+        return "pylon_camera_ is not ready!";
     }
-
-    if ( pylon_camera_->reverseXY(data, around_x) )
-    {
-        return true;
-    }
-    else  
-    {
-        ROS_ERROR_STREAM("Error in reverseXY(): Unable reverse the image");
-        return false;
-    }
+    return pylon_camera_->reverseXY(data, around_x);
 }
 
 bool PylonCameraNode::setReverseXCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
 {
-    res.success = reverseXY(req.data, true);
+    res.message = reverseXY(req.data, true);
+    if (res.message == "done")
+    {
+        res.success = true;
+    }
+    else 
+    {
+        res.success = false;
+    }
     return true;
 }
 
 bool PylonCameraNode::setReverseYCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
 {
-    res.success = reverseXY(req.data, false);
+    res.message = reverseXY(req.data, false);
+    if (res.message == "done")
+    {
+        res.success = true;
+    }
+    else 
+    {
+        res.success = false;
+    }
     return true;
 }
 

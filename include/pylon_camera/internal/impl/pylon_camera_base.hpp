@@ -832,7 +832,7 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const float& target_exposure,
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::reverseXY(const bool& data, bool around_x)
+std::string PylonCameraImpl<CameraTraitT>::reverseXY(const bool& data, bool around_x)
 {
     try
     {
@@ -849,9 +849,9 @@ bool PylonCameraImpl<CameraTraitT>::reverseXY(const bool& data, bool around_x)
     catch ( const GenICam::GenericException &e )
     {
         ROS_ERROR_STREAM("An exception while reversing the image around X and/or Y occurred:" << e.GetDescription());
-        return false;
+        return e.GetDescription();
     }
-    return true;
+    return "done";
 }
 
 template <typename CameraTraitT>

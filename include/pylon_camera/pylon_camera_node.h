@@ -219,7 +219,7 @@ protected:
      * @param reverse_y reverse the image around y-axis
      * @return true if the image reversing success
      */
-    bool reverseXY(const bool& data, bool around_x);
+    std::string reverseXY(const bool& data, bool around_x);
 
     /**
      * Service callback for reversing X

@@ -84,7 +84,7 @@ public:
 
     virtual bool setExposure(const float& target_exposure, float& reached_exposure);
 
-    virtual bool reverseXY(const bool& reverse_x,bool around_x);
+    virtual std::string reverseXY(const bool& reverse_x,bool around_x);
 
     virtual std::string setBlackLevel(const int& value) ;
 

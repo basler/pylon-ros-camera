@@ -186,14 +186,14 @@ public:
      * Reverse the image around x-axis and/or y-axis
      * @param data activate / diactivate reversing of the image.
      * @param around_x true-> reverse around x-axis , false-> reverse around y-axis
-     * @return false if an error occurred or true otherwise.
+     * @return error message if an error occurred or done message otherwise.
      */
-    virtual bool reverseXY(const bool& data, bool around_x) = 0;
+    virtual std::string reverseXY(const bool& data, bool around_x) = 0;
 
     /**
      * Set the image black level 
      * @param data the desired increase/degress value in the black level.
-     * @return false if an error occurred or true otherwise.
+     * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setBlackLevel(const int& data) = 0;
 
