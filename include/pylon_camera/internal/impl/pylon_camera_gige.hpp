@@ -375,13 +375,6 @@ bool PylonGigECamera::setGamma(const float& target_gamma, float& reached_gamma)
     return true;
 }
 
-/*template <>
-std::string PylonGigECamera::setBlackLevel(const int& value)
-{
-    ROS_ERROR_STREAM("Trying to change the image black level, but the camera not having this feature");
-    return "Trying to change the image black level, but the camera not having this feature";
-}*/
-
 template <>
 std::string PylonGigECamera::setBlackLevel(const int& value)
 {
@@ -435,22 +428,6 @@ GenApi::IFloat& PylonGigECamera::autoExposureTimeLowerLimit()
         throw std::runtime_error("Error while accessing AutoExposureTimeAbsLowerLimit in PylonGigECamera");
     }
 }
-
-/*template <>
-std::string PylonGigECamera::setAcquisitionFrameRate(const int& frameRate)
-{
-    try
-    {
-        cam_->AcquisitionFrameRateEnable.SetValue(true);
-        cam_->AcquisitionFrameRate.SetValue(frameRate);
-        return "done";
-    }
-    catch ( const GenICam::GenericException &e )
-    {
-        ROS_ERROR_STREAM("An exception while setting the acquisition mode occurred:" << e.GetDescription());
-        return e.GetDescription();
-    }
-}*/
 
 template <>
 GenApi::IFloat& PylonGigECamera::autoExposureTimeUpperLimit()
