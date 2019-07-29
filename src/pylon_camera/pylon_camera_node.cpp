@@ -64,6 +64,15 @@ PylonCameraNode::PylonCameraNode()
       set_black_level_(nh_.advertiseService("set_black_level",
                                              &PylonCameraNode::setBlackLevelCallback,
                                              this)),
+      set_acquisition_frame_rate_(nh_.advertiseService("set_acquisition_frame_rate",
+                                             &PylonCameraNode::setAcquisitionFrameRateCallback,
+                                             this)),
+      set_acquisition_mode_(nh_.advertiseService("set_acquisition_mode",
+                                             &PylonCameraNode::setAcquisitionModeCallback,
+                                             this)),
+      start_stop_acquisition_(nh_.advertiseService("start_stop_acquisition",
+                                             &PylonCameraNode::startStopAcquisitionCallback,
+                                             this)),
       set_gain_srv_(nh_.advertiseService("set_gain",
                                          &PylonCameraNode::setGainCallback,
                                          this)),
@@ -1203,7 +1212,7 @@ std::string PylonCameraNode::reverseXY(const bool& data, bool around_x)
     if ( !pylon_camera_->isReady() )
     {
         ROS_WARN("Error in reverseXY(): pylon_camera_ is not ready!");
-        return "pylon_camera_ is not ready!";
+        return "pylon camera is not ready!";
     }
     return pylon_camera_->reverseXY(data, around_x);
 }
@@ -1242,7 +1251,7 @@ std::string PylonCameraNode::setBlackLevel(const int& value)
     if ( !pylon_camera_->isReady() )
     {
         ROS_WARN("Error in setBlackLevel(): pylon_camera_ is not ready!");
-        return "pylon_camera_ is not ready!";
+        return "pylon camera is not ready!";
     }
 
     return pylon_camera_->setBlackLevel(value) ;
@@ -1252,6 +1261,90 @@ bool PylonCameraNode::setBlackLevelCallback(camera_control_msgs::SetIntegerValue
 {   
     res.message = setBlackLevel(req.value);
     if (res.message == "done")
+    {
+        res.success = true;
+    }
+    else 
+    {
+        res.success = false;
+    }
+    return true;
+}
+
+std::string PylonCameraNode::setAcquisitionFrameRate(const int& frameRate)
+{
+  boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if ( !pylon_camera_->isReady() )
+    {
+        ROS_WARN("Error in setAcquisitionFrameRate(): pylon_camera_ is not ready!");
+        return "pylon camera is not ready!";
+    }
+    else if ( pylon_camera_->typeName() == "DART" )
+    {
+      return "Dart cameras not supporting this feature";
+    }
+    return pylon_camera_->setAcquisitionFrameRate(frameRate) ;
+}
+
+bool PylonCameraNode::setAcquisitionFrameRateCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res)
+{
+    res.message = setAcquisitionFrameRate(req.value);
+    if ((res.message.find("done") != std::string::npos) != 0)
+    {
+        res.success = true;
+    }
+    else 
+    {
+        res.success = false;
+    }
+    return true;
+}
+
+
+std::string PylonCameraNode::setAcquisitionMode(const bool& continuous)
+{
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if ( !pylon_camera_->isReady() )
+    {
+        ROS_WARN("Error in setAcquisitionMode(): pylon_camera_ is not ready!");
+        return "pylon camera is not ready!";
+    }
+    return pylon_camera_->setAcquisitionMode(continuous) ;
+}
+
+bool PylonCameraNode::setAcquisitionModeCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
+{
+    res.message = setAcquisitionMode(req.data);
+    if ((res.message.find("done") != std::string::npos) != 0)
+    {
+        res.success = true;
+    }
+    else 
+    {
+        res.success = false;
+    }
+    return true;
+}
+
+std::string PylonCameraNode::startStopAcquisition(const bool& start)
+{
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if ( !pylon_camera_->isReady() )
+    {
+        ROS_WARN("Error in tartStopAcquisitionMode(): pylon_camera_ is not ready!");
+        return "pylon camera is not ready!";
+    }
+    else if ( pylon_camera_->typeName() == "DART" )
+    {
+      return "Dart cameras not supporting this feature";
+    }
+    return pylon_camera_->startStopAcquisition(start) ;
+}
+
+bool PylonCameraNode::startStopAcquisitionCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
+{
+    res.message = startStopAcquisition(req.data);
+    if ((res.message.find("done") != std::string::npos) != 0)
     {
         res.success = true;
     }

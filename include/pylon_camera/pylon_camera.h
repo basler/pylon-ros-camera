@@ -192,10 +192,31 @@ public:
 
     /**
      * Set the image black level 
-     * @param data the desired increase/degress value in the black level.
+     * @param data the new black level.
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setBlackLevel(const int& data) = 0;
+
+    /**
+     * Method to set camera acquisition frame rate  
+     * @param frameRate frame rate to be setted.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setAcquisitionFrameRate(const int& frameRate) = 0;
+
+    /**
+     * Set camera acquisition mode  
+     * @param continous when true set the camer acqisition mode to continous, otherwise set it to single frame.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setAcquisitionMode(const bool& continuous) = 0;
+
+    /**
+     * Start / Stop the camera acquisition mode  
+     * @param start when true start the camer acqisition mode, otherwise stop it.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string startStopAcquisition(const bool& start) = 0;
 
     /**
      * Sets autoflash active for the specified lines

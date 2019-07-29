@@ -86,7 +86,13 @@ public:
 
     virtual std::string reverseXY(const bool& reverse_x,bool around_x);
 
-    virtual std::string setBlackLevel(const int& value) ;
+    virtual std::string setBlackLevel(const int& value);
+
+    virtual std::string setAcquisitionFrameRate(const int& frameRate);
+
+    virtual std::string setAcquisitionMode(const bool& continuous);
+
+    virtual std::string startStopAcquisition(const bool& start);
 
     virtual bool setAutoflash(const std::map<int, bool> flash_on_lines);
 
@@ -159,6 +165,8 @@ protected:
     typedef typename CameraTraitT::GainType GainType;
     typedef typename CameraTraitT::ShutterModeEnums ShutterModeEnums;
     typedef typename CameraTraitT::UserOutputSelectorEnums UserOutputSelectorEnums;
+    typedef typename CameraTraitT::AcquisitionModeEnums AcquisitionModeEnums; 
+    typedef typename CameraTraitT::AcquisitionStatusSelectorEnums AcquisitionStatusSelectorEnums;
 
     CBaslerInstantCameraT* cam_;
 

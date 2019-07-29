@@ -855,6 +855,91 @@ std::string PylonCameraImpl<CameraTraitT>::reverseXY(const bool& data, bool arou
 }
 
 template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setAcquisitionFrameRate(const int& frameRate)
+{
+    try
+    {
+        if (typeName() != "DART")
+        {
+
+            cam_->AcquisitionFrameRateEnable.SetValue(true);
+            cam_->AcquisitionFrameRate.SetValue(frameRate);
+            return "done";
+        }
+        else
+        {
+           ROS_ERROR_STREAM("set Acquisition Frame Rate not supported by Dart Cameras");
+           return "set Acquisition Frame Rate not supported by Dart Cameras" ;
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the acquisition mode occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setAcquisitionMode(const bool& continuous)
+{
+    try
+    {
+        if (continuous)
+        {
+            cam_->AcquisitionMode.SetValue(AcquisitionModeEnums::AcquisitionMode_Continuous);
+        }
+        else
+        {
+            cam_->AcquisitionMode.SetValue(AcquisitionModeEnums::AcquisitionMode_SingleFrame);
+        }  
+    if (typeName() != "DART")
+    {
+        cam_->AcquisitionStatusSelector.SetValue(AcquisitionStatusSelectorEnums::AcquisitionStatusSelector_FrameTriggerWait);
+    }
+    
+    if (cam_->AcquisitionStatus.GetValue() && (typeName() != "DART"))
+        {
+            return "done, waiting for trigger signal";
+        }
+    else 
+        {
+            return "done";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the acquisition mode occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+
+    return "done";
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::startStopAcquisition(const bool& start)
+{
+    try
+    {
+        if (start)
+        {
+            cam_->AcquisitionStart.Execute();
+
+        }
+        else
+        {
+            cam_->AcquisitionStop.Execute();
+        }  
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while starting/stopping the acquisition mode occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setAutoflash(
                         const std::map<int, bool> flash_on_lines)
 {

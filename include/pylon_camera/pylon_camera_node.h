@@ -217,7 +217,7 @@ protected:
      * reverse X, Y on the camera
      * @param reverse_x reverse the image around x-axis
      * @param reverse_y reverse the image around y-axis
-     * @return true if the image reversing success
+     * @return error message if an error occurred or done message otherwise.
      */
     std::string reverseXY(const bool& data, bool around_x);
 
@@ -239,8 +239,8 @@ protected:
 
     /**
      * method for increasing/decreasing the image black level 
-     * @param value the value to be reduced/increase
-     * @return true on success
+     * @param value the new black level value
+     * @return error message if an error occurred or done message otherwise.
      */
     std::string setBlackLevel(const int& value);
 
@@ -251,6 +251,51 @@ protected:
      * @return true on success
      */
    bool setBlackLevelCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
+    /**
+     * Method to set camera acquisition frame rate  
+     * @param frameRate frame rate to be setted.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    std::string setAcquisitionFrameRate(const int& frameRate);
+
+     /**
+     * Service callback for setting the camera acquisition frame rate 
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setAcquisitionFrameRateCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
+    /**
+     * Method to set camera acquisition mode  
+     * @param continous when true set the camer acqisition mode to continous, otherwise set it to single frame.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    std::string setAcquisitionMode(const bool& continuous);
+
+    /**
+     * Service callback for setting the camera acquisition mode 
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+   bool setAcquisitionModeCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
+
+    /**
+     * Method to start / stop the camera acquisition mode  
+     * @param start when true start the camer acqisition mode, otherwise stop it.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    std::string startStopAcquisition(const bool& start);
+
+    /**
+     * Service callback for starting / stopping the camera acquisition mode 
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+   bool startStopAcquisitionCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
 
     /**
      * Sets the target brightness which is the intensity-mean over all pixels.
@@ -422,6 +467,9 @@ protected:
     ros::ServiceServer set_sleeping_srv_;
     ros::ServiceServer reverse_x_srv_;
     ros::ServiceServer reverse_y_srv_;
+    ros::ServiceServer set_acquisition_frame_rate_;
+    ros::ServiceServer set_acquisition_mode_;
+    ros::ServiceServer start_stop_acquisition_;
     ros::ServiceServer set_black_level_;
     std::vector<ros::ServiceServer> set_user_output_srvs_;
 

@@ -52,6 +52,8 @@ struct USBCameraTrait
     typedef double AutoTargetBrightnessValueType;
     typedef Basler_UsbCameraParams::ShutterModeEnums ShutterModeEnums;
     typedef Basler_UsbCameraParams::UserOutputSelectorEnums UserOutputSelectorEnums;
+    typedef Basler_UsbCameraParams::AcquisitionModeEnums AcquisitionModeEnums;
+    typedef Basler_UsbCameraParams::AcquisitionStatusSelectorEnums AcquisitionStatusSelectorEnums;
 
     static inline AutoTargetBrightnessValueType convertBrightness(const int& value)
     {
