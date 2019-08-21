@@ -40,19 +40,19 @@ The pylon_camera-pkg requires the pylonSDK to be installed on your system. Pleas
 In order to build the package, you need to configure rosdep (i.e. the ROS command-line tool for checking and installing system dependencies for ROS packages) such that
 it knows how to resolve this dependency. This can be achieved by executing the following commands:
 
-``sudo sh -c 'echo "yaml https://raw.githubusercontent.com/magazino/pylon_camera/indigo-devel/rosdep/pylon_sdk.yaml " > /etc/ros/rosdep/sources.list.d/15-plyon_camera.list'``
+``sudo sh -c 'echo "yaml https://raw.githubusercontent.com/dragandbot/pylon_camera/master/rosdep/pylon_sdk.yaml " > /etc/ros/rosdep/sources.list.d/15-plyon_camera.list'``
 
 ``rosdep update``
 
-Then, clone the pylon_camera-pkg, and the camera_control_msgs-pkg and install the pylon SDK in your catkin_ws:
+Then, clone the pylon_camera-pkg, camera_control_msgs-pkg, and dragandbot_common and install the pylon SDK in your catkin_ws:
 
-``cd ~/catkin_ws/src/ && git clone https://github.com/magazino/pylon_camera.git && git clone https://github.com/magazino/camera_control_msgs.git``
+``cd ~/catkin_ws/src/ && git clone https://github.com/dragandbot/pylon_camera.git && git clone https://github.com/dragandbot/camera_control_msgs.git && git clone https://github.com/dragandbot/dragandbot_common.git``  
 
 ``rosdep install --from-paths . --ignore-src --rosdistro=$ROS_DISTRO -y``
 
 Build the pylon_camera package as you would build a standard ROS-package unsing p.e.
 
-``cd ~/catkin_ws && catkin_make``
+``cd ~/catkin_ws && catkin build``
 
 |
 
@@ -129,6 +129,10 @@ The following settings do **NOT** have to be set. Each camera has default values
 The pylon_camera_node can be started over the launch file which includes a config file with desired parameters as frame rate or exposure time
 
 ``roslaunch pylon_camera pylon_camera_node.launch``     or     ``rosrun pylon_camera pylon_camera_node``
+
+Anyhow running above launch commands will run the camera with the current setted parameters on the camera. To launch the pylon node use specific user set you should run one of the below commands:
+
+``roslaunch pylon_camera pylon_camera_node.launch startup_user_set:=Default``  or ``roslaunch pylon_camera pylon_camera_node.launch startup_user_set:=UserSet1`` or ``roslaunch pylon_camera pylon_camera_node.launch startup_user_set:=UserSet2`` or ``roslaunch pylon_camera pylon_camera_node.launch startup_user_set:=UserSet3``
 
 Images were only published if another node connects to the image topic. The published images can be seen using the image_view node from the image_pipeline stack:
 

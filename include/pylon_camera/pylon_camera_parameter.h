@@ -250,6 +250,11 @@ public:
     int mtu_size_;
 
     /**
+     * The startup user set.
+     */
+    std::string startup_user_set_;    
+
+    /**
      * The inter-package delay in ticks. Only used for GigE cameras.
      * To prevent lost frames it should be greater 0.
      * For most of GigE-Cameras, a value of 1000 is reasonable.

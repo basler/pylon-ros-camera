@@ -2,6 +2,66 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+
+0.15.2 (2019-08-20)
+-------------------
+* Add dnb_msgs dependency cloning in the Read me file
+* Activate node status Publisher
+* Update the Pylon API download link in the pylon_sdk.rdmanifest
+* Add below listed new ROS services : 
+  - start_grabbing
+  - stop_grabbing
+* add checkiing for "Node is not writable." message.
+
+0.15.2 (2019-08-16)
+-------------------
+* Add startup User set select in the launch file and Drag and Bot Components manger.
+* Make current camera settings as default startup setting.
+* Add reset_device ROS service.
+* Add more line source types.
+* Updating line mode checking in the set_line_source and set_line_debouncer_time
+* Add set_pgi_mode ROS service  
+* Existing services that use camera_control_msgs/SetBool.h service templete updated to use std_srvs/SetBool service templete
+* Add Current Camera parameters publisher
+
+0.15.1 (2019-08-12)
+-------------------
+* Add Drag and Bot module config 
+* Add below listed new ROS services : 
+  - set_offset_x
+  - set_offset_y
+  - set_reverse_x
+  - set_reverse_y
+  - set_black_level
+  - set_demosaicing_mode
+  - set_noise_reduction
+  - set_sharpness_enhancement
+  - set_light_source_preset
+  - set_balance_white_auto
+  - set_sensor_readout_mode
+  - set_acquisition_frame_count
+  - set_trigger_selector
+  - set_trigger_mode
+  - execute_software_trigger
+  - set_trigger_source
+  - set_trigger_activation
+  - set_trigger_delay
+  - set_line_selector
+  - set_line_mode
+  - set_line_source
+  - set_line_inverter
+  - set_line_debouncer_time
+  - set_device_link_throughput_limit_mode
+  - set_device_link_throughput_limit
+  - select_user_set
+  - save_user_set
+  - load_user_set
+  - select_default_user_set
+* Add node status publisher and dnb_msgs dependency (stopped in this version in order to solve the non-public repo.)
+* Change the pylon software path in the 'pylon_sdk.rdmanifest' to Drag and Bot repo. to avoide 'file not available error' during download.
+* Add MTU_size control in the launch file.
+
+
 0.15.0 (2019-03-14)
 -------------------
 * Add support or area of interest selection through service call

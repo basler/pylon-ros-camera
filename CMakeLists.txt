@@ -25,7 +25,7 @@ find_package(
     catkin REQUIRED
     COMPONENTS
      ${CATKIN_COMPONENTS}
-     #std_srvs
+     std_srvs
      roslint
      dnb_msgs
 )

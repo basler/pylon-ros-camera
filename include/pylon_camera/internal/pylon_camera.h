@@ -84,16 +84,6 @@ public:
 
     virtual bool setExposure(const float& target_exposure, float& reached_exposure);
 
-    virtual std::string reverseXY(const bool& reverse_x,bool around_x);
-
-    virtual std::string setBlackLevel(const int& value);
-
-    virtual std::string setAcquisitionFrameRate(const int& frameRate);
-
-    virtual std::string setAcquisitionMode(const bool& continuous);
-
-    virtual std::string startStopAcquisition(const bool& start);
-
     virtual bool setAutoflash(const std::map<int, bool> flash_on_lines);
 
     virtual bool setGain(const float& target_gain, float& reached_gain);
@@ -155,6 +145,104 @@ public:
 
     virtual float exposureStep();
 
+    virtual std::string setOffsetXY(const int& offsetValue, bool xAxis);  
+
+    virtual std::string reverseXY(const bool& reverse_x,bool around_x);
+
+    virtual bool getReverseXY(const bool& returnX);
+
+    virtual std::string setBlackLevel(const int& value);
+
+    virtual int getBlackLevel();
+
+    virtual std::string setPGIMode(const bool& on);
+
+    virtual int getPGIMode();
+
+    virtual std::string setDemosaicingMode(const int& mode);
+
+    virtual int getDemosaicingMode();
+
+    virtual std::string setNoiseReduction(const float& value);
+
+    virtual float getNoiseReduction();
+
+    virtual std::string setSharpnessEnhancement(const float& value);
+
+    virtual float getSharpnessEnhancement();
+
+    virtual std::string setLightSourcePreset(const int& mode);
+
+    virtual int getLightSourcePreset();
+
+    virtual std::string setBalanceWhiteAuto(const int& mode);
+
+    virtual int getBalanceWhiteAuto();
+
+    virtual std::string setSensorReadoutMode(const int& mode);
+
+    virtual int getSensorReadoutMode();
+
+    virtual std::string setAcquisitionFrameCount(const int& frameCount);
+
+    virtual int getAcquisitionFrameCount();
+
+    virtual std::string setTriggerSelector(const int& mode);
+
+    virtual int getTriggerSelector();
+
+    virtual std::string setTriggerMode(const bool& value);
+
+    virtual int getTriggerMode();
+
+    virtual std::string executeSoftwareTrigger();
+
+    virtual std::string setTriggerSource(const int& source);
+
+    virtual int getTriggerSource();
+
+    virtual std::string setTriggerActivation(const int& value);
+
+    virtual int getTriggerActivation();
+
+    virtual std::string setTriggerDelay(const float& delayValue);
+
+    virtual float getTriggerDelay();
+
+    virtual std::string setLineSelector(const int& value);
+
+    virtual std::string setLineMode(const int& value);
+
+    virtual std::string setLineSource(const int& value);
+
+    virtual std::string setLineInverter(const bool& value);
+
+    virtual std::string setLineDebouncerTime(const float& value);
+
+    virtual std::string setUserSetSelector(const int& set);
+
+    virtual int getUserSetSelector();
+
+    virtual std::string saveUserSet();
+
+    virtual std::string loadUserSet();
+
+    virtual std::string setUserSetDefaultSelector(const int& set);
+
+    virtual int getUserSetDefaultSelector();
+
+    virtual std::string setDeviceLinkThroughputLimitMode(const bool& turnOn);
+
+    virtual int getDeviceLinkThroughputLimitMode();
+
+    virtual std::string setDeviceLinkThroughputLimit(const int& limit);
+
+    virtual std::string triggerDeviceReset();  
+
+    virtual std::string grabbingStarting();  
+
+    virtual std::string grabbingStopping();  
+
 protected:
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
     typedef typename CameraTraitT::ExposureAutoEnums ExposureAutoEnums;
@@ -165,8 +253,25 @@ protected:
     typedef typename CameraTraitT::GainType GainType;
     typedef typename CameraTraitT::ShutterModeEnums ShutterModeEnums;
     typedef typename CameraTraitT::UserOutputSelectorEnums UserOutputSelectorEnums;
-    typedef typename CameraTraitT::AcquisitionModeEnums AcquisitionModeEnums; 
+    typedef typename CameraTraitT::SensorReadoutModeEnums SensorReadoutModeEnums;
     typedef typename CameraTraitT::AcquisitionStatusSelectorEnums AcquisitionStatusSelectorEnums;
+    typedef typename CameraTraitT::TriggerSelectorEnums TriggerSelectorEnums;
+    typedef typename CameraTraitT::TriggerModeEnums TriggerModeEnums;
+    typedef typename CameraTraitT::TriggerSourceEnums TriggerSourceEnums;
+    typedef typename CameraTraitT::TriggerActivationEnums TriggerActivationEnums;
+    typedef typename CameraTraitT::LineSelectorEnums LineSelectorEnums;
+    typedef typename CameraTraitT::LineModeEnums LineModeEnums;
+    typedef typename CameraTraitT::DeviceLinkThroughputLimitModeEnums DeviceLinkThroughputLimitModeEnums;
+    typedef typename CameraTraitT::AutoFunctionROISelectorEnums AutoFunctionROISelectorEnums;
+    typedef typename CameraTraitT::BalanceWhiteAutoEnums BalanceWhiteAutoEnums;
+    typedef typename CameraTraitT::LightSourcePresetEnums LightSourcePresetEnums;
+    typedef typename CameraTraitT::LineSourceEnums LineSourceEnums;
+    typedef typename CameraTraitT::DemosaicingModeEnums DemosaicingModeEnums;
+    typedef typename CameraTraitT::PgiModeEnums PgiModeEnums;
+    typedef typename CameraTraitT::UserSetSelectorEnums UserSetSelectorEnums;
+    typedef typename CameraTraitT::UserSetDefaultSelectorEnums UserSetDefaultSelectorEnums;
+    typedef typename CameraTraitT::LineFormatEnums LineFormatEnums;
+
 
     CBaslerInstantCameraT* cam_;
 

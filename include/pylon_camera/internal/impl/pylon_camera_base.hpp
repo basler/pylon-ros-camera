@@ -832,114 +832,6 @@ bool PylonCameraImpl<CameraTraitT>::setExposure(const float& target_exposure,
 }
 
 template <typename CameraTraitT>
-std::string PylonCameraImpl<CameraTraitT>::reverseXY(const bool& data, bool around_x)
-{
-    try
-    {
-        if (around_x)
-        {
-            cam_->ReverseX.SetValue(data);
-        }
-        else
-        {
-            cam_->ReverseY.SetValue(data);   
-        }  
-
-    }
-    catch ( const GenICam::GenericException &e )
-    {
-        ROS_ERROR_STREAM("An exception while reversing the image around X and/or Y occurred:" << e.GetDescription());
-        return e.GetDescription();
-    }
-    return "done";
-}
-
-template <typename CameraTraitT>
-std::string PylonCameraImpl<CameraTraitT>::setAcquisitionFrameRate(const int& frameRate)
-{
-    try
-    {
-        if (typeName() != "DART")
-        {
-
-            cam_->AcquisitionFrameRateEnable.SetValue(true);
-            cam_->AcquisitionFrameRate.SetValue(frameRate);
-            return "done";
-        }
-        else
-        {
-           ROS_ERROR_STREAM("set Acquisition Frame Rate not supported by Dart Cameras");
-           return "set Acquisition Frame Rate not supported by Dart Cameras" ;
-        }
-    }
-    catch ( const GenICam::GenericException &e )
-    {
-        ROS_ERROR_STREAM("An exception while setting the acquisition mode occurred:" << e.GetDescription());
-        return e.GetDescription();
-    }
-}
-
-template <typename CameraTraitT>
-std::string PylonCameraImpl<CameraTraitT>::setAcquisitionMode(const bool& continuous)
-{
-    try
-    {
-        if (continuous)
-        {
-            cam_->AcquisitionMode.SetValue(AcquisitionModeEnums::AcquisitionMode_Continuous);
-        }
-        else
-        {
-            cam_->AcquisitionMode.SetValue(AcquisitionModeEnums::AcquisitionMode_SingleFrame);
-        }  
-    if (typeName() != "DART")
-    {
-        cam_->AcquisitionStatusSelector.SetValue(AcquisitionStatusSelectorEnums::AcquisitionStatusSelector_FrameTriggerWait);
-    }
-    
-    if (cam_->AcquisitionStatus.GetValue() && (typeName() != "DART"))
-        {
-            return "done, waiting for trigger signal";
-        }
-    else 
-        {
-            return "done";
-        }
-    }
-    catch ( const GenICam::GenericException &e )
-    {
-        ROS_ERROR_STREAM("An exception while setting the acquisition mode occurred:" << e.GetDescription());
-        return e.GetDescription();
-    }
-
-    return "done";
-}
-
-template <typename CameraTraitT>
-std::string PylonCameraImpl<CameraTraitT>::startStopAcquisition(const bool& start)
-{
-    try
-    {
-        if (start)
-        {
-            cam_->AcquisitionStart.Execute();
-
-        }
-        else
-        {
-            cam_->AcquisitionStop.Execute();
-        }  
-
-    }
-    catch ( const GenICam::GenericException &e )
-    {
-        ROS_ERROR_STREAM("An exception while starting/stopping the acquisition mode occurred:" << e.GetDescription());
-        return e.GetDescription();
-    }
-    return "done";
-}
-
-template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setAutoflash(
                         const std::map<int, bool> flash_on_lines)
 {
@@ -1258,6 +1150,1491 @@ bool PylonCameraImpl<CameraTraitT>::setUserOutput(const int& output_id,
         return false;
     }
     return true;
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setOffsetXY(const int& offset_value, bool xAxis)
+{
+    try
+    {
+        if (xAxis)
+        {
+            cam_->OffsetX.SetValue(offset_value);
+
+        }
+        else
+        {
+            cam_->OffsetY.SetValue(offset_value);
+        }  
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while trying to set the offset in x-axis/y-axis occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::reverseXY(const bool& data, bool around_x)
+{
+    try
+    {
+        if (around_x)
+        {
+            cam_->ReverseX.SetValue(data);
+        }
+        else
+        {
+            cam_->ReverseY.SetValue(data);   
+        }  
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while trying to reverse the image around x-axis/y-axis occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+bool PylonCameraImpl<CameraTraitT>::getReverseXY(const bool& returnX)
+{
+    try
+    {
+        if (returnX)
+        {
+            return static_cast<bool>(cam_->ReverseX.GetValue());
+        }
+        else
+        {
+            return static_cast<bool>(cam_->ReverseY.GetValue());
+        }  
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return false;
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setBlackLevel(const int& value)
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->BlackLevel) )
+        {  
+            cam_->BlackLevel.SetValue(value);   
+            return "done";
+        }
+        else 
+        {
+             ROS_ERROR_STREAM("Error while trying to change the image black level. The connected Camera not supporting this feature");
+             return "The connected Camera not supporting this feature";
+        }
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while trying to change the image black level occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+int PylonCameraImpl<CameraTraitT>::getBlackLevel()
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->BlackLevel) )
+        {  
+            return static_cast<int>(cam_->BlackLevel.GetValue());   
+        }
+        else 
+        {
+             return -10000;
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -10000;
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setPGIMode(const bool& on)
+{
+ try
+    {
+        if ( GenApi::IsAvailable(cam_->PgiMode) )
+        { 
+            if (on)
+            {
+                cam_->PgiMode.SetValue(PgiModeEnums::PgiMode_On);
+                return "done";
+            }
+            else
+            {
+                cam_->PgiMode.SetValue(PgiModeEnums::PgiMode_Off);
+                return "done";
+            }
+        }
+        else 
+        {
+            ROS_ERROR_STREAM("Error while trying to change the PGI mode. The connected Camera not supporting this feature");
+            return "The connected Camera not supporting this feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while trying to set the PGI mode occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <typename CameraTraitT>
+int PylonCameraImpl<CameraTraitT>::getPGIMode()
+{
+ try
+    {
+        if ( GenApi::IsAvailable(cam_->PgiMode) )
+        { 
+            if (cam_->PgiMode.GetValue() == PgiModeEnums::PgiMode_On)
+            {
+                return 1; // On
+            }
+            else if (cam_->PgiMode.GetValue() == PgiModeEnums::PgiMode_Off)
+            {
+                return 0; // Off
+            }
+            else
+            {
+                return -3; // Unknown
+            }
+        }
+        else 
+        {
+            return -1; // Not available
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -2; // Error
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setDemosaicingMode(const int& mode)
+{
+ try
+    {
+        if ( GenApi::IsAvailable(cam_->DemosaicingMode) )
+        {
+            if (mode == 0 )
+            {
+                cam_->DemosaicingMode.SetValue(DemosaicingModeEnums::DemosaicingMode_Simple);
+                return "done";
+            }
+            else if (mode == 1 )
+            {
+                cam_->DemosaicingMode.SetValue(DemosaicingModeEnums::DemosaicingMode_BaslerPGI);
+                return "done";
+            }
+            else
+            {
+               return "Error: unknown value";
+            }
+        }
+        else 
+        {
+            ROS_ERROR_STREAM("Error while trying to change the demosaicing mode. The connected Camera not supporting this feature");
+            return "The connected Camera not supporting this feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while trying to set the demosaicing mode occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <typename CameraTraitT>
+int PylonCameraImpl<CameraTraitT>::getDemosaicingMode()
+{
+ try
+    {
+        if ( GenApi::IsAvailable(cam_->DemosaicingMode) )
+        {
+            if (cam_->DemosaicingMode.GetValue() == DemosaicingModeEnums::DemosaicingMode_Simple)
+            {
+                return 0; // Simple
+            }
+            else if (cam_->DemosaicingMode.GetValue() == DemosaicingModeEnums::DemosaicingMode_BaslerPGI)
+            {
+                return 1; // BaslerPGI
+            }
+            else
+            {
+               return -3; // Unknown
+            }
+        }
+        else 
+        {
+            return -1; //Not available
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -2; // Error
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setNoiseReduction(const float& value)
+{
+ try
+    {
+        if ( GenApi::IsAvailable(cam_->PgiMode) )
+        {
+            if (cam_->PgiMode.GetValue() == PgiModeEnums::PgiMode_On)
+            {
+                if ( GenApi::IsAvailable(cam_->NoiseReduction) )
+                {
+                    cam_->NoiseReduction.SetValue(value);
+                    return "done";
+                }
+                else 
+                {
+                    ROS_ERROR_STREAM("Error while trying to change the noise reduction value. The camera not having this feature");
+                    return "The camera not having this feature";
+                }
+            }
+            else
+            {
+                return "Error : Noise Reduction feature not available while PGI mode is off";
+            }
+        }
+        else 
+            {
+                ROS_ERROR_STREAM("Error while trying to change the noise reduction value. The connected Camera not supporting this feature");
+                return "The connected Camera not supporting this feature";
+            } 
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while trying to set the noise reduction value occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <typename CameraTraitT>
+float PylonCameraImpl<CameraTraitT>::getNoiseReduction()
+{
+ try
+    {
+        if ( GenApi::IsAvailable(cam_->NoiseReduction) )
+        {
+            return static_cast<float>(cam_->NoiseReduction.GetValue());
+        }
+        else 
+        {
+            return -10000.0; // Not available
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -20000.0; // Error
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setSharpnessEnhancement(const float& value)
+{
+ try
+    {
+        if ( GenApi::IsAvailable(cam_->PgiMode) )
+        {
+            if (cam_->PgiMode.GetValue() == PgiModeEnums::PgiMode_On)
+            {
+                if ( GenApi::IsAvailable(cam_->SharpnessEnhancement) )
+                {
+                    cam_->SharpnessEnhancement.SetValue(value);
+                    return "done";
+                }
+                else 
+                {
+                    ROS_ERROR_STREAM("Error while trying to change the sharpness enhancement value. The connected Camera not supporting this feature");
+                    return "The connected Camera not supporting this feature";
+                }
+            }
+            else
+            {
+                return "Error : Sharpness Enhancement feature not available while PGI mode is off";
+            }
+        }
+        else 
+            {
+                ROS_ERROR_STREAM("Error while trying to change the sharpness enhancement value, The connected Camera not supporting this feature");
+                return "The connected Camera not supporting this feature";
+            } 
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while trying to set the sharpness enhancement value occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <typename CameraTraitT>
+float PylonCameraImpl<CameraTraitT>::getSharpnessEnhancement()
+{
+ try
+    {
+        if ( GenApi::IsAvailable(cam_->SharpnessEnhancement) )
+        {
+            return static_cast<float>(cam_->SharpnessEnhancement.GetValue());
+        }
+        else 
+        {
+            return -10000.0;
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -20000.0;
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setSensorReadoutMode(const int& mode)
+{
+    try
+    {   if ( GenApi::IsAvailable(cam_->SensorReadoutMode) )
+        {
+            if (mode == 0)
+            {
+                cam_->SensorReadoutMode.SetValue(SensorReadoutModeEnums::SensorReadoutMode_Normal);
+
+            }
+            else if (mode == 1)
+            {
+                cam_->SensorReadoutMode.SetValue(SensorReadoutModeEnums::SensorReadoutMode_Fast);
+            }
+            else 
+            {
+                return "Error: unknown value";
+            }  
+        }
+        else 
+        {
+            ROS_ERROR_STREAM("Error while trying to change the sensor readout mode. The connected Camera not supporting this feature");
+            return "The connected Camera not supporting this feature";
+        }
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while trying to set the sensor readout mode occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+int PylonCameraImpl<CameraTraitT>::getSensorReadoutMode()
+{
+    try
+    {   if ( GenApi::IsAvailable(cam_->SensorReadoutMode) )
+        {
+            if (cam_->SensorReadoutMode.GetValue() == SensorReadoutModeEnums::SensorReadoutMode_Normal)
+            {
+                return 0; // Normal
+
+            }
+            else if (cam_->SensorReadoutMode.GetValue() == SensorReadoutModeEnums::SensorReadoutMode_Fast)
+            {
+                return 1; // Fast
+            }
+            else 
+            {
+                return -3; // Unknown
+            }  
+        }
+        else 
+        {
+            return -1; // Not available
+        }
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -2; // Error
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setTriggerSelector(const int& mode)
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->TriggerSelector) )
+        {  
+            if (mode == 0)
+            {
+            cam_->TriggerSelector.SetValue(TriggerSelectorEnums::TriggerSelector_FrameStart);   
+            return "done";
+            }
+            else if (mode == 1)
+            {
+            cam_->TriggerSelector.SetValue(TriggerSelectorEnums::TriggerSelector_FrameBurstStart);   
+            return "done";
+            }
+            else
+            {
+                return "Error: unknown value";
+            }
+        }
+        else 
+        {
+             ROS_ERROR_STREAM("Error while trying to change the Acquisition frame count. The connected Camera not supporting this feature");
+             return "The connected Camera not supporting this feature";
+        }
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while trying to change the Acquisition frame count occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+int PylonCameraImpl<CameraTraitT>::getTriggerSelector()
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->TriggerSelector) )
+        {  
+            if (cam_->TriggerSelector.GetValue() == TriggerSelectorEnums::TriggerSelector_FrameStart)
+            {
+                return 0; // FrameStart
+            }
+            else if (cam_->TriggerSelector.GetValue() == TriggerSelectorEnums::TriggerSelector_FrameBurstStart)
+            {
+                return 1; // FrameBurstStart
+            }
+            else
+            {
+                return -3; // Unknown
+            }
+        }
+        else 
+        {
+             return -1; // Not available
+        }
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -2; // Eror
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setTriggerMode(const bool& value)
+{
+    try
+    {   if ( GenApi::IsAvailable(cam_->TriggerMode) )
+        {
+            if (value)
+            {
+                cam_->TriggerMode.SetValue(TriggerModeEnums::TriggerMode_On);
+            }
+            else
+            {
+                cam_->TriggerMode.SetValue(TriggerModeEnums::TriggerMode_Off);
+            }
+        }
+        else 
+        {
+            ROS_ERROR_STREAM("Error while trying to change the trigger mode. The connected Camera not supporting this feature");
+            return "The connected Camera not supporting this feature";
+        }
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the trigger mode occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+int PylonCameraImpl<CameraTraitT>::getTriggerMode()
+{
+    try
+    {   if ( GenApi::IsAvailable(cam_->TriggerMode) )
+        {
+            if (cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On)
+            {
+                return 1; // On
+            }
+            else if (cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_Off)
+            {
+               return 0; // Off
+            }
+            else 
+            {
+               return -3; // Off 
+            }
+        }
+        else 
+        {
+            return -1; // Not available
+        }
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -2; // error
+    }
+
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::executeSoftwareTrigger()
+{
+    try
+    {   if ( GenApi::IsAvailable(cam_->TriggerSoftware) )
+        {
+            cam_->TriggerSoftware.Execute();
+            return "done";
+        }
+        else 
+        {
+            ROS_ERROR_STREAM("Error while trying to change the trigger mode. The connected Camera not supporting this feature");
+            return "The connected Camera not supporting this feature";
+        }
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the trigger mode occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setTriggerSource(const int& source)
+{
+    try
+    {   if ( GenApi::IsAvailable(cam_->TriggerSource) )
+        {
+            if (source == 0)
+            {
+                cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Software);
+            }
+            else if (source == 1)
+            {
+                cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Line1);
+            }
+            else if (source == 2)
+            {
+                cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Line3);
+            }
+            else if (source == 3)
+            {
+                cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Line4);
+            }
+            else 
+            {
+                return "Error: unknown value";
+            }
+        }
+        else 
+        {
+            ROS_ERROR_STREAM("Error while trying to change the trigger source. The connected Camera not supporting this feature");
+            return "The connected Camera not supporting this feature";
+        }
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the trigger source occurred:" << e.GetDescription());
+        return e.GetDescription(); 
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+int PylonCameraImpl<CameraTraitT>::getTriggerSource()
+{
+    try
+    {   if ( GenApi::IsAvailable(cam_->TriggerSource) )
+        {
+            if (cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_Software)
+            {
+                return 0; // Software
+            }
+            else if (cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_Line1)
+            {
+                return 1; // Line1
+            }
+            else if (cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_Line3)
+            {
+                return 2; // Line3
+            }
+            else if (cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_Line4)
+            {
+                return 3; // Line4
+            }
+            else 
+            {
+                return -3; // Unknown
+            }
+        }
+        else 
+        {
+            return -1; // Not available
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -2; // Error
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setTriggerActivation(const int& value)
+{
+    try
+    {   if ( GenApi::IsAvailable(cam_->TriggerActivation) )
+        {
+            if (value == 0)
+            {
+                cam_->TriggerActivation.SetValue(TriggerActivationEnums::TriggerActivation_RisingEdge);
+            }
+            else if (value == 1)
+            {
+                cam_->TriggerActivation.SetValue(TriggerActivationEnums::TriggerActivation_FallingEdge);
+            }
+            else 
+            {
+                return "Error: unknown value";
+            }
+        }
+        else 
+        {
+            ROS_ERROR_STREAM("Error while trying to change the trigger activation type. The connected Camera not supporting this feature");
+            return "The connected Camera not supporting this feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the trigger activation type occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+int PylonCameraImpl<CameraTraitT>::getTriggerActivation()
+{
+    try
+    {   if ( GenApi::IsAvailable(cam_->TriggerActivation) )
+        {
+            if (cam_->TriggerActivation.GetValue() == TriggerActivationEnums::TriggerActivation_RisingEdge)
+            {
+                return 0; // RisingEdge
+            }
+            else if (cam_->TriggerActivation.GetValue() == TriggerActivationEnums::TriggerActivation_FallingEdge)
+            {
+                return 1; // FallingEdge
+            }
+            else 
+            {
+                return -3; // Unknown
+            }
+        }
+        else 
+        {
+            return -1; // Not Available
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -2; // Error
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setTriggerDelay(const float& delayValue)
+{
+    try
+    {   if ( GenApi::IsAvailable(cam_->TriggerDelay) )
+        {
+
+            cam_->TriggerDelay.SetValue(delayValue);
+        }
+        else 
+        {
+            ROS_ERROR_STREAM("Error while trying to change the trigger delay. The connected Camera not supporting this feature");
+            return "The connected Camera not supporting this feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the trigger delay occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+float PylonCameraImpl<CameraTraitT>::getTriggerDelay()
+{
+    try
+    {   if ( GenApi::IsAvailable(cam_->TriggerDelay) )
+        {
+
+            return static_cast<float>(cam_->TriggerDelay.GetValue());
+        }
+        else 
+        {
+            return -10000.0; // Not available
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -20000.0; // Error
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setLineSelector(const int& value)
+{
+    try
+    {   if ( GenApi::IsAvailable(cam_->LineSelector) )
+        {
+            if (value == 0)
+            {
+                cam_->LineSelector.SetValue(LineSelectorEnums::LineSelector_Line1);
+            }
+            else if (value == 1)
+            {
+                cam_->LineSelector.SetValue(LineSelectorEnums::LineSelector_Line2);
+            }
+            else if (value == 2)
+            {
+                cam_->LineSelector.SetValue(LineSelectorEnums::LineSelector_Line3);
+            }
+            else if (value == 3)
+            {
+                cam_->LineSelector.SetValue(LineSelectorEnums::LineSelector_Line4);
+            }
+            else 
+            {
+                return "Error: unknown value";
+            }
+        }
+        else 
+        {
+            ROS_ERROR_STREAM("Error while trying to set the line selector. The connected Camera not supporting this feature");
+            return "The connected Camera not supporting this feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the line selector occurred:" << e.GetDescription());
+        return e.GetDescription(); 
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setLineMode(const int& value)
+{
+    try
+    {   if ( (cam_->LineFormat.GetValue() == LineFormatEnums::LineFormat_TTL) || (cam_->LineFormat.GetValue() == LineFormatEnums::LineFormat_LVTTL) )
+        {
+            if (value == 0)
+            {
+                cam_->LineMode.SetValue(LineModeEnums::LineMode_Input);
+            }
+            else if (value == 1)
+            {
+                cam_->LineMode.SetValue(LineModeEnums::LineMode_Output);
+            }
+            else 
+            {
+                return "Error: unknown value";
+            }
+        }
+        else 
+        {
+            ROS_ERROR_STREAM("Error : the selected line number don't have change line mode feature");
+            return "Error : the selected line number dose not have change line mode feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the line mode occurred:" << e.GetDescription());
+        return e.GetDescription(); 
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setLineSource(const int& value)
+{
+    try
+    {  
+        if (cam_->LineMode.GetValue() == LineModeEnums::LineMode_Output )
+        {
+            if (value == 0)
+            {   
+                cam_->LineSource.SetValue(LineSourceEnums::LineSource_ExposureActive);
+                return "done";
+            }
+            else if (value == 1)
+            {
+                cam_->LineSource.SetValue(LineSourceEnums::LineSource_FrameTriggerWait);
+                return "done"; 
+            }
+            else if (value == 2)
+            {
+                cam_->LineSource.SetValue(LineSourceEnums::LineSource_UserOutput1);
+                return "done"; 
+            }
+            else if (value == 3)
+            {
+                cam_->LineSource.SetValue(LineSourceEnums::LineSource_Timer1Active);
+                return "done"; 
+            }
+            else if (value == 4)
+            {
+                if (cam_->ShutterMode.GetValue() == ShutterModeEnums::ShutterMode_Rolling )
+                {
+                  cam_->LineSource.SetValue(LineSourceEnums::LineSource_FlashWindow);
+                    return "done";  
+                }
+                else 
+                {
+                    return "Error: the line source 'FlashWindow' supported by rolling shutter only";
+                }
+                 
+            }
+            else 
+            {
+                return "Error: unknown value";
+            }
+        }
+        else 
+        {
+            return "Error : can't change the line source, the selected line mode should be output";
+        }
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the line source occurred:" << e.GetDescription());
+        return e.GetDescription(); 
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setLineDebouncerTime(const float& value)
+{
+    try
+    {     
+        if ( cam_->LineMode.GetValue() == LineModeEnums::LineMode_Input)
+        {
+            cam_->LineDebouncerTime.SetValue(value);
+        }
+        else 
+        {
+            return "Error: can't set the line debouncer time, the selected line mode should be input";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the line debouncer time occurred:" << e.GetDescription());
+        return e.GetDescription(); 
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setLineInverter(const bool& value)
+{
+    try
+    {   if ( GenApi::IsAvailable(cam_->LineInverter) )
+        {
+            cam_->LineInverter.SetValue(value);
+        }
+        else 
+        {
+            ROS_ERROR_STREAM("Error while trying to set the line inverter. The connected Camera or selected line not supporting this feature");
+            return "The connected Camera or selected line not supporting this feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the line inverter occurred:" << e.GetDescription());
+        return e.GetDescription(); 
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setDeviceLinkThroughputLimitMode(const bool& turnOn)
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->DeviceLinkThroughputLimitMode) )
+        {  
+            if (turnOn)
+            {
+            cam_->DeviceLinkThroughputLimitMode.SetValue(DeviceLinkThroughputLimitModeEnums::DeviceLinkThroughputLimitMode_On);   
+            return "done";
+            }
+            else 
+            {
+            cam_->DeviceLinkThroughputLimitMode.SetValue(DeviceLinkThroughputLimitModeEnums::DeviceLinkThroughputLimitMode_Off);    
+            return "done";
+            }
+        }
+        else 
+        {
+             ROS_ERROR_STREAM("Error while trying to change the device link throughput limit mode. The connected Camera not supporting this feature");
+             return "The connected Camera not supporting this feature";
+        }
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while changing the device link throughput limit mode occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+int PylonCameraImpl<CameraTraitT>::getDeviceLinkThroughputLimitMode()
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->DeviceLinkThroughputLimitMode) )
+        {  
+            if (cam_->DeviceLinkThroughputLimitMode.GetValue() == DeviceLinkThroughputLimitModeEnums::DeviceLinkThroughputLimitMode_On)
+            {
+                return 0; // On
+            }
+            else if (cam_->DeviceLinkThroughputLimitMode.GetValue() == DeviceLinkThroughputLimitModeEnums::DeviceLinkThroughputLimitMode_Off)
+            {
+            return 1; // Off
+            }
+            else 
+            {
+            return -3; // Unknown
+            }
+        }
+        else 
+        {
+             return -1; // Not Available
+        }
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -2; // Error
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setDeviceLinkThroughputLimit(const int& limit)
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->DeviceLinkThroughputLimit) )
+        {  
+            if (cam_->DeviceLinkThroughputLimitMode.GetValue() == DeviceLinkThroughputLimitModeEnums::DeviceLinkThroughputLimitMode_On)
+            {
+                cam_->DeviceLinkThroughputLimit.SetValue(limit);     
+                return "done";
+            }
+            else 
+            {
+                return "Error : device link throughput limit mode is off";
+            }
+        }
+        else 
+        {
+             ROS_ERROR_STREAM("Error while trying to change the device link throughput limit. The connected Camera not supporting this feature");
+             return "The connected Camera not supporting this feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while changing the device link throughput limit occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setBalanceWhiteAuto(const int& mode)
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->AutoFunctionROISelector) && GenApi::IsAvailable(cam_->BalanceWhiteAuto))
+        {  
+            cam_->AutoFunctionROISelector.SetValue(AutoFunctionROISelectorEnums::AutoFunctionROISelector_ROI2);
+            if (mode == 0)
+            {
+                cam_->BalanceWhiteAuto.SetValue(BalanceWhiteAutoEnums::BalanceWhiteAuto_Off);
+            }  
+            else if (mode == 1)
+            {
+                cam_->BalanceWhiteAuto.SetValue(BalanceWhiteAutoEnums::BalanceWhiteAuto_Once);
+            } 
+            else if (mode == 2)
+            {
+                cam_->BalanceWhiteAuto.SetValue(BalanceWhiteAutoEnums::BalanceWhiteAuto_Continuous);
+            } 
+            else 
+            {
+                return "Error: unknown value";
+            }
+        }
+        else 
+        {
+             ROS_ERROR_STREAM("Error while trying to change the balance white auto. The connected Camera not supporting this feature");
+             return "The connected Camera not supporting this feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while changing the balance white auto occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+int PylonCameraImpl<CameraTraitT>::getBalanceWhiteAuto()
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->AutoFunctionROISelector) && GenApi::IsAvailable(cam_->BalanceWhiteAuto) && cam_->AutoFunctionROISelector.GetValue() == AutoFunctionROISelectorEnums::AutoFunctionROISelector_ROI2)
+        {  
+            if (cam_->BalanceWhiteAuto.GetValue() == BalanceWhiteAutoEnums::BalanceWhiteAuto_Off)
+            {
+                return 0; // Off
+            }  
+            else if (cam_->BalanceWhiteAuto.GetValue() == BalanceWhiteAutoEnums::BalanceWhiteAuto_Once)
+            {
+                return 1; // Once
+            } 
+            else if (cam_->BalanceWhiteAuto.GetValue() == BalanceWhiteAutoEnums::BalanceWhiteAuto_Continuous)
+            {
+                return 2; // Continuous
+            } 
+            else 
+            {
+                return -3; // Unknown
+            }
+        }
+        else 
+        {
+             return -1; // Not Available
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -2; // Error
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setLightSourcePreset(const int& mode)
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->LightSourcePreset))
+        {  
+            if (mode == 0)
+            {
+                cam_->LightSourcePreset.SetValue(LightSourcePresetEnums::LightSourcePreset_Off);
+            }  
+            else if (mode == 1)
+            {
+                cam_->LightSourcePreset.SetValue(LightSourcePresetEnums::LightSourcePreset_Daylight5000K);
+            } 
+            else if (mode == 2)
+            {
+                cam_->LightSourcePreset.SetValue(LightSourcePresetEnums::LightSourcePreset_Daylight6500K);
+            } 
+            else if (mode == 3)
+            {
+                cam_->LightSourcePreset.SetValue(LightSourcePresetEnums::LightSourcePreset_Tungsten2800K);
+            } 
+            else 
+            {
+                return "Error: unknown value";
+            }
+        }
+        else 
+        {
+             ROS_ERROR_STREAM("Error while trying to change the light source preset. The connected Camera not supporting this feature");
+             return "The connected Camera not supporting this feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while changing the light source preset occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <typename CameraTraitT>
+int PylonCameraImpl<CameraTraitT>::getLightSourcePreset()
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->LightSourcePreset))
+        {  
+            if (cam_->LightSourcePreset.GetValue() == LightSourcePresetEnums::LightSourcePreset_Off)
+            {
+                return 0; // Off
+            }  
+            else if (cam_->LightSourcePreset.GetValue() == LightSourcePresetEnums::LightSourcePreset_Daylight5000K)
+            {
+                return 1; // Daylight5000K
+            } 
+            else if (cam_->LightSourcePreset.GetValue() == LightSourcePresetEnums::LightSourcePreset_Daylight6500K)
+            {
+                return 2; // Daylight6500K
+            } 
+            else if (cam_->LightSourcePreset.GetValue() == LightSourcePresetEnums::LightSourcePreset_Tungsten2800K)
+            {
+                return 3; // Tungsten2800K
+            } 
+            else 
+            {
+                return -3; // Unkonwn
+            }
+        }
+        else 
+        {
+             return -1; // Not available
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -2; // error
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setUserSetSelector(const int& set)
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->UserSetSelector))
+        {  
+            if (set == 0)
+            {
+                cam_->UserSetSelector.SetValue(UserSetSelectorEnums::UserSetSelector_Default);
+            }  
+            else if (set == 1)
+            {
+                cam_->UserSetSelector.SetValue(UserSetSelectorEnums::UserSetSelector_UserSet1);
+            } 
+            else if (set == 2)
+            {
+                cam_->UserSetSelector.SetValue(UserSetSelectorEnums::UserSetSelector_UserSet2);
+            } 
+            else if (set == 3)
+            {
+                cam_->UserSetSelector.SetValue(UserSetSelectorEnums::UserSetSelector_UserSet3);
+            } 
+            else if (set == 4)
+            {
+                cam_->UserSetSelector.SetValue(UserSetSelectorEnums::UserSetSelector_HighGain);
+            } 
+            else if (set == 5)
+            {
+                cam_->UserSetSelector.SetValue(UserSetSelectorEnums::UserSetSelector_AutoFunctions);
+            } 
+            else if (set == 6)
+            {
+                cam_->UserSetSelector.SetValue(UserSetSelectorEnums::UserSetSelector_ColorRaw);
+            } 
+            else 
+            {
+                return "Error: unknown value";
+            }
+        }
+        else 
+        {
+             ROS_ERROR_STREAM("Error while trying to select the user set. The connected Camera not supporting this feature");
+             return "The connected Camera not supporting this feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while selecting the user set occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+int PylonCameraImpl<CameraTraitT>::getUserSetSelector()
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->UserSetSelector))
+        {  
+            if (cam_->UserSetSelector.GetValue() == UserSetSelectorEnums::UserSetSelector_Default)
+            {
+                return 0; // Default
+            }  
+            else if (cam_->UserSetSelector.GetValue() == UserSetSelectorEnums::UserSetSelector_UserSet1)
+            {
+                return 1; // UserSet1
+            } 
+            else if (cam_->UserSetSelector.GetValue() == UserSetSelectorEnums::UserSetSelector_UserSet2)
+            {
+                return 2; // UserSet2
+            } 
+            else if (cam_->UserSetSelector.GetValue() == UserSetSelectorEnums::UserSetSelector_UserSet3)
+            {
+                return 3; // UserSet3
+            } 
+            else if (cam_->UserSetSelector.GetValue() == UserSetSelectorEnums::UserSetSelector_HighGain)
+            {
+                return 4; // HighGain
+            } 
+            else if (cam_->UserSetSelector.GetValue() == UserSetSelectorEnums::UserSetSelector_AutoFunctions)
+            {
+                return 5; // AutoFunctions
+            } 
+            else if (cam_->UserSetSelector.GetValue() == UserSetSelectorEnums::UserSetSelector_ColorRaw)
+            {
+                return 6; // ColorRaw
+            } 
+            else 
+            {
+                return -3; // Unknown
+            }
+        }
+        else 
+        {
+             return -1; // Not available
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -2; // Error
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::saveUserSet()
+{
+    try
+    {
+        cam_->UserSetSave.Execute();
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while saving the user set occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::loadUserSet()
+{
+    try
+    {
+        cam_->UserSetLoad.Execute();
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while loading the user set occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setUserSetDefaultSelector(const int& set)
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->UserSetDefault))
+        {  
+            if (set == 0)
+            {
+                cam_->UserSetDefault.SetValue(UserSetDefaultSelectorEnums::UserSetDefault_Default);
+            }  
+            else if (set == 1)
+            {
+                cam_->UserSetDefault.SetValue(UserSetDefaultSelectorEnums::UserSetDefault_UserSet1);
+            } 
+            else if (set == 2)
+            {
+                cam_->UserSetDefault.SetValue(UserSetDefaultSelectorEnums::UserSetDefault_UserSet2);
+            } 
+            else if (set == 3)
+            {
+                cam_->UserSetDefault.SetValue(UserSetDefaultSelectorEnums::UserSetDefault_UserSet3);
+            } 
+            else if (set == 4)
+            {
+                cam_->UserSetDefault.SetValue(UserSetDefaultSelectorEnums::UserSetDefault_HighGain);
+            } 
+            else if (set == 5)
+            {
+                cam_->UserSetDefault.SetValue(UserSetDefaultSelectorEnums::UserSetDefault_AutoFunctions);
+            } 
+            else if (set == 6)
+            {
+                cam_->UserSetDefault.SetValue(UserSetDefaultSelectorEnums::UserSetDefault_ColorRaw);
+            } 
+            else 
+            {
+                return "Error: unknown value";
+            }
+        }
+        else 
+        {
+             ROS_ERROR_STREAM("Error while trying to select the default user set. The connected Camera not supporting this feature");
+             return "The connected Camera not supporting this feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while changing user set default selector occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+int PylonCameraImpl<CameraTraitT>::getUserSetDefaultSelector()
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->UserSetDefault))
+        {  
+            if (cam_->UserSetDefault.GetValue() == UserSetDefaultSelectorEnums::UserSetDefault_Default)
+            {
+                return 0; // Default
+            }  
+            else if (cam_->UserSetDefault.GetValue() == UserSetDefaultSelectorEnums::UserSetDefault_UserSet1)
+            {
+                return 1; // UserSet1
+            } 
+            else if (cam_->UserSetDefault.GetValue() == UserSetDefaultSelectorEnums::UserSetDefault_UserSet2)
+            {
+                return 2; // UserSet2
+            } 
+            else if (cam_->UserSetDefault.GetValue() == UserSetDefaultSelectorEnums::UserSetDefault_UserSet3)
+            {
+                return 3; // UserSet3
+            } 
+            else if (cam_->UserSetDefault.GetValue() == UserSetDefaultSelectorEnums::UserSetDefault_HighGain)
+            {
+                return 4; // HighGain
+            } 
+            else if (cam_->UserSetDefault.GetValue() == UserSetDefaultSelectorEnums::UserSetDefault_AutoFunctions)
+            {
+                return 5; // AutoFunctions
+            } 
+            else if (cam_->UserSetDefault.GetValue() == UserSetDefaultSelectorEnums::UserSetDefault_ColorRaw)
+            {
+                return 6; // ColorRaw
+            } 
+            else 
+            {
+                return -3; // Unknown
+            }
+        }
+        else 
+        {
+             return -1; // Not available
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return -2; // Error
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::triggerDeviceReset()
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->DeviceReset))
+        {  
+            cam_->DeviceReset.Execute();
+            return "done";
+        }
+        else 
+        {
+             ROS_ERROR_STREAM("Error while trying to reset the camera. The connected Camera not supporting this feature");
+             return "The connected Camera not supporting this feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while reseting the camera occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::grabbingStarting()
+{
+    try
+    {
+        cam_->StartGrabbing();
+        return "done";
+
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while starting image grabbing occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::grabbingStopping()
+{
+    try
+    {
+        cam_->StopGrabbing();
+        return "done";
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while stopping image grabbing occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
 }
 
 }  // namespace pylon_camera

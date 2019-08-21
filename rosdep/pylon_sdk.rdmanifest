@@ -27,7 +27,7 @@ install-script: |
 
   version="5.2.0.13457"
   pkg=pylon_${version}-deb0_${pkgarch}.deb
-  url="https://bitbucket.org/drag-and-bot/pylon_camera/downloads/${pkg}"
+  url="https://dnb-public-downloads-misc.s3.eu-central-1.amazonaws.com/pylon/${pkg}"
 
   wget --no-check-certificate -O $pkg $url
   dpkg -i $pkg
@@ -64,4 +64,3 @@ check-presence-script: |
       exit 1
     fi
   fi
-
