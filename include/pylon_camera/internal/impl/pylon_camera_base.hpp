@@ -999,7 +999,11 @@ template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brightness,
                                                           const float& current_brightness)
 {
-    assert(target_brightness > 0 && target_brightness <= 255);
+    if (target_brightness > 0 && target_brightness <= 255)
+    {
+        ROS_ERROR_STREAM("Error: Brightness value should be greater than 0 and equal to or smaller than 255");
+        return false;
+    }
 
     typename CameraTraitT::AutoTargetBrightnessValueType brightness_to_set =
         CameraTraitT::convertBrightness(target_brightness);
@@ -2302,6 +2306,7 @@ std::string PylonCameraImpl<CameraTraitT>::setLightSourcePreset(const int& mode)
         ROS_ERROR_STREAM("An exception while changing the light source preset occurred:" << e.GetDescription());
         return e.GetDescription();
     }
+    return "done";
 }
 
 template <typename CameraTraitT>

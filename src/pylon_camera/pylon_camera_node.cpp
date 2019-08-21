@@ -214,7 +214,10 @@ void PylonCameraNode::create_diagnostics(diagnostic_updater::DiagnosticStatusWra
         stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "No camera connected");
         cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
         cm_status.status_msg = "No camera connected";
-        componentStatusPublisher.publish(cm_status);
+        if (pylon_camera_parameter_set_.enable_status_publisher_)
+        {
+          componentStatusPublisher.publish(cm_status);
+        }
     }
 }
 
@@ -268,7 +271,10 @@ bool PylonCameraNode::initAndRegister()
     {
         cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
         cm_status.status_msg = "No camera present";
-        componentStatusPublisher.publish(cm_status);
+        if (pylon_camera_parameter_set_.enable_status_publisher_)
+          {
+            componentStatusPublisher.publish(cm_status);
+          }
         // wait and retry until a camera is present
         ros::Time end = ros::Time::now() + ros::Duration(15.0);
         ros::Rate r(0.5);
@@ -281,7 +287,10 @@ bool PylonCameraNode::initAndRegister()
                 ROS_WARN_STREAM("No camera present. Keep waiting ...");
                 cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
                 cm_status.status_msg = "No camera present";
-                componentStatusPublisher.publish(cm_status);
+                if (pylon_camera_parameter_set_.enable_status_publisher_)
+                {
+                  componentStatusPublisher.publish(cm_status);
+                }
                 end = ros::Time::now() + ros::Duration(15.0);
             }
             r.sleep();
@@ -294,7 +303,10 @@ bool PylonCameraNode::initAndRegister()
         pylon_camera_parameter_set_.adaptDeviceUserId(nh_, pylon_camera_->deviceUserID());
         cm_status.status_id = dnb_msgs::ComponentStatus::RUNNING;
         cm_status.status_msg = "running";
-        componentStatusPublisher.publish(cm_status);
+        if (pylon_camera_parameter_set_.enable_status_publisher_)
+        {
+          componentStatusPublisher.publish(cm_status);
+        }
     }
 
     if ( !ros::ok() )
@@ -308,7 +320,10 @@ bool PylonCameraNode::initAndRegister()
             << "software-trigger mode!");
         cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
         cm_status.status_msg = "Error while registering the camera configuration";
-        componentStatusPublisher.publish(cm_status);
+        if (pylon_camera_parameter_set_.enable_status_publisher_)
+        {
+          componentStatusPublisher.publish(cm_status);
+        }
         return false;
     }
 
@@ -317,7 +332,10 @@ bool PylonCameraNode::initAndRegister()
         ROS_ERROR("Error while trying to open the desired camera!");
         cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
         cm_status.status_msg = "Error while trying to open the desired camera!";
-        componentStatusPublisher.publish(cm_status);
+        if (pylon_camera_parameter_set_.enable_status_publisher_)
+        {
+          componentStatusPublisher.publish(cm_status);
+        }
         return false;
     }
 
@@ -327,7 +345,10 @@ bool PylonCameraNode::initAndRegister()
                 << "(e.g. mtu size for GigE, ...) to the camera!");
         cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
         cm_status.status_msg = "Error while applying the cam specific startup settings";
-        componentStatusPublisher.publish(cm_status);
+        if (pylon_camera_parameter_set_.enable_status_publisher_)
+        {
+          componentStatusPublisher.publish(cm_status);
+        }
         return false;
     }
 
@@ -599,7 +620,10 @@ void PylonCameraNode::spin()
         ROS_ERROR("Pylon camera has been removed, trying to reset");
         cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
         cm_status.status_msg = "Pylon camera has been removed, trying to reset";
-        componentStatusPublisher.publish(cm_status);
+        if (pylon_camera_parameter_set_.enable_status_publisher_)
+        {
+          componentStatusPublisher.publish(cm_status);
+        }
         delete pylon_camera_;
         pylon_camera_ = nullptr;
         for ( ros::ServiceServer& user_output_srv : set_user_output_srvs_ )
@@ -649,8 +673,14 @@ void PylonCameraNode::spin()
         }
 
     }
-    componentStatusPublisher.publish(cm_status);
-    currentParamPub();
+    if (pylon_camera_parameter_set_.enable_status_publisher_)
+    {
+      componentStatusPublisher.publish(cm_status);
+    }
+    if (pylon_camera_parameter_set_.enable_current_params_publisher_)
+    {
+      currentParamPub();
+    } 
 }
 
 bool PylonCameraNode::grabImage()
@@ -1905,6 +1935,10 @@ bool PylonCameraNode::setDemosaicingModeCallback(camera_control_msgs::SetInteger
         {
           res.message = "Using this feature require stop image grabbing";
         }
+        else if ((res.message.find("EnumEntry") != std::string::npos) != 0)
+        {
+          res.message = "The passed demosaicing mode number is not supported by the connected camera";
+        }
     }
     return true;
 }
@@ -1993,6 +2027,10 @@ bool PylonCameraNode::setLightSourcePresetCallback(camera_control_msgs::SetInteg
         {
           res.message = "Using this feature require stop image grabbing";
         }
+        else if ((res.message.find("EnumEntry") != std::string::npos) != 0)
+        {
+          res.message = "The passed light source preset number is not supported by the connected camera";
+        }
     }
     return true;
 }
@@ -2025,6 +2063,10 @@ bool PylonCameraNode::setBalanceWhiteAutoCallback(camera_control_msgs::SetIntege
         {
           res.message = "Using this feature require stop image grabbing";
         }
+        else if ((res.message.find("EnumEntry") != std::string::npos) != 0)
+        {
+          res.message = "The passed balance white auto number is not supported by the connected camera";
+        }
     }
     return true;
 }
@@ -2055,6 +2097,10 @@ bool PylonCameraNode::setSensorReadoutModeCallback(camera_control_msgs::SetInteg
         if (res.message == "Node is not writable.")
         {
           res.message = "Using this feature require stop image grabbing";
+        }
+        else if ((res.message.find("EnumEntry") != std::string::npos) != 0)
+        {
+          res.message = "The passed sensor readout mode number is not supported by the connected camera";
         }
     }
     return true;
@@ -2115,6 +2161,10 @@ bool PylonCameraNode::setTriggerSelectorCallback(camera_control_msgs::SetInteger
         {
           res.message = "Using this feature require stop image grabbing";
         }
+        else if ((res.message.find("EnumEntry") != std::string::npos) != 0)
+        {
+          res.message = "The passed trigger selector number is not supported by the connected camera";
+        }
     }
     return true;
 }
@@ -2144,6 +2194,10 @@ bool PylonCameraNode::setTriggerModeCallback(std_srvs::SetBool::Request &req, st
         if (res.message == "Node is not writable.")
         {
           res.message = "Using this feature require stop image grabbing";
+        }
+        else if ((res.message.find("EnumEntry") != std::string::npos) != 0)
+        {
+          res.message = "The passed trigger mode number is not supported by the connected camera";
         }
     }
     return true;
@@ -2202,6 +2256,10 @@ bool PylonCameraNode::setTriggerSourceCallback(camera_control_msgs::SetIntegerVa
         if (res.message == "Node is not writable.")
         {
           res.message = "Using this feature require stop image grabbing";
+        }
+        else if ((res.message.find("EnumEntry") != std::string::npos) != 0)
+        {
+          res.message = "The passed trigger source number is not supported by the connected camera";
         }
     }
     return true;
@@ -2453,6 +2511,10 @@ bool PylonCameraNode::setUserSetSelectorCallback(camera_control_msgs::SetInteger
         {
           res.message = "Using this feature require stop image grabbing";
         }
+        else if ((res.message.find("EnumEntry") != std::string::npos) != 0)
+        {
+          res.message = "The passed user set number is not supported by the connected camera";
+        }
     }
     return true;
 }
@@ -2546,6 +2608,10 @@ bool PylonCameraNode::setUserSetDefaultSelectorCallback(camera_control_msgs::Set
         if (res.message == "Node is not writable.")
         {
           res.message = "Using this feature require stop image grabbing";
+        }
+        else if ((res.message.find("EnumEntry") != std::string::npos) != 0)
+        {
+          res.message = "The passed default user set number is not supported by the connected camera";
         }
     }
     return true;

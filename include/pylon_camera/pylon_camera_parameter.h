@@ -250,6 +250,16 @@ public:
     int mtu_size_;
 
     /**
+     * a flag used to enable/disable the node status publisher.
+     */
+    bool enable_status_publisher_;
+
+    /**
+     * a flag used to enable/disable the current camera publisher.
+     */
+    bool enable_current_params_publisher_;
+
+    /**
      * The startup user set.
      */
     std::string startup_user_set_;    

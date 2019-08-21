@@ -62,6 +62,8 @@ PylonCameraParameter::PylonCameraParameter() :
         exposure_search_timeout_(5.),
         auto_exp_upper_lim_(0.0),
         mtu_size_(3000),
+        enable_status_publisher_(false),
+        enable_current_params_publisher_(false),
         inter_pkg_delay_(1000),
         startup_user_set_(""),
         shutter_mode_(SM_DEFAULT),
@@ -214,6 +216,16 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     if ( nh.hasParam("gige/mtu_size") )
     {
         nh.getParam("gige/mtu_size", mtu_size_);
+    }
+
+    if ( nh.hasParam("enable_status_publisher") )
+    {
+        nh.getParam("enable_status_publisher", enable_status_publisher_);
+    }
+
+    if ( nh.hasParam("enable_current_params_publisher") )
+    {
+        nh.getParam("enable_current_params_publisher", enable_current_params_publisher_);
     }
 
     if ( nh.hasParam("gige/inter_pkg_delay") )

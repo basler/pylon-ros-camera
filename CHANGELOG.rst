@@ -11,7 +11,9 @@ Changelog for package pylon_camera
 * Add below listed new ROS services : 
   - start_grabbing
   - stop_grabbing
-* add checkiing for "Node is not writable." message.
+* Improve error messages.
+* Replace 'assert' with 'if condition' in setExtendedBrightness method uder the "pylon_camera_base.hpp" file to avoid ROS node crash when passing a brightness value out of the range.
+* Add flags to disable/enable node status & current parameters publishers controlled thru launch file.
 
 0.15.2 (2019-08-16)
 -------------------
