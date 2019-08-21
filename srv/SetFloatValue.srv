@@ -1,0 +1,10 @@
+# Used by :
+# - set_trigger_delay ROS service. (value = delay in micro sec.).
+# - set_line_debouncer_time ROS service. (value = delay in micro sec.).
+# - set_noise_reduction ROS service. (value = reduction value). 
+# - set_sharpness_enhancement ROS service (value = sharpness value). 
+
+float32 value 		# value to be setted
+---
+bool success   # indicate successful run of triggered service
+string message # informational, e.g. for error messages

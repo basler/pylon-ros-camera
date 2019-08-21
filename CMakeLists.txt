@@ -8,6 +8,7 @@ set(MSG_DEPS
 
 find_package(catkin REQUIRED COMPONENTS ${MSG_DEPS} message_generation)
 
+add_message_files(DIRECTORY msg)
 add_action_files(DIRECTORY action)
 add_service_files(DIRECTORY srv)
 

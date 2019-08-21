@@ -2,6 +2,38 @@
 Changelog for package camera_control_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.3 (2019-08-13)
+------------------
+* Add currentParams msg type for current camera parameters publisher.
+* camera_control_msgs/SetBool.h deleted, instead standard ROS std_srvs/SetBool is used
+
+0.2.2 (2019-08-12)
+------------------
+* Add SetIntegerValue.srv for the below new ROS services :
+	- set_black_level ROS service
+	- set_acquisition_frame_count
+	- set_offset_x
+	- set_offset_y
+	- set_demosaicing_mode
+	- set_light_source_preset
+	- set_balance_white_auto
+	- set_sensor_readout_mode
+	- set_trigger_selector
+	- set_trigger_source
+	- set_trigger_activation
+	- set_line_selector
+	- set_line_mode
+	- set_line_source
+	- set_device_link_throughput_limit
+	- select_user_set
+	- select_default_user_set
+	
+* Add SetFloatValue.srv for the below new ROS services :
+	- set_trigger_delay
+	- set_line_debouncer_time
+	- set_noise_reduction
+	- set_sharpness_enhancement
+
 0.2.1 (2019-03-13)
 ------------------
 * Cleanup CMakelists.txt
