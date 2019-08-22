@@ -9,7 +9,7 @@ configuration:
     name: 'MTU Size (only for GigE Cameras)'
     description: 'Changing the MTU size (only for GigE Cameras)'
     datatype: int
-    default: '3000'
+    default: '1500'
   - id: startup_user_set
     namespace: ''
     name: 'Startup user set'
