@@ -36,6 +36,33 @@ This package offers many service and action definitions to control a camera.
 - **SetSleeping**
   If the camera runs in topic mode (continuously publishing images over the topics respecting the desired frame_rate) this service offers the posibillity to pause the image acquisition. To restart the grabbing, this service should be called again with set_sleeping set to false
 
+- **SetIntegerValue**
+  Used by below services:
+  - set_black_level ,to change the overall brightness of an image by changing the gray values of the pixels by a specified amount.
+  - set_acquisition_frame_count , to set the camera frame count  
+  - set_offset_x , to set the camera image offset in x-axis.
+  - set_offset_y , to set the camera image offset in y-axis.
+  - set_demosaicing_mode , to set the camera demosaicing feature.
+  - set_light_source_preset , to correct color shifts caused by certain light sources.
+  - set_balance_white_auto , to automatically corrects color shifts in images acquired.
+  - set_sensor_readout_mode , to choose between sensor readout modes that provide different sensor readout times.
+  - set_trigger_selector , to select the trigger type.
+  - set_trigger_source , to configure how the currently selected trigger can be triggered.
+  - set_trigger_activation , to specify whether a trigger becomes active when the trigger signal rises or when it falls.
+  - set_line_selector , to select the I/O line that you want to configure.
+  - set_line_mode , to configure whether an I/O line is used as input or output.
+  - set_line_source , to configure which signal to output on the I/O line currently selected.
+  - set_device_link_throughput_limit , to set the max. amount of data (in bytes per second) that the camera could generate
+  - select_user_set , to select the user set that you want to load or save.
+  - select_default_user_set , to select the default user set that will be loaded at the camera startup.
+
+- **SetFloatValue**
+  Used by below services:
+  - set_trigger_delay , to add a delay between the receipt of a hardware trigger signal or an action command signal and the moment the trigger becomes active.
+  - set_line_debouncer_time , to filter out unwanted short hardware input signals.
+  - set_noise_reduction , to reduces random variations in brightness or color information in your images.
+  - set_sharpness_enhancement , to increases the sharpness of the images.
+
 
 ******
 **Actions**
