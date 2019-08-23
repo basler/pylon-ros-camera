@@ -145,76 +145,29 @@ Images were only published if another node connects to the image topic. The publ
 
 Some of the ROS service use integer values for as a commands, below are a list of these services and thier commands:
 
-- **set_demosaicing_mode** ROS Service:
-0__ = Simple
-1__ = Basler PGI
+- **set_demosaicing_mode** ROS Service: 0 = Simple, 1 = Basler PGI
 
-  
+- **set_light_source_preset** ROS Service: 0 = Off, 1 = Daylight5000K, 2 = Daylight6500K, 3 = Tungsten2800K
 
-- **set_light_source_preset** ROS Service:
-  - ``0 = Off``
-  - ``1 = Daylight5000K``
-  - ``2 = Daylight6500K``
-  - ``3 = Tungsten2800K``
+- **set_balance_white_auto** ROS Service: 0 = Off, 1 = Once, 2 = Continuous
 
-- **set_balance_white_auto** ROS Service
-  - 0 = Off
-  - 1 = Once
-  - 2 = Continuous
+- **set_sensor_readout_mode** ROS Service: 0 = Normal, 1 = Fast
 
-- **set_sensor_readout_mode** ROS Service:
-  *0 = Normal  
-  *1 = Fast
+- **set_trigger_selector** ROS Service: 0 = Frame start, 1 = Frame burst start (ace USB cameras) / Acquisition Start (ace GigE cameras)
 
-- **set_trigger_selector** ROS Service:
-  0 = Frame start
-  1 = Frame burst start (ace USB cameras) / Acquisition Start (ace GigE cameras)
+- **set_trigger_source** ROS Service: 0 = Software, 1 = Line1, 2 = Line3, 3 = Line4, 4 = Action1 (only selected GigE Camera)
 
-- **set_trigger_source** ROS Service:
-  0 = Software
-  1 = Line1
-  2 = Line3
-  3 = Line4
-  4 = Action1 (only selected GigE Camera)
+- **set_trigger_activation** ROS Service: 0 = RigingEdge, 1 = FallingEdge
 
-- **set_trigger_activation** ROS Service:
-  0 = RigingEdge
-  1 = FallingEdge
+- **set_line_selector** ROS Service: 0 = Line1, 1 = Line2, 2 = Line3, 3 = Line4, 
 
-- **set_line_selector** ROS Service:
-  0 = Line1
-  1 = Line2
-  2 = Line3
-  3 = Line4
+- **set_line_mode** ROS Service: 0 = Input, 1 = Output
 
-- **set_line_mode** ROS Service:
-  0 = Input
-  1 = Output
+- **set_line_source** ROS Service: 0 = Exposure Active, 1 = FrameTriggerWait , 2 = UserOutput1, 3 = Timer1Active, 4 = FlashWindow(only with rolling shutter)
 
-- **set_line_source** ROS Service:
-  0 = Exposure Active
-  1 = FrameTriggerWait
-  2 = UserOutput1
-  3 = Timer1Active
-  4 = FlashWindow(only with rolling shutter)
+- **select_user_set** ROS Service: 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw, 
 
-- **select_user_set** ROS Service:
-  0 = Default
-  1 = UserSet1
-  2 = UserSet2
-  3 = UserSet3
-  4 = HighGain
-  5 = AutoFunctions
-  6 = ColorRaw
-
-- **select_default_user_set** ROS Service:
-  0 = Default
-  1 = UserSet1
-  2 = UserSet2
-  3 = UserSet3
-  4 = HighGain
-  5 = AutoFunctions
-  6 = ColorRaw
+- **select_default_user_set** ROS Service: 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw
 
 ******
 **Questions**
