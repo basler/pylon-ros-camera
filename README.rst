@@ -146,23 +146,23 @@ Images were only published if another node connects to the image topic. The publ
 Some of the ROS service use integer values for as a commands, below are a list of these services and thier commands:
 
 - **set_demosaicing_mode** ROS Service:
-  0 = Simple
-  1 = Basler PGI
+  ``0 = Simple``
+  ``1 = Basler PGI``
 
 - **set_light_source_preset** ROS Service:
-  0 = Off
-  1 = Daylight5000K
-  2 = Daylight6500K
-  3 = Tungsten2800K
+  - ``0 = Off``
+  - ``1 = Daylight5000K``
+  - ``2 = Daylight6500K``
+  - ``3 = Tungsten2800K``
 
 - **set_balance_white_auto** ROS Service
-  0 = Off
-  1 = Once
-  2 = Continuous
+  - 0 = Off
+  - 1 = Once
+  - 2 = Continuous
 
 - **set_sensor_readout_mode** ROS Service:
-  0 = Normal  
-  1 = Fast
+  *0 = Normal  
+  *1 = Fast
 
 - **set_trigger_selector** ROS Service:
   0 = Frame start
