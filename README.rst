@@ -146,8 +146,8 @@ Images were only published if another node connects to the image topic. The publ
 Some of the ROS service use integer values for as a commands, below are a list of these services and thier commands:
 
 - **set_demosaicing_mode** ROS Service:
-__0 = Simple
-__1 = Basler PGI
+0__ = Simple
+1__ = Basler PGI
 
   
 
