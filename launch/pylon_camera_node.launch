@@ -20,4 +20,8 @@
         <param name="enable_status_publisher" value="$(arg enable_status_publisher)"/>
         <param name="enable_current_params_publisher" value="$(arg enable_current_params_publisher)"/>
     </node>
+
+    <!-- Register the module -->
+    <node name="RegisterDriverBasler" pkg="dnb_component_manager" type="register.py"
+        args="$(find pylon_camera)/module_config/module.yaml" />
 </launch>
