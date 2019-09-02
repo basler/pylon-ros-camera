@@ -2,6 +2,11 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.15.3 (2019-09-02)
+-------------------
+* Add below listed new ROS services : 
+  - set_image_encoding 
+* Change the return type of setImageEncoding method under pylon_camera_base.hpp to string type instead of bool.
 
 0.15.2 (2019-08-20)
 -------------------

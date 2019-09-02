@@ -46,6 +46,10 @@ bool ros2GenAPI(const std::string& ros_enc, std::string& gen_api_enc)
     {
         gen_api_enc = "Mono8";
     }
+    else if ( ros_enc == sensor_msgs::image_encodings::MONO16 )
+    {
+        gen_api_enc = "Mono16";
+    }
     else if ( ros_enc == sensor_msgs::image_encodings::BGR8 )
     {
         gen_api_enc = "BGR8";
@@ -66,6 +70,26 @@ bool ros2GenAPI(const std::string& ros_enc, std::string& gen_api_enc)
     {
         gen_api_enc = "BayerRG8";
     }
+    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_GRBG8 )
+    {
+        gen_api_enc = "BayerGR8";
+    }
+    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_RGGB16 )
+    {
+        gen_api_enc = "BayerRG16";
+    }
+    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_BGGR16 )
+    {
+        gen_api_enc = "BayerBG16";
+    }
+    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_GBRG16 )
+    {
+        gen_api_enc = "BayerGB16";
+    }
+    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_GRBG16 )
+    {
+        gen_api_enc = "BayerGR16";
+    }
     /*
     else if ( ros_enc == sensor_msgs::image_encodings::YUV422 )
     {
@@ -77,17 +101,12 @@ bool ros2GenAPI(const std::string& ros_enc, std::string& gen_api_enc)
     else
     {
         /* No gen-api pendant existant for following ROS-encodings:
-         * - sensor_msgs::image_encodings::MONO16
          * - sensor_msgs::image_encodings::BGRA8
          * - sensor_msgs::image_encodings::BGR16
          * - sensor_msgs::image_encodings::BGRA16
          * - sensor_msgs::image_encodings::RGBA8
          * - sensor_msgs::image_encodings::RGB16
          * - sensor_msgs::image_encodings::RGBA16
-         * - sensor_msgs::image_encodings::BAYER_BGGR16
-         * - sensor_msgs::image_encodings::BAYER_GBRG16
-         * - sensor_msgs::image_encodings::BAYER_GRBG16
-         * - sensor_msgs::image_encodings::BAYER_GRBG8
          * - sensor_msgs::image_encodings::YUV422
          */
         return false;
@@ -100,6 +119,10 @@ bool genAPI2Ros(const std::string& gen_api_enc, std::string& ros_enc)
     if ( gen_api_enc == "Mono8" )
     {
         ros_enc = sensor_msgs::image_encodings::MONO8;
+    }
+    else if ( gen_api_enc == "Mono16" )
+    {
+        ros_enc = sensor_msgs::image_encodings::MONO16;
     }
     else if ( gen_api_enc == "BGR8" )
     {
@@ -120,6 +143,26 @@ bool genAPI2Ros(const std::string& gen_api_enc, std::string& ros_enc)
     else if ( gen_api_enc == "BayerRG8" )
     {
         ros_enc = sensor_msgs::image_encodings::BAYER_RGGB8;
+    }
+    else if ( gen_api_enc == "BayerGR8" )
+    {
+        ros_enc = sensor_msgs::image_encodings::BAYER_GRBG8;
+    }
+    else if ( gen_api_enc == "BayerRG16" )
+    {
+        ros_enc = sensor_msgs::image_encodings::BAYER_RGGB16;
+    }
+    else if ( gen_api_enc == "BayerBG16" )
+    {
+        ros_enc = sensor_msgs::image_encodings::BAYER_BGGR16;
+    }
+    else if ( gen_api_enc == "BayerGB16" )
+    {
+        ros_enc = sensor_msgs::image_encodings::BAYER_GBRG16;
+    }
+    else if ( gen_api_enc == "BayerGR16" )
+    {
+        ros_enc = sensor_msgs::image_encodings::BAYER_GRBG16;
     }
     /*
     else if ( gen_api_enc == "YCbCr422_8" )

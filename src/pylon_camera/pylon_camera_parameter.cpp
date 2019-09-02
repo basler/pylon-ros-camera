@@ -353,6 +353,21 @@ const std::string& PylonCameraParameter::imageEncoding() const
     return image_encoding_;
 }
 
+bool PylonCameraParameter::setimageEncodingParam(const ros::NodeHandle& nh, const std::string& format) 
+{
+    try
+    {
+        image_encoding_ = format;
+        nh.setParam("image_encoding", image_encoding_);
+        return true;
+    }
+    catch (const std::exception& e)
+    {
+        ROS_ERROR("Error Saving the new image encoding as ROS Param");
+        return false;
+    }
+}
+
 const std::string& PylonCameraParameter::cameraFrame() const
 {
     return camera_frame_;

@@ -53,6 +53,7 @@
 #include <camera_control_msgs/SetSleeping.h>
 #include <camera_control_msgs/SetIntegerValue.h>   
 #include <camera_control_msgs/SetFloatValue.h> 
+#include <camera_control_msgs/SetStringValue.h> 
 #include <camera_control_msgs/currentParams.h> 
 
 #include <std_srvs/SetBool.h>
@@ -859,6 +860,21 @@ protected:
      */
     void currentParamPub();
 
+    /**
+     * Service callback for setting the camera image encoding
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setImageEncodingCallback(camera_control_msgs::SetStringValue::Request &req, camera_control_msgs::SetStringValue::Response &res);
+
+    /**
+     * Method to set the camera image encoding
+     * @param target_ros_endcoding: string describing the encoding (mono8, mono16, bgr8, rgb8, bayer_bggr8, bayer_gbrg8, bayer_rggb8, bayer_grbg8, bayer_rggb16, bayer_bggr16, bayer_gbrg16, Bayer_grbg16).
+     * @return false if a communication error occurred or true otherwise.
+     */
+    std::string setImageEncoding(const std::string& target_ros_encoding);
+
     ros::NodeHandle nh_;
     PylonCameraParameter pylon_camera_parameter_set_;
     ros::ServiceServer set_binning_srv_;
@@ -898,6 +914,7 @@ protected:
     ros::ServiceServer set_user_set_default_selector_srv_;
     ros::ServiceServer set_device_link_throughput_limit_mode_srv_;
     ros::ServiceServer set_device_link_throughput_limit_srv_;
+    ros::ServiceServer set_image_encoding_srv_;
     ros::ServiceServer reset_device_srv_;    
     ros::ServiceServer start_grabbing_srv_;  
     ros::ServiceServer stop_grabbing_srv_;  

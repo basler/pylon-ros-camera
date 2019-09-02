@@ -166,6 +166,9 @@ PylonCameraNode::PylonCameraNode()
       stop_grabbing_srv_(nh_.advertiseService("stop_grabbing",
                                              &PylonCameraNode::StopGrabbingCallback,
                                              this)),
+      set_image_encoding_srv_(nh_.advertiseService("set_image_encoding",
+                                             &PylonCameraNode::setImageEncodingCallback,
+                                             this)),
       set_user_output_srvs_(),
       pylon_camera_(nullptr),
       it_(new image_transport::ImageTransport(nh_)),
@@ -2774,6 +2777,36 @@ std::string PylonCameraNode::grabbingStopping()
         return "pylon camera is not ready!";
     }
     return pylon_camera_->grabbingStopping() ;
+}
+
+bool PylonCameraNode::setImageEncodingCallback(camera_control_msgs::SetStringValue::Request &req, camera_control_msgs::SetStringValue::Response &res)
+{
+    res.message = setImageEncoding(req.value);
+    if ((res.message.find("done") != std::string::npos) != 0)
+    {
+        res.success = true;
+        pylon_camera_parameter_set_.setimageEncodingParam(nh_,req.value);
+    }
+    else 
+    {
+        res.success = false;
+        if (res.message == "Node is not writable")
+        {
+          res.message = "Using this feature require stop image grabbing";
+        }
+    }
+    return true;
+}
+
+std::string PylonCameraNode::setImageEncoding(const std::string& target_ros_encoding)
+{  
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if ( !pylon_camera_->isReady() )
+    {
+        ROS_WARN("Error in setImageEncoding(): pylon_camera_ is not ready!");
+        return "pylon camera is not ready!";
+    }
+    return pylon_camera_->setImageEncoding(target_ros_encoding) ;
 }
 
 void PylonCameraNode::currentParamPub()

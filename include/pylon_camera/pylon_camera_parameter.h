@@ -95,6 +95,11 @@ public:
     const std::string& imageEncoding() const;
 
     /**
+     * Setter for the image encoding
+     */
+    bool setimageEncodingParam(const ros::NodeHandle& nh, const std::string& format); 
+
+    /**
      * Setter for the frame_rate_ initially set from ros-parameter server
      * The frame rate needs to be updated with the value the camera supports
      */

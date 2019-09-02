@@ -326,7 +326,7 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         }
 
         available_image_encodings_ = detectAvailableImageEncodings();
-        if ( !setImageEncoding(parameters.imageEncoding()) )
+        if ( !(setImageEncoding(parameters.imageEncoding()).find("done") != std::string::npos) != 0 )
         {
             return false;
         }
@@ -473,7 +473,7 @@ std::vector<std::string> PylonCameraImpl<CameraTraitT>::detectAvailableImageEnco
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& ros_encoding)
+std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& ros_encoding)
 {
     std::string gen_api_encoding;
     bool conversion_found = encoding_conversions::ros2GenAPI(ros_encoding, gen_api_encoding);
@@ -503,7 +503,7 @@ bool PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& ros_enco
         if ( !fallback_found )
         {
             ROS_ERROR_STREAM("Couldn't find a fallback solution!");
-            return false;
+            return "Error: Couldn't find a fallback solution!";
         }
     }
 
@@ -520,7 +520,7 @@ bool PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& ros_enco
     {
         ROS_WARN_STREAM("Camera does not support the desired image pixel "
             << "encoding '" << ros_encoding << "'!");
-        return false;
+        return "Error : Camera does not support the desired image pixel";
     }
     try
     {
@@ -533,16 +533,16 @@ bool PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& ros_enco
         {
             ROS_WARN_STREAM("Camera does not support variable image pixel "
                 << "encoding!");
-            return false;
+            return "Error : Camera does not support variable image pixel";
         }
     }
     catch ( const GenICam::GenericException &e )
     {
         ROS_ERROR_STREAM("An exception while setting target image encoding to '"
             << ros_encoding << "' occurred: " << e.GetDescription());
-        return false;
+        return e.GetDescription();
     }
-    return true;
+    return "done";
 }
 
 template <typename CameraTraitT>
