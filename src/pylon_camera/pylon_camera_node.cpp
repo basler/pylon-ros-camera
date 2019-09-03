@@ -385,7 +385,6 @@ bool PylonCameraNode::startGrabbing()
                                     boost::bind(&PylonCameraNode::setAutoflash,
                                                 this, i+2, _1, _2)); // ! using lines 2 and 3
     }
-
     img_raw_msg_.header.frame_id = pylon_camera_parameter_set_.cameraFrame();
     // Encoding of pixels -- channel meaning, ordering, size
     // taken from the list of strings in include/sensor_msgs/image_encodings.h
@@ -395,29 +394,25 @@ bool PylonCameraNode::startGrabbing()
     // step = full row length in bytes, img_size = (step * rows), imagePixelDepth
     // already contains the number of channels
     img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
-
     if ( !camera_info_manager_->setCameraName(pylon_camera_->deviceUserID()) )
-    {
+    { 
         // valid name contains only alphanumeric signs and '_'
         ROS_WARN_STREAM("[" << pylon_camera_->deviceUserID()
                 << "] name not valid for camera_info_manager");
     }
-
     setupSamplingIndices(sampling_indices_,
                          pylon_camera_->imageRows(),
                          pylon_camera_->imageCols(),
                          pylon_camera_parameter_set_.downsampling_factor_exp_search_);
-
     grab_imgs_raw_as_.start();
 
     // Initial setting of the CameraInfo-msg, assuming no calibration given
     CameraInfo initial_cam_info;
     setupInitialCameraInfo(initial_cam_info);
     camera_info_manager_->setCameraInfo(initial_cam_info);
-
     if ( pylon_camera_parameter_set_.cameraInfoURL().empty() ||
          !camera_info_manager_->validateURL(pylon_camera_parameter_set_.cameraInfoURL()) )
-    {
+    { 
         ROS_INFO_STREAM("CameraInfoURL needed for rectification! ROS-Param: "
             << "'" << nh_.getNamespace() << "/camera_info_url' = '"
             << pylon_camera_parameter_set_.cameraInfoURL() << "' is invalid!");
@@ -427,7 +422,7 @@ bool PylonCameraNode::startGrabbing()
         ROS_WARN("Will only provide distorted /image_raw images!");
     }
     else
-    {
+    { 
         // override initial camera info if the url is valid
         if ( camera_info_manager_->loadCameraInfo(
                                 pylon_camera_parameter_set_.cameraInfoURL()) )
@@ -440,13 +435,12 @@ bool PylonCameraNode::startGrabbing()
             camera_info_manager_->setCameraInfo(*cam_info);
         }
         else
-        {
+        { 
             ROS_WARN("Will only provide distorted /image_raw images!");
         }
     }
-
     if ( pylon_camera_parameter_set_.binning_x_given_ )
-    {
+    {   
         size_t reached_binning_x;
         setBinningX(pylon_camera_parameter_set_.binning_x_, reached_binning_x);
         ROS_INFO_STREAM("Setting horizontal binning_x to "
@@ -454,9 +448,8 @@ bool PylonCameraNode::startGrabbing()
         ROS_WARN_STREAM("The image width of the camera_info-msg will "
             << "be adapted, so that the binning_x value in this msg remains 1");
     }
-
     if ( pylon_camera_parameter_set_.binning_y_given_ )
-    {
+    {   
         size_t reached_binning_y;
         setBinningY(pylon_camera_parameter_set_.binning_y_, reached_binning_y);
         ROS_INFO_STREAM("Setting vertical binning_y to "
@@ -464,35 +457,31 @@ bool PylonCameraNode::startGrabbing()
         ROS_WARN_STREAM("The image height of the camera_info-msg will "
             << "be adapted, so that the binning_y value in this msg remains 1");
     }
-
     if ( pylon_camera_parameter_set_.exposure_given_ )
-    {
+    {   
         float reached_exposure;
         setExposure(pylon_camera_parameter_set_.exposure_, reached_exposure);
         ROS_INFO_STREAM("Setting exposure to "
                 << pylon_camera_parameter_set_.exposure_ << ", reached: "
                 << reached_exposure);
     }
-
     if ( pylon_camera_parameter_set_.gain_given_ )
-    {
+    {   
         float reached_gain;
         setGain(pylon_camera_parameter_set_.gain_, reached_gain);
         ROS_INFO_STREAM("Setting gain to: "
                 << pylon_camera_parameter_set_.gain_ << ", reached: "
                 << reached_gain);
     }
-
     if ( pylon_camera_parameter_set_.gamma_given_ )
-    {
+    {   
         float reached_gamma;
         setGamma(pylon_camera_parameter_set_.gamma_, reached_gamma);
         ROS_INFO_STREAM("Setting gamma to " << pylon_camera_parameter_set_.gamma_
                 << ", reached: " << reached_gamma);
     }
-
     if ( pylon_camera_parameter_set_.brightness_given_ )
-    {
+    {   
         int reached_brightness;
         setBrightness(pylon_camera_parameter_set_.brightness_,
                       reached_brightness,
@@ -502,7 +491,7 @@ bool PylonCameraNode::startGrabbing()
                 << pylon_camera_parameter_set_.brightness_ << ", reached: "
                 << reached_brightness);
         if ( pylon_camera_parameter_set_.brightness_continuous_ )
-        {
+        {   
             if ( pylon_camera_parameter_set_.exposure_auto_ )
             {
                 pylon_camera_->enableContinuousAutoExposure();
@@ -513,7 +502,7 @@ bool PylonCameraNode::startGrabbing()
             }
         }
         else
-        {
+        { 
             pylon_camera_->disableAllRunningAutoBrightessFunctions();
         }
     }
@@ -527,10 +516,9 @@ bool PylonCameraNode::startGrabbing()
             << "gamma = " <<  pylon_camera_->currentGamma() << ", "
             << "shutter mode = "
             << pylon_camera_parameter_set_.shutterModeString());
-
     // Framerate Settings
     if ( pylon_camera_->maxPossibleFramerate() < pylon_camera_parameter_set_.frameRate() )
-    {
+    {   
         ROS_INFO("Desired framerate %.2f is higher than max possible. Will limit framerate to: %.2f Hz",
                  pylon_camera_parameter_set_.frameRate(),
                  pylon_camera_->maxPossibleFramerate());
@@ -539,7 +527,7 @@ bool PylonCameraNode::startGrabbing()
                 pylon_camera_->maxPossibleFramerate());
     }
     else if ( pylon_camera_parameter_set_.frameRate() == -1 )
-    {
+    {     
         pylon_camera_parameter_set_.setFrameRate(nh_,
                                                  pylon_camera_->maxPossibleFramerate());
         ROS_INFO("Max possible framerate is %.2f Hz",
@@ -641,17 +629,16 @@ void PylonCameraNode::spin()
     // images were published if subscribers are available or if someone calls
     // the GrabImages Action
     if ( !isSleeping() && (img_raw_pub_.getNumSubscribers() || getNumSubscribersRect() ) )
-    {
+    { 
         if ( getNumSubscribersRaw() || getNumSubscribersRect())
-        {
+        { 
             if (!grabImage() )
-            {
+            { 
                 return;
             }
         }
-    
         if ( img_raw_pub_.getNumSubscribers() > 0 )
-        {
+        { 
             // get actual cam_info-object in every frame, because it might have
             // changed due to a 'set_camera_info'-service call
             sensor_msgs::CameraInfoPtr cam_info(
@@ -662,9 +649,8 @@ void PylonCameraNode::spin()
             // Publish via image_transport
             img_raw_pub_.publish(img_raw_msg_, *cam_info);
         }
-
         if ( getNumSubscribersRect() > 0 && camera_info_manager_->isCalibrated() )
-        {
+        { 
             cv_bridge_img_rect_->header.stamp = img_raw_msg_.header.stamp;
             assert(pinhole_model_->initialized());
             cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(
@@ -674,26 +660,25 @@ void PylonCameraNode::spin()
             pinhole_model_->rectifyImage(cv_img_raw->image, cv_bridge_img_rect_->image);
             img_rect_pub_->publish(*cv_bridge_img_rect_);
         }
-
     }
     if (pylon_camera_parameter_set_.enable_status_publisher_)
-    {
+    { 
       componentStatusPublisher.publish(cm_status);
-    }
+    } 
     if (pylon_camera_parameter_set_.enable_current_params_publisher_)
-    {
+    { 
       currentParamPub();
     } 
 }
 
 bool PylonCameraNode::grabImage()
 {
-    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_); 
     if ( !pylon_camera_->grab(img_raw_msg_.data) )
     {
         return false;
     }
-    img_raw_msg_.header.stamp = ros::Time::now();
+    img_raw_msg_.header.stamp = ros::Time::now(); 
     return true;
 }
 

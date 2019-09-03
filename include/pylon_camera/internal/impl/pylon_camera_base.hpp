@@ -338,7 +338,8 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         img_cols_ = static_cast<size_t>(cam_->Width.GetValue());
         img_size_byte_ =  img_cols_ * img_rows_ * imagePixelDepth();
 
-        grab_timeout_ = exposureTime().GetMax() * 1.05;
+        //grab_timeout_ = exposureTime().GetMax() * 1.05;
+        grab_timeout_ = 500; // grab timeout = 500 ms
 
         // grab one image to be sure, that the communication is successful
         Pylon::CGrabResultPtr grab_result;
@@ -362,80 +363,84 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
 
 template <typename CameraTrait>
 bool PylonCameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image)
-{
+{ 
     Pylon::CGrabResultPtr ptr_grab_result;
     if ( !grab(ptr_grab_result) )
-    {
+    {   
         ROS_ERROR("Error: Grab was not successful");
         return false;
     }
-
     const uint8_t *pImageBuffer = reinterpret_cast<uint8_t*>(ptr_grab_result->GetBuffer());
     image.assign(pImageBuffer, pImageBuffer + img_size_byte_);
-
     if ( !is_ready_ )
         is_ready_ = true;
-
     return true;
 }
 
 template <typename CameraTrait>
 bool PylonCameraImpl<CameraTrait>::grab(uint8_t* image)
-{
+{   
     Pylon::CGrabResultPtr ptr_grab_result;
     if ( !grab(ptr_grab_result) )
-    {
+    {   
         ROS_ERROR("Error: Grab was not successful");
         return false;
     }
-
     memcpy(image, ptr_grab_result->GetBuffer(), img_size_byte_);
-
     return true;
 }
 
 template <typename CameraTrait>
 bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
-{
+{   
     try
     {
         int timeout = 5000;  // ms
-
         // WaitForFrameTriggerReady to prevent trigger signal to get lost
         // this could happen, if 2xExecuteSoftwareTrigger() is only followed by 1xgrabResult()
         // -> 2nd trigger might get lost
         if ( cam_->WaitForFrameTriggerReady(timeout, Pylon::TimeoutHandling_ThrowException) )
-        {
-            cam_->ExecuteSoftwareTrigger();
+        {   
+            cam_->ExecuteSoftwareTrigger(); 
         }
         else
-        {
+        {   
             ROS_ERROR("Error WaitForFrameTriggerReady() timed out, impossible to ExecuteSoftwareTrigger()");
             return false;
-        }
-        cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException);
+        }   
+        cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException); 
     }
     catch ( const GenICam::GenericException &e )
-    {
+    {   
         if ( cam_->IsCameraDeviceRemoved() )
-        {
+        {   
             ROS_ERROR("Lost connection to the camera . . .");
         }
         else
-        {
+        {   
+            if (! cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_Software)
+            {
+                ROS_ERROR_STREAM("Waiting for Hardware Trigger");
+            }
+            else if (cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On)
+            {
+                ROS_ERROR_STREAM("Waiting for Trigger signal");
+            }
+            else 
+            {
             ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: "
                     << e.GetDescription());
+            }
         }
         return false;
     }
     catch (...)
-    {
+    {   
         ROS_ERROR("An unspecified image grabbing exception in pylon camera occurred");
         return false;
     }
-
     if ( !grab_result->GrabSucceeded() )
-    {
+    {   
         ROS_ERROR_STREAM("Error: " << grab_result->GetErrorCode() << " "
                 << grab_result->GetErrorDescription());
         return false;
