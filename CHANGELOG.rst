@@ -9,6 +9,7 @@ Changelog for package pylon_camera
 * Add new ROS image encoding types : Mono16, BayerGR8, BayerRG16, BayerBG16, BayerGB16, and BayerGR16.
 * Change the return type of setImageEncoding method under pylon_camera_base.hpp to string type instead of bool.
 * Fixed the gabbing timeout 'grab_timeout_' value to 500 ms instead of the previous equation that was dependent on the exposure Time which leads to block the driver (sometime up to 15 Min.) in case of trigger mode is on or in case of hardware trigger source.
+* Add camera available image encoding and and current image encoding to the current status publisher
 
 0.15.2 (2019-08-20)
 -------------------

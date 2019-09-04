@@ -2835,6 +2835,8 @@ void PylonCameraNode::currentParamPub()
       params.binning_x = static_cast<uint32_t>(pylon_camera_->currentBinningX());
       params.binning_y = static_cast<uint32_t>(pylon_camera_->currentBinningY());
       params.roi = pylon_camera_->currentROI();
+      params.available_image_encoding = pylon_camera_->detectAvailableImageEncodings(false);
+      params.current_image_encoding = pylon_camera_->currentROSEncoding();
 
       params.sucess = true;
     }

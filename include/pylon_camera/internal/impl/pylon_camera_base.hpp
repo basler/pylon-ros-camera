@@ -325,7 +325,7 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
             setShutterMode(parameters.shutter_mode_);
         }
 
-        available_image_encodings_ = detectAvailableImageEncodings();
+        available_image_encodings_ = detectAvailableImageEncodings(true);
         if ( !(setImageEncoding(parameters.imageEncoding()).find("done") != std::string::npos) != 0 )
         {
             return false;
@@ -449,7 +449,7 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
 }
 
 template <typename CameraTraitT>
-std::vector<std::string> PylonCameraImpl<CameraTraitT>::detectAvailableImageEncodings()
+std::vector<std::string> PylonCameraImpl<CameraTraitT>::detectAvailableImageEncodings(const bool& show_message)
 {
     std::vector<std::string> available_encodings;
     GenApi::INodeMap& node_map = cam_->GetNodeMap();
@@ -473,7 +473,8 @@ std::vector<std::string> PylonCameraImpl<CameraTraitT>::detectAvailableImageEnco
             available_encodings.push_back(encoding_gen_api);
         }
     }
-    ROS_INFO_STREAM(ss.str().c_str());
+    if (show_message)
+        ROS_INFO_STREAM(ss.str().c_str());
     return available_encodings;
 }
 

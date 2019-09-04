@@ -162,7 +162,7 @@ public:
      * @return a list of strings describing the supported encodings in GenAPI
      *         language.
      */
-    virtual std::vector<std::string> detectAvailableImageEncodings() = 0;
+    virtual std::vector<std::string> detectAvailableImageEncodings(const bool& show_message) = 0;
 
     /**
      * Sets the desired image pixel encoding (channel meaning, ordering, size)

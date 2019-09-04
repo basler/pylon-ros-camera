@@ -109,7 +109,7 @@ public:
 
     virtual size_t currentBinningY();
 
-    virtual std::vector<std::string> detectAvailableImageEncodings();
+    virtual std::vector<std::string> detectAvailableImageEncodings(const bool& show_message);
 
     virtual std::string currentROSEncoding() const;
 
