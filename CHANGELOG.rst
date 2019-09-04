@@ -6,6 +6,7 @@ Changelog for package camera_control_msgs
 ------------------
 * Add SetStringValue.srv for the below new ROS services :
 	- set_Image_Encoding
+* Add camera available image encoding and and current image encoding to the currentParams message type
 
 0.2.3 (2019-08-13)
 ------------------

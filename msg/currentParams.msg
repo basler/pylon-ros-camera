@@ -32,6 +32,9 @@ uint32 binning_x
 uint32 binning_y
 sensor_msgs/RegionOfInterest roi
 
+string[] available_image_encoding
+string current_image_encoding
+
 bool sucess
 string message
 
