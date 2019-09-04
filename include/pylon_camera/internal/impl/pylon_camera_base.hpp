@@ -2463,8 +2463,10 @@ template <typename CameraTraitT>
 std::string PylonCameraImpl<CameraTraitT>::saveUserSet()
 {
     try
-    {
+    {   
+        grabbingStopping();
         cam_->UserSetSave.Execute();
+        grabbingStarting();
     }
     catch ( const GenICam::GenericException &e )
     {
@@ -2479,7 +2481,9 @@ std::string PylonCameraImpl<CameraTraitT>::loadUserSet()
 {
     try
     {
+        grabbingStopping();
         cam_->UserSetLoad.Execute();
+        grabbingStarting();
     }
     catch ( const GenICam::GenericException &e )
     {
@@ -2498,31 +2502,45 @@ std::string PylonCameraImpl<CameraTraitT>::setUserSetDefaultSelector(const int& 
         {  
             if (set == 0)
             {
+                grabbingStopping();
                 cam_->UserSetDefault.SetValue(UserSetDefaultSelectorEnums::UserSetDefault_Default);
+                grabbingStarting();
             }  
             else if (set == 1)
             {
+                grabbingStopping();
                 cam_->UserSetDefault.SetValue(UserSetDefaultSelectorEnums::UserSetDefault_UserSet1);
+                grabbingStarting();
             } 
             else if (set == 2)
             {
+                grabbingStopping();
                 cam_->UserSetDefault.SetValue(UserSetDefaultSelectorEnums::UserSetDefault_UserSet2);
+                grabbingStarting();
             } 
             else if (set == 3)
             {
+                grabbingStopping();
                 cam_->UserSetDefault.SetValue(UserSetDefaultSelectorEnums::UserSetDefault_UserSet3);
+                grabbingStarting();
             } 
             else if (set == 4)
             {
+                grabbingStopping();
                 cam_->UserSetDefault.SetValue(UserSetDefaultSelectorEnums::UserSetDefault_HighGain);
+                grabbingStarting();
             } 
             else if (set == 5)
             {
+                grabbingStopping();
                 cam_->UserSetDefault.SetValue(UserSetDefaultSelectorEnums::UserSetDefault_AutoFunctions);
+                grabbingStarting();
             } 
             else if (set == 6)
             {
+                grabbingStopping();
                 cam_->UserSetDefault.SetValue(UserSetDefaultSelectorEnums::UserSetDefault_ColorRaw);
+                grabbingStarting();
             } 
             else 
             {

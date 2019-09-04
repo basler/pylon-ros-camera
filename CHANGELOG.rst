@@ -2,7 +2,7 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.15.3 (2019-09-02)
+0.16.3 (2019-09-02)
 -------------------
 * Add below listed new ROS services : 
   - set_image_encoding 
@@ -10,8 +10,9 @@ Changelog for package pylon_camera
 * Change the return type of setImageEncoding method under pylon_camera_base.hpp to string type instead of bool.
 * Fixed the gabbing timeout 'grab_timeout_' value to 500 ms instead of the previous equation that was dependent on the exposure Time which leads to block the driver (sometime up to 15 Min.) in case of trigger mode is on or in case of hardware trigger source.
 * Add camera available image encoding and and current image encoding to the current status publisher
+* Add auto image start/stop grabbing when user call 'save_user_set', 'load_user_set', and 'select_default_user_set'. 
 
-0.15.2 (2019-08-20)
+0.16.2 (2019-08-20)
 -------------------
 * Add dnb_msgs dependency cloning in the Read me file
 * Activate node status Publisher
@@ -23,7 +24,7 @@ Changelog for package pylon_camera
 * Replace 'assert' with 'if condition' in setExtendedBrightness method uder the "pylon_camera_base.hpp" file to avoid ROS node crash when passing a brightness value out of the range.
 * Add flags to disable/enable node status & current parameters publishers controlled thru launch file.
 
-0.15.2 (2019-08-16)
+0.16.2 (2019-08-16)
 -------------------
 * Add startup User set select in the launch file and Drag and Bot Components manger.
 * Make current camera settings as default startup setting.
@@ -34,7 +35,7 @@ Changelog for package pylon_camera
 * Existing services that use camera_control_msgs/SetBool.h service templete updated to use std_srvs/SetBool service templete
 * Add Current Camera parameters publisher
 
-0.15.1 (2019-08-12)
+0.16.1 (2019-08-12)
 -------------------
 * Add Drag and Bot module config 
 * Add below listed new ROS services : 
