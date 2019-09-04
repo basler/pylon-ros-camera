@@ -172,7 +172,7 @@ public:
      * @param target_ros_endcoding: string describing the encoding.
      * @return false if a communication error occurred or true otherwise.
      */
-    virtual std::string setImageEncoding(const std::string& target_ros_encoding) = 0;
+    virtual std::string setImageEncoding(const std::string& target_ros_encoding) const= 0;
 
     /**
      * Sets the exposure time in microseconds

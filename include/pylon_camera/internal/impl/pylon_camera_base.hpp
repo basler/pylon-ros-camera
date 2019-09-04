@@ -170,10 +170,13 @@ std::string PylonCameraImpl<CameraTraitT>::currentROSEncoding() const
     if ( !encoding_conversions::genAPI2Ros(gen_api_encoding, ros_encoding) )
     {
         std::stringstream ss;
-        ss << "No ROS equivalent to GenApi encoding '" << gen_api_encoding
-           << "' found! This is bad because this case should never occur!";
-        throw std::runtime_error(ss.str());
-        return "NO_ENCODING";
+        //ss << "No ROS equivalent to GenApi encoding '" << gen_api_encoding << "' found! This is bad because this case should never occur!";
+        //throw std::runtime_error(ss.str());
+        ROS_ERROR_STREAM("No ROS equivalent to GenApi encoding");
+        cam_->StopGrabbing();
+        setImageEncoding(gen_api_encoding);
+        cam_->StartGrabbing();
+        //return "NO_ENCODING";
     }
     return ros_encoding;
 }
@@ -479,7 +482,7 @@ std::vector<std::string> PylonCameraImpl<CameraTraitT>::detectAvailableImageEnco
 }
 
 template <typename CameraTraitT>
-std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& ros_encoding)
+std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& ros_encoding) const
 {
     std::string gen_api_encoding;
     bool conversion_found = encoding_conversions::ros2GenAPI(ros_encoding, gen_api_encoding);
