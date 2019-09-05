@@ -11,7 +11,7 @@ Changelog for package pylon_camera
 * Fixed the gabbing timeout 'grab_timeout_' value to 500 ms instead of the previous equation that was dependent on the exposure Time which leads to block the driver (sometime up to 15 Min.) in case of trigger mode is on or in case of hardware trigger source.
 * Add camera available image encoding and and current image encoding to the current status publisher
 * Add auto image start/stop grabbing when user call 'save_user_set', 'load_user_set', and 'select_default_user_set'. 
-* Fix node crash when ROS unsupported image format is selected in the pylon viewer.
+* Fix node crashing issue when ROS unsupported image format is selected in the pylon viewer.
 
 0.16.2 (2019-08-20)
 -------------------
