@@ -1,5 +1,5 @@
 package: pylon_camera
-name: 'Basler Camera'
+name: 'Basler 2D Camera'
 description: 'Camera with integrated machine vision features'
 type: driver/camera/basler/generic
 roslaunch: pylon_camera_node.launch
