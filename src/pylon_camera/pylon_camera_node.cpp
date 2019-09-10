@@ -661,6 +661,13 @@ void PylonCameraNode::spin()
             img_rect_pub_->publish(*cv_bridge_img_rect_);
         }
     }
+    // Check if the image encoding changed , then save the new image encoding and restart the image grabbing to fix the ros sensor message type issue.
+    if (pylon_camera_parameter_set_.imageEncoding() != pylon_camera_->currentROSEncoding()) 
+      {
+        pylon_camera_parameter_set_.setimageEncodingParam(nh_,pylon_camera_->currentROSEncoding());
+        grabbingStopping();
+        grabbingStarting();
+      }
     if (pylon_camera_parameter_set_.enable_status_publisher_)
     { 
       componentStatusPublisher.publish(cm_status);
