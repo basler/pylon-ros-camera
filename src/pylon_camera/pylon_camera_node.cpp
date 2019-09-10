@@ -2773,6 +2773,7 @@ std::string PylonCameraNode::grabbingStopping()
 
 bool PylonCameraNode::setImageEncodingCallback(camera_control_msgs::SetStringValue::Request &req, camera_control_msgs::SetStringValue::Response &res)
 {
+    grabbingStopping(); // Stop grabbing for better user experience
     res.message = setImageEncoding(req.value);
     if ((res.message.find("done") != std::string::npos) != 0)
     {
@@ -2787,6 +2788,7 @@ bool PylonCameraNode::setImageEncodingCallback(camera_control_msgs::SetStringVal
           res.message = "Using this feature require stop image grabbing";
         }
     }
+    grabbingStarting(); // Start grabbing for better usser experience
     return true;
 }
 
