@@ -53,6 +53,13 @@ namespace encoding_conversions
      */
     bool genAPI2Ros(const std::string& gen_api_enc, std::string& ros_enc);
 
+    /**
+     * Returns if the given encoding convertion is 8 or 12 bits. Basler uses 12 bits
+     * instead of 16 bit, therefore 4 bits shifting is required
+     */
+    bool is_12_bit_gen_api_enc(const std::string& gen_api_enc);
+    bool is_12_bit_ros_enc(const std::string& ros_enc);
+
 }  // namespace encoding_conversions
 }  // namespace pylon_camera
 #endif  // PYLON_CAMERA_ENCODING_CONVERSIONS_H
