@@ -1,15 +1,8 @@
 ====
 **ROS-Driver for Basler Cameras**
 ====
-**developed by Magazino GmbH, using the pylon Software Camera Suite by Basler AG**
 
-.. image:: https://raw.githubusercontent.com/magazino/pylon_camera/indigo-devel/wiki_imgs/logos.png
-   :width: 130 %
-   :align: center
-
-This package offers many functions of the Basler pylon API inside the ROS-Framwork.
-
-The package supports Baslers USB 3.0, GigE as well as the DART cameras.
+This package offers many functions of the Basler [pylon Camera Software Suite](https://www.baslerweb.com/en/products/software/basler-pylon-camera-software-suite/) C++ API inside the ROS-Framework.
 
 Images can continuously be published over *\/image\_raw* or the *\/image\_rect* topic.
 The latter just in case the intrinsic calibration matrices are provided through the **camera_info_url** parameter.
@@ -26,33 +19,30 @@ This means that the image acquisition is triggered with a certain rate and the c
 
 The package opens either a predefined camera (using a given 'device_user_id' parameter) or, if no camera id is predefined the first camera device it can find.
 
+This driver was improved by [drag and bot GmbH](www.dragandbot.com) from the version originally released by [Magazino GmbH](https://github.com/magazino/pylon_camera).
+
 |
 
 ******
 **Installation**
 ******
-The package has been tested for ROS-Indigo and ROS-Kinetic.
 
-The pylon_camera-pkg requires the pylonSDK to be installed on your system. Please download and install the pylon debian package for your architecture from:
+The pylon_camera-pkg requires the pylon Camera Software Suite for Linux to be installed on your system. This package will be automatically installed through rosdep script for x86_64 architecture from [drag&bot fileserver](https://dnb-public-downloads-misc.s3.eu-central-1.amazonaws.com/pylon/pylon_5.2.0.13457-deb0_amd64.deb). If this install process fails, it is still possible to install the API libraries manually. In that case, please download and install the latest pylon Camera Software Suite Linux Debian Installer Package for your architecture from:
 
 ``https://www.baslerweb.com/de/support/downloads/downloads-software/``
+
+First, clone this repository in your catkin workspace (e.g. catkin_ws) and the drag&bot public commom messages, which is required for publishing status information of the hardware component to the drag&bot component monitoring:
+
+``cd ~/catkin_ws && git clone https://github.com/basler/pylon-ros-camera && git clone https://github.com/dragandbot/dragandbot_common.git``
 
 In order to build the package, you need to configure rosdep (i.e. the ROS command-line tool for checking and installing system dependencies for ROS packages) such that
 it knows how to resolve this dependency. This can be achieved by executing the following commands:
 
-``sudo sh -c 'echo "yaml https://raw.githubusercontent.com/dragandbot/pylon_camera/master/rosdep/pylon_sdk.yaml " > /etc/ros/rosdep/sources.list.d/15-plyon_camera.list'``
+``sudo sh -c 'echo "yaml https://raw.githubusercontent.com/basler/pylon-ros-camera/master/rosdep/pylon_sdk.yaml" > /etc/ros/rosdep/sources.list.d/30-pylon_camera.list' && rosdep update && rosdep install --from-paths . --ignore-src --rosdistro=$ROS_DISTRO -y``
 
-``rosdep update``
-
-Then, clone the pylon_camera-pkg, camera_control_msgs-pkg, and dragandbot_common and install the pylon SDK in your catkin_ws:
-
-``cd ~/catkin_ws/src/ && git clone https://github.com/dragandbot/pylon_camera.git && git clone https://github.com/dragandbot/camera_control_msgs.git && git clone https://github.com/dragandbot/dragandbot_common.git``  
-
-``rosdep install --from-paths . --ignore-src --rosdistro=$ROS_DISTRO -y``
-
-Build the pylon_camera package as you would build a standard ROS-package unsing p.e.
-
-``cd ~/catkin_ws && catkin build``
+Compile the workspace using catkin build or catkin make: 
+``cd ~/catkin_ws && catkin clean -y && catkin build && source ~/.bashrc``
+``cd ~/catkin_ws && catkin_make clean && catkin_make && source ~/.bashrc``
 
 |
 

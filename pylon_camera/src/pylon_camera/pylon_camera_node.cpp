@@ -3,6 +3,8 @@
  *
  * Copyright (C) 2016, Magazino GmbH. All rights reserved.
  *
+ * Improved by drag and bot GmbH (www.dragandbot.com), 2019
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *   * Redistributions of source code must retain the above copyright notice,

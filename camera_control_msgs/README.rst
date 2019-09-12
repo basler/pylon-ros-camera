@@ -1,15 +1,10 @@
 ====
 **Message package for camera drivers**
 ====
-**developed by Magazino GmbH, using the pylon Software Camera Suite by Basler AG**
 
-.. image:: https://raw.githubusercontent.com/magazino/pylon_camera/indigo-devel/wiki_imgs/logos.png
-   :width: 130 %
-   :align: center
+This package contains message and service definitions for interacting with the pylon_camera driver.
 
-This package offers many service and action definitions to control a camera.
-
-
+This driver was improved by [drag and bot GmbH](www.dragandbot.com) from the version originally released by [Magazino GmbH](https://github.com/magazino/camera_control_msgs).
 
 ******
 **Services**
