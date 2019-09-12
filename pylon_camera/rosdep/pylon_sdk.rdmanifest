@@ -1,4 +1,5 @@
-uri: 'https://bitbucket.org/drag-and-bot/pylon_camera/raw/master/rosdep/empty.tar'
+uri: 'https://raw.githubusercontent.com/basler/pylon-ros-camera/master/rosdep/empty.tar'
+
 md5sum: df41600634ca08cb5082877eb64220c9
 install-script: |
   #!/bin/bash
