@@ -1,4 +1,4 @@
 pylon:
   ubuntu:
     source:
-      uri: "https://raw.githubusercontent.com/basler/pylon-ros-camera/master/rosdep/pylon_sdk.rdmanifest"
+      uri: "https://raw.githubusercontent.com/basler/pylon-ros-camera/master/pylon_camera/rosdep/pylon_sdk.rdmanifest"
