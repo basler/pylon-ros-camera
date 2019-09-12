@@ -50,6 +50,10 @@ bool ros2GenAPI(const std::string& ros_enc, std::string& gen_api_enc)
     {
         gen_api_enc = "Mono12";
     }
+    else if ( ros_enc == sensor_msgs::image_encodings::MONO16 )
+    {
+        gen_api_enc = "Mono16";
+    }
     else if ( ros_enc == sensor_msgs::image_encodings::BGR8 )
     {
         gen_api_enc = "BGR8";
@@ -90,6 +94,22 @@ bool ros2GenAPI(const std::string& ros_enc, std::string& gen_api_enc)
     {
         gen_api_enc = "BayerGR12";
     }
+    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_RGGB16 )
+    {
+        gen_api_enc = "BayerRG16";
+    }
+    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_BGGR16 )
+    {
+        gen_api_enc = "BayerBG16";
+    }
+    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_GBRG16 )
+    {
+        gen_api_enc = "BayerGB16";
+    }
+    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_GRBG16 )
+    {
+        gen_api_enc = "BayerGR16";
+    }
     /*
     else if ( ros_enc == sensor_msgs::image_encodings::YUV422 )
     {
@@ -121,6 +141,10 @@ bool genAPI2Ros(const std::string& gen_api_enc, std::string& ros_enc)
         ros_enc = sensor_msgs::image_encodings::MONO8;
     }
     else if ( gen_api_enc == "Mono12" )
+    {
+        ros_enc = sensor_msgs::image_encodings::MONO16;
+    }
+    else if ( gen_api_enc == "Mono16" )
     {
         ros_enc = sensor_msgs::image_encodings::MONO16;
     }
@@ -164,6 +188,22 @@ bool genAPI2Ros(const std::string& gen_api_enc, std::string& ros_enc)
     {
         ros_enc = sensor_msgs::image_encodings::BAYER_GRBG16;
     }
+    else if ( gen_api_enc == "BayerRG16" )
+    {
+        ros_enc = sensor_msgs::image_encodings::BAYER_RGGB16;
+    }
+    else if ( gen_api_enc == "BayerBG16" )
+    {
+        ros_enc = sensor_msgs::image_encodings::BAYER_BGGR16;
+    }
+    else if ( gen_api_enc == "BayerGB16" )
+    {
+        ros_enc = sensor_msgs::image_encodings::BAYER_GBRG16;
+    }
+    else if ( gen_api_enc == "BayerGR16" )
+    {
+        ros_enc = sensor_msgs::image_encodings::BAYER_GRBG16;
+    }
     /*
     else if ( gen_api_enc == "YCbCr422_8" )
     {
@@ -175,7 +215,6 @@ bool genAPI2Ros(const std::string& gen_api_enc, std::string& ros_enc)
         /* Unsupported are:
          * - Mono10
          * - Mono10p
-         * - Mono12
          * - Mono12p
          * - BayerGR10
          * - BayerGR10p
@@ -185,13 +224,9 @@ bool genAPI2Ros(const std::string& gen_api_enc, std::string& ros_enc)
          * - BayerGB10p
          * - BayerBG10
          * - BayerBG10p
-         * - BayerGR12
          * - BayerGR12p
-         * - BayerRG12
          * - BayerRG12p
-         * - BayerGB12
          * - BayerGB12p
-         * - BayerBG12
          * - BayerBG12p
          * - YCbCr422_8
          */
