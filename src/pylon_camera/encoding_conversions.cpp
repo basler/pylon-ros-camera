@@ -37,7 +37,7 @@ namespace pylon_camera
 namespace encoding_conversions
 {
 
-bool ros2GenAPI(const std::string& ros_enc, std::string& gen_api_enc)
+bool ros2GenAPI(const std::string& ros_enc, std::string& gen_api_enc, bool is_16bits_available)
 {
     /*
      * http://docs.ros.org/kinetic/api/sensor_msgs/html/image__encodings_8h_source.html
@@ -46,11 +46,11 @@ bool ros2GenAPI(const std::string& ros_enc, std::string& gen_api_enc)
     {
         gen_api_enc = "Mono8";
     }
-    else if ( ros_enc == sensor_msgs::image_encodings::MONO16 )
+    else if ( ros_enc == sensor_msgs::image_encodings::MONO16 && ! is_16bits_available)
     {
         gen_api_enc = "Mono12";
     }
-    else if ( ros_enc == sensor_msgs::image_encodings::MONO16 )
+    else if ( ros_enc == sensor_msgs::image_encodings::MONO16 && is_16bits_available)
     {
         gen_api_enc = "Mono16";
     }
@@ -78,19 +78,19 @@ bool ros2GenAPI(const std::string& ros_enc, std::string& gen_api_enc)
     {
         gen_api_enc = "BayerGR8";
     }
-    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_RGGB16 )
+    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_RGGB16 && ! is_16bits_available)
     {
         gen_api_enc = "BayerRG12";
     }
-    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_BGGR16 )
+    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_BGGR16 && ! is_16bits_available)
     {
         gen_api_enc = "BayerBG12";
     }
-    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_GBRG16 )
+    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_GBRG16 && ! is_16bits_available)
     {
         gen_api_enc = "BayerGB12";
     }
-    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_GRBG16 )
+    else if ( ros_enc == sensor_msgs::image_encodings::BAYER_GRBG16 && ! is_16bits_available)
     {
         gen_api_enc = "BayerGR12";
     }
@@ -246,7 +246,7 @@ bool is_12_bit_gen_api_enc(const std::string& gen_api_enc){
 
 bool is_12_bit_ros_enc(const std::string& ros_enc){
     std::string gen_api_enc;
-    if (ros2GenAPI(ros_enc, gen_api_enc)) {
+    if (ros2GenAPI(ros_enc, gen_api_enc, false)) {
         return is_12_bit_gen_api_enc(gen_api_enc);
     } else {
         return false;

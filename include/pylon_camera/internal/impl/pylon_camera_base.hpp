@@ -382,7 +382,8 @@ bool PylonCameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image)
     // In case of 12 bits we need to shift the image bits 4 positions to the left
     std::string ros_enc = currentROSEncoding();
     uint16_t shift_array[img_size_byte_ / 2];
-    if (encoding_conversions::is_12_bit_ros_enc(ros_enc)){
+    std::string gen_api_encoding(cam_->PixelFormat.ToString().c_str());
+    if (encoding_conversions::is_12_bit_ros_enc(ros_enc) && (gen_api_encoding == "BayerRG12" || gen_api_encoding == "BayerBG12" || gen_api_encoding == "BayerGB12" || gen_api_encoding == "BayerGR12" || gen_api_encoding == "Mono12") ){
         const uint16_t *convert_bits = reinterpret_cast<uint16_t*>(ptr_grab_result->GetBuffer());
         for (int i = 0; i < img_size_byte_ / 2; i++){
             shift_array[i] = convert_bits[i] << 4;
@@ -525,9 +526,22 @@ std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& r
 {
 
     ROS_ERROR("Encoding received %s\n", ros_encoding.c_str());
-
+    bool is_16bits_available = false;
     std::string gen_api_encoding;
-    bool conversion_found = encoding_conversions::ros2GenAPI(ros_encoding, gen_api_encoding);
+    // An additional check to select the correct basler encoding, as ROS 16-bits encoding will cover both Basler 12-bits and 16-bits encoding
+    if (ros_encoding == "bayer_rggb16" || ros_encoding == "bayer_bggr16" || ros_encoding == "bayer_gbrg16" || ros_encoding == "bayer_grbg16") 
+    { 
+        for ( const std::string& enc : available_image_encodings_ )
+            {
+                if ( enc == "BayerRG16" || enc == "BayerBG16" || enc == "BayerGB16" || enc == "BayerGR16" || enc == "Mono16" )
+                {
+                    is_16bits_available = true;
+                    break;
+                }
+
+            }
+    }
+    bool conversion_found = encoding_conversions::ros2GenAPI(ros_encoding, gen_api_encoding, is_16bits_available);
     if ( !conversion_found )
     {
         if ( ros_encoding.empty() )

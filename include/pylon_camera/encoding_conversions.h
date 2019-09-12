@@ -43,7 +43,7 @@ namespace encoding_conversions
      * @return true in case that an corresponding conversion could be found and
      *         false otherwise.
      */
-    bool ros2GenAPI(const std::string& ros_enc, std::string& gen_api_enc);
+    bool ros2GenAPI(const std::string& ros_enc, std::string& gen_api_enc, bool is_16bits_available);
 
     /**
      * Converts an encoding described in GenAPI language into the ROS encoding
@@ -54,8 +54,7 @@ namespace encoding_conversions
     bool genAPI2Ros(const std::string& gen_api_enc, std::string& ros_enc);
 
     /**
-     * Returns if the given encoding convertion is 8 or 12 bits. Basler uses 12 bits
-     * instead of 16 bit, therefore 4 bits shifting is required
+     * Returns if the given encoding convertion is 8 or 12 bits. in case of Basler 12 bits, 4-bits shifting is required to make it compatible with ROS 16-bits encoding
      */
     bool is_12_bit_gen_api_enc(const std::string& gen_api_enc);
     bool is_12_bit_ros_enc(const std::string& ros_enc);
