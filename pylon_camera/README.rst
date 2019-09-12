@@ -38,7 +38,7 @@ First, clone this repository in your catkin workspace (e.g. catkin_ws) and the d
 In order to build the package, you need to configure rosdep (i.e. the ROS command-line tool for checking and installing system dependencies for ROS packages) such that
 it knows how to resolve this dependency. This can be achieved by executing the following commands:
 
-``sudo sh -c 'echo "yaml https://raw.githubusercontent.com/basler/pylon-ros-camera/master/rosdep/pylon_sdk.yaml" > /etc/ros/rosdep/sources.list.d/30-pylon_camera.list' && rosdep update && rosdep install --from-paths . --ignore-src --rosdistro=$ROS_DISTRO -y``
+``sudo sh -c 'echo "yaml https://raw.githubusercontent.com/basler/pylon-ros-camera/master/pylon_camera/rosdep/pylon_sdk.yaml" > /etc/ros/rosdep/sources.list.d/30-pylon_camera.list' && rosdep update && sudo rosdep install --from-paths . --ignore-src --rosdistro=$ROS_DISTRO -y``
 
 Compile the workspace using catkin build or catkin make: 
 ``cd ~/catkin_ws && catkin clean -y && catkin build && source ~/.bashrc``
