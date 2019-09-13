@@ -2,7 +2,7 @@ package: pylon_camera
 name: 'Basler 2D Camera'
 description: 'Camera with integrated machine vision features'
 type: driver/camera/basler/generic
-roslaunch: pylon_camera_node.launch
+roslaunch: dragandbot_startup.launch
 configuration:
   - id: mtu_size
     namespace: ''
