@@ -83,6 +83,9 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Device Reset
 
 ## ROS Service list
+
+The ROS interface with the camera was extended with new functionality. Here is presented a list of current available services.
+
 Service Name  | Notes
 ------------- | -------------
 /pylon_camera_node/get_loggers  | -
@@ -132,7 +135,7 @@ Service Name  | Notes
 
 ## Image pixel encoding
 
-This package currently support below ROS image pixel formats :
+This package currently support the following ROS image pixel formats :
 
 	* mono8	        (Basler Format : Mono8)
 	* mono16	(Basler Format : Mono16, Mono12)       (Notes 1&2)
@@ -149,6 +152,6 @@ This package currently support below ROS image pixel formats :
 
 <u>NOTES: </u>
 
-1 : 12-bits image will be remapped to 16-bits using bits shifting to make it work with the ROS 16-bits sensor standard message.
+1 : 12-bits image will be remapped to 16-bits using bit shifting to make it work with the ROS 16-bits sensor standard message.
 
 2 : When the user call the /pylon_camera_node/set_image_encoding to use 16-bits encoding, the driver will check first for the availability of the requested 16-bits encoding to set it, when the requested 16-bits image encoding is not available, then the driver will check the availability of the equivalent 12-bits encoding to set it. When both 16-bits and 12-bits image encoding are not available then an error message will be returned.
