@@ -83,88 +83,61 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Device Reset
 
 ## ROS Service list
-
- * /pylon_camera_node/get_loggers
- * /pylon_camera_node/set_binning
- * /pylon_camera_node/set_brightness
- * /pylon_camera_node/set_camera_info
- * /pylon_camera_node/set_exposure
- * /pylon_camera_node/set_gain
- * /pylon_camera_node/set_gamma
- * /pylon_camera_node/set_logger_level
- * /pylon_camera_node/set_roi
- * /pylon_camera_node/set_sleeping
- * /pylon_camera_node/execute_software_trigger
- * /pylon_camera_node/load_user_set
- * /pylon_camera_node/reset_device
- * /pylon_camera_node/save_user_set
- * /pylon_camera_node/select_default_user_set 	            
- *`(value : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw)`
- * /pylon_camera_node/select_user_set 	                    
- *`(value : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw)`
- * /pylon_camera_node/set_acquisition_frame_count       	 
- *`(value = new targeted frame count)`
- * /pylon_camera_node/set_balance_white_auto	             
- *`(value : 0 = Off, 1 = Once, 2 = Continuous)`
- * /pylon_camera_node/set_black_level	                     
- *`(value = new targeted black level)`
- * /pylon_camera_node/set_demosaicing_mode	                
- *`(value : 0 = Simple, 1 = Basler PGI)`
- * /pylon_camera_node/set_device_link_throughput_limit      
- *`(value = new targeted throughput limit in Bytes/sec.)`
- * /pylon_camera_node/set_device_link_throughput_limit_mode 
- *`(data : false = deactivate, true = activate)`
- * /pylon_camera_node/set_image_encoding	                 
- *`(value = mono8, mono16, bgr8, rgb8, bayer_bggr8, bayer_gbrg8, bayer_rggb8, bayer_grbg8, bayer_rggb16, bayer_bggr16, bayer_gbrg16, bayer_grbg16)`.
- * /pylon_camera_node/set_light_source_preset               
- *`(value : 0 = Off, 1 = Daylight5000K, 2 = Daylight6500K, 3 = Tungsten2800K)`
- * /pylon_camera_node/set_line_debouncer_time               
- *`(value = delay in micro sec.)`
- * /pylon_camera_node/set_line_inverter		             
- *`(data : false = deactivate, true = activate)`
- * /pylon_camera_node/set_line_mode		                 
- *`(value : 0 = Input, 1 = Output)`
- * /pylon_camera_node/set_line_selector		
- *`(value : 0 = Line1, 1 = Line2, 2 = Line3, 3 = Line4)`
- * /pylon_camera_node/set_line_source	
- *`(value : 0 = Exposure Active, 1 = FrameTriggerWait, 2 = UserOutput1, 3 = Timer1Active, 4 = FlashWindow)`
- * /pylon_camera_node/set_noise_reduction	
- *`(value = reduction value)`
- * /pylon_camera_node/set_offset_x	
- *`(value = targeted offset in x-axis)`
- * /pylon_camera_node/set_offset_y	
- *`(value = targeted offset in y-axis)`
- * /pylon_camera_node/set_pgi_mode 	
- *`(data : false = deactivate, true = activate)`
- * /pylon_camera_node/set_reverse_x 	
- *`(data : false = deactivate, true = activate)`
- * /pylon_camera_node/set_reverse_y		
- *`(data : false = deactivate, true = activate)`
- * /pylon_camera_node/set_sensor_readout_mode	
- *`(value : 0 = Normal, 1 = Fast)`
- * /pylon_camera_node/set_sharpness_enhancement	
- *`(value = sharpness value)`
- * /pylon_camera_node/set_trigger_activation	
- *`(value : 0 = RigingEdge, 1 = FallingEdge)`
- * /pylon_camera_node/set_trigger_delay		
- *`(value = delay in micro sec.)`
- * /pylon_camera_node/set_trigger_mode		
- *`(data : false = deactivate, true = activate)`
- * /pylon_camera_node/set_trigger_selector	
- *`(value : 	0 = Frame start, 1 = Frame burst start (ace USB cameras) / Acquisition Start (ace GigE cameras))`
- * /pylon_camera_node/set_trigger_source	
- *`(value : 0 = Software, 1 = Line1, 2 = Line3, 3 = Line4, 4 = Action1 (only selected GigE Camera))`
- * /pylon_camera_node/start_grabbing
- * /pylon_camera_node/stop_grabbing 
+Service Name  | Notes
+------------- | -------------
+/pylon_camera_node/get_loggers  | -
+/pylon_camera_node/set_binning  | -
+/pylon_camera_node/set_brightness | -
+/pylon_camera_node/set_camera_info | -
+/pylon_camera_node/set_exposure | -
+/pylon_camera_node/set_gain | -
+/pylon_camera_node/set_gamma | -
+/pylon_camera_node/set_logger_level | -
+/pylon_camera_node/set_roi | -
+/pylon_camera_node/set_sleeping | -
+/pylon_camera_node/execute_software_trigger | -
+/pylon_camera_node/load_user_set | -
+/pylon_camera_node/reset_device | -
+/pylon_camera_node/save_user_set | -
+/pylon_camera_node/select_default_user_set | value : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw
+/pylon_camera_node/select_user_set | value : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw
+/pylon_camera_node/set_acquisition_frame_count | value = new targeted frame count
+/pylon_camera_node/set_balance_white_auto | value : 0 = Off, 1 = Once, 2 = Continuous
+/pylon_camera_node/set_black_level | value = new targeted black level
+/pylon_camera_node/set_demosaicing_mode | value : 0 = Simple, 1 = Basler PGI
+/pylon_camera_node/set_device_link_throughput_limit | value = new targeted throughput limit in Bytes/sec.
+/pylon_camera_node/set_device_link_throughput_limit_mode | data : false = deactivate, true = activate
+/pylon_camera_node/set_image_encoding | value = mono8, mono16, bgr8, rgb8, bayer_bggr8, bayer_gbrg8, bayer_rggb8, bayer_grbg8, bayer_rggb16, bayer_bggr16, bayer_gbrg16, bayer_grbg16
+/pylon_camera_node/set_light_source_preset | value : 0 = Off, 1 = Daylight5000K, 2 = Daylight6500K, 3 = Tungsten2800K
+/pylon_camera_node/set_line_debouncer_time | value = delay in micro sec.
+/pylon_camera_node/set_line_inverter | data : false = deactivate, true = activate
+/pylon_camera_node/set_line_mode | value : 0 = Input, 1 = Output
+/pylon_camera_node/set_line_selector | value : 0 = Line1, 1 = Line2, 2 = Line3, 3 = Line4
+/pylon_camera_node/set_line_source | value : 0 = Exposure Active, 1 = FrameTriggerWait, 2 = UserOutput1, 3 = Timer1Active, 4 = FlashWindow
+/pylon_camera_node/set_noise_reduction | value = reduction value
+/pylon_camera_node/set_offset_x | value = targeted offset in x-axis
+/pylon_camera_node/set_offset_y | value = targeted offset in y-axis
+/pylon_camera_node/set_pgi_mode | data : false = deactivate, true = activate
+/pylon_camera_node/set_reverse_x | data : false = deactivate, true = activate
+/pylon_camera_node/set_reverse_y | data : false = deactivate, true = activate
+/pylon_camera_node/set_sensor_readout_mode | value : 0 = Normal, 1 = Fast
+/pylon_camera_node/set_sharpness_enhancement | value = sharpness value
+/pylon_camera_node/set_trigger_activation | value : 0 = RigingEdge, 1 = FallingEdge
+/pylon_camera_node/set_trigger_delay | value = delay in micro sec.
+/pylon_camera_node/set_trigger_mode | data : false = deactivate, true = activate
+/pylon_camera_node/set_trigger_selector | value : 0 = Frame start, 1 = Frame burst start (ace USB cameras) / Acquisition Start (ace GigE cameras)
+/pylon_camera_node/set_trigger_source | value : 0 = Software, 1 = Line1, 2 = Line3, 3 = Line4, 4 = Action1 (only selected GigE Camera)
+/pylon_camera_node/start_grabbing | -
+/pylon_camera_node/stop_grabbing  | -
 
 ## Image pixel encoding
 
 This package currently support below ROS image pixel formats :
 
 	* mono8	        (Basler Format : Mono8)
-	* mono16	    (Basler Format : Mono16, Mono12)       (Notes 1&2)
-	* bgr8 		    (Basler Format : BGR8)
-	* rgb8 		    (Basler Format : RGB8)
+	* mono16	(Basler Format : Mono16, Mono12)       (Notes 1&2)
+	* bgr8 		(Basler Format : BGR8)
+	* rgb8 		(Basler Format : RGB8)
 	* bayer_bggr8 	(Basler Format : BayerBG8)
 	* bayer_gbrg8 	(Basler Format : BayerGB8)
 	* bayer_rggb8 	(Basler Format : BayerRG8)
@@ -178,4 +151,4 @@ This package currently support below ROS image pixel formats :
 
 1 : 12-bits image will be remapped to 16-bits using bits shifting to make it work with the ROS 16-bits sensor standard message.
 
-2 : When the user call the /pylon_camera_node/set_image_encoding to use 16-bits encoding, the driver will check first for the availability of the requested 16-bits encoding to set it, when the requested 16-bits image encoding is not available, then the driver will check the availability of the equivalent 12-bits encoding to set it. When both the 16-bits and 12-bits image encoding is not available then an error message will be returned.
+2 : When the user call the /pylon_camera_node/set_image_encoding to use 16-bits encoding, the driver will check first for the availability of the requested 16-bits encoding to set it, when the requested 16-bits image encoding is not available, then the driver will check the availability of the equivalent 12-bits encoding to set it. When both 16-bits and 12-bits image encoding are not available then an error message will be returned.
