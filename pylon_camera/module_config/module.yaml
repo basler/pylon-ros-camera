@@ -17,7 +17,13 @@ configuration:
     datatype: select
     available: ['CurrentSetting','Default', 'UserSet1', 'UserSet2', 'UserSet3']
     default: 'CurrentSetting'
+  - id: intrinsic_calibration_name
+    namespace: ''
+    name: 'Intrinsic calibration name'
+    description: 'Intrinsic calibration file used by the camera for rectification'
+    datatype: string
+    default: 'intrinsicpylon'
 nodes:
-  - node_callerid: /pylon_camera_node 
-    type: pylon_camera_node.cpp 
+  - node_callerid: /pylon_camera_node
+    type: pylon_camera_node.cpp
 status_topic: /pylon_camera_node/status
