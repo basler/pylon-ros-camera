@@ -526,8 +526,6 @@ std::vector<std::string> PylonCameraImpl<CameraTraitT>::detectAvailableImageEnco
 template <typename CameraTraitT>
 std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& ros_encoding) const
 {
-
-    ROS_ERROR("Encoding received %s\n", ros_encoding.c_str());
     bool is_16bits_available = false;
     std::string gen_api_encoding;
     // An additional check to select the correct basler encoding, as ROS 16-bits encoding will cover both Basler 12-bits and 16-bits encoding
@@ -577,7 +575,6 @@ std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& r
     bool supports_desired_encoding = false;
     for ( const std::string& enc : available_image_encodings_ )
     {
-        ROS_ERROR("encodings %s %s\n", gen_api_encoding.c_str(), enc.c_str());
         supports_desired_encoding = (gen_api_encoding == enc);
         if ( supports_desired_encoding )
         {
