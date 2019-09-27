@@ -17,12 +17,12 @@ Please check the README file of each package for more details and help.
 
 ## For the Impatient
  * Clone this repository in your catkin workspace (e.g. catkin_ws): `cd ~/catkin_ws/src && git clone https://github.com/basler/pylon-ros-camera`
- * Clone drag&bot public commom messages: `git clone https://github.com/dragandbot/dragandbot_common.git`
+ * Clone drag&bot public common messages: `git clone https://github.com/dragandbot/dragandbot_common.git`
  * Install ROS dependencies: `sudo sh -c 'echo "yaml https://raw.githubusercontent.com/basler/pylon-ros-camera/master/pylon_camera/rosdep/pylon_sdk.yaml" > /etc/ros/rosdep/sources.list.d/30-pylon_camera.list' && rosdep update && sudo rosdep install --from-paths . --ignore-src --rosdistro=$ROS_DISTRO -y`
  * Compile the workspace using catkin build or catkin make: `cd ~/catkin_ws && catkin clean -y && catkin build && source ~/.bashrc` or `cd ~/catkin_ws && catkin_make clean && catkin_make && source ~/.bashrc`
  * Start the driver: `roslaunch pylon_camera pylon_camera_node.launch`
 
-Pylon SDK API is automatically installed through rosdep installation.
+The pylon Camera Software Suite is automatically installed through rosdep installation.
 
 ## Available functionalities:
 
@@ -37,10 +37,14 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Reverse Y
  * Pixel Format
  * Binning Control
+ * ROI Control
 
 ### Analog Control
  * Black Level
  * Black Level Raw
+ * Gain Control
+ * Gamma Control
+ * Gain Auto
 
 ### Image Quality Control
  * PGI Control
@@ -50,9 +54,6 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Light Source Preset
  * Balance White Auto
  * Brightness Control
- * Gain Control
- * Gamma Control
- * ROI Control
 
 ### Acquisition Control
  * Sensor Readout Mode
@@ -82,6 +83,16 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Device Link Throughput Limit Mode
  * Device Link Throughput Limit
  * Device Reset
+ * Exposure Time
+ * Exposure Auto
+ * Auto Exposure Time Upper Limit
+ * Acquisition Frame Rate
+ * Resulting Frame Rate
+ * Device User ID
+ 
+### Transport Layer (GigE only)
+ * GevSCPSPacketSize (Packet Size)
+ * GevSCPD (Inter-Packet Delay)
 
 ## ROS Service list
 
@@ -156,3 +167,37 @@ This package currently support the following ROS image pixel formats :
 1 : 12-bits image will be remapped to 16-bits using bit shifting to make it work with the ROS 16-bits sensor standard message.
 
 2 : When the user call the /pylon_camera_node/set_image_encoding to use 16-bits encoding, the driver will check first for the availability of the requested 16-bits encoding to set it, when the requested 16-bits image encoding is not available, then the driver will check the availability of the equivalent 12-bits encoding to set it. When both 16-bits and 12-bits image encoding are not available then an error message will be returned.
+
+## Usage
+
+## Troubleshooting
+
+To increase performance and to minimize CPU usage when grabbing images, the following settings should be considered:
+
+### GigE Devices
+
+#### Maximum UDP Socket Buffer Size
+
+The system's maximum UDP receive buffer size should be increased to ensure a stable image acquisition. A maximum size of 2 MB is recommended. This can be achieved by issuing the sudo sysctl net.core.rmem_max=2097152 command. To make this setting persistent, you can add the net.core.rmem_max setting to the /etc/sysctl.conf file.
+
+#### Enable Jumbo Frames.
+
+Many GigE network adapters support so-called jumbo frames, i.e., network packets larger than the usual 1500 bytes. To enable jumbo frames, the maximum transfer unit (MTU) size of the PC's network adapter must be set to a high value. We recommend using a value of 8192.
+
+#### Increase the packet size.
+
+If your network adapter supports jumbo frames, you set the adapter's MTU to 8192 as described above. In order to take advantage of the adapter's jumbo frame capability, you must also set the packet size used by the camera to 8192.
+
+If you are working with the pylon Viewer application, you can set the packet size by first selecting a camera from the tree in the "Device" pane. In the "Features" pane, expand the features group that shows the camera's name, expand the "Transport Layer" parameters group, and set the "Packet Size" parameter to 8192. If you write your own application, use the camera API to set the PacketSize parameter to 8192.
+
+#### Real-time Priority
+
+The GigE Vision implementation of Basler pylon software uses a thread for receiving image data. Basler pylon tries to set the thread priority for the receive thread to real-time thread priority. This requires certain permissions. The 'Permissions for Real-time Thread Priorities' section of the pylon INSTALL document describes how to grant the required permissions.
+
+### U3V Devices
+
+#### Increasing Packet Size
+
+For faster USB transfers you should increase the packet size. You can do this by changing the "Stream Parameters" -> "Maximum Transfer Size" value from inside the pylon Viewer or by setting the corresponding value via the API. After increasing the package size you will likely run out of kernel space and see corresponding error messages on the console. The default value set by the kernel is 16 MB. To set the value (in this example to 1000 MB) you can execute as root:
+`echo 1000 > /sys/module/usbcore/parameters/usbfs_memory_mb`
+This would assign a maximum of 1000 MB to the USB stack.
