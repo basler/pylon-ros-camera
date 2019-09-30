@@ -65,6 +65,11 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Trigger Source
  * Trigger Activation
  * Trigger Delay
+ * Exposure Time
+ * Exposure Auto
+ * Auto Exposure Time Upper Limit
+ * Acquisition Frame Rate
+ * Resulting Frame Rate
 
 ### Digital I/O Control
  * Line Selector
@@ -83,11 +88,6 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Device Link Throughput Limit Mode
  * Device Link Throughput Limit
  * Device Reset
- * Exposure Time
- * Exposure Auto
- * Auto Exposure Time Upper Limit
- * Acquisition Frame Rate
- * Resulting Frame Rate
  * Device User ID
  
 ### Transport Layer (GigE only)
