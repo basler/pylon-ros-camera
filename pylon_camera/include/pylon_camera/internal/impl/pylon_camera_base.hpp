@@ -383,7 +383,7 @@ bool PylonCameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image)
     // ------------------------------------------------------------------------
     // In case of 12 bits we need to shift the image bits 4 positions to the left
     std::string ros_enc = currentROSEncoding();
-    uint16_t shift_array[img_size_byte_ / 2];
+    uint16_t * shift_array = new uint16_t[img_size_byte_ / 2]; // Dynamically allocated to avoid heap size error
     std::string gen_api_encoding(cam_->PixelFormat.ToString().c_str());
     if (encoding_conversions::is_12_bit_ros_enc(ros_enc) && (gen_api_encoding == "BayerRG12" || gen_api_encoding == "BayerBG12" || gen_api_encoding == "BayerGB12" || gen_api_encoding == "BayerGR12" || gen_api_encoding == "Mono12") ){
         const uint16_t *convert_bits = reinterpret_cast<uint16_t*>(ptr_grab_result->GetBuffer());
@@ -395,7 +395,7 @@ bool PylonCameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image)
         image.assign(pImageBuffer, pImageBuffer + img_size_byte_);
     }
 
-
+    delete[] shift_array;
     
     if ( !is_ready_ )
         is_ready_ = true;
