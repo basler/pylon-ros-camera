@@ -447,42 +447,46 @@ template <typename CameraTrait>
 bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
 {   
     try
-        {
-            int timeout = 5000;  // ms
-            if (cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On)
-                {
-                    if ( cam_->WaitForFrameTriggerReady(timeout, Pylon::TimeoutHandling_ThrowException) )
-                        {   
-                            cam_->ExecuteSoftwareTrigger(); 
-                        }
-                    else
-                        {   
-                            ROS_ERROR("Error WaitForFrameTriggerReady() timed out, impossible to ExecuteSoftwareTrigger()");
-                            return false;
-                        }   
-                }
-            cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException); 
-        }
-    catch ( const GenICam::GenericException &e )
+    {
+        int timeout = 5000;  // ms
+        // WaitForFrameTriggerReady to prevent trigger signal to get lost
+        // this could happen, if 2xExecuteSoftwareTrigger() is only followed by 1xgrabResult()
+        // -> 2nd trigger might get lost
+        if ( cam_->WaitForFrameTriggerReady(timeout, Pylon::TimeoutHandling_ThrowException) )
         {   
-            if ( cam_->IsCameraDeviceRemoved() )
-                {   
-                    ROS_ERROR("Lost connection to the camera . . .");
-                }
-            else
-                {   
-                    if ((cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On) && (! cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_Software) )
-                        {
-                            ROS_ERROR_STREAM("Waiting for Hardware Trigger");
-                        }
-                    else 
-                        {
-                        ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: "
-                                << e.GetDescription());
-                        }
-                }
-            return false;
+            cam_->ExecuteSoftwareTrigger(); 
         }
+        else
+        {   
+            ROS_ERROR("Error WaitForFrameTriggerReady() timed out, impossible to ExecuteSoftwareTrigger()");
+            return false;
+        }   
+        cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException); 
+    }
+    catch ( const GenICam::GenericException &e )
+    {   
+        if ( cam_->IsCameraDeviceRemoved() )
+        {   
+            ROS_ERROR("Lost connection to the camera . . .");
+        }
+        else
+        {   
+            if (! cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_Software)
+            {
+                ROS_ERROR_STREAM("Waiting for Hardware Trigger");
+            }
+            else if (cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On)
+            {
+                ROS_ERROR_STREAM("Waiting for Trigger signal");
+            }
+            else 
+            {
+            ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: "
+                    << e.GetDescription());
+            }
+        }
+        return false;
+    }
     catch (...)
     {   
         ROS_ERROR("An unspecified image grabbing exception in pylon camera occurred");
