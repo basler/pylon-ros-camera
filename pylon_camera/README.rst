@@ -44,6 +44,8 @@ Compile the workspace using catkin build or catkin make:
 ``cd ~/catkin_ws && catkin clean -y && catkin build && source ~/.bashrc``
 ``cd ~/catkin_ws && catkin_make clean && catkin_make && source ~/.bashrc``
 
+GigE Cameras IP Configuration can be done using the command: 
+`roslaunch pylon_camera pylon_camera_ip_configuration.launch`
 |
 
 ******
@@ -158,6 +160,8 @@ Some of the ROS service use integer values for as a commands, below are a list o
 - **select_user_set** ROS Service: 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw, 
 
 - **select_default_user_set** ROS Service: 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw
+
+- **set_gamma_selector**  ROS Service: 0 = User, 1 = sRGB
 
 ******
 **Questions**

@@ -285,6 +285,12 @@ public:
     virtual std::string currentROSEncoding() const = 0;
 
     /**
+     * Get the camera image encoding according to Basler encodings
+     * @return the current basler image pixel encoding.
+     */
+    virtual std::string currentBaslerEncoding() const = 0;
+
+    /**
      * Get the number of bytes per pixel
      * @return number of bytes per pixel
      */
@@ -765,7 +771,26 @@ public:
      */
     virtual std::string grabbingStopping() = 0; 
 
+    /**
+     * set the camera Maximum USB data transfer size in bytes
+     * @param maxTransferSize targeted new camera Maximum USB data transfer size in bytes
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setMaxTransferSize(const int& maxTransferSize) = 0 ;
 
+    /**
+     * set the camera Gamma selector (GigE Camera only)
+     * @param gammaSelector : 0 = User, 1 = sRGB
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setGammaSelector(const int& gammaSelector) = 0;
+
+    /**
+     * enable/disable the camera Gamma (GigE Camera only)
+     * @param enable 
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string gammaEnable(const bool& enable) = 0;
 
     virtual ~PylonCamera();
 protected:

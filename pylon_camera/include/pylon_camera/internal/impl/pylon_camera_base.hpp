@@ -184,6 +184,14 @@ std::string PylonCameraImpl<CameraTraitT>::currentROSEncoding() const
 }
 
 template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::currentBaslerEncoding() const
+{
+
+    return (cam_->PixelFormat.ToString().c_str());
+}
+
+
+template <typename CameraTraitT>
 float PylonCameraImpl<CameraTraitT>::currentExposure()
 {
     return static_cast<float>(exposureTime().GetValue());
@@ -439,46 +447,42 @@ template <typename CameraTrait>
 bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
 {   
     try
-    {
-        int timeout = 5000;  // ms
-        // WaitForFrameTriggerReady to prevent trigger signal to get lost
-        // this could happen, if 2xExecuteSoftwareTrigger() is only followed by 1xgrabResult()
-        // -> 2nd trigger might get lost
-        if ( cam_->WaitForFrameTriggerReady(timeout, Pylon::TimeoutHandling_ThrowException) )
-        {   
-            cam_->ExecuteSoftwareTrigger(); 
+        {
+            int timeout = 5000;  // ms
+            if (cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On)
+                {
+                    if ( cam_->WaitForFrameTriggerReady(timeout, Pylon::TimeoutHandling_ThrowException) )
+                        {   
+                            cam_->ExecuteSoftwareTrigger(); 
+                        }
+                    else
+                        {   
+                            ROS_ERROR("Error WaitForFrameTriggerReady() timed out, impossible to ExecuteSoftwareTrigger()");
+                            return false;
+                        }   
+                }
+            cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException); 
         }
-        else
-        {   
-            ROS_ERROR("Error WaitForFrameTriggerReady() timed out, impossible to ExecuteSoftwareTrigger()");
-            return false;
-        }   
-        cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException); 
-    }
     catch ( const GenICam::GenericException &e )
-    {   
-        if ( cam_->IsCameraDeviceRemoved() )
         {   
-            ROS_ERROR("Lost connection to the camera . . .");
+            if ( cam_->IsCameraDeviceRemoved() )
+                {   
+                    ROS_ERROR("Lost connection to the camera . . .");
+                }
+            else
+                {   
+                    if ((cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On) && (! cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_Software) )
+                        {
+                            ROS_ERROR_STREAM("Waiting for Hardware Trigger");
+                        }
+                    else 
+                        {
+                        ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: "
+                                << e.GetDescription());
+                        }
+                }
+            return false;
         }
-        else
-        {   
-            if (! cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_Software)
-            {
-                ROS_ERROR_STREAM("Waiting for Hardware Trigger");
-            }
-            else if (cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On)
-            {
-                ROS_ERROR_STREAM("Waiting for Trigger signal");
-            }
-            else 
-            {
-            ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: "
-                    << e.GetDescription());
-            }
-        }
-        return false;
-    }
     catch (...)
     {   
         ROS_ERROR("An unspecified image grabbing exception in pylon camera occurred");
@@ -527,6 +531,7 @@ template <typename CameraTraitT>
 std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& ros_encoding) const
 {
     bool is_16bits_available = false;
+    bool is_encoding_available = false;
     std::string gen_api_encoding;
     // An additional check to select the correct basler encoding, as ROS 16-bits encoding will cover both Basler 12-bits and 16-bits encoding
     if (ros_encoding == "bayer_rggb16" || ros_encoding == "bayer_bggr16" || ros_encoding == "bayer_gbrg16" || ros_encoding == "bayer_grbg16") 
@@ -542,6 +547,16 @@ std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& r
             }
     }
     bool conversion_found = encoding_conversions::ros2GenAPI(ros_encoding, gen_api_encoding, is_16bits_available);
+    for ( const std::string& enc : available_image_encodings_ )
+    {
+        if ((gen_api_encoding == enc) && conversion_found)
+        {
+            is_encoding_available = true;
+            break;
+        }
+    }
+    if (! is_encoding_available)
+        return "Error: unsporrted/unknown image format";
     if ( !conversion_found )
     {
         if ( ros_encoding.empty() )
@@ -593,6 +608,7 @@ std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& r
         {
             GenApi::INodeMap& node_map = cam_->GetNodeMap();
             GenApi::CEnumerationPtr(node_map.GetNode("PixelFormat"))->FromString(gen_api_encoding.c_str());
+            return "done";
         }
         else
         {
@@ -607,7 +623,6 @@ std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& r
             << ros_encoding << "' occurred: " << e.GetDescription());
         return e.GetDescription();
     }
-    return "done";
 }
 
 template <typename CameraTraitT>
@@ -1487,6 +1502,11 @@ std::string PylonCameraImpl<CameraTraitT>::setNoiseReduction(const float& value)
                 return "Error : Noise Reduction feature not available while PGI mode is off";
             }
         }
+        else if ( GenApi::IsAvailable(cam_->NoiseReduction) )
+            {
+                    cam_->NoiseReduction.SetValue(value);
+                    return "done";
+            }
         else 
             {
                 ROS_ERROR_STREAM("Error while trying to change the noise reduction value. The connected Camera not supporting this feature");
@@ -1545,6 +1565,11 @@ std::string PylonCameraImpl<CameraTraitT>::setSharpnessEnhancement(const float& 
                 return "Error : Sharpness Enhancement feature not available while PGI mode is off";
             }
         }
+        else if ( GenApi::IsAvailable(cam_->SharpnessEnhancement) )
+            {
+                    cam_->SharpnessEnhancement.SetValue(value);
+                    return "done";
+            }
         else 
             {
                 ROS_ERROR_STREAM("Error while trying to change the sharpness enhancement value, The connected Camera not supporting this feature");
@@ -2721,6 +2746,24 @@ std::string PylonCameraImpl<CameraTraitT>::grabbingStopping()
     catch ( const GenICam::GenericException &e )
     {
         ROS_ERROR_STREAM("An exception while stopping image grabbing occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setMaxTransferSize(const int& maxTransferSize)
+{
+    try
+    {
+        grabbingStopping();
+        cam_->GetStreamGrabberParams().MaxTransferSize.SetValue(maxTransferSize);
+        grabbingStarting();
+        return "done";
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while starting the free run mode occurred:" << e.GetDescription());
+        grabbingStarting();
         return e.GetDescription();
     }
 }
