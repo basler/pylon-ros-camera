@@ -551,16 +551,19 @@ std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& r
             }
     }
     bool conversion_found = encoding_conversions::ros2GenAPI(ros_encoding, gen_api_encoding, is_16bits_available);
-    for ( const std::string& enc : available_image_encodings_ )
+    if (ros_encoding != "")
     {
-        if ((gen_api_encoding == enc) && conversion_found)
+        for ( const std::string& enc : available_image_encodings_ )
         {
-            is_encoding_available = true;
-            break;
+            if ((gen_api_encoding == enc) && conversion_found)
+            {
+                is_encoding_available = true;
+                break;
+            }
         }
+        if (! is_encoding_available)
+            return "Error: unsporrted/unknown image format";
     }
-    if (! is_encoding_available)
-        return "Error: unsporrted/unknown image format";
     if ( !conversion_found )
     {
         if ( ros_encoding.empty() )
