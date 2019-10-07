@@ -16,6 +16,7 @@
 # - set_device_link_throughput_limit ROS service (value = new targeted throughput limit in Bytes/sec.).
 # - select_user_set ROS service (value : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw)
 # - select_default_user_set ROS service (value : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw)
+# - set_gamma_selector (value: 0 = User, 1 = sRGB)
 
 int32 value 		# value to be setted
 ---

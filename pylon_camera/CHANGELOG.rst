@@ -2,6 +2,16 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.16.4 (2019-09-30)
+-------------------
+* Add below listed new ROS services : 
+  - set_max_transfer_size (For USB Cameras).
+  - gamma_enable (For GigE Cameras).
+  - set_gamma_selector (For GigE Cameras, 0 = User, 1 = sRGB)
+* Solve ROS Services re-advertising error.
+* Solve "The connected Camera not supporting this feature" when calling set_sharpness_enhancement & set_noise_reduction (USB Cameras that support this features)
+* Add GigE Cameras IP Configuration thru : roslaunch pylon_camera pylon_camera_ip_configuration.launch
+
 0.16.3 (2019-09-02)
 -------------------
 * Add below listed new ROS services : 

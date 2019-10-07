@@ -431,6 +431,18 @@ int PylonUSBCamera::getAcquisitionFrameCount()
     }
 }
 
+template <>
+std::string PylonUSBCamera::setGammaSelector(const int& gammaSelector)
+{
+    return "Error, the connect camera not supporting this feature";
+}
+
+template <>
+std::string PylonUSBCamera::gammaEnable(const bool& enable)
+{
+    return "Error, the connect camera not supporting this feature";
+}
+
 }  // namespace pylon_camera
 
 #endif  // PYLON_CAMERA_INTERNAL_USB_H_
