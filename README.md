@@ -195,6 +195,11 @@ ROS includes a standardised camera intrinsic calibration process through **camer
 
 To increase performance and to minimize CPU usage when grabbing images, the following settings should be considered:
 
+### Camera hot-swapping
+
+If you hot-swap the camera with a different camera with a non-compatible pixel encoding format (e.g. mono and color cameras), you need to restart the ROS system to replace the encoding value or replace the rosparam directly by setting the image_encoding parameter. E.g.:
+`rosparam set /pylon_camera_node/image_encoding "mono8"`
+
 ### GigE Devices
 
 #### Maximum UDP Socket Buffer Size
