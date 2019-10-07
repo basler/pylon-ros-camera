@@ -480,7 +480,7 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
             }
             else 
             {
-            ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: saif"
+            ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: "
                     << e.GetDescription());
             }
         }
