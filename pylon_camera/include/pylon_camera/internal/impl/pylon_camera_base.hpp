@@ -452,6 +452,8 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
         // WaitForFrameTriggerReady to prevent trigger signal to get lost
         // this could happen, if 2xExecuteSoftwareTrigger() is only followed by 1xgrabResult()
         // -> 2nd trigger might get lost
+        if ((cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On))
+        {
         if ( cam_->WaitForFrameTriggerReady(timeout, Pylon::TimeoutHandling_ThrowException) )
         {   
             cam_->ExecuteSoftwareTrigger(); 
@@ -461,6 +463,7 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
             ROS_ERROR("Error WaitForFrameTriggerReady() timed out, impossible to ExecuteSoftwareTrigger()");
             return false;
         }   
+    }
         cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException); 
     }
     catch ( const GenICam::GenericException &e )
@@ -471,17 +474,13 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
         }
         else
         {   
-            if (! cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_Software)
-            {
-                ROS_ERROR_STREAM("Waiting for Hardware Trigger");
-            }
-            else if (cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On)
+            if ((! cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_Software) && (cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On))
             {
                 ROS_ERROR_STREAM("Waiting for Trigger signal");
             }
             else 
             {
-            ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: "
+            ROS_ERROR_STREAM("An image grabbing exception in pylon camera occurred: saif"
                     << e.GetDescription());
             }
         }
