@@ -55,9 +55,6 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Light Source Preset
  * Balance White Auto
  * Brightness Control
- * Gain Control
- * Gamma Control
- * ROI Control
 
 ### Acquisition Control
  * Sensor Readout Mode
