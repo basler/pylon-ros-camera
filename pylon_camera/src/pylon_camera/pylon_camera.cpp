@@ -75,6 +75,9 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
                 {
                     return USB;
                 }
+                else if ( model_name.compare(0, 3, "a2A") == 0 ){
+                    return USB;
+                }
                 else if ( model_name.compare(0, 3, "daA") == 0 )
                 {
                     return DART;

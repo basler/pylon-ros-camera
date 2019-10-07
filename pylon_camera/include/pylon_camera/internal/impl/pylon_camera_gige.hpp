@@ -72,6 +72,7 @@ struct GigECameraTrait
     typedef Basler_GigECamera::UserSetSelectorEnums UserSetSelectorEnums;
     typedef Basler_GigECameraParams::UserSetDefaultSelectorEnums UserSetDefaultSelectorEnums;
     typedef Basler_GigECamera::LineFormatEnums LineFormatEnums;
+    typedef Basler_GigECamera::GammaSelectorEnums GammaSelectorEnums;
 
 
     static inline AutoTargetBrightnessValueType convertBrightness(const int& value)
@@ -356,8 +357,8 @@ float PylonGigECamera::currentGamma()
 {
     if ( !GenApi::IsAvailable(cam_->Gamma) )
     {
-        ROS_WARN_STREAM("Error while trying to access gamma: cam.Gamma NodeMap"
-                << " is not available!");
+        //ROS_WARN_STREAM("Error while trying to access gamma: cam.Gamma NodeMap"<< " is not available!");
+        // return -1 in case of Gamma selector set to SRGB
         return -1.;
     }
     else
@@ -1254,6 +1255,72 @@ int PylonGigECamera::getUserSetDefaultSelector()
     catch ( const GenICam::GenericException &e )
     {
         return -2; // Error
+    }
+}
+
+template <>
+std::string PylonGigECamera::setMaxTransferSize(const int& maxTransferSize)
+{
+    return "Error, this feature supported by USB Cameras only";
+
+}
+
+template <>
+std::string PylonGigECamera::setGammaSelector(const int& gammaSelector)
+{
+try
+    {
+        if ( GenApi::IsAvailable(cam_->GammaSelector))
+        {  
+            if (gammaSelector == 0)
+            {
+                cam_-> GammaSelector.SetValue(Basler_GigECameraParams::GammaSelector_User);
+                return "done";
+            }  
+            else if (gammaSelector == 1)
+            {
+                cam_-> GammaSelector.SetValue(Basler_GigECameraParams::GammaSelector_sRGB );
+                return "done";
+            } 
+            else 
+            {
+                return "Error: unknown value";
+            }
+        }
+        else 
+        {
+             ROS_ERROR_STREAM("Error while trying to set the gamma selector. The connected Camera not supporting this feature");
+             return "The connected Camera not supporting this feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the gamma selector occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <>
+std::string PylonGigECamera::gammaEnable(const bool& enable)
+{
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->GammaEnable))
+        {
+            cam_->GammaEnable.SetValue(enable);
+            return "done";
+        }
+        else
+        {
+            ROS_ERROR_STREAM("Error while trying to enable/disable the gamma. The connected Camera not supporting this feature");
+            return "The connected Camera not supporting this feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while to change gamma enable occurred:" << e.GetDescription());
+        grabbingStarting();
+        return e.GetDescription();
     }
 }
 

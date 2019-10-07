@@ -171,6 +171,15 @@ PylonCameraNode::PylonCameraNode()
       set_image_encoding_srv_(nh_.advertiseService("set_image_encoding",
                                              &PylonCameraNode::setImageEncodingCallback,
                                              this)),
+      set_max_transfer_size_srv_(nh_.advertiseService("set_max_transfer_size",
+                                             &PylonCameraNode::setMaxTransferSizeCallback,
+                                             this)),
+      set_gamma_selector_srv(nh_.advertiseService("set_gamma_selector",
+                                             &PylonCameraNode::setGammaSelectorCallback,
+                                             this)),
+      gamma_enable_srv(nh_.advertiseService("gamma_enable",
+                                             &PylonCameraNode::gammaEnableCallback,
+                                             this)),
       set_user_output_srvs_(),
       pylon_camera_(nullptr),
       it_(new image_transport::ImageTransport(nh_)),
@@ -374,18 +383,24 @@ bool PylonCameraNode::startGrabbing()
     {
         std::string srv_name = "set_user_output_" + std::to_string(i);
         std::string srv_name_af = "activate_autoflash_output_" + std::to_string(i);
+        if (! ros::service::exists("/pylon_camera_node/"+srv_name, false))
+        {
         set_user_output_srvs_.at(i) =
             nh_.advertiseService< std_srvs::SetBool::Request,
                                   std_srvs::SetBool::Response >(
                                     srv_name,
                                     boost::bind(&PylonCameraNode::setUserOutputCB,
                                                 this, i ,_1 ,_2));
+        }
+        if (! ros::service::exists("/pylon_camera_node/"+srv_name_af, false))
+        {
         set_user_output_srvs_.at(num_user_outputs+i) =
             nh_.advertiseService< std_srvs::SetBool::Request,
                                   std_srvs::SetBool::Response >(
                                     srv_name_af,
                                     boost::bind(&PylonCameraNode::setAutoflash,
                                                 this, i+2, _1, _2)); // ! using lines 2 and 3
+        }
     }
     img_raw_msg_.header.frame_id = pylon_camera_parameter_set_.cameraFrame();
     // Encoding of pixels -- channel meaning, ordering, size
@@ -2805,6 +2820,95 @@ std::string PylonCameraNode::setImageEncoding(const std::string& target_ros_enco
     return pylon_camera_->setImageEncoding(target_ros_encoding) ;
 }
 
+bool PylonCameraNode::setMaxTransferSizeCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res)
+{
+    res.message = setMaxTransferSize(req.value);
+    if ((res.message.find("done") != std::string::npos) != 0)
+    {
+        res.success = true;
+    }
+    else 
+    {
+        res.success = false;
+        if (res.message == "Node is not writable")
+        {
+          res.message = "Using this feature require stop image grabbing";
+        }
+    }
+    return true;
+}
+
+std::string PylonCameraNode::setMaxTransferSize(const int& maxTransferSize)
+{  
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if ( !pylon_camera_->isReady() )
+    {
+        ROS_WARN("Error in setMaxTransferSize(): pylon_camera_ is not ready!");
+        return "pylon camera is not ready!";
+    }
+    return pylon_camera_->setMaxTransferSize(maxTransferSize) ;
+}
+
+bool PylonCameraNode::setGammaSelectorCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res)
+{
+    res.message = setGammaSelector(req.value);
+    if ((res.message.find("done") != std::string::npos) != 0)
+    {
+        res.success = true;
+    }
+    else 
+    {
+        res.success = false;
+        if (res.message == "Node is not writable")
+        {
+          res.message = "Using this feature require stop image grabbing";
+        }
+    }
+    return true;
+}
+
+std::string PylonCameraNode::setGammaSelector(const int& gammaSelector)
+{  
+    // gammaSelector 0 = User
+    // gammaSelector 1 = sRGB
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if ( !pylon_camera_->isReady() )
+    {
+        ROS_WARN("Error in setGammaSelector(): pylon_camera_ is not ready!");
+        return "pylon camera is not ready!";
+    }
+    return pylon_camera_->setGammaSelector(gammaSelector) ;
+}
+
+bool PylonCameraNode::gammaEnableCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
+{
+    res.message = gammaEnable(req.data);
+    if ((res.message.find("done") != std::string::npos) != 0)
+    {
+        res.success = true;
+    }
+    else 
+    {
+        res.success = false;
+        if (res.message == "Node is not writable")
+        {
+          res.message = "Using this feature require stop image grabbing";
+        }
+    }
+    return true;
+}
+
+std::string PylonCameraNode::gammaEnable(const int& enable)
+{  
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    if ( !pylon_camera_->isReady() )
+    {
+        ROS_WARN("Error in gammaEnable(): pylon_camera_ is not ready!");
+        return "pylon camera is not ready!";
+    }
+    return pylon_camera_->gammaEnable(enable) ;
+}
+
 void PylonCameraNode::currentParamPub()
 {
   boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
@@ -2847,7 +2951,7 @@ void PylonCameraNode::currentParamPub()
       params.binning_y = static_cast<uint32_t>(pylon_camera_->currentBinningY());
       params.roi = pylon_camera_->currentROI();
       params.available_image_encoding = pylon_camera_->detectAvailableImageEncodings(false);
-      params.current_image_encoding = pylon_camera_->currentROSEncoding();
+      params.current_image_encoding = pylon_camera_->currentBaslerEncoding();
 
       params.sucess = true;
     }

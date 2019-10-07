@@ -21,6 +21,7 @@ Please check the README file of each package for more details and help.
  * Install ROS dependencies: `sudo sh -c 'echo "yaml https://raw.githubusercontent.com/basler/pylon-ros-camera/master/pylon_camera/rosdep/pylon_sdk.yaml" > /etc/ros/rosdep/sources.list.d/30-pylon_camera.list' && rosdep update && sudo rosdep install --from-paths . --ignore-src --rosdistro=$ROS_DISTRO -y`
  * Compile the workspace using catkin build or catkin make: `cd ~/catkin_ws && catkin clean -y && catkin build && source ~/.bashrc` or `cd ~/catkin_ws && catkin_make clean && catkin_make && source ~/.bashrc`
  * Start the driver: `roslaunch pylon_camera pylon_camera_node.launch`
+ * GigE Cameras IP Configuration can be done using the command: `roslaunch pylon_camera pylon_camera_ip_configuration.launch`
 
 The pylon Camera Software Suite is automatically installed through rosdep installation.
 
@@ -54,6 +55,9 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Light Source Preset
  * Balance White Auto
  * Brightness Control
+ * Gain Control
+ * Gamma Control
+ * ROI Control
 
 ### Acquisition Control
  * Sensor Readout Mode
@@ -101,12 +105,14 @@ The ROS interface with the camera was extended with new functionality. Here is p
 Service Name  | Notes
 ------------- | -------------
 /pylon_camera_node/get_loggers  | -
+/pylon_camera_node/gamma_enable | (For GigE Cameras)
 /pylon_camera_node/set_binning  | -
 /pylon_camera_node/set_brightness | -
 /pylon_camera_node/set_camera_info | -
 /pylon_camera_node/set_exposure | -
 /pylon_camera_node/set_gain | -
 /pylon_camera_node/set_gamma | -
+/pylon_camera_node/set_gamma_selector | value : 0 = User, 1 = sRGB (For GigE Cameras)
 /pylon_camera_node/set_logger_level | -
 /pylon_camera_node/set_roi | -
 /pylon_camera_node/set_sleeping | -
@@ -130,6 +136,7 @@ Service Name  | Notes
 /pylon_camera_node/set_line_selector | value : 0 = Line1, 1 = Line2, 2 = Line3, 3 = Line4
 /pylon_camera_node/set_line_source | value : 0 = Exposure Active, 1 = FrameTriggerWait, 2 = UserOutput1, 3 = Timer1Active, 4 = FlashWindow
 /pylon_camera_node/set_noise_reduction | value = reduction value
+/pylon_camera_node/set_max_transfer_size | Maximum USB data transfer size in bytes
 /pylon_camera_node/set_offset_x | value = targeted offset in x-axis
 /pylon_camera_node/set_offset_y | value = targeted offset in y-axis
 /pylon_camera_node/set_pgi_mode | data : false = deactivate, true = activate
