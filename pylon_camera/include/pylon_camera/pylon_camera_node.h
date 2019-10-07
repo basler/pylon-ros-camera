@@ -877,6 +877,51 @@ protected:
      */
     std::string setImageEncoding(const std::string& target_ros_encoding);
 
+    /**
+     * Service callback for setting the camera Maximum USB data transfer size in bytes
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setMaxTransferSizeCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
+    /**
+     * Method to set the camera Maximum USB data transfer size in bytes
+     * @param maxTransferSize targeted new camera Maximum USB data transfer size in bytes
+     * @return error message in case of error occurred or done otherwise.
+     */
+    std::string setMaxTransferSize(const int& maxTransferSize);
+
+    /**
+     * Service callback for setting the camera gamma selector (GigE Camera only)
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setGammaSelectorCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
+    /**
+     * set the camera Gamma selector (GigE Camera only)
+     * @param gammaSelector : 0 = User, 1 = sRGB
+     * @return error message if an error occurred or done message otherwise.
+     */
+    std::string setGammaSelector(const int& gammaSelector);
+
+    /**
+     * Service callback for enable/disable the camera gamma
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool gammaEnableCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
+
+    /**
+     * enable/disable the camera Gamma (GigE Camera only)
+     * @param enable
+     * @return error message if an error occurred or done message otherwise.
+     */
+    std::string gammaEnable(const int& enable);
+
     ros::NodeHandle nh_;
     PylonCameraParameter pylon_camera_parameter_set_;
     ros::ServiceServer set_binning_srv_;
@@ -920,6 +965,9 @@ protected:
     ros::ServiceServer reset_device_srv_;    
     ros::ServiceServer start_grabbing_srv_;  
     ros::ServiceServer stop_grabbing_srv_;  
+    ros::ServiceServer set_max_transfer_size_srv_; 
+    ros::ServiceServer set_gamma_selector_srv; 
+    ros::ServiceServer gamma_enable_srv; 
     std::vector<ros::ServiceServer> set_user_output_srvs_;
 
     // DNB component status publisher

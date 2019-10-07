@@ -115,6 +115,8 @@ public:
 
     virtual std::string currentROSEncoding() const;
 
+    virtual std::string currentBaslerEncoding() const;
+
     virtual int imagePixelDepth() const;
 
     virtual float currentExposure();
@@ -244,6 +246,12 @@ public:
     virtual std::string grabbingStarting();  
 
     virtual std::string grabbingStopping();  
+
+    virtual std::string setMaxTransferSize(const int& maxTransferSize);
+
+    virtual std::string setGammaSelector(const int& gammaSelector);
+
+    virtual std::string gammaEnable(const bool& enable);
 
 protected:
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
