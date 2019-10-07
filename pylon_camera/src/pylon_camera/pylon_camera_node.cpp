@@ -374,18 +374,24 @@ bool PylonCameraNode::startGrabbing()
     {
         std::string srv_name = "set_user_output_" + std::to_string(i);
         std::string srv_name_af = "activate_autoflash_output_" + std::to_string(i);
+        if (! ros::service::exists("/pylon_camera_node/"+srv_name, false))
+        {
         set_user_output_srvs_.at(i) =
             nh_.advertiseService< std_srvs::SetBool::Request,
                                   std_srvs::SetBool::Response >(
                                     srv_name,
                                     boost::bind(&PylonCameraNode::setUserOutputCB,
                                                 this, i ,_1 ,_2));
+        }
+        if (! ros::service::exists("/pylon_camera_node/"+srv_name_af, false))
+        {
         set_user_output_srvs_.at(num_user_outputs+i) =
             nh_.advertiseService< std_srvs::SetBool::Request,
                                   std_srvs::SetBool::Response >(
                                     srv_name_af,
                                     boost::bind(&PylonCameraNode::setAutoflash,
                                                 this, i+2, _1, _2)); // ! using lines 2 and 3
+        }
     }
     img_raw_msg_.header.frame_id = pylon_camera_parameter_set_.cameraFrame();
     // Encoding of pixels -- channel meaning, ordering, size
