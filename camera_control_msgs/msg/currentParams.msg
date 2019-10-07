@@ -34,6 +34,7 @@ sensor_msgs/RegionOfInterest roi
 
 string[] available_image_encoding
 string current_image_encoding
+string current_image_ros_encoding
 
 bool sucess
 string message

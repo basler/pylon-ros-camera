@@ -2952,6 +2952,7 @@ void PylonCameraNode::currentParamPub()
       params.roi = pylon_camera_->currentROI();
       params.available_image_encoding = pylon_camera_->detectAvailableImageEncodings(false);
       params.current_image_encoding = pylon_camera_->currentBaslerEncoding();
+      params.current_image_ros_encoding = pylon_camera_->currentROSEncoding();
 
       params.sucess = true;
     }
