@@ -557,8 +557,7 @@ void PylonCameraNode::setupRectification()
 {
     if ( !img_rect_pub_ )
     {
-        img_rect_pub_ = new ros::Publisher(
-                            nh_.advertise<sensor_msgs::Image>("image_rect", 1));
+        img_rect_pub_ = new image_transport::Publisher(it_->advertise("image_rect", 1));
     }
 
     if ( !grab_imgs_rect_as_ )
@@ -675,7 +674,7 @@ void PylonCameraNode::spin()
                     img_raw_msg_.encoding);
             pinhole_model_->fromCameraInfo(camera_info_manager_->getCameraInfo());
             pinhole_model_->rectifyImage(cv_img_raw->image, cv_bridge_img_rect_->image);
-            img_rect_pub_->publish(*cv_bridge_img_rect_);
+            img_rect_pub_->publish(cv_bridge_img_rect_->toImageMsg());
         }
     }
     // Check if the image encoding changed , then save the new image encoding and restart the image grabbing to fix the ros sensor message type issue.
