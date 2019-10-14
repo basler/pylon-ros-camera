@@ -91,9 +91,10 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Device Reset
  * Device User ID
  
-### Transport Layer (GigE only)
- * GevSCPSPacketSize (Packet Size)
- * GevSCPD (Inter-Packet Delay)
+### Transport Layer
+ * (GigE only) GevSCPSPacketSize (Packet Size)
+ * (GigE only) GevSCPD (Inter-Packet Delay)
+ * (USB only) MaxTransferSize 
 
 ## ROS Service list
 
