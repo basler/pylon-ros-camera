@@ -414,6 +414,12 @@ bool PylonCameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image)
 template <typename CameraTrait>
 bool PylonCameraImpl<CameraTrait>::grab(uint8_t* image)
 {   
+
+    // If camera is not grabbing, don't grab
+    if (!cam_->IsGrabbing()){
+        return false;
+    }
+
     Pylon::CGrabResultPtr ptr_grab_result;
     if ( !grab(ptr_grab_result) )
     {   
@@ -446,6 +452,12 @@ bool PylonCameraImpl<CameraTrait>::grab(uint8_t* image)
 template <typename CameraTrait>
 bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
 {   
+
+     // If camera is not grabbing, don't grab
+    if (!cam_->IsGrabbing()){
+        return false;
+    }
+
     try
     {
         int timeout = 5000;  // ms
