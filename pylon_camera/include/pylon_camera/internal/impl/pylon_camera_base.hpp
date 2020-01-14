@@ -414,6 +414,12 @@ bool PylonCameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image)
 template <typename CameraTrait>
 bool PylonCameraImpl<CameraTrait>::grab(uint8_t* image)
 {   
+
+    // If camera is not grabbing, don't grab
+    if (!cam_->IsGrabbing()){
+        return false;
+    }
+
     Pylon::CGrabResultPtr ptr_grab_result;
     if ( !grab(ptr_grab_result) )
     {   
@@ -446,6 +452,12 @@ bool PylonCameraImpl<CameraTrait>::grab(uint8_t* image)
 template <typename CameraTrait>
 bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
 {   
+
+     // If camera is not grabbing, don't grab
+    if (!cam_->IsGrabbing()){
+        return false;
+    }
+
     try
     {
         int timeout = 5000;  // ms
@@ -753,11 +765,16 @@ bool PylonCameraImpl<CameraTraitT>::setROI(const sensor_msgs::RegionOfInterest t
             cam_->Height.SetValue(height_to_set);
             cam_->OffsetX.SetValue(offset_x_to_set);
             cam_->OffsetY.SetValue(offset_y_to_set);
+
             reached_roi = currentROI();
-            cam_->StartGrabbing();
             img_cols_ = static_cast<size_t>(cam_->Width.GetValue());
             img_rows_ = static_cast<size_t>(cam_->Height.GetValue());
             img_size_byte_ =  img_cols_ * img_rows_ * imagePixelDepth();
+
+            // For ACE cameras we need to completely stop grabbing and then the
+            // user needs to call start grabbing, if not the driver crashes.
+            // in pylon_camera_node.cpp values are updated after this call, so that
+            // we cannot start now grabbing until those values are updated
 
         }
         else
