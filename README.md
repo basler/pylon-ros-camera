@@ -6,7 +6,7 @@ The official pylon ROS driver for [Basler](http://www.baslerweb.com/) GigE Visio
 This project is offered with no technical support by Basler AG.
 You are welcome to post any questions or issues on [GitHub](https://github.com/basler/pylon-ros-camera)
 
-This driver was improved by [drag and bot GmbH](www.dragandbot.com) from the version originally released by [Magazino GmbH](https://github.com/magazino/pylon_camera).
+This driver was improved by [drag and bot GmbH](https://www.dragandbot.com) from the version originally released by [Magazino GmbH](https://github.com/magazino/pylon_camera).
 
 **ROS packages included:**
 
@@ -91,9 +91,10 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Device Reset
  * Device User ID
  
-### Transport Layer (GigE only)
- * GevSCPSPacketSize (Packet Size)
- * GevSCPD (Inter-Packet Delay)
+### Transport Layer
+ * (GigE only) GevSCPSPacketSize (Packet Size)
+ * (GigE only) GevSCPD (Inter-Packet Delay)
+ * (USB only) MaxTransferSize 
 
 ## ROS Service list
 
