@@ -2311,9 +2311,8 @@ std::string PylonCameraImpl<CameraTraitT>::setBalanceWhiteAuto(const int& mode)
 {
     try
     {
-        if ( GenApi::IsAvailable(cam_->AutoFunctionROISelector) && GenApi::IsAvailable(cam_->BalanceWhiteAuto))
-        {  
-            cam_->AutoFunctionROISelector.SetValue(AutoFunctionROISelectorEnums::AutoFunctionROISelector_ROI2);
+        if ( GenApi::IsAvailable(cam_->BalanceWhiteAuto)) 
+        {
             if (mode == 0)
             {
                 cam_->BalanceWhiteAuto.SetValue(BalanceWhiteAutoEnums::BalanceWhiteAuto_Off);
@@ -2350,7 +2349,7 @@ int PylonCameraImpl<CameraTraitT>::getBalanceWhiteAuto()
 {
     try
     {
-        if ( GenApi::IsAvailable(cam_->AutoFunctionROISelector) && GenApi::IsAvailable(cam_->BalanceWhiteAuto) && cam_->AutoFunctionROISelector.GetValue() == AutoFunctionROISelectorEnums::AutoFunctionROISelector_ROI2)
+        if (GenApi::IsAvailable(cam_->BalanceWhiteAuto))
         {  
             if (cam_->BalanceWhiteAuto.GetValue() == BalanceWhiteAutoEnums::BalanceWhiteAuto_Off)
             {
