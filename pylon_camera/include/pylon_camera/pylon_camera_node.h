@@ -986,7 +986,7 @@ protected:
     image_transport::ImageTransport* it_;
     image_transport::CameraPublisher img_raw_pub_;
 
-    ros::Publisher* img_rect_pub_;
+    image_transport::Publisher* img_rect_pub_;
     image_geometry::PinholeCameraModel* pinhole_model_;
 
     GrabImagesAS grab_imgs_raw_as_;

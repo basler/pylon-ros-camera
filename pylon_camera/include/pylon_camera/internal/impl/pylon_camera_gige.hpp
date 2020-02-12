@@ -1003,9 +1003,8 @@ std::string PylonGigECamera::setBalanceWhiteAuto(const int& mode)
 {
     try
     {
-        if ( GenApi::IsAvailable(cam_->AutoFunctionAOISelector) && GenApi::IsAvailable(cam_->BalanceWhiteAuto))
-        {  
-            cam_->AutoFunctionAOISelector.SetValue(AutoFunctionROISelectorEnums::AutoFunctionAOISelector_AOI2);
+        if ( GenApi::IsAvailable(cam_->BalanceWhiteAuto))
+        {
             if (mode == 0)
             {
                 cam_->BalanceWhiteAuto.SetValue(BalanceWhiteAutoEnums::BalanceWhiteAuto_Off);
