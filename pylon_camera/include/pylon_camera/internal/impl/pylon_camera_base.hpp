@@ -67,8 +67,8 @@ template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::registerCameraConfiguration()
 {
     try
-    {
-        cam_->RegisterConfiguration(new Pylon::CSoftwareTriggerConfiguration,
+    {// CHANGED BY NEEL1302: REPLACE CAcquireContinuous... with Pylon::CSoftwareTriggerConfiguration TO REVERT TO ORIGINAL (TOTAL 2 FILES CHANGED - OTHER FILE IS pylon_camera_usb.hpp)
+        cam_->RegisterConfiguration(new Pylon::CAcquireContinuousConfiguration,
                                         Pylon::RegistrationMode_ReplaceAll,
                                         Pylon::Cleanup_Delete);
         return true;
@@ -461,22 +461,27 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
     try
     {
         int timeout = 5000;  // ms
+        // Changed by NEEL1302: UNCOMMENT COMMENTED BLOCK BELOW TO REVERT TO ORIGINAL:
         // WaitForFrameTriggerReady to prevent trigger signal to get lost
         // this could happen, if 2xExecuteSoftwareTrigger() is only followed by 1xgrabResult()
         // -> 2nd trigger might get lost
-        if ((cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On))
-        {
-        if ( cam_->WaitForFrameTriggerReady(timeout, Pylon::TimeoutHandling_ThrowException) )
-        {   
-            cam_->ExecuteSoftwareTrigger(); 
-        }
-        else
-        {   
-            ROS_ERROR("Error WaitForFrameTriggerReady() timed out, impossible to ExecuteSoftwareTrigger()");
-            return false;
-        }   
-    }
-        cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException); 
+        // if ( cam_->WaitForFrameTriggerReady(timeout, Pylon::TimeoutHandling_ThrowException) )
+        // {
+        //     cam_->ExecuteSoftwareTrigger();
+        // }
+        // else
+        // {
+        //     ROS_ERROR("Error WaitForFrameTriggerReady() timed out, impossible to ExecuteSoftwareTrigger()");
+        //     return false;
+        // }
+        // cam_->StartGrabbing();
+
+        // ADDED BY NEEL1302: DEBUGGING 2 LINES and then 2 LINES after cam_->RetrieveRESULT(...);
+        // std::cout << cam_->IsGrabbing() << std::endl;
+        // std::cout << "---- Entered -----" << std::endl;
+        cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException);
+        // std::cout << currentExposure() << std::endl;
+        // std::cout << "---- Ran -----" << std::endl; 
     }
     catch ( const GenICam::GenericException &e )
     {   
