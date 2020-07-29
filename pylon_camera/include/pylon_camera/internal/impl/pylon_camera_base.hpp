@@ -625,6 +625,8 @@ std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& r
         if ( GenApi::IsAvailable(cam_->PixelFormat) )
         {
             GenApi::INodeMap& node_map = cam_->GetNodeMap();
+            cam_->StartGrabbing();
+            cam_->StopGrabbing();
             GenApi::CEnumerationPtr(node_map.GetNode("PixelFormat"))->FromString(gen_api_encoding.c_str());
             return "done";
         }
