@@ -769,7 +769,6 @@ bool PylonCameraImpl<CameraTraitT>::setROI(const sensor_msgs::RegionOfInterest t
             cam_->OffsetY.SetValue(offset_y_to_set);
 
             reached_roi = currentROI();
-            cam_->StartGrabbing();
             img_cols_ = static_cast<size_t>(cam_->Width.GetValue());
             img_rows_ = static_cast<size_t>(cam_->Height.GetValue());
             img_size_byte_ =  img_cols_ * img_rows_ * imagePixelDepth();

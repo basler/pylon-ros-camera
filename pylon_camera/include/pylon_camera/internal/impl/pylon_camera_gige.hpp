@@ -92,6 +92,8 @@ bool PylonGigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
     {
         try
         {
+            cam_->StartGrabbing();
+            cam_->StopGrabbing();
             ROS_INFO("Executing SetAutoFlash: %i -> %i", p.first, p.second);
             if (p.first == 2)
             {
@@ -144,6 +146,8 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
 {
     try
     {
+        cam_->StartGrabbing();
+        cam_->StopGrabbing();
         if (parameters.startup_user_set_ == "Default")
             {
 
