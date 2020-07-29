@@ -767,8 +767,8 @@ bool PylonCameraImpl<CameraTraitT>::setROI(const sensor_msgs::RegionOfInterest t
             cam_->Height.SetValue(height_to_set);
             cam_->OffsetX.SetValue(offset_x_to_set);
             cam_->OffsetY.SetValue(offset_y_to_set);
-            cam_->StartGrabbing();
             reached_roi = currentROI();
+            cam_->StartGrabbing();
             
             img_cols_ = static_cast<size_t>(cam_->Width.GetValue());
             img_rows_ = static_cast<size_t>(cam_->Height.GetValue());
