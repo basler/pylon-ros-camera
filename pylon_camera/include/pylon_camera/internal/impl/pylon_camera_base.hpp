@@ -67,8 +67,8 @@ template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::registerCameraConfiguration()
 {
     try
-    {// CHANGED BY NEEL1302: REPLACE CAcquireContinuous... with Pylon::CSoftwareTriggerConfiguration TO REVERT TO ORIGINAL (TOTAL 2 FILES CHANGED - OTHER FILE IS pylon_camera_usb.hpp)
-        cam_->RegisterConfiguration(new Pylon::CAcquireContinuousConfiguration,
+    {// CHANGED BY NEEL1302: REPLACE CHardwareTriggerConfiguration... with Pylon::CSoftwareTriggerConfiguration TO REVERT TO ORIGINAL (TOTAL 2 FILES CHANGED - OTHER FILE IS pylon_camera_usb.hpp)
+        cam_->RegisterConfiguration(new Pylon::CHardwareTriggerConfiguration,
                                         Pylon::RegistrationMode_ReplaceAll,
                                         Pylon::Cleanup_Delete);
         return true;
