@@ -92,9 +92,10 @@ bool PylonUSBCamera::applyCamSpecificStartupSettings(const PylonCameraParameter&
 
             // Remove all previous settings (sequencer etc.)
             // Default Setting = Free-Running
-            cam_->UserSetSelector.SetValue(Basler_UsbCameraParams::UserSetSelector_Default);
-            cam_->UserSetLoad.Execute();
-            // UserSetSelector_Default overrides Software Trigger Mode !!
+            // CHANGED BY NEEL: UNCOMMENT 2 LINES BELOW TO REVERT TO  ORIGINAL
+//             cam_->UserSetSelector.SetValue(Basler_UsbCameraParams::UserSetSelector_Default);
+//             cam_->UserSetLoad.Execute();
+//                UserSetSelector_Default overrides Software Trigger Mode !!
 //             CHANGED BY NEEL1302: DO NOT SET SOFTWARE TRIGGER MODE - UNCOMMENT 2 LINES BELOW TO REVERT TO ORIGINAL
 //             cam_->TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
 //             cam_->TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_On);
