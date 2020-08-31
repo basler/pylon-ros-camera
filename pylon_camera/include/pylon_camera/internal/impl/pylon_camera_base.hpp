@@ -552,7 +552,7 @@ std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& r
     { 
         for ( const std::string& enc : available_image_encodings_ )
             {
-                if ( enc == "BayerRG16" || enc == "BayerBG16" || enc == "BayerGB16" || enc == "BayerGR16" || enc == "Mono16" || enc == "YCbCr422_8" || enc == "YUV422_YUYV_Packed" )
+                if ( enc == "BayerRG16" || enc == "BayerBG16" || enc == "BayerGB16" || enc == "BayerGR16" || enc == "Mono16" || enc == "YCbCr422_8" || enc == "YUV422Packed" )
                 {
                     is_16bits_available = true;
                     break;
