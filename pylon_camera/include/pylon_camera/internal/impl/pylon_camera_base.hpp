@@ -443,7 +443,6 @@ bool PylonCameraImpl<CameraTrait>::grab(uint8_t* image)
     } else {
         memcpy(image, ptr_grab_result->GetBuffer(), img_size_byte_);
     }
-
     
     return true;
 }
