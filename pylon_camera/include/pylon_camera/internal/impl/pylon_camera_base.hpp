@@ -2793,6 +2793,11 @@ std::string PylonCameraImpl<CameraTraitT>::setMaxTransferSize(const int& maxTran
     }
 }
 
+template <typename CameraTraitT> 
+float PylonCameraImpl<CameraTraitT>::getTemperature(){
+    return 0.0;
+}
+
 }  // namespace pylon_camera
 
 #endif  // PYLON_CAMERA_INTERNAL_BASE_HPP_

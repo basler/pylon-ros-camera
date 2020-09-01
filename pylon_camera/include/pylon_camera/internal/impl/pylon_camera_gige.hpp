@@ -1327,6 +1327,25 @@ std::string PylonGigECamera::gammaEnable(const bool& enable)
     }
 }
 
+template <> 
+float PylonGigECamera::getTemperature(){
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->TemperatureAbs) )
+        {  
+            return static_cast<float>(cam_->TemperatureAbs.GetValue());   
+        }
+        else 
+        {
+             return 0.0;
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return 0.0;
+    }
+}
+
 }  // namespace pylon_camera
 
 #endif  // PYLON_CAMERA_INTERNAL_GIGE_H_

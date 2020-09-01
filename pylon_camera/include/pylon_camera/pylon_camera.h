@@ -792,6 +792,12 @@ public:
      */
     virtual std::string gammaEnable(const bool& enable) = 0;
 
+    /**
+     * returns the current internal camera temperature
+     * @return 0.0 if error or unknown
+     */
+    virtual float getTemperature() = 0;
+
     virtual ~PylonCamera();
 protected:
     /**
