@@ -445,6 +445,25 @@ std::string PylonUSBCamera::gammaEnable(const bool& enable)
     return "Error, the connect camera not supporting this feature";
 }
 
+template <> 
+float PylonUSBCamera::getTemperature(){
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->DeviceTemperature) )
+        {  
+            return static_cast<float>(cam_->DeviceTemperature.GetValue());   
+        }
+        else 
+        {
+             return 0.0;
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return 0.0;
+    }
+}
+
 }  // namespace pylon_camera
 
 #endif  // PYLON_CAMERA_INTERNAL_USB_H_

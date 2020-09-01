@@ -253,6 +253,8 @@ public:
 
     virtual std::string gammaEnable(const bool& enable);
 
+    virtual float getTemperature();
+
 protected:
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
     typedef typename CameraTraitT::ExposureAutoEnums ExposureAutoEnums;
