@@ -1649,6 +1649,7 @@ bool PylonCameraNode::setBrightnessCallback(camera_control_msgs::SetBrightness::
                                 res.reached_brightness,
                                 req.exposure_auto,
                                 req.gain_auto);
+
     if ( req.brightness_continuous )
     {
         if ( req.exposure_auto )
@@ -1722,8 +1723,10 @@ void PylonCameraNode::genSamplingIndicesRec(std::vector<std::size_t>& indices,
     return;
 }
 
+// Calculate the brightness of the picture by sampling it
 float PylonCameraNode::calcCurrentBrightness()
 {
+
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     if ( img_raw_msg_.data.empty() )
     {
@@ -1735,7 +1738,14 @@ float PylonCameraNode::calcCurrentBrightness()
         // The mean brightness is calculated using a subset of all pixels
         for ( const std::size_t& idx : sampling_indices_ )
         {
-           sum += img_raw_msg_.data.at(idx);
+          if (sensor_msgs::image_encodings::bitDepth(img_raw_msg_.encoding) == 8){
+            // 8 bit encoding can be directly calculated
+            sum += img_raw_msg_.data.at(idx);
+          } else if (sensor_msgs::image_encodings::bitDepth(img_raw_msg_.encoding) == 16) {
+            // 16 bit to 8 convert (8 bit displacement). Basler Mono12 is converted to 16 bits to ROS using 4 bit displacement.
+            uint16_t pixel_16bits = (*(uint16_t *) &img_raw_msg_.data.at(idx * 2));
+            sum += pixel_16bits >> 8;
+          }
         }
         if ( sum > 0.0 )
         {
@@ -1743,15 +1753,18 @@ float PylonCameraNode::calcCurrentBrightness()
         }
     }
     else
-    {
+    { 
         // The mean brightness is calculated using all pixels and all channels
         sum = std::accumulate(img_raw_msg_.data.begin(), img_raw_msg_.data.end(), 0);
         if ( sum > 0.0 )
         {
             sum /= static_cast<float>(img_raw_msg_.data.size());
         }
+
     }
     return sum;
+
+
 }
 
 bool PylonCameraNode::setSleepingCallback(camera_control_msgs::SetSleeping::Request &req,
