@@ -338,10 +338,24 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
             setShutterMode(parameters.shutter_mode_);
         }
 
-        available_image_encodings_ = detectAvailableImageEncodings(true);
-        if ( !(setImageEncoding(parameters.imageEncoding()).find("done") != std::string::npos) != 0 )
+        available_image_encodings_ = detectAvailableImageEncodings(true); // Basler format
+
+        // Check if the image can be encoded with the parameter defined value
+        if ( setImageEncoding(parameters.imageEncoding()).find("done") == std::string::npos )
         {
-            return false;
+            bool error = true;
+            // The desired encoding cannot be used. We will try to use one of the available
+            // This avoid the Error while start grabbing program termination
+            for (std::string x : available_image_encodings_){
+                std::string ros_encoding;
+                encoding_conversions::genAPI2Ros(x, ros_encoding);
+                if ( (setImageEncoding(ros_encoding).find("done") != std::string::npos) ){
+                    // Achieved one of the encodings
+                    error = false;
+                    break;
+                }
+            }
+            if (error) return false;
         }
 
         cam_->StartGrabbing();
