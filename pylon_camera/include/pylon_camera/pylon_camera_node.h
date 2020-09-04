@@ -35,6 +35,7 @@
 #include <boost/thread.hpp>
 #include <assert.h>
 #include <string>
+#include <math.h>
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <camera_info_manager/camera_info_manager.h>

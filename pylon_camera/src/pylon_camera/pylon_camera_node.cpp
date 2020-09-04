@@ -1727,6 +1727,8 @@ void PylonCameraNode::genSamplingIndicesRec(std::vector<std::size_t>& indices,
 float PylonCameraNode::calcCurrentBrightness()
 {
 
+    assert(!sensor_msgs::image_encodings::hasAlpha(img_raw_msg_.encoding)); // ROS format has no alpha
+
     boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
     if ( img_raw_msg_.data.empty() )
     {
@@ -1735,8 +1737,9 @@ float PylonCameraNode::calcCurrentBrightness()
     float sum = 0.0;
     if ( sensor_msgs::image_encodings::isMono(img_raw_msg_.encoding) )
     {
+        // MONO8, MONO16
         // The mean brightness is calculated using a subset of all pixels
-        for ( const std::size_t& idx : sampling_indices_ )
+        /*for ( const std::size_t& idx : sampling_indices_ )
         {
           if (sensor_msgs::image_encodings::bitDepth(img_raw_msg_.encoding) == 8){
             // 8 bit encoding can be directly calculated
@@ -1750,18 +1753,108 @@ float PylonCameraNode::calcCurrentBrightness()
         if ( sum > 0.0 )
         {
             sum /= static_cast<float>(sampling_indices_.size());
+        }*/
+
+        for (int i = 0; i < pylon_camera_->imageCols() * pylon_camera_->imageRows(); i++){
+        {
+          if (sensor_msgs::image_encodings::bitDepth(img_raw_msg_.encoding) == 8){
+            // 8 bit encoding can be directly calculated
+            sum += img_raw_msg_.data.at(idx);
+          } else if (sensor_msgs::image_encodings::bitDepth(img_raw_msg_.encoding) == 16) {
+            // 16 bit to 8 convert (8 bit displacement). Basler Mono12 is converted to 16 bits to ROS using 4 bit displacement.
+            uint16_t pixel_16bits = (*(uint16_t *) &img_raw_msg_.data.at(idx * 2));
+            sum += pixel_16bits >> 8;
+          }
         }
+        if ( sum > 0.0 )
+        {
+            sum /=  pylon_camera_->imageCols() * pylon_camera_->imageRows();
+        }
+
+    } 
+      else if (img_raw_msg_.encoding == sensor_msgs::image_encodings::YUV422) 
+    {
+
+      for (int i = 0; i < pylon_camera_->imageCols() * pylon_camera_->imageRows(); i++){
+        int index = i * 2; // 2 bytes average per pixel
+        sum += img_raw_msg_.data.at(index + 1);   
+      }
+      sum /= pylon_camera_->imageCols() * pylon_camera_->imageRows();
+
+      // UYVY encoding, just take the intensity of the first pixel
+     /* for ( const std::size_t& idx : sampling_indices_ )
+      {
+        int index = idx * 2; // 2 bytes average per pixel
+        sum += (img_raw_msg_.data.at(index + 1) + img_raw_msg_.data.at(index + 2)) / 2.0;
+      }
+      sum /= static_cast<float>(sampling_indices_.size()); */
     }
-    else
+      else if (sensor_msgs::image_encodings::isColor(img_raw_msg_.encoding))
     { 
+      // RGB8, BGR8, RGB16, BGR16
+
+      for ( const std::size_t& idx : sampling_indices_ ){
+        uint8_t red, green, blue;
+        int index = idx * sensor_msgs::image_encodings::numChannels(img_raw_msg_.encoding); // byte index
+
+        if (img_raw_msg_.encoding == sensor_msgs::image_encodings::RGB8){
+
+          red   = img_raw_msg_.data.at(index);
+          green = img_raw_msg_.data.at(index + 1);
+          blue  = img_raw_msg_.data.at(index + 2);
+
+        } else if (img_raw_msg_.encoding == sensor_msgs::image_encodings::BGR8){
+
+          blue  = img_raw_msg_.data.at(index);
+          green = img_raw_msg_.data.at(index + 1);
+          red   = img_raw_msg_.data.at(index + 2);
+
+        } else if (img_raw_msg_.encoding == sensor_msgs::image_encodings::RGB16){
+
+          red   = *(uint16_t *) &img_raw_msg_.data.at(index) >> 8;
+          green = *(uint16_t *) &img_raw_msg_.data.at(index + 2) >> 8;
+          blue  = *(uint16_t *) &img_raw_msg_.data.at(index + 4) >> 8;
+
+        } else if (img_raw_msg_.encoding == sensor_msgs::image_encodings::BGR16){
+
+          blue  = *(uint16_t *) &img_raw_msg_.data.at(index) >> 8;
+          green = *(uint16_t *) &img_raw_msg_.data.at(index + 2) >> 8;
+          red   = *(uint16_t *) &img_raw_msg_.data.at(index + 4) >> 8;
+          
+        } else {
+          assert(false); // Cannot happen
+        }
+
+        // Correct red
+        const float fmax = 255.0;
+        float fgamma = pylon_camera_->currentGamma();
+        float fred = (float) red;
+        float fgreen = (float) green;
+        float fblue = (float) blue;
+
+        /*float fred = 0.299 * (float) red;
+        float fgreen = 0.587 * (float) green;
+        float fblue = 0.114 * (float) blue; */
+
+        fred    = pow(((float) red)   * pow(fmax, fgamma) / fmax, 1.0 / fgamma);
+        fgreen  = pow(((float) green) * pow(fmax, fgamma) / fmax, 1.0 / fgamma);
+        fblue   = pow(((float) blue)  * pow(fmax, fgamma) / fmax, 1.0 / fgamma);
+
+        sum += fgreen + fblue + fred; 
+
+      }   
+
+      sum /= static_cast<float>(sampling_indices_.size()) * sensor_msgs::image_encodings::numChannels(img_raw_msg_.encoding);
+
         // The mean brightness is calculated using all pixels and all channels
-        sum = std::accumulate(img_raw_msg_.data.begin(), img_raw_msg_.data.end(), 0);
+        /*sum = std::accumulate(img_raw_msg_.data.begin(), img_raw_msg_.data.end(), 0);
         if ( sum > 0.0 )
         {
             sum /= static_cast<float>(img_raw_msg_.data.size());
-        }
+        }*/
 
     }
+
     return sum;
 
 
