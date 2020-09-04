@@ -1739,7 +1739,7 @@ float PylonCameraNode::calcCurrentBrightness()
     {
         // MONO8, MONO16
         // The mean brightness is calculated using a subset of all pixels
-        /*for ( const std::size_t& idx : sampling_indices_ )
+        for ( const std::size_t& idx : sampling_indices_ )
         {
           if (sensor_msgs::image_encodings::bitDepth(img_raw_msg_.encoding) == 8){
             // 8 bit encoding can be directly calculated
@@ -1753,9 +1753,9 @@ float PylonCameraNode::calcCurrentBrightness()
         if ( sum > 0.0 )
         {
             sum /= static_cast<float>(sampling_indices_.size());
-        }*/
+        }
 
-        for (int i = 0; i < pylon_camera_->imageCols() * pylon_camera_->imageRows(); i++){
+        /*for (int i = 0; i < pylon_camera_->imageCols() * pylon_camera_->imageRows(); i++){
         {
           if (sensor_msgs::image_encodings::bitDepth(img_raw_msg_.encoding) == 8){
             // 8 bit encoding can be directly calculated
@@ -1769,7 +1769,7 @@ float PylonCameraNode::calcCurrentBrightness()
         if ( sum > 0.0 )
         {
             sum /=  pylon_camera_->imageCols() * pylon_camera_->imageRows();
-        }
+        }*/
 
     } 
       else if (img_raw_msg_.encoding == sensor_msgs::image_encodings::YUV422) 
