@@ -2,6 +2,13 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.16.5 (2020-10-15)
+-------------------
+* Add below listed new ROS services : 
+  - set_grab_timeout (in ms).
+  - set_trigger_timeout (in ms).
+* Make camera grab and trigger timeout configurable parameters in default.yaml
+
 0.16.4 (2019-09-30)
 -------------------
 * Add below listed new ROS services : 

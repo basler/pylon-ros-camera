@@ -922,6 +922,22 @@ protected:
      */
     std::string gammaEnable(const int& enable);
 
+    /**
+     * Service callback for setting the camera grab timeout in ms
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setGrabTimeoutCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
+    /**
+     * Service callback for setting the camera trigger timeout in ms
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setTriggerTimeoutCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
     ros::NodeHandle nh_;
     PylonCameraParameter pylon_camera_parameter_set_;
     ros::ServiceServer set_binning_srv_;
@@ -967,7 +983,10 @@ protected:
     ros::ServiceServer stop_grabbing_srv_;  
     ros::ServiceServer set_max_transfer_size_srv_; 
     ros::ServiceServer set_gamma_selector_srv; 
-    ros::ServiceServer gamma_enable_srv; 
+    ros::ServiceServer gamma_enable_srv;
+    ros::ServiceServer set_grab_timeout_srv;
+    ros::ServiceServer set_trigger_timeout_srv;
+
     std::vector<ros::ServiceServer> set_user_output_srvs_;
 
     // DNB component status publisher
