@@ -69,7 +69,9 @@ PylonCameraParameter::PylonCameraParameter() :
         inter_pkg_delay_(1000),
         startup_user_set_(""),
         shutter_mode_(SM_DEFAULT),
-        auto_flash_(false)
+        auto_flash_(false), 
+        grab_timeout_(500),
+        trigger_timeout_(5000)
 {}
 
 PylonCameraParameter::~PylonCameraParameter()
@@ -256,6 +258,14 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     if ( nh.hasParam("startup_user_set") )
     {
         nh.getParam("startup_user_set", startup_user_set_);
+    }
+    if ( nh.hasParam("grab_timeout") )
+    {
+        nh.getParam("grab_timeout", grab_timeout_);
+    }
+    if ( nh.hasParam("trigger_timeout") )
+    {
+        nh.getParam("trigger_timeout", trigger_timeout_);
     }
 
     nh.param<bool>("auto_flash", auto_flash_, false);

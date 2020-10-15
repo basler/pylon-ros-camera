@@ -71,6 +71,8 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Auto Exposure Time Upper Limit
  * Acquisition Frame Rate
  * Resulting Frame Rate
+ * Trigger Timeout
+ * grabbing Timeout
 
 ### Digital I/O Control
  * Line Selector
@@ -149,6 +151,8 @@ Service Name  | Notes
 /pylon_camera_node/set_trigger_source | value : 0 = Software, 1 = Line1, 2 = Line3, 3 = Line4, 4 = Action1 (only selected GigE Camera)
 /pylon_camera_node/start_grabbing | -
 /pylon_camera_node/stop_grabbing  | -
+/pylon_camera_node/set_grab_timeout  | -
+/pylon_camera_node/set_trigger_timeout  | -
 
 ## Image pixel encoding
 
