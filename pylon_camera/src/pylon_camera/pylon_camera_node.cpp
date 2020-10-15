@@ -180,6 +180,12 @@ PylonCameraNode::PylonCameraNode()
       gamma_enable_srv(nh_.advertiseService("gamma_enable",
                                              &PylonCameraNode::gammaEnableCallback,
                                              this)),
+      set_grab_timeout_srv(nh_.advertiseService("set_grab_timeout",
+                                             &PylonCameraNode::setGrabTimeoutCallback,
+                                             this)),
+      set_trigger_timeout_srv(nh_.advertiseService("set_trigger_timeout",
+                                             &PylonCameraNode::setTriggerTimeoutCallback,
+                                             this)),
       set_user_output_srvs_(),
       pylon_camera_(nullptr),
       it_(new image_transport::ImageTransport(nh_)),
@@ -2906,6 +2912,33 @@ std::string PylonCameraNode::gammaEnable(const int& enable)
         return "pylon camera is not ready!";
     }
     return pylon_camera_->gammaEnable(enable) ;
+}
+
+
+bool PylonCameraNode::setGrabTimeoutCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res)
+{
+    grabbingStopping();
+    try {
+      pylon_camera_parameter_set_.grab_timeout_ = req.value;
+      res.success = true;
+    } catch (...){
+      res.success = false;
+    }
+    grabbingStarting(); // start grappiong is required to set the new trigger timeout
+    return true;
+}
+
+bool PylonCameraNode::setTriggerTimeoutCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res)
+{
+    grabbingStopping();
+    try {
+      pylon_camera_parameter_set_.trigger_timeout_ = req.value;
+      res.success = true;
+    } catch (...){
+      res.success = false;
+    }
+    grabbingStarting(); // start grappiong is required to set the new trigger timeout
+    return true;
 }
 
 void PylonCameraNode::currentParamPub()

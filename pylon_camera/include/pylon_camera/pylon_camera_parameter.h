@@ -305,6 +305,18 @@ public:
      * Only supported for GigE cameras. Default: true
      */
     bool auto_flash_line_3_;
+    
+    /**
+    * camera grab timeout in ms
+    */
+    int grab_timeout_;
+
+    /**
+    * camera trigger timeout in ms
+    */
+    int trigger_timeout_;
+
+
 
 protected:
     /**

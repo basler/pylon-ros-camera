@@ -44,6 +44,8 @@
 namespace pylon_camera
 {
 
+    int trigger_timeout;
+
 template <typename CameraTraitT>
 PylonCameraImpl<CameraTraitT>::PylonCameraImpl(Pylon::IPylonDevice* device) :
     PylonCamera(),
@@ -366,8 +368,8 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
         img_size_byte_ =  img_cols_ * img_rows_ * imagePixelDepth();
 
         //grab_timeout_ = exposureTime().GetMax() * 1.05;
-        grab_timeout_ = 500; // grab timeout = 500 ms
-
+        grab_timeout_ = parameters.grab_timeout_; // grab timeout = 500 ms
+        trigger_timeout = parameters.trigger_timeout_;
         // grab one image to be sure, that the communication is successful
         Pylon::CGrabResultPtr grab_result;
         grab(grab_result);
@@ -473,13 +475,13 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
 
     try
     {
-        int timeout = 5000;  // ms
+        //int timeout = 5000;  // ms
         // WaitForFrameTriggerReady to prevent trigger signal to get lost
         // this could happen, if 2xExecuteSoftwareTrigger() is only followed by 1xgrabResult()
         // -> 2nd trigger might get lost
         if ((cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On))
         {
-        if ( cam_->WaitForFrameTriggerReady(timeout, Pylon::TimeoutHandling_ThrowException) )
+        if ( cam_->WaitForFrameTriggerReady(trigger_timeout, Pylon::TimeoutHandling_ThrowException) )
         {   
             cam_->ExecuteSoftwareTrigger(); 
         }

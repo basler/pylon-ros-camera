@@ -113,6 +113,12 @@ The following settings do **NOT** have to be set. Each camera has default values
 - **gige/inter_pkg_delay**
   The inter-package delay in ticks. Only used for GigE cameras. To prevent lost frames it should be greater 0. For most of GigE-Cameras, a value of 1000 is reasonable. For GigE-Cameras used on a RaspberryPI this value should be set to 11772.
 
+- **trigger_timeout**
+  The camera trigger timout in ms
+
+- **grab_timeout**
+  The camera grab timout in ms
+
 
 ******
 **Usage**

@@ -33,6 +33,10 @@ camera_info_url: ""
 #  Calling the GrabImages-Action can result in a higher framerate
 frame_rate: 5.0
 
+trigger_timeout: 5000  # in ms
+grab_timeout: 500  # in ms
+
+
 #  Mode of camera's shutter.
 #  The supported modes are "rolling", "global" and "global_reset"
 #  Default value is "" (empty) means default_shutter_mode
