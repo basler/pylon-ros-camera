@@ -73,6 +73,7 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Resulting Frame Rate
  * Trigger Timeout
  * grabbing Timeout
+ - grabbing Strategy
 
 ### Digital I/O Control
  * Line Selector
@@ -153,6 +154,7 @@ Service Name  | Notes
 /pylon_camera_node/stop_grabbing  | -
 /pylon_camera_node/set_grab_timeout  | -
 /pylon_camera_node/set_trigger_timeout  | -
+/pylon_camera_node/set_grabbing_strategy | value : 0 = GrabStrategy_OneByOne, 1 = GrabStrategy_LatestImageOnly, 2 = GrabStrategy_LatestImages
 
 ## Image pixel encoding
 

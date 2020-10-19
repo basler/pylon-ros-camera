@@ -186,6 +186,9 @@ PylonCameraNode::PylonCameraNode()
       set_trigger_timeout_srv(nh_.advertiseService("set_trigger_timeout",
                                              &PylonCameraNode::setTriggerTimeoutCallback,
                                              this)),
+      set_grabbing_strategy_srv(nh_.advertiseService("set_grabbing_strategy",
+                                             &PylonCameraNode::setGrabbingStrategyCallback,
+                                             this)),
       set_user_output_srvs_(),
       pylon_camera_(nullptr),
       it_(new image_transport::ImageTransport(nh_)),
@@ -2940,6 +2943,28 @@ bool PylonCameraNode::setTriggerTimeoutCallback(camera_control_msgs::SetIntegerV
     grabbingStarting(); // start grappiong is required to set the new trigger timeout
     return true;
 }
+
+bool PylonCameraNode::setGrabbingStrategyCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res)
+{   // set 0 = GrabStrategy_OneByOne
+    // set 1 = GrabStrategy_LatestImageOnly
+    // set 2 = GrabStrategy_LatestImages
+
+    if(req.value >= 0 && req.value <= 2) {
+        grabbingStopping();
+        res.success = pylon_camera_->setGrabbingStrategy(req.value);
+        if(res.success){
+          pylon_camera_parameter_set_.grab_strategy_ = req.value;
+        }
+        grabbingStarting();
+
+    } else {
+      res.success = false;
+      res.message = "Unknown grabbing strategy";
+    }
+    
+    return true;
+}
+
 
 void PylonCameraNode::currentParamPub()
 {

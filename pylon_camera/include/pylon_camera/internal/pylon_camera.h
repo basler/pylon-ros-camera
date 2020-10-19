@@ -243,7 +243,7 @@ public:
 
     virtual std::string triggerDeviceReset();  
 
-    virtual std::string grabbingStarting();  
+    virtual std::string grabbingStarting() const;  
 
     virtual std::string grabbingStopping();  
 
@@ -254,6 +254,8 @@ public:
     virtual std::string gammaEnable(const bool& enable);
 
     virtual float getTemperature();
+
+    virtual bool setGrabbingStrategy(const int& strategy);
 
 protected:
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;

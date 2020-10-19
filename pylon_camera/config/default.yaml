@@ -36,6 +36,12 @@ frame_rate: 5.0
 trigger_timeout: 5000  # in ms
 grab_timeout: 500  # in ms
 
+# Camera grab strategy 
+# 0 : GrabStrategy_OneByOne
+# 1 : GrabStrategy_LatestImageOnly
+# 2 : GrabStrategy_LatestImages
+grab_strategy : 0
+
 
 #  Mode of camera's shutter.
 #  The supported modes are "rolling", "global" and "global_reset"

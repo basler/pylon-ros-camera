@@ -316,6 +316,14 @@ public:
     */
     int trigger_timeout_;
 
+    /**
+    * Camera grab strategy 
+    * 0 = GrabStrategy_OneByOne
+    * 1 = GrabStrategy_LatestImageOnly
+    * 2 = GrabStrategy_LatestImages
+    */
+    int grab_strategy_;
+
 
 
 protected:

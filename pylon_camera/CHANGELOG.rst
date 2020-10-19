@@ -2,6 +2,13 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+
+0.16.6 (2020-10-19)
+-------------------
+* Add below listed new ROS services : 
+  - set_grabbing_strategy.
+* Make camera grabbing strategy configurable parameters in default.yaml
+
 0.16.5 (2020-10-15)
 -------------------
 * Add below listed new ROS services : 

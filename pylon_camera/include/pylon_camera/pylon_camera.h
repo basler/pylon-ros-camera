@@ -763,7 +763,7 @@ public:
      * start camera aqcuisition
      * @return error message if an error occurred or done message otherwise.
      */
-    virtual std::string grabbingStarting() = 0; 
+    virtual std::string grabbingStarting() const = 0; 
 
     /**
      * stop camera aqcuisition
@@ -791,6 +791,14 @@ public:
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string gammaEnable(const bool& enable) = 0;
+
+
+    /**
+     * set the camera grapping strategy 
+     * @param strategy : 0 = GrabStrategy_OneByOne, 1 = GrabStrategy_LatestImageOnly, 2 = GrabStrategy_LatestImages
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual bool setGrabbingStrategy(const int& strategy) = 0;
 
     /**
      * returns the current internal camera temperature
@@ -849,6 +857,21 @@ protected:
      * acquisition contains valid data
      */
     bool is_ready_;
+
+    /**
+     * Camera trigger timeout in ms
+     */
+    int trigger_timeout;
+
+    /**
+     * Camera grab strategy
+     * 0 = GrabStrategy_OneByOne
+     * 1 = GrabStrategy_LatestImageOnly
+     * 2 = GrabStrategy_LatestImages
+     */
+    int grab_strategy ;
+
+
 
     /**
      * True if the extended binary exposure search is running.

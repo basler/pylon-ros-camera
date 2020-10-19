@@ -71,7 +71,8 @@ PylonCameraParameter::PylonCameraParameter() :
         shutter_mode_(SM_DEFAULT),
         auto_flash_(false), 
         grab_timeout_(500),
-        trigger_timeout_(5000)
+        trigger_timeout_(5000),
+        grab_strategy_(0)
 {}
 
 PylonCameraParameter::~PylonCameraParameter()
@@ -266,6 +267,10 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     if ( nh.hasParam("trigger_timeout") )
     {
         nh.getParam("trigger_timeout", trigger_timeout_);
+    }
+    if ( nh.hasParam("grab_strategy") )
+    {
+        nh.getParam("grab_strategy", grab_strategy_);
     }
 
     nh.param<bool>("auto_flash", auto_flash_, false);
