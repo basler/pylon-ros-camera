@@ -2816,7 +2816,7 @@ std::string PylonCameraImpl<CameraTraitT>::setMaxTransferSize(const int& maxTran
     }
     catch ( const GenICam::GenericException &e )
     {
-        ROS_ERROR_STREAM("An exception while starting the free run mode occurred:" << e.GetDescription());
+        ROS_ERROR_STREAM("An exception while setting the max transfer size occurred:" << e.GetDescription());
         grabbingStarting();
         return e.GetDescription();
     }
@@ -2835,6 +2835,22 @@ bool PylonCameraImpl<CameraTraitT>::setGrabbingStrategy(const int& strategy) {
         return true;
     } else {
         return false;
+    }
+
+}
+
+template <typename CameraTraitT> 
+std::string PylonCameraImpl<CameraTraitT>::setOutputQueueSize(const int& size) {
+    if (size >= 0 && size <= cam_->MaxNumBuffer.GetValue()){
+        try {
+            cam_->OutputQueueSize.SetValue(size);
+            return "done";
+        } catch ( const GenICam::GenericException &e ){
+            ROS_ERROR_STREAM("An exception while setting the output queue size occurred:" << e.GetDescription());
+            return e.GetDescription();
+        }
+    } else {
+        return "requested output queue size is out side the limits of : 0-"+std::to_string(cam_->MaxNumBuffer.GetValue());
     }
 
 }

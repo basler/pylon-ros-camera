@@ -189,6 +189,9 @@ PylonCameraNode::PylonCameraNode()
       set_grabbing_strategy_srv(nh_.advertiseService("set_grabbing_strategy",
                                              &PylonCameraNode::setGrabbingStrategyCallback,
                                              this)),
+      set_output_queue_size_srv(nh_.advertiseService("set_output_queue_size",
+                                             &PylonCameraNode::setOutputQueueSizeCallback,
+                                             this)),
       set_user_output_srvs_(),
       pylon_camera_(nullptr),
       it_(new image_transport::ImageTransport(nh_)),
@@ -2960,6 +2963,23 @@ bool PylonCameraNode::setGrabbingStrategyCallback(camera_control_msgs::SetIntege
     } else {
       res.success = false;
       res.message = "Unknown grabbing strategy";
+    }
+    
+    return true;
+}
+
+
+bool PylonCameraNode::setOutputQueueSizeCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res)
+{
+
+    grabbingStopping();
+    res.message = pylon_camera_->setOutputQueueSize(req.value);
+    grabbingStarting();
+    if ((res.message.find("done") != std::string::npos) != 0)
+    {
+        res.success = true;
+    } else {
+        res.success = false;
     }
     
     return true;

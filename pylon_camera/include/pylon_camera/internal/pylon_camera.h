@@ -257,6 +257,8 @@ public:
 
     virtual bool setGrabbingStrategy(const int& strategy);
 
+    virtual std::string setOutputQueueSize(const int& size);
+
 protected:
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
     typedef typename CameraTraitT::ExposureAutoEnums ExposureAutoEnums;

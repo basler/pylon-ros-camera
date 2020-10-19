@@ -7,6 +7,7 @@ Changelog for package pylon_camera
 -------------------
 * Add below listed new ROS services : 
   - set_grabbing_strategy.
+  - set_output_queue_size.
 * Make camera grabbing strategy configurable parameters in default.yaml
 
 0.16.5 (2020-10-15)

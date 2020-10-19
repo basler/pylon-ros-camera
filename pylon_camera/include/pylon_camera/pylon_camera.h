@@ -806,6 +806,12 @@ public:
      */
     virtual float getTemperature() = 0;
 
+    /**
+     * set The size of the grab result buffer output queue
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setOutputQueueSize(const int& size) = 0;
+
     virtual ~PylonCamera();
 protected:
     /**
