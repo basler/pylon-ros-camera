@@ -58,6 +58,11 @@ This driver was improved by [drag and bot GmbH](www.dragandbot.com) from the ver
   - set_noise_reduction , to reduces random variations in brightness or color information in your images.
   - set_sharpness_enhancement , to increases the sharpness of the images.
 
+- **SetWhiteBalance**
+  - The Balance White camera feature allows you to manually correct color shifts so that white objects appear white in images acquired.
+  - For this purpose, a digital gain correction can be applied per color channel (red, green, blue).
+  - The increase or decrease in intensity is proportional. For example, if the balance ratio for a color is set to 1.2, the intensity of that color is increased by 20 %.
+  - NOTE: calling this service will turn off the "Balance White Auto"
 
 ******
 **Actions**

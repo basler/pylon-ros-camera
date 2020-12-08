@@ -2814,6 +2814,32 @@ float PylonCameraImpl<CameraTraitT>::getTemperature(){
     return 0.0;
 }
 
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue) {
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->BalanceWhiteAuto) && GenApi::IsAvailable(cam_->BalanceRatio)) {
+           cam_->BalanceWhiteAuto.SetValue(BalanceWhiteAutoEnums::BalanceWhiteAuto_Off);
+            cam_->BalanceRatioSelector.SetValue(BalanceRatioSelectorEnums::BalanceRatioSelector_Red);
+            cam_->BalanceRatio.SetValue(redValue);
+            cam_->BalanceRatioSelector.SetValue(BalanceRatioSelectorEnums::BalanceRatioSelector_Green);
+            cam_->BalanceRatio.SetValue(greenValue);
+            cam_->BalanceRatioSelector.SetValue(BalanceRatioSelectorEnums::BalanceRatioSelector_Blue);
+            cam_->BalanceRatio.SetValue(blueValue);
+            return "done"; 
+        } else {
+            ROS_ERROR_STREAM("Error while trying to set the white balance. The connected Camera not supporting this feature");
+            return "The connected Camera not supporting this feature";
+        }
+        
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the white balance occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
 }  // namespace pylon_camera
 
 #endif  // PYLON_CAMERA_INTERNAL_BASE_HPP_

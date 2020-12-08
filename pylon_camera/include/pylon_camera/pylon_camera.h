@@ -798,6 +798,17 @@ public:
      */
     virtual float getTemperature() = 0;
 
+
+    /**
+     * manual correction of the color shifts so that white objects appear white in images acquired.
+     * The increase or decrease in intensity is proportional. For example, if the balance ratio for a color is set to 1.2, the intensity of that color is increased by 20 %
+     * @param redValue : balancd ratio of red channel 
+     * @param greenValue : balancd ratio of green channel 
+     * @param blueValue : balancd ratio of blue channel 
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue) = 0;
+
     virtual ~PylonCamera();
 protected:
     /**

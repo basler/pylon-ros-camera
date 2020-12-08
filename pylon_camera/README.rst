@@ -31,7 +31,7 @@ The pylon_camera-pkg requires the pylon Camera Software Suite for Linux to be in
 
 ``https://www.baslerweb.com/de/support/downloads/downloads-software/``
 
-First, clone this repository in your catkin workspace (e.g. catkin_ws) and the drag&bot public commom messages, which is required for publishing status information of the hardware component to the drag&bot component monitoring:
+First, clone this repository in your catkin workspace (e.g. catkin_ws) and the drag&bot public common messages, which is required for publishing status information of the hardware component to the drag&bot component monitoring:
 
 ``cd ~/catkin_ws && git clone https://github.com/basler/pylon-ros-camera && git clone https://github.com/dragandbot/dragandbot_common.git``
 
@@ -114,10 +114,26 @@ The following settings do **NOT** have to be set. Each camera has default values
   The inter-package delay in ticks. Only used for GigE cameras. To prevent lost frames it should be greater 0. For most of GigE-Cameras, a value of 1000 is reasonable. For GigE-Cameras used on a RaspberryPI this value should be set to 11772.
 
 - **trigger_timeout**
-  The camera trigger timout in ms
+  The camera trigger timeout in ms
 
 - **grab_timeout**
-  The camera grab timout in ms
+  The camera grab timeout in ms
+
+- **white_balance_auto**
+  Automatically corrects color shifts in images acquired. (0 = Off, 1 = Once, 2 = Continuous).
+
+- **white_balance_ratio_red**
+  The Balance White camera feature allows you to manually correct color shifts so that white objects appear white in images acquired.
+  For this purpose, a digital gain correction can be applied per color channel (red, green, blue).
+  The increase or decrease in intensity is proportional. For example, if the balance ratio for a color is set to 1.2, the intensity of that color is increased by 20 %.
+
+  NOTE: This parameter will have an effect only in case that white_balance_auto set to off.
+
+- **white_balance_ratio_green**
+  Refer to description of white_balance_ratio_red.
+
+- **white_balance_ratio_blue**
+  Refer to description of white_balance_ratio_red.
 
 
 ******
@@ -128,7 +144,7 @@ The pylon_camera_node can be started over the launch file which includes a confi
 
 ``roslaunch pylon_camera pylon_camera_node.launch``     or     ``rosrun pylon_camera pylon_camera_node``
 
-Anyhow running above launch commands will run the camera with the current setted parameters on the camera. To launch the pylon node use specific user set you should run one of the below commands:
+Anyhow running above launch commands will run the camera with the current set parameters on the camera. To launch the pylon node use specific user set you should run one of the below commands:
 
 ``roslaunch pylon_camera pylon_camera_node.launch startup_user_set:=Default``  or ``roslaunch pylon_camera pylon_camera_node.launch startup_user_set:=UserSet1`` or ``roslaunch pylon_camera pylon_camera_node.launch startup_user_set:=UserSet2`` or ``roslaunch pylon_camera pylon_camera_node.launch startup_user_set:=UserSet3``
 
@@ -141,7 +157,7 @@ Images were only published if another node connects to the image topic. The publ
 **ROS Service Commands**
 ******
 
-Some of the ROS service use integer values for as a commands, below are a list of these services and thier commands:
+Some of the ROS service use integer values for as a commands, below are a list of these services and their commands:
 
 - **set_demosaicing_mode** ROS Service: 0 = Simple, 1 = Basler PGI
 
@@ -155,7 +171,7 @@ Some of the ROS service use integer values for as a commands, below are a list o
 
 - **set_trigger_source** ROS Service: 0 = Software, 1 = Line1, 2 = Line3, 3 = Line4, 4 = Action1 (only selected GigE Camera)
 
-- **set_trigger_activation** ROS Service: 0 = RigingEdge, 1 = FallingEdge
+- **set_trigger_activation** ROS Service: 0 = RisingEdge, 1 = FallingEdge
 
 - **set_line_selector** ROS Service: 0 = Line1, 1 = Line2, 2 = Line3, 3 = Line4, 
 

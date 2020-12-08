@@ -186,6 +186,9 @@ PylonCameraNode::PylonCameraNode()
       set_trigger_timeout_srv(nh_.advertiseService("set_trigger_timeout",
                                              &PylonCameraNode::setTriggerTimeoutCallback,
                                              this)),
+      set_white_balance_srv(nh_.advertiseService("set_white_balance",
+                                             &PylonCameraNode::setWhiteBalanceCallback,
+                                             this)),
       set_user_output_srvs_(),
       pylon_camera_(nullptr),
       it_(new image_transport::ImageTransport(nh_)),
@@ -370,6 +373,16 @@ bool PylonCameraNode::initAndRegister()
           componentStatusPublisher.publish(cm_status);
         }
         return false;
+    }
+
+    if ( pylon_camera_parameter_set_.white_balance_auto_given_)
+    {
+        pylon_camera_->setBalanceWhiteAuto(pylon_camera_parameter_set_.white_balance_auto_);
+    }
+
+    if ( pylon_camera_parameter_set_.white_balance_ratio_given_)
+    {
+        pylon_camera_->setWhiteBalance(pylon_camera_parameter_set_.white_balance_ratio_red_, pylon_camera_parameter_set_.white_balance_ratio_green_, pylon_camera_parameter_set_.white_balance_ratio_blue_);
     }
 
     return true;
@@ -813,7 +826,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     if ( goal->exposure_given && goal->exposure_times.size() != n_images )
     {
         ROS_ERROR_STREAM("Size of requested exposure times does not match to "
-            << "the size of the requested vaules of brightness, gain or "
+            << "the size of the requested values of brightness, gain or "
             << "gamma! Can't grab!");
         result.success = false;
         return result;
@@ -822,7 +835,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     if ( goal->gain_given && goal->gain_values.size() != n_images )
     {
         ROS_ERROR_STREAM("Size of requested gain values does not match to "
-            << "the size of the requested exposure times or the vaules of "
+            << "the size of the requested exposure times or the values of "
             << "brightness or gamma! Can't grab!");
         result.success = false;
         return result;
@@ -831,7 +844,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     if ( goal->gamma_given && goal->gamma_values.size() != n_images )
     {
         ROS_ERROR_STREAM("Size of requested gamma values does not match to "
-            << "the size of the requested exposure times or the vaules of "
+            << "the size of the requested exposure times or the values of "
             << "brightness or gain! Can't grab!");
         result.success = false;
         return result;
@@ -840,7 +853,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     if ( goal->brightness_given && goal->brightness_values.size() != n_images )
     {
         ROS_ERROR_STREAM("Size of requested brightness values does not match to "
-            << "the size of the requested exposure times or the vaules of gain or "
+            << "the size of the requested exposure times or the values of gain or "
             << "gamma! Can't grab!");
         result.success = false;
         return result;
@@ -1445,7 +1458,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
     }
 
     int target_brightness_co = std::min(255, target_brightness);
-    // smart brightness search initially sets the last rememberd exposure time
+    // smart brightness search initially sets the last remembered exposure time
     if ( brightness_exp_lut_.at(target_brightness_co) != 0.0 )
     {
         float reached_exp;
@@ -2510,7 +2523,7 @@ std::string PylonCameraNode::setLineDebouncerTime(const float& value)
     }
     else
     {
-      return "Error : given line debouncer time value is out of rane (0-20,000)";
+      return "Error : given line debouncer time value is out of range (0-20,000)";
     }
 }
 
@@ -2810,7 +2823,7 @@ bool PylonCameraNode::setImageEncodingCallback(camera_control_msgs::SetStringVal
           res.message = "Using this feature require stop image grabbing";
         }
     }
-    grabbingStarting(); // Start grabbing for better usser experience
+    grabbingStarting(); // Start grabbing for better user experience
     return true;
 }
 
@@ -2924,7 +2937,7 @@ bool PylonCameraNode::setGrabTimeoutCallback(camera_control_msgs::SetIntegerValu
     } catch (...){
       res.success = false;
     }
-    grabbingStarting(); // start grappiong is required to set the new trigger timeout
+    grabbingStarting(); // start grabbing is required to set the new trigger timeout
     return true;
 }
 
@@ -2937,7 +2950,22 @@ bool PylonCameraNode::setTriggerTimeoutCallback(camera_control_msgs::SetIntegerV
     } catch (...){
       res.success = false;
     }
-    grabbingStarting(); // start grappiong is required to set the new trigger timeout
+    grabbingStarting(); // start grabbing is required to set the new trigger timeout
+    return true;
+}
+
+bool PylonCameraNode::setWhiteBalanceCallback(camera_control_msgs::SetWhiteBalance::Request &req, camera_control_msgs::SetWhiteBalance::Response &res)
+{
+    try {
+        res.message = pylon_camera_->setWhiteBalance(req.balance_ratio_red, req.balance_ratio_green, req.balance_ratio_blue);
+        if (res.message == "done") {
+            res.success = true;
+        } else {
+            res.success = false;
+        }
+    } catch (...){
+      res.success = false;
+    }
     return true;
 }
 
