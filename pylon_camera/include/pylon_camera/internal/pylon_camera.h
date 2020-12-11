@@ -255,6 +255,8 @@ public:
 
     virtual float getTemperature();
 
+    virtual std::string setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue);
+
 protected:
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
     typedef typename CameraTraitT::ExposureAutoEnums ExposureAutoEnums;
@@ -283,6 +285,7 @@ protected:
     typedef typename CameraTraitT::UserSetSelectorEnums UserSetSelectorEnums;
     typedef typename CameraTraitT::UserSetDefaultSelectorEnums UserSetDefaultSelectorEnums;
     typedef typename CameraTraitT::LineFormatEnums LineFormatEnums;
+    typedef typename CameraTraitT::BalanceRatioSelectorEnums BalanceRatioSelectorEnums;
 
 
     CBaslerInstantCameraT* cam_;

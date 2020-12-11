@@ -53,10 +53,11 @@
 #include <camera_control_msgs/SetGamma.h>
 #include <camera_control_msgs/SetROI.h>
 #include <camera_control_msgs/SetSleeping.h>
-#include <camera_control_msgs/SetIntegerValue.h>   
-#include <camera_control_msgs/SetFloatValue.h> 
-#include <camera_control_msgs/SetStringValue.h> 
-#include <camera_control_msgs/currentParams.h> 
+#include <camera_control_msgs/SetIntegerValue.h>
+#include <camera_control_msgs/SetFloatValue.h>
+#include <camera_control_msgs/SetStringValue.h>
+#include <camera_control_msgs/currentParams.h>
+#include <camera_control_msgs/SetWhiteBalance.h>
 
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
@@ -938,6 +939,14 @@ protected:
      */
     bool setTriggerTimeoutCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
 
+    /**
+     * Service callback for setting the white balance of the image channels
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setWhiteBalanceCallback(camera_control_msgs::SetWhiteBalance::Request &req, camera_control_msgs::SetWhiteBalance::Response &res);
+
     ros::NodeHandle nh_;
     PylonCameraParameter pylon_camera_parameter_set_;
     ros::ServiceServer set_binning_srv_;
@@ -986,6 +995,7 @@ protected:
     ros::ServiceServer gamma_enable_srv;
     ros::ServiceServer set_grab_timeout_srv;
     ros::ServiceServer set_trigger_timeout_srv;
+    ros::ServiceServer set_white_balance_srv;
 
     std::vector<ros::ServiceServer> set_user_output_srvs_;
 
@@ -996,9 +1006,6 @@ protected:
     // current params publisher
     ros::Publisher currentParamsPublisher;
     camera_control_msgs::currentParams params;
-
-
-
 
     PylonCamera* pylon_camera_;
 

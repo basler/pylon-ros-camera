@@ -55,6 +55,7 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Light Source Preset
  * Balance White Auto
  * Brightness Control
+ * Balance White
 
 ### Acquisition Control
  * Sensor Readout Mode
@@ -153,6 +154,7 @@ Service Name  | Notes
 /pylon_camera_node/stop_grabbing  | -
 /pylon_camera_node/set_grab_timeout  | -
 /pylon_camera_node/set_trigger_timeout  | -
+/pylon_camera_node/set_white_balance  | Triggering this service will turn off the white balance auto 
 
 ## Image pixel encoding
 
@@ -183,14 +185,14 @@ Start the driver with command: `roslaunch pylon_camera pylon_camera_node.launch`
 
 To test if the driver is correctly working we recommend to use the rqt ROS tool (http://wiki.ros.org/rqt). You will need to add an image viewer through the the contextual menu RQT Plugin --> Visualization --> Image View. Then please select the `pylon_camera_node/image_raw` to display the current camera picture. If the intrinsic calibration file was configured, `pylon_camera_node/image_rect` will also appear. Please check Intrinsic calibration section for further information.
 
-This drivers offers different ROS services to change the camera parameters. To see the list of available services plese use `rosservice list` command. Once you have located the desired service you can call it by using the `rosservice call /service_name {...parameters...}` (with the corresponding service and parameters). E.g.:
+This drivers offers different ROS services to change the camera parameters. To see the list of available services please use `rosservice list` command. Once you have located the desired service you can call it by using the `rosservice call /service_name {...parameters...}` (with the corresponding service and parameters). E.g.:
 
 ```
 ~/workspace/dnb_docs$ rosservice call /pylon_camera_node/set_reverse_x "data: true" 
 success: True
 message: "done"
 ```
-To auto-fill the parameters you can use Tab after writting the service name. Please refer to http://wiki.ros.org/rosservice for ros service usage.
+To auto-fill the parameters you can use Tab after writing the service name. Please refer to http://wiki.ros.org/rosservice for ros service usage.
 
 ### Intrinsic calibration
 

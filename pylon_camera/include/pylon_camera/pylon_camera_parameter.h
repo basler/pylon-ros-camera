@@ -316,6 +316,20 @@ public:
     */
     int trigger_timeout_;
 
+    /**
+    * camera white balance auto 
+    */
+    int white_balance_auto_;
+    bool white_balance_auto_given_;
+
+    /**
+    * camera white balance ratio 
+    */
+    float white_balance_ratio_red_;
+    float white_balance_ratio_green_;
+    float white_balance_ratio_blue_;
+    bool white_balance_ratio_given_;
+
 
 
 protected:
