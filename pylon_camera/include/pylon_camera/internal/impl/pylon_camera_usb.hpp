@@ -88,7 +88,8 @@ bool PylonUSBCamera::applyCamSpecificStartupSettings(const PylonCameraParameter&
 {
     try
     {
-        cam_->StartGrabbing();
+        //cam_->StartGrabbing();
+        grabbingStarting();
         cam_->StopGrabbing();
         if (parameters.startup_user_set_ == "Default")
             {

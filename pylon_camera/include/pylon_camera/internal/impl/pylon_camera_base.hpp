@@ -179,7 +179,8 @@ std::string PylonCameraImpl<CameraTraitT>::currentROSEncoding() const
         ROS_ERROR_STREAM("No ROS equivalent to GenApi encoding");
         cam_->StopGrabbing();
         setImageEncoding(gen_api_encoding);
-        cam_->StartGrabbing();
+        //cam_->StartGrabbing();
+        grabbingStarting();
         //return "NO_ENCODING";
     }
     return ros_encoding;
@@ -359,8 +360,9 @@ bool PylonCameraImpl<CameraTraitT>::startGrabbing(const PylonCameraParameter& pa
             }
             if (error) return false;
         }
-
-        cam_->StartGrabbing();
+        grab_strategy = parameters.grab_strategy_;
+        //cam_->StartGrabbing();
+        grabbingStarting();
         user_output_selector_enums_ = detectAndCountNumUserOutputs();
         device_user_id_ = cam_->DeviceUserID.GetValue();
         img_rows_ = static_cast<size_t>(cam_->Height.GetValue());
@@ -641,7 +643,8 @@ std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& r
         if ( GenApi::IsAvailable(cam_->PixelFormat) )
         {
             GenApi::INodeMap& node_map = cam_->GetNodeMap();
-            cam_->StartGrabbing();
+            //cam_->StartGrabbing();
+            grabbingStarting();
             cam_->StopGrabbing();
             GenApi::CEnumerationPtr(node_map.GetNode("PixelFormat"))->FromString(gen_api_encoding.c_str());
             return "done";
@@ -784,7 +787,8 @@ bool PylonCameraImpl<CameraTraitT>::setROI(const sensor_msgs::RegionOfInterest t
             cam_->OffsetX.SetValue(offset_x_to_set);
             cam_->OffsetY.SetValue(offset_y_to_set);
             reached_roi = currentROI();
-            cam_->StartGrabbing();
+            grabbingStarting();
+            //cam_->StartGrabbing();
             
             img_cols_ = static_cast<size_t>(cam_->Width.GetValue());
             img_rows_ = static_cast<size_t>(cam_->Height.GetValue());
@@ -842,7 +846,8 @@ bool PylonCameraImpl<CameraTraitT>::setBinningX(const size_t& target_binning_x,
             }
             cam_->BinningHorizontal.SetValue(binning_x_to_set);
             reached_binning_x = currentBinningX();
-            cam_->StartGrabbing();
+            //cam_->StartGrabbing();
+            grabbingStarting();
             img_cols_ = static_cast<size_t>(cam_->Width.GetValue());
             img_size_byte_ =  img_cols_ * img_rows_ * imagePixelDepth();
         }
@@ -889,7 +894,8 @@ bool PylonCameraImpl<CameraTraitT>::setBinningY(const size_t& target_binning_y,
             }
             cam_->BinningVertical.SetValue(binning_y_to_set);
             reached_binning_y = currentBinningY();
-            cam_->StartGrabbing();
+            //cam_->StartGrabbing();
+            grabbingStarting();
             img_rows_ = static_cast<size_t>(cam_->Height.GetValue());
             img_size_byte_ =  img_cols_ * img_rows_ * imagePixelDepth();
         }
@@ -2761,11 +2767,20 @@ std::string PylonCameraImpl<CameraTraitT>::triggerDeviceReset()
 }
 
 template <typename CameraTraitT>
-std::string PylonCameraImpl<CameraTraitT>::grabbingStarting()
+std::string PylonCameraImpl<CameraTraitT>::grabbingStarting() const
 {
     try
     {
-        cam_->StartGrabbing();
+        if(grab_strategy == 0) {
+           cam_->StartGrabbing(Pylon::EGrabStrategy::GrabStrategy_OneByOne); 
+        } else if (grab_strategy == 1) {
+           cam_->StartGrabbing(Pylon::EGrabStrategy::GrabStrategy_LatestImageOnly); 
+        } else if (grab_strategy == 2) {
+           cam_->StartGrabbing(Pylon::EGrabStrategy::GrabStrategy_LatestImages); 
+        } else {
+            cam_->StartGrabbing(Pylon::EGrabStrategy::GrabStrategy_OneByOne); 
+        }
+
         return "done";
 
     }
@@ -2803,7 +2818,7 @@ std::string PylonCameraImpl<CameraTraitT>::setMaxTransferSize(const int& maxTran
     }
     catch ( const GenICam::GenericException &e )
     {
-        ROS_ERROR_STREAM("An exception while starting the free run mode occurred:" << e.GetDescription());
+        ROS_ERROR_STREAM("An exception while setting the max transfer size occurred:" << e.GetDescription());
         grabbingStarting();
         return e.GetDescription();
     }
@@ -2838,6 +2853,33 @@ std::string PylonCameraImpl<CameraTraitT>::setWhiteBalance(const double& redValu
         ROS_ERROR_STREAM("An exception while setting the white balance occurred:" << e.GetDescription());
         return e.GetDescription();
     }
+}
+
+template <typename CameraTraitT> 
+bool PylonCameraImpl<CameraTraitT>::setGrabbingStrategy(const int& strategy) {
+    if (strategy >= 0 && strategy <= 2){
+        grab_strategy = strategy;
+        return true;
+    } else {
+        return false;
+    }
+
+}
+
+template <typename CameraTraitT> 
+std::string PylonCameraImpl<CameraTraitT>::setOutputQueueSize(const int& size) {
+    if (size >= 0 && size <= cam_->MaxNumBuffer.GetValue()){
+        try {
+            cam_->OutputQueueSize.SetValue(size);
+            return "done";
+        } catch ( const GenICam::GenericException &e ){
+            ROS_ERROR_STREAM("An exception while setting the output queue size occurred:" << e.GetDescription());
+            return e.GetDescription();
+        }
+    } else {
+        return "requested output queue size is out side the limits of : 0-"+std::to_string(cam_->MaxNumBuffer.GetValue());
+    }
+
 }
 
 }  // namespace pylon_camera
