@@ -135,6 +135,9 @@ The following settings do **NOT** have to be set. Each camera has default values
 - **white_balance_ratio_blue**
   Refer to description of white_balance_ratio_red.
 
+- **grab_strategy**
+  The camera grabbing strategy.
+
 
 ******
 **Usage**
@@ -184,6 +187,8 @@ Some of the ROS service use integer values for as a commands, below are a list o
 - **select_default_user_set** ROS Service: 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw
 
 - **set_gamma_selector**  ROS Service: 0 = User, 1 = sRGB
+
+- **set_grabbing_strategy**  ROS Service: 0 = GrabStrategy_OneByOne, 1 = GrabStrategy_LatestImageOnly, 2 = GrabStrategy_LatestImages
 
 ******
 **Questions**

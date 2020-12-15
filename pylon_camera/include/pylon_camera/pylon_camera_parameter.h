@@ -330,6 +330,13 @@ public:
     float white_balance_ratio_blue_;
     bool white_balance_ratio_given_;
 
+    /**
+    * Camera grab strategy 
+    * 0 = GrabStrategy_OneByOne
+    * 1 = GrabStrategy_LatestImageOnly
+    * 2 = GrabStrategy_LatestImages
+    */
+    int grab_strategy_;
 
 
 protected:

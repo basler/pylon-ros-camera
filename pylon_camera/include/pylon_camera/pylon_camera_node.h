@@ -947,6 +947,24 @@ protected:
      */
     bool setWhiteBalanceCallback(camera_control_msgs::SetWhiteBalance::Request &req, camera_control_msgs::SetWhiteBalance::Response &res);
 
+
+    /**
+     * Service callback for setting the camera grabbing strategy 
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setGrabbingStrategyCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
+    /**
+     * Service callback for setting the size of the grab result buffer output queue.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setOutputQueueSizeCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
+
     ros::NodeHandle nh_;
     PylonCameraParameter pylon_camera_parameter_set_;
     ros::ServiceServer set_binning_srv_;
@@ -996,6 +1014,8 @@ protected:
     ros::ServiceServer set_grab_timeout_srv;
     ros::ServiceServer set_trigger_timeout_srv;
     ros::ServiceServer set_white_balance_srv;
+    ros::ServiceServer set_grabbing_strategy_srv;
+    ros::ServiceServer set_output_queue_size_srv;
 
     std::vector<ros::ServiceServer> set_user_output_srvs_;
 
@@ -1006,6 +1026,9 @@ protected:
     // current params publisher
     ros::Publisher currentParamsPublisher;
     camera_control_msgs::currentParams params;
+
+
+
 
     PylonCamera* pylon_camera_;
 

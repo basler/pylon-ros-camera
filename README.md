@@ -73,7 +73,9 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Acquisition Frame Rate
  * Resulting Frame Rate
  * Trigger Timeout
- * grabbing Timeout
+ * Grabbing Timeout
+ * Grabbing Strategy
+ * Output Queue Size
 
 ### Digital I/O Control
  * Line Selector
@@ -155,6 +157,8 @@ Service Name  | Notes
 /pylon_camera_node/set_grab_timeout  | -
 /pylon_camera_node/set_trigger_timeout  | -
 /pylon_camera_node/set_white_balance  | Triggering this service will turn off the white balance auto 
+/pylon_camera_node/set_grabbing_strategy | value : 0 = GrabStrategy_OneByOne, 1 = GrabStrategy_LatestImageOnly, 2 = GrabStrategy_LatestImages
+/pylon_camera_node/set_output_queue_size | -
 
 ## Image pixel encoding
 

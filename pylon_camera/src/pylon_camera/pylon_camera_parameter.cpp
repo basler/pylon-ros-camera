@@ -72,6 +72,7 @@ PylonCameraParameter::PylonCameraParameter() :
         auto_flash_(false), 
         grab_timeout_(500),
         trigger_timeout_(5000),
+	grab_strategy_(0),
         white_balance_auto_(0),
         white_balance_auto_given_(false),
         white_balance_ratio_red_(1.0),
@@ -292,6 +293,10 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     {
         nh.getParam("white_balance_ratio_blue", white_balance_ratio_blue_);
         white_balance_ratio_given_ = true;
+    }
+    if ( nh.hasParam("grab_strategy") )
+    {
+        nh.getParam("grab_strategy", grab_strategy_);
     }
 
     nh.param<bool>("auto_flash", auto_flash_, false);
