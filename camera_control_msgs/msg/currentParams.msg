@@ -39,3 +39,4 @@ string current_image_ros_encoding
 bool sucess
 string message
 
+float32 temperature # Shows the camera temperature. If not available, then 0.0. USB uses DeviceTemperature and GigE TemperatureAbs parameters.

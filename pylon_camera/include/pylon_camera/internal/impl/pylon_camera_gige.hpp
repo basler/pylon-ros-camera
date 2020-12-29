@@ -73,6 +73,7 @@ struct GigECameraTrait
     typedef Basler_GigECameraParams::UserSetDefaultSelectorEnums UserSetDefaultSelectorEnums;
     typedef Basler_GigECamera::LineFormatEnums LineFormatEnums;
     typedef Basler_GigECamera::GammaSelectorEnums GammaSelectorEnums;
+    typedef Basler_GigECamera::BalanceRatioSelectorEnums BalanceRatioSelectorEnums;
 
 
     static inline AutoTargetBrightnessValueType convertBrightness(const int& value)
@@ -92,6 +93,9 @@ bool PylonGigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
     {
         try
         {
+            //cam_->StartGrabbing();
+            grabbingStarting();
+            cam_->StopGrabbing();
             ROS_INFO("Executing SetAutoFlash: %i -> %i", p.first, p.second);
             if (p.first == 2)
             {
@@ -144,6 +148,9 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
 {
     try
     {
+        //cam_->StartGrabbing();
+        grabbingStarting();
+        cam_->StopGrabbing();
         if (parameters.startup_user_set_ == "Default")
             {
 
@@ -1319,6 +1326,51 @@ std::string PylonGigECamera::gammaEnable(const bool& enable)
     {
         ROS_ERROR_STREAM("An exception while to change gamma enable occurred:" << e.GetDescription());
         grabbingStarting();
+        return e.GetDescription();
+    }
+}
+
+template <> 
+float PylonGigECamera::getTemperature(){
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->TemperatureAbs) )
+        {  
+            return static_cast<float>(cam_->TemperatureAbs.GetValue());   
+        }
+        else 
+        {
+             return 0.0;
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return 0.0;
+    }
+}
+
+template <> 
+std::string PylonGigECamera::setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue){
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->BalanceWhiteAuto) && GenApi::IsAvailable(cam_->BalanceRatioAbs)) {
+           cam_->BalanceWhiteAuto.SetValue(BalanceWhiteAutoEnums::BalanceWhiteAuto_Off);
+            cam_->BalanceRatioSelector.SetValue(BalanceRatioSelectorEnums::BalanceRatioSelector_Red);
+            cam_->BalanceRatioAbs.SetValue(redValue);
+            cam_->BalanceRatioSelector.SetValue(BalanceRatioSelectorEnums::BalanceRatioSelector_Green);
+            cam_->BalanceRatioAbs.SetValue(greenValue);
+            cam_->BalanceRatioSelector.SetValue(BalanceRatioSelectorEnums::BalanceRatioSelector_Blue);
+            cam_->BalanceRatioAbs.SetValue(blueValue);
+            return "done"; 
+        } else {
+            ROS_ERROR_STREAM("Error while trying to set the white balance. The connected Camera not supporting this feature");
+            return "The connected Camera not supporting this feature";
+        }
+        
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the white balance occurred:" << e.GetDescription());
         return e.GetDescription();
     }
 }

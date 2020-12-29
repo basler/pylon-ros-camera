@@ -72,6 +72,7 @@ struct USBCameraTrait
     typedef Basler_UsbCameraParams::UserSetSelectorEnums UserSetSelectorEnums;
     typedef Basler_UsbCameraParams::UserSetDefaultEnums UserSetDefaultSelectorEnums;
     typedef Basler_UsbCameraParams::LineFormatEnums LineFormatEnums;
+    typedef Basler_UsbCameraParams::BalanceRatioSelectorEnums BalanceRatioSelectorEnums;
 
 
     static inline AutoTargetBrightnessValueType convertBrightness(const int& value)
@@ -87,6 +88,9 @@ bool PylonUSBCamera::applyCamSpecificStartupSettings(const PylonCameraParameter&
 {
     try
     {
+        //cam_->StartGrabbing();
+        grabbingStarting();
+        cam_->StopGrabbing();
         if (parameters.startup_user_set_ == "Default")
             {
 
@@ -441,6 +445,25 @@ template <>
 std::string PylonUSBCamera::gammaEnable(const bool& enable)
 {
     return "Error, the connect camera not supporting this feature";
+}
+
+template <> 
+float PylonUSBCamera::getTemperature(){
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->DeviceTemperature) )
+        {  
+            return static_cast<float>(cam_->DeviceTemperature.GetValue());   
+        }
+        else 
+        {
+             return 0.0;
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return 0.0;
+    }
 }
 
 }  // namespace pylon_camera

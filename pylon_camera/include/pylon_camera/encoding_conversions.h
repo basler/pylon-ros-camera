@@ -32,6 +32,14 @@
 #ifndef PYLON_CAMERA_ENCODING_CONVERSIONS_H
 #define PYLON_CAMERA_ENCODING_CONVERSIONS_H
 
+// Notes:
+// yuv422 format codes 2 pixels in 4 bytes. Y is the instensity (the first Y of the first pixel, the second Y of the second one)
+// U and V are the color components code the color used in both pixels.
+// - The ROS format (yuv422) expects UYVY http://docs.ros.org/jade/api/sensor_msgs/html/image__encodings_8h_source.html
+// - Basler Camera format (YUV422Packed) is coded as UYVY
+// https://www.baslerweb.com/en/sales-support/knowledge-base/frequently-asked-questions/how-does-the-yuv-color-coding-work/15182/
+// https://docs.baslerweb.com/pixel-format#yuv-formats
+
 #include <string>
 
 namespace pylon_camera

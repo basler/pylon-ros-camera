@@ -1,0 +1,12 @@
+# The Balance White camera feature allows you to manually correct color shifts so that white objects appear white in images acquired.
+# For this purpose, a digital gain correction can be applied per color channel (red, green, blue).
+# The increase or decrease in intensity is proportional. For example, if the balance ratio for a color is set to 1.2, the intensity of that color is increased by 20 %.
+# NOTE: calling this service will turn off the "Balance White Auto"
+
+float32 balance_ratio_red
+float32 balance_ratio_green
+float32 balance_ratio_blue
+
+---
+bool success   # indicate successful run of triggered service
+string message # informational, e.g. for error messages

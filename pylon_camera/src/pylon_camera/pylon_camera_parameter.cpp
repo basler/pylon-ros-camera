@@ -69,7 +69,16 @@ PylonCameraParameter::PylonCameraParameter() :
         inter_pkg_delay_(1000),
         startup_user_set_(""),
         shutter_mode_(SM_DEFAULT),
-        auto_flash_(false)
+        auto_flash_(false), 
+        grab_timeout_(500),
+        trigger_timeout_(5000),
+	grab_strategy_(0),
+        white_balance_auto_(0),
+        white_balance_auto_given_(false),
+        white_balance_ratio_red_(1.0),
+        white_balance_ratio_green_(1.0),
+        white_balance_ratio_blue_(1.0),
+        white_balance_ratio_given_(false)
 {}
 
 PylonCameraParameter::~PylonCameraParameter()
@@ -256,6 +265,38 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     if ( nh.hasParam("startup_user_set") )
     {
         nh.getParam("startup_user_set", startup_user_set_);
+    }
+    if ( nh.hasParam("grab_timeout") )
+    {
+        nh.getParam("grab_timeout", grab_timeout_);
+    }
+    if ( nh.hasParam("trigger_timeout") )
+    {
+        nh.getParam("trigger_timeout", trigger_timeout_);
+    }
+    if ( nh.hasParam("white_balance_auto") )
+    {
+        nh.getParam("white_balance_auto", white_balance_auto_);
+        white_balance_auto_given_ = true;
+    }
+    if ( nh.hasParam("white_balance_ratio_red") )
+    {
+        nh.getParam("white_balance_ratio_red", white_balance_ratio_red_);
+        white_balance_ratio_given_ = true;
+    }
+    if ( nh.hasParam("white_balance_ratio_green") )
+    {
+        nh.getParam("white_balance_ratio_green", white_balance_ratio_green_);
+        white_balance_ratio_given_ = true;
+    }
+    if ( nh.hasParam("white_balance_ratio_blue") )
+    {
+        nh.getParam("white_balance_ratio_blue", white_balance_ratio_blue_);
+        white_balance_ratio_given_ = true;
+    }
+    if ( nh.hasParam("grab_strategy") )
+    {
+        nh.getParam("grab_strategy", grab_strategy_);
     }
 
     nh.param<bool>("auto_flash", auto_flash_, false);
