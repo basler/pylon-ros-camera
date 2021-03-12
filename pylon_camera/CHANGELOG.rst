@@ -2,6 +2,11 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+pylon6:
+- replaced /opt/pylon5 with /opt/pylon in cmake
+- updated all calls for usb cameras
+- updated all calls for gige cameras
+
 0.16.7 (2020-12-08)
 -------------------
 * Add below listed new ROS services : 
