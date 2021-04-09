@@ -36,43 +36,47 @@
 #include <vector>
 
 #include <pylon_camera/internal/pylon_camera.h>
-
-#include <pylon/gige/BaslerGigEInstantCamera.h>
+#include <pylon/BaslerUniversalInstantCamera.h>
 
 namespace pylon_camera
 {
 
 struct GigECameraTrait
 {
-    typedef Pylon::CBaslerGigEInstantCamera CBaslerInstantCameraT;
-    typedef Basler_GigECameraParams::ExposureAutoEnums ExposureAutoEnums;
-    typedef Basler_GigECameraParams::GainAutoEnums GainAutoEnums;
-    typedef Basler_GigECameraParams::PixelFormatEnums PixelFormatEnums;
-    typedef Basler_GigECameraParams::PixelSizeEnums PixelSizeEnums;
+    typedef Pylon::CBaslerUniversalInstantCamera CBaslerInstantCameraT;
+    typedef Basler_UniversalCameraParams::ExposureAutoEnums ExposureAutoEnums;
+    typedef Basler_UniversalCameraParams::GainAutoEnums GainAutoEnums;
+    typedef Basler_UniversalCameraParams::PixelFormatEnums PixelFormatEnums;
+    typedef Basler_UniversalCameraParams::PixelSizeEnums PixelSizeEnums;
     typedef GenApi::IInteger AutoTargetBrightnessType;
-    typedef GenApi::IInteger GainType;
+
+    // In GigE ace 1, gain is defined through GainRaw as integer (dB). With the new GigE ace2, it is a float.
+    // Therefore now both of them will use floats and convert at the end to integer when necessary
+    typedef GenApi::IInteger GainType; 
+
     typedef int64_t AutoTargetBrightnessValueType;
-    typedef Basler_GigECameraParams::ShutterModeEnums ShutterModeEnums;
-    typedef Basler_GigECamera::UserOutputSelectorEnums UserOutputSelectorEnums;
-    typedef Basler_GigECamera::LineSelectorEnums LineSelectorEnums;
-    typedef Basler_GigECamera::LineModeEnums LineModeEnums;
-    typedef Basler_GigECamera::LineSourceEnums LineSourceEnums;
-    typedef Basler_GigECameraParams::AcquisitionStatusSelectorEnums AcquisitionStatusSelectorEnums;
-    typedef Basler_GigECameraParams::SensorReadoutModeEnums SensorReadoutModeEnums;
-    typedef Basler_GigECameraParams::TriggerSelectorEnums TriggerSelectorEnums;
-    typedef Basler_GigECameraParams::TriggerModeEnums TriggerModeEnums;
-    typedef Basler_GigECameraParams::TriggerSourceEnums TriggerSourceEnums;
-    typedef Basler_GigECameraParams::TriggerActivationEnums TriggerActivationEnums;
-    typedef Basler_GigECamera::LineSourceEnums DeviceLinkThroughputLimitModeEnums;
-    typedef Basler_GigECamera::AutoFunctionAOISelectorEnums AutoFunctionROISelectorEnums;
-    typedef Basler_GigECamera::BalanceWhiteAutoEnums BalanceWhiteAutoEnums;
-    typedef Basler_GigECamera::LightSourceSelectorEnums LightSourcePresetEnums;
-    typedef Basler_GigECamera::DemosaicingModeEnums DemosaicingModeEnums;
-    typedef Basler_GigECamera::PgiModeEnums PgiModeEnums;
-    typedef Basler_GigECamera::UserSetSelectorEnums UserSetSelectorEnums;
-    typedef Basler_GigECameraParams::UserSetDefaultSelectorEnums UserSetDefaultSelectorEnums;
-    typedef Basler_GigECamera::LineFormatEnums LineFormatEnums;
-    typedef Basler_GigECamera::GammaSelectorEnums GammaSelectorEnums;
+    typedef Basler_UniversalCameraParams::ShutterModeEnums ShutterModeEnums;
+    typedef Basler_UniversalCameraParams::UserOutputSelectorEnums UserOutputSelectorEnums;
+    typedef Basler_UniversalCameraParams::LineSelectorEnums LineSelectorEnums;
+    typedef Basler_UniversalCameraParams::LineModeEnums LineModeEnums;
+    typedef Basler_UniversalCameraParams::LineSourceEnums LineSourceEnums;
+    typedef Basler_UniversalCameraParams::AcquisitionStatusSelectorEnums AcquisitionStatusSelectorEnums;
+    typedef Basler_UniversalCameraParams::SensorReadoutModeEnums SensorReadoutModeEnums;
+    typedef Basler_UniversalCameraParams::TriggerSelectorEnums TriggerSelectorEnums;
+    typedef Basler_UniversalCameraParams::TriggerModeEnums TriggerModeEnums;
+    typedef Basler_UniversalCameraParams::TriggerSourceEnums TriggerSourceEnums;
+    typedef Basler_UniversalCameraParams::TriggerActivationEnums TriggerActivationEnums;
+    typedef Basler_UniversalCameraParams::LineSourceEnums DeviceLinkThroughputLimitModeEnums;
+    typedef Basler_UniversalCameraParams::AutoFunctionAOISelectorEnums AutoFunctionROISelectorEnums;
+    typedef Basler_UniversalCameraParams::BalanceWhiteAutoEnums BalanceWhiteAutoEnums;
+    typedef Basler_UniversalCameraParams::LightSourceSelectorEnums LightSourcePresetEnums;
+    typedef Basler_UniversalCameraParams::DemosaicingModeEnums DemosaicingModeEnums;
+    typedef Basler_UniversalCameraParams::PgiModeEnums PgiModeEnums;
+    typedef Basler_UniversalCameraParams::UserSetSelectorEnums UserSetSelectorEnums;
+    typedef Basler_UniversalCameraParams::UserSetDefaultSelectorEnums UserSetDefaultSelectorEnums;
+    typedef Basler_UniversalCameraParams::LineFormatEnums LineFormatEnums;
+    typedef Basler_UniversalCameraParams::GammaSelectorEnums GammaSelectorEnums;
+    typedef Basler_UniversalCameraParams::BalanceRatioSelectorEnums BalanceRatioSelectorEnums;
 
 
     static inline AutoTargetBrightnessValueType convertBrightness(const int& value)
@@ -92,7 +96,8 @@ bool PylonGigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
     {
         try
         {
-            cam_->StartGrabbing();
+            //cam_->StartGrabbing();
+            grabbingStarting();
             cam_->StopGrabbing();
             ROS_INFO("Executing SetAutoFlash: %i -> %i", p.first, p.second);
             if (p.first == 2)
@@ -100,16 +105,16 @@ bool PylonGigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
                 if (p.second)
                 {
                     // Set to flash
-                    cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line2);
-                    cam_->LineMode.SetValue(Basler_GigECameraParams::LineMode_Output);
-                    cam_->LineSource.SetValue(Basler_GigECameraParams::LineSource_ExposureActive);
+                    cam_->LineSelector.SetValue(Basler_UniversalCameraParams::LineSelector_Line2);
+                    cam_->LineMode.SetValue(Basler_UniversalCameraParams::LineMode_Output);
+                    cam_->LineSource.SetValue(Basler_UniversalCameraParams::LineSource_ExposureActive);
                 }
                 else
                 {
                     // Set to default
-                    cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line2);
-                    cam_->LineMode.SetValue(Basler_GigECameraParams::LineMode_Output);
-                    cam_->LineSource.SetValue(Basler_GigECameraParams::LineSource_UserOutput1);
+                    cam_->LineSelector.SetValue(Basler_UniversalCameraParams::LineSelector_Line2);
+                    cam_->LineMode.SetValue(Basler_UniversalCameraParams::LineMode_Output);
+                    cam_->LineSource.SetValue(Basler_UniversalCameraParams::LineSource_UserOutput1);
                 }
                 continue;
             }
@@ -118,15 +123,15 @@ bool PylonGigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
                 if (p.second)
                 {
                     // Set to flash
-                    cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line3);
-                    cam_->LineMode.SetValue(Basler_GigECameraParams::LineMode_Output);
-                    cam_->LineSource.SetValue(Basler_GigECameraParams::LineSource_ExposureActive);
+                    cam_->LineSelector.SetValue(Basler_UniversalCameraParams::LineSelector_Line3);
+                    cam_->LineMode.SetValue(Basler_UniversalCameraParams::LineMode_Output);
+                    cam_->LineSource.SetValue(Basler_UniversalCameraParams::LineSource_ExposureActive);
                 }
                 else
                 {
                     // Set to default
-                    cam_->LineSelector.SetValue(Basler_GigECameraParams::LineSelector_Line3);
-                    cam_->LineMode.SetValue(Basler_GigECameraParams::LineMode_Input);
+                    cam_->LineSelector.SetValue(Basler_UniversalCameraParams::LineSelector_Line3);
+                    cam_->LineMode.SetValue(Basler_UniversalCameraParams::LineMode_Input);
                 }
                 continue;
            }
@@ -146,18 +151,19 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
 {
     try
     {
-        cam_->StartGrabbing();
+        //cam_->StartGrabbing();
+        grabbingStarting();
         cam_->StopGrabbing();
         if (parameters.startup_user_set_ == "Default")
             {
 
                 // Remove all previous settings (sequencer etc.)
                 // Default Setting = Free-Running
-                cam_->UserSetSelector.SetValue(Basler_GigECameraParams::UserSetSelector_Default);
+                cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_Default);
                 cam_->UserSetLoad.Execute();
                 // UserSetSelector_Default overrides Software Trigger Mode !!
-                cam_->TriggerSource.SetValue(Basler_GigECameraParams::TriggerSource_Software);
-                cam_->TriggerMode.SetValue(Basler_GigECameraParams::TriggerMode_On);
+                cam_->TriggerSource.SetValue(Basler_UniversalCameraParams::TriggerSource_Software);
+                cam_->TriggerMode.SetValue(Basler_UniversalCameraParams::TriggerMode_On);
 
                 /* Thresholds for the AutoExposure Functions:
                  *  - lower limit can be used to get rid of changing light conditions
@@ -169,15 +175,15 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
                 cam_->AutoExposureTimeAbsLowerLimit.SetValue(cam_->ExposureTimeAbs.GetMin());
                 cam_->AutoExposureTimeAbsUpperLimit.SetValue(upper_lim);
 
-                cam_->AutoGainRawLowerLimit.SetValue(cam_->GainRaw.GetMin());
-                cam_->AutoGainRawUpperLimit.SetValue(cam_->GainRaw.GetMax());
+                //cam_->AutoGainRawLowerLimit.SetValue(cam_->GainRaw.GetMin());
+                //cam_->AutoGainRawUpperLimit.SetValue(cam_->GainRaw.GetMax());
 
                 // The gain auto function and the exposure auto function can be used at the
                 // same time. In this case, however, you must also set the
                 // Auto Function Profile feature.
-                // acA1920-40gm does not support Basler_GigECameraParams::GainSelector_AnalogAll
-                // has Basler_GigECameraParams::GainSelector_All instead
-                // cam_->GainSelector.SetValue(Basler_GigECameraParams::GainSelector_AnalogAll);
+                // acA1920-40gm does not support Basler_UniversalCameraParams::GainSelector_AnalogAll
+                // has Basler_UniversalCameraParams::GainSelector_All instead
+                // cam_->GainSelector.SetValue(Basler_UniversalCameraParams::GainSelector_AnalogAll);
 
                 if ( GenApi::IsAvailable(cam_->BinningHorizontal) &&
                      GenApi::IsAvailable(cam_->BinningVertical) )
@@ -248,21 +254,21 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
             }
         else if (parameters.startup_user_set_ == "UserSet1")
             {
-                cam_->UserSetSelector.SetValue(Basler_GigECameraParams::UserSetSelector_UserSet1);
+                cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet1);
                 cam_->UserSetLoad.Execute();
                 cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
                 ROS_WARN("User Set 1 Loaded");
             } 
         else if (parameters.startup_user_set_ == "UserSet2")
             {
-                cam_->UserSetSelector.SetValue(Basler_GigECameraParams::UserSetSelector_UserSet2);
+                cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet2);
                 cam_->UserSetLoad.Execute();
                 cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
                 ROS_WARN("User Set 2 Loaded");
             } 
         else if (parameters.startup_user_set_ == "UserSet3")
             {
-                cam_->UserSetSelector.SetValue(Basler_GigECameraParams::UserSetSelector_UserSet3);
+                cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet3);
                 cam_->UserSetLoad.Execute();
                 cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
                 ROS_WARN("User Set 3 Loaded");
@@ -299,7 +305,7 @@ bool PylonGigECamera::setupSequencer(const std::vector<float>& exposure_times,
             return false;
         }
 
-        cam_->SequenceAdvanceMode = Basler_GigECameraParams::SequenceAdvanceMode_Auto;
+        cam_->SequenceAdvanceMode = Basler_UniversalCameraParams::SequenceAdvanceMode_Auto;
         cam_->SequenceSetTotalNumber = exposure_times.size();
 
         for ( std::size_t i = 0; i < exposure_times.size(); ++i )
@@ -328,7 +334,11 @@ GenApi::IFloat& PylonGigECamera::exposureTime()
 {
     if ( GenApi::IsAvailable(cam_->ExposureTimeAbs) )
     {
-        return cam_->ExposureTimeAbs;
+        return cam_->ExposureTimeAbs; // GigE ace 1
+    } 
+    else if (GenApi::IsAvailable(cam_->ExposureTime)) 
+    {
+        return cam_->ExposureTime; // GigE ace 2 (pylon 6)
     }
     else
     {
@@ -336,13 +346,19 @@ GenApi::IFloat& PylonGigECamera::exposureTime()
     }
 }
 
+
 template <>
 GigECameraTrait::GainType& PylonGigECamera::gain()
 {
+
     if ( GenApi::IsAvailable(cam_->GainRaw) )
     {
-        return cam_->GainRaw;
+        return cam_->GainRaw; // GigE ace 1
     }
+    /*else if ( GenApi::IsAvailable(cam_->Gain) )
+    {
+        return cam_->Gain; // GigE ace 2 (pylon 6)
+    }*/
     else
     {
         throw std::runtime_error("Error while accessing GainRaw in PylonGigECamera");
@@ -392,7 +408,7 @@ bool PylonGigECamera::setGamma(const float& target_gamma, float& reached_gamma)
         // set gamma selector to USER, so that the gamma value has an influence
         try
         {
-            cam_->GammaSelector.SetValue(Basler_GigECameraParams::GammaSelector_User);
+            cam_->GammaSelector.SetValue(Basler_UniversalCameraParams::GammaSelector_User);
         }
         catch ( const GenICam::GenericException &e )
         {
@@ -456,7 +472,7 @@ GenApi::IFloat& PylonGigECamera::autoExposureTimeUpperLimit()
 }
 
 template <>
-GigECameraTrait::GainType& PylonGigECamera::autoGainLowerLimit()
+GenApi::IInteger& PylonGigECamera::autoGainLowerLimit()
 {
     if ( GenApi::IsAvailable(cam_->AutoGainRawLowerLimit) )
     {
@@ -469,7 +485,7 @@ GigECameraTrait::GainType& PylonGigECamera::autoGainLowerLimit()
 }
 
 template <>
-GigECameraTrait::GainType& PylonGigECamera::autoGainUpperLimit()
+GenApi::IInteger& PylonGigECamera::autoGainUpperLimit()
 {
     if ( GenApi::IsAvailable(cam_->AutoGainRawUpperLimit) )
     {
@@ -960,7 +976,7 @@ std::string PylonGigECamera::setLineDebouncerTime(const float& value)
     try
     {   if ( GenApi::IsAvailable(cam_->LineDebouncerTimeAbs) )
         {   
-            if ( cam_->LineMode.GetValue() == Basler_GigECameraParams::LineMode_Input)
+            if ( cam_->LineMode.GetValue() == Basler_UniversalCameraParams::LineMode_Input)
             {
                 cam_->LineDebouncerTimeAbs.SetValue(value);
             }
@@ -1277,12 +1293,12 @@ try
         {  
             if (gammaSelector == 0)
             {
-                cam_-> GammaSelector.SetValue(Basler_GigECameraParams::GammaSelector_User);
+                cam_-> GammaSelector.SetValue(Basler_UniversalCameraParams::GammaSelector_User);
                 return "done";
             }  
             else if (gammaSelector == 1)
             {
-                cam_-> GammaSelector.SetValue(Basler_GigECameraParams::GammaSelector_sRGB );
+                cam_-> GammaSelector.SetValue(Basler_UniversalCameraParams::GammaSelector_sRGB );
                 return "done";
             } 
             else 
@@ -1323,6 +1339,51 @@ std::string PylonGigECamera::gammaEnable(const bool& enable)
     {
         ROS_ERROR_STREAM("An exception while to change gamma enable occurred:" << e.GetDescription());
         grabbingStarting();
+        return e.GetDescription();
+    }
+}
+
+template <> 
+float PylonGigECamera::getTemperature(){
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->TemperatureAbs) )
+        {  
+            return static_cast<float>(cam_->TemperatureAbs.GetValue());   
+        }
+        else 
+        {
+             return 0.0;
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return 0.0;
+    }
+}
+
+template <> 
+std::string PylonGigECamera::setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue){
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->BalanceWhiteAuto) && GenApi::IsAvailable(cam_->BalanceRatioAbs)) {
+           cam_->BalanceWhiteAuto.SetValue(BalanceWhiteAutoEnums::BalanceWhiteAuto_Off);
+            cam_->BalanceRatioSelector.SetValue(BalanceRatioSelectorEnums::BalanceRatioSelector_Red);
+            cam_->BalanceRatioAbs.SetValue(redValue);
+            cam_->BalanceRatioSelector.SetValue(BalanceRatioSelectorEnums::BalanceRatioSelector_Green);
+            cam_->BalanceRatioAbs.SetValue(greenValue);
+            cam_->BalanceRatioSelector.SetValue(BalanceRatioSelectorEnums::BalanceRatioSelector_Blue);
+            cam_->BalanceRatioAbs.SetValue(blueValue);
+            return "done"; 
+        } else {
+            ROS_ERROR_STREAM("Error while trying to set the white balance. The connected Camera not supporting this feature");
+            return "The connected Camera not supporting this feature";
+        }
+        
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the white balance occurred:" << e.GetDescription());
         return e.GetDescription();
     }
 }

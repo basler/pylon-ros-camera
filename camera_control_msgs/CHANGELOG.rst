@@ -2,6 +2,10 @@
 Changelog for package camera_control_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.5 (2020-12-08)
+------------------
+* Add SetWhiteBalance.srv for setting the white balance of the image red/green/blue channels.
+
 0.2.4 (2019-09-02)
 ------------------
 * Add SetStringValue.srv for the below new ROS services :

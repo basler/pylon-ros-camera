@@ -180,6 +180,21 @@ PylonCameraNode::PylonCameraNode()
       gamma_enable_srv(nh_.advertiseService("gamma_enable",
                                              &PylonCameraNode::gammaEnableCallback,
                                              this)),
+      set_grab_timeout_srv(nh_.advertiseService("set_grab_timeout",
+                                             &PylonCameraNode::setGrabTimeoutCallback,
+                                             this)),
+      set_trigger_timeout_srv(nh_.advertiseService("set_trigger_timeout",
+                                             &PylonCameraNode::setTriggerTimeoutCallback,
+                                             this)),
+      set_grabbing_strategy_srv(nh_.advertiseService("set_grabbing_strategy",
+                                             &PylonCameraNode::setGrabbingStrategyCallback,
+                                             this)),
+      set_output_queue_size_srv(nh_.advertiseService("set_output_queue_size",
+                                             &PylonCameraNode::setOutputQueueSizeCallback,
+                                             this)),
+      set_white_balance_srv(nh_.advertiseService("set_white_balance",
+                                             &PylonCameraNode::setWhiteBalanceCallback,
+                                             this)),
       set_user_output_srvs_(),
       pylon_camera_(nullptr),
       it_(new image_transport::ImageTransport(nh_)),
@@ -2908,6 +2923,85 @@ std::string PylonCameraNode::gammaEnable(const int& enable)
     return pylon_camera_->gammaEnable(enable) ;
 }
 
+
+bool PylonCameraNode::setGrabTimeoutCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res)
+{
+    grabbingStopping();
+    try {
+      pylon_camera_parameter_set_.grab_timeout_ = req.value;
+      res.success = true;
+    } catch (...){
+      res.success = false;
+    }
+    grabbingStarting(); // start grabbing is required to set the new trigger timeout
+    return true;
+}
+
+bool PylonCameraNode::setTriggerTimeoutCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res)
+{
+    grabbingStopping();
+    try {
+      pylon_camera_parameter_set_.trigger_timeout_ = req.value;
+      res.success = true;
+    } catch (...){
+      res.success = false;
+    }
+    grabbingStarting(); // start grabbing is required to set the new trigger timeout
+    return true;
+}
+
+bool PylonCameraNode::setWhiteBalanceCallback(camera_control_msgs::SetWhiteBalance::Request &req, camera_control_msgs::SetWhiteBalance::Response &res)
+{
+    try {
+        res.message = pylon_camera_->setWhiteBalance(req.balance_ratio_red, req.balance_ratio_green, req.balance_ratio_blue);
+        if (res.message == "done") {
+            res.success = true;
+        } else {
+            res.success = false;
+        }
+    } catch (...){
+      res.success = false;
+    }
+    return true;
+}
+
+bool PylonCameraNode::setGrabbingStrategyCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res)
+{   // set 0 = GrabStrategy_OneByOne
+    // set 1 = GrabStrategy_LatestImageOnly
+    // set 2 = GrabStrategy_LatestImages
+
+    if(req.value >= 0 && req.value <= 2) {
+        grabbingStopping();
+        res.success = pylon_camera_->setGrabbingStrategy(req.value);
+        if(res.success){
+          pylon_camera_parameter_set_.grab_strategy_ = req.value;
+        }
+        grabbingStarting();
+
+    } else {
+      res.success = false;
+      res.message = "Unknown grabbing strategy";
+    }
+    
+    return true;
+}
+
+
+bool PylonCameraNode::setOutputQueueSizeCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res)
+{
+
+    grabbingStopping();
+    res.message = pylon_camera_->setOutputQueueSize(req.value);
+    grabbingStarting();
+    if ((res.message.find("done") != std::string::npos) != 0)
+    {
+        res.success = true;
+    } else {
+        res.success = false;
+    }
+    
+    return true;
+}
 void PylonCameraNode::currentParamPub()
 {
   boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
@@ -2952,6 +3046,7 @@ void PylonCameraNode::currentParamPub()
       params.available_image_encoding = pylon_camera_->detectAvailableImageEncodings(false);
       params.current_image_encoding = pylon_camera_->currentBaslerEncoding();
       params.current_image_ros_encoding = pylon_camera_->currentROSEncoding();
+      params.temperature = pylon_camera_->getTemperature();
 
       params.sucess = true;
     }

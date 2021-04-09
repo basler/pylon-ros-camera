@@ -763,7 +763,7 @@ public:
      * start camera aqcuisition
      * @return error message if an error occurred or done message otherwise.
      */
-    virtual std::string grabbingStarting() = 0; 
+    virtual std::string grabbingStarting() const = 0; 
 
     /**
      * stop camera aqcuisition
@@ -791,6 +791,38 @@ public:
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string gammaEnable(const bool& enable) = 0;
+
+    /**
+     * returns the current internal camera temperature
+     * @return 0.0 if error or unknown
+     */
+    virtual float getTemperature() = 0;
+
+    /**
+     * manual correction of the color shifts so that white objects appear white in images acquired.
+     * The increase or decrease in intensity is proportional. For example, if the balance ratio for a color is set to 1.2, the intensity of that color is increased by 20 %
+     * @param redValue : balancd ratio of red channel 
+     * @param greenValue : balancd ratio of green channel 
+     * @param blueValue : balancd ratio of blue channel 
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue) = 0;
+
+    /**
+     * set the camera grapping strategy 
+     * @param strategy : 0 = GrabStrategy_OneByOne, 1 = GrabStrategy_LatestImageOnly, 2 = GrabStrategy_LatestImages
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual bool setGrabbingStrategy(const int& strategy) = 0;
+
+
+    /**
+     * set The size of the grab result buffer output queue
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setOutputQueueSize(const int& size) = 0;
+
+
 
     virtual ~PylonCamera();
 protected:
@@ -843,6 +875,19 @@ protected:
      * acquisition contains valid data
      */
     bool is_ready_;
+
+    /**
+     * Camera trigger timeout in ms
+     */
+    int trigger_timeout;
+
+    /**
+     * Camera grab strategy
+     * 0 = GrabStrategy_OneByOne
+     * 1 = GrabStrategy_LatestImageOnly
+     * 2 = GrabStrategy_LatestImages
+     */
+    int grab_strategy ;
 
     /**
      * True if the extended binary exposure search is running.

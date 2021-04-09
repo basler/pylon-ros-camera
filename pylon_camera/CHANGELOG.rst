@@ -2,6 +2,32 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+pylon6:
+- replaced /opt/pylon5 with /opt/pylon in cmake
+- updated all calls for usb cameras
+- updated all calls for gige cameras
+
+0.16.7 (2020-12-08)
+-------------------
+* Add below listed new ROS services : 
+  - set_white_balance.
+* Make camera white balance channels and white balance auto configurable parameters in default.yaml
+
+
+0.16.6 (2020-10-19)
+-------------------
+* Add below listed new ROS services : 
+  - set_grabbing_strategy.
+  - set_output_queue_size.
+* Make camera grabbing strategy configurable parameters in default.yaml
+
+0.16.5 (2020-10-15)
+-------------------
+* Add below listed new ROS services : 
+  - set_grab_timeout (in ms).
+  - set_trigger_timeout (in ms).
+* Make camera grab and trigger timeout configurable parameters in default.yaml
+
 0.16.4 (2019-09-30)
 -------------------
 * Add below listed new ROS services : 
@@ -32,7 +58,7 @@ Changelog for package pylon_camera
   - start_grabbing
   - stop_grabbing
 * Improve error messages.
-* Replace 'assert' with 'if condition' in setExtendedBrightness method uder the "pylon_camera_base.hpp" file to avoid ROS node crash when passing a brightness value out of the range.
+* Replace 'assert' with 'if condition' in setExtendedBrightness method under the "pylon_camera_base.hpp" file to avoid ROS node crash when passing a brightness value out of the range.
 * Add flags to disable/enable node status & current parameters publishers controlled thru launch file.
 
 0.16.2 (2019-08-16)
@@ -43,7 +69,7 @@ Changelog for package pylon_camera
 * Add more line source types.
 * Updating line mode checking in the set_line_source and set_line_debouncer_time
 * Add set_pgi_mode ROS service  
-* Existing services that use camera_control_msgs/SetBool.h service templete updated to use std_srvs/SetBool service templete
+* Existing services that use camera_control_msgs/SetBool.h service template updated to use std_srvs/SetBool service template
 * Add Current Camera parameters publisher
 
 0.16.1 (2019-08-12)
@@ -80,7 +106,7 @@ Changelog for package pylon_camera
   - load_user_set
   - select_default_user_set
 * Add node status publisher and dnb_msgs dependency (stopped in this version in order to solve the non-public repo.)
-* Change the pylon software path in the 'pylon_sdk.rdmanifest' to Drag and Bot repo. to avoide 'file not available error' during download.
+* Change the pylon software path in the 'pylon_sdk.rdmanifest' to Drag and Bot repo. to avoid 'file not available error' during download.
 * Add MTU_size control in the launch file.
 
 

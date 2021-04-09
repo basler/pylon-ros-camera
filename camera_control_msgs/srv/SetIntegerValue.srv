@@ -17,6 +17,10 @@
 # - select_user_set ROS service (value : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw)
 # - select_default_user_set ROS service (value : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw)
 # - set_gamma_selector (value: 0 = User, 1 = sRGB)
+# - set_grab_timeout (unit : ms)
+# - set_trigger_timeout (unit : ms)
+# - set_grabbing_strategy : set 0 = GrabStrategy_OneByOne,  set 1 = GrabStrategy_LatestImageOnly,  set 2 = GrabStrategy_LatestImages
+
 
 int32 value 		# value to be setted
 ---
