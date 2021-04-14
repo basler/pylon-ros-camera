@@ -219,11 +219,21 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
                         << cam_->Gamma.GetMin() << " - "
                         << cam_->Gamma.GetMax() << "].");
                 }
-
-                ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
+                if ( GenApi::IsAvailable(cam_->AutoTargetValue) )
+                {
+                    ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
                         << cam_->AutoTargetValue.GetMin() << " - "
                         << cam_->AutoTargetValue.GetMax()
                         << "] which is the average pixel intensity.");
+                } 
+                else if ( GenApi::IsAvailable(cam_->AutoTargetBrightness) )
+                {
+                    ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
+                        << cam_->AutoTargetBrightness.GetMin() << " - "
+                        << cam_->AutoTargetBrightness.GetMax()
+                        << "] which is the average pixel intensity.");
+                }
+                
 
                 // raise inter-package delay (GevSCPD) for solving error:
                 // 'the image buffer was incompletely grabbed'
@@ -350,7 +360,6 @@ GenApi::IFloat& PylonGigECamera::exposureTime()
 template <>
 GigECameraTrait::GainType& PylonGigECamera::gain()
 {
-
     if ( GenApi::IsAvailable(cam_->GainRaw) )
     {
         return cam_->GainRaw; // GigE ace 1
@@ -500,7 +509,11 @@ GenApi::IInteger& PylonGigECamera::autoGainUpperLimit()
 template <>
 GenApi::IFloat& PylonGigECamera::resultingFrameRate()
 {
-    if ( GenApi::IsAvailable(cam_->ResultingFrameRateAbs) )
+    if ( GenApi::IsAvailable(cam_->ResultingFrameRate) )
+    {
+        return cam_->ResultingFrameRate;
+    }
+    else if ( GenApi::IsAvailable(cam_->ResultingFrameRateAbs) )
     {
         return cam_->ResultingFrameRateAbs;
     }
@@ -517,9 +530,13 @@ GigECameraTrait::AutoTargetBrightnessType& PylonGigECamera::autoTargetBrightness
     {
         return cam_->AutoTargetValue;
     }
+    /**else if ( GenApi::IsAvailable(cam_->AutoTargetBrightness) )
+    {
+        return cam_->AutoTargetBrightness;
+    }**/
     else
     {
-        throw std::runtime_error("Error while accessing AutoTargetValue in PylonGigECamera");
+        throw std::runtime_error("Error while accessing AutoTargetValue/AutoTargetBrightness in PylonGigECamera");
     }
 }
 
@@ -1119,6 +1136,29 @@ std::string PylonGigECamera::setLightSourcePreset(const int& mode)
                 return "Error: unknown value";
             }
         }
+        else if ( GenApi::IsAvailable(cam_->BslLightSourcePreset))
+        {  
+            if (mode == 0)
+            {
+                cam_->BslLightSourcePreset.SetValue(Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Off );
+            }  
+            else if (mode == 1)
+            {
+                cam_->BslLightSourcePreset.SetValue(Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Daylight5000K); //(at about 5000K)
+            } 
+            else if (mode == 2)
+            {
+                cam_->BslLightSourcePreset.SetValue(Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Daylight6500K );
+            } 
+            else if (mode == 3)
+            {
+                cam_->BslLightSourcePreset.SetValue(Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Tungsten );
+            } 
+            else 
+            {
+                return "Error: unknown value";
+            }
+        }
         else 
         {
              ROS_ERROR_STREAM("Error while trying to change the light source preset. The connected Camera not supporting this feature");
@@ -1160,6 +1200,29 @@ int PylonGigECamera::getLightSourcePreset()
             {
                 return -3; // Unknown
             }
+        } 
+        else if ( GenApi::IsAvailable(cam_->BslLightSourcePreset))
+        {  
+            if (cam_->BslLightSourcePreset.GetValue() == Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Off)
+            {
+                return 0; // Off
+            }  
+            else if (cam_->BslLightSourcePreset.GetValue() == Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Daylight5000K)
+            {
+                return 1; //Daylight(~ Daylight5000K)
+            } 
+            else if (cam_->BslLightSourcePreset.GetValue() == Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Daylight6500K)
+            {
+                return 2; //Daylight6500K
+            } 
+            else if (cam_->BslLightSourcePreset.GetValue() == Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Tungsten)
+            {
+                return 3;
+            } 
+            else 
+            {
+                return -3; // Unknown
+            }
         }
         else 
         {
@@ -1175,35 +1238,35 @@ int PylonGigECamera::getLightSourcePreset()
 template <>
 std::string PylonGigECamera::setUserSetDefaultSelector(const int& set)
 {
-    try
+    try 
     {
-        if ( GenApi::IsAvailable(cam_->UserSetDefaultSelector))
+        if ( GenApi::IsAvailable(cam_->UserSetDefaultSelector)) 
         {  
-            if (set == 0)
+            if (set == 0) 
             {
                 cam_->UserSetDefaultSelector.SetValue(UserSetDefaultSelectorEnums::UserSetDefaultSelector_Default);
-            }  
-            else if (set == 1)
+            } 
+            else if (set == 1) 
             {
                 cam_->UserSetDefaultSelector.SetValue(UserSetDefaultSelectorEnums::UserSetDefaultSelector_UserSet1);
             } 
-            else if (set == 2)
+            else if (set == 2) 
             {
                 cam_->UserSetDefaultSelector.SetValue(UserSetDefaultSelectorEnums::UserSetDefaultSelector_UserSet2);
             } 
-            else if (set == 3)
+            else if (set == 3) 
             {
                 cam_->UserSetDefaultSelector.SetValue(UserSetDefaultSelectorEnums::UserSetDefaultSelector_UserSet3);
             } 
-            else if (set == 4)
+            else if (set == 4) 
             {
                 cam_->UserSetDefaultSelector.SetValue(UserSetDefaultSelectorEnums::UserSetDefaultSelector_HighGain);
             } 
-            else if (set == 5)
+            else if (set == 5) 
             {
                 cam_->UserSetDefaultSelector.SetValue(UserSetDefaultSelectorEnums::UserSetDefaultSelector_AutoFunctions);
             } 
-            else if (set == 6)
+            else if (set == 6) 
             {
                 cam_->UserSetDefaultSelector.SetValue(UserSetDefaultSelectorEnums::UserSetDefaultSelector_ColorRaw);
             } 
@@ -1211,14 +1274,63 @@ std::string PylonGigECamera::setUserSetDefaultSelector(const int& set)
             {
                 return "Error: unknown value";
             }
-        }
+        } 
+        else if ( GenApi::IsAvailable(cam_->UserSetDefault))
+        {  
+            if (set == 0)
+            {
+                grabbingStopping();
+                cam_->UserSetDefault.SetValue(Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_Default);
+                grabbingStarting();
+            }  
+            else if (set == 1)
+            {
+                grabbingStopping();
+                cam_->UserSetDefault.SetValue(Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_UserSet1);
+                grabbingStarting();
+            } 
+            else if (set == 2)
+            {
+                grabbingStopping();
+                cam_->UserSetDefault.SetValue(Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_UserSet2);
+                grabbingStarting();
+            } 
+            else if (set == 3)
+            {
+                grabbingStopping();
+                cam_->UserSetDefault.SetValue(Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_UserSet3);
+                grabbingStarting();
+            } 
+            else if (set == 4)
+            {
+                grabbingStopping();
+                cam_->UserSetDefault.SetValue(Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_HighGain);
+                grabbingStarting();
+            } 
+            else if (set == 5)
+            {
+                grabbingStopping();
+                cam_->UserSetDefault.SetValue(Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_AutoFunctions);
+                grabbingStarting();
+            } 
+            else if (set == 6)
+            {
+                grabbingStopping();
+                cam_->UserSetDefault.SetValue(Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_ColorRaw);
+                grabbingStarting();
+            } 
+            else 
+            {
+                return "Error: unknown value";
+            }
+        } 
         else 
         {
              ROS_ERROR_STREAM("Error while trying to select the user default set. The connected Camera not supporting this feature");
              return "The connected Camera not supporting this feature";
         }
     }
-    catch ( const GenICam::GenericException &e )
+    catch ( const GenICam::GenericException &e ) 
     {
         ROS_ERROR_STREAM("An exception while selecting the user default set occurred:" << e.GetDescription());
         return e.GetDescription();
@@ -1258,6 +1370,41 @@ int PylonGigECamera::getUserSetDefaultSelector()
                 return 5; // AutoFunctions
             } 
             else if (cam_->UserSetDefaultSelector.GetValue() == UserSetDefaultSelectorEnums::UserSetDefaultSelector_ColorRaw)
+            {
+                return 6; // ColorRaw
+            } 
+            else 
+            {
+                return -3; // Unknown
+            }
+        } 
+        else if ( GenApi::IsAvailable(cam_->UserSetDefault)) 
+        {  
+            if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_Default) 
+            {
+                return 0; // Default
+            } 
+            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_UserSet1) 
+            {
+                return 1; // UserSet1
+            } 
+            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_UserSet2) 
+            {
+                return 2; // UserSet2
+            } 
+            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_UserSet3) 
+            {
+                return 3; // UserSet3
+            } 
+            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_HighGain) 
+            {
+                return 4; // HighGain
+            } 
+            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_AutoFunctions) 
+            {
+                return 5; // AutoFunctions
+            } 
+            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_ColorRaw) 
             {
                 return 6; // ColorRaw
             } 
@@ -1379,7 +1526,6 @@ std::string PylonGigECamera::setWhiteBalance(const double& redValue, const doubl
             ROS_ERROR_STREAM("Error while trying to set the white balance. The connected Camera not supporting this feature");
             return "The connected Camera not supporting this feature";
         }
-        
     }
     catch ( const GenICam::GenericException &e )
     {

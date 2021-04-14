@@ -2,6 +2,8 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.17.0 (2021-04-14)
+-------------------
 pylon6:
 - replaced /opt/pylon5 with /opt/pylon in cmake
 - updated all calls for usb cameras
