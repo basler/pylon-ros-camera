@@ -62,6 +62,7 @@ roslint_cpp(
     include/${PROJECT_NAME}/internal/impl/${PROJECT_NAME}_base.hpp
     include/${PROJECT_NAME}/internal/impl/${PROJECT_NAME}_dart.hpp
     include/${PROJECT_NAME}/internal/impl/${PROJECT_NAME}_gige.hpp
+    include/${PROJECT_NAME}/internal/impl/${PROJECT_NAME}_gige_ace2.hpp
     include/${PROJECT_NAME}/internal/impl/${PROJECT_NAME}_usb.hpp
 )
 

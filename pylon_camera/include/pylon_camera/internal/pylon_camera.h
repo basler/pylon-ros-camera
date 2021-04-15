@@ -321,5 +321,6 @@ protected:
 #include <pylon_camera/internal/impl/pylon_camera_usb.hpp>
 #include <pylon_camera/internal/impl/pylon_camera_dart.hpp>
 #include <pylon_camera/internal/impl/pylon_camera_gige.hpp>
+#include <pylon_camera/internal/impl/pylon_camera_gige_ace2.hpp>
 
 #endif  // PYLON_CAMERA_INTERNAL_PYLON_CAMERA_H

@@ -39,6 +39,8 @@
 #include <pylon_camera/internal/pylon_camera.h>
 #include <pylon_camera/encoding_conversions.h>
 #include <sensor_msgs/image_encodings.h>
+#include <pylon/StringParameter.h>
+#include <pylon/BaslerUniversalInstantCamera.h>
 
 
 namespace pylon_camera
@@ -1018,7 +1020,7 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
         // pixel data output format, i.e., 0.0 -> black, 1.0 -> white.
         typename CameraTraitT::AutoTargetBrightnessValueType brightness_to_set =
             CameraTraitT::convertBrightness(std::min(255, target_brightness));
-
+/**
 #if DEBUG
         std::cout << "br = " << current_brightness << ", gain = "
             << currentGain() << ", exp = "
@@ -1034,7 +1036,7 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
             << currentAutoGainLowerLimit() << ", max: "
             << currentAutoGainUpperLimit() << "]" << std::endl;
 #endif
-
+**/
         if ( isPylonAutoBrightnessFunctionRunning() )
         {
             // do nothing while the pylon-auto function is active and if the
@@ -1046,12 +1048,29 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
         ROS_INFO("pylon auto finished . . .");
 #endif
 
-        if ( autoTargetBrightness().GetMin() <= brightness_to_set &&
-             autoTargetBrightness().GetMax() >= brightness_to_set )
+        float autoTargetBrightnessMin = 0.0;
+        float autoTargetBrightnessMax = 0.0;
+        if ( GenApi::IsAvailable(cam_->AutoTargetValue) )
+        {
+            autoTargetBrightnessMin = cam_->AutoTargetValue.GetMin();
+            autoTargetBrightnessMax = cam_->AutoTargetValue.GetMax();
+        } else if (GenApi::IsAvailable(cam_->AutoTargetBrightness))
+        {   
+            autoTargetBrightnessMin = cam_->AutoTargetBrightness.GetMin();
+            autoTargetBrightnessMax = cam_->AutoTargetBrightness.GetMax();
+        }
+        if ( autoTargetBrightnessMin <= brightness_to_set &&
+             autoTargetBrightnessMax >= brightness_to_set )
         {
             // Use Pylon Auto Function, whenever in possible range
             // -> Own binary exposure search not necessary
-            autoTargetBrightness().SetValue(brightness_to_set, true);
+            if ( GenApi::IsAvailable(cam_->AutoTargetValue) )
+            {
+                cam_->AutoTargetValue.SetValue(brightness_to_set, true);
+            } else if (GenApi::IsAvailable(cam_->AutoTargetBrightness))
+            {   
+                cam_->AutoTargetBrightness.SetValue(brightness_to_set);
+            }
             if ( exposure_auto )
             {
                 cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
@@ -1083,10 +1102,16 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
                 // But in fact it's the only solution, because the exact exposure
                 // times related to the min & max limit of the pylon auto function
                 // are unknown, beacause they depend on the current light scene
-                if ( brightness_to_set < autoTargetBrightness().GetMin() )
+                if ( brightness_to_set < autoTargetBrightnessMin )
                 {
                     // target < 50 -> pre control to 50
-                    autoTargetBrightness().SetValue(autoTargetBrightness().GetMin(), true);
+                    if ( GenApi::IsAvailable(cam_->AutoTargetValue) )
+                    {
+                        cam_->AutoTargetValue.SetValue(autoTargetBrightnessMin, true);
+                    } else if (GenApi::IsAvailable(cam_->AutoTargetBrightness))
+                    {   
+                        cam_->AutoTargetBrightness.SetValue(autoTargetBrightnessMin);
+                    }
                     if ( exposure_auto )
                     {
                         cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
@@ -1098,7 +1123,13 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
                 }
                 else  // target > 205 -> pre control to 205
                 {
-                    autoTargetBrightness().SetValue(autoTargetBrightness().GetMax(), true);
+                    if ( GenApi::IsAvailable(cam_->AutoTargetValue) )
+                    {
+                        cam_->AutoTargetValue.SetValue(autoTargetBrightnessMax, true);
+                    } else if (GenApi::IsAvailable(cam_->AutoTargetBrightness))
+                    {   
+                        cam_->AutoTargetBrightness.SetValue(autoTargetBrightnessMax);
+                    }
                     if ( exposure_auto )
                     {
                         cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
@@ -1127,6 +1158,17 @@ template <typename CameraTraitT>
 bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brightness,
                                                           const float& current_brightness)
 {
+    float autoTargetBrightnessMin = 0.0;
+    float autoTargetBrightnessMax = 0.0;
+    if ( GenApi::IsAvailable(cam_->AutoTargetValue) )
+    {
+        autoTargetBrightnessMin = cam_->AutoTargetValue.GetMin();
+        autoTargetBrightnessMax = cam_->AutoTargetValue.GetMax();
+    } else if (GenApi::IsAvailable(cam_->AutoTargetBrightness))
+    {   
+        autoTargetBrightnessMin = cam_->AutoTargetBrightness.GetMin();
+        autoTargetBrightnessMax = cam_->AutoTargetBrightness.GetMax();
+    }
     if (target_brightness > 0 && target_brightness <= 255)
     {
         ROS_ERROR_STREAM("Error: Brightness value should be greater than 0 and equal to or smaller than 255");
@@ -1138,7 +1180,7 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brig
 
     if ( !binary_exp_search_ )
     {
-        if ( brightness_to_set < autoTargetBrightness().GetMin() )  // Range from [0 - 49]
+        if ( brightness_to_set < autoTargetBrightnessMin )  // Range from [0 - 49]
         {
             binary_exp_search_ = new BinaryExposureSearch(target_brightness,
                                                           currentAutoExposureTimeLowerLimit(),
@@ -1555,6 +1597,12 @@ std::string PylonCameraImpl<CameraTraitT>::setNoiseReduction(const float& value)
                     cam_->NoiseReduction.SetValue(value);
                     return "done";
             }
+        else if ( GenApi::IsAvailable(cam_->BslNoiseReduction))
+            {
+                    cam_->BslNoiseReduction.SetValue(value);
+                    return "done";
+            }
+
         else 
             {
                 ROS_ERROR_STREAM("Error while trying to change the noise reduction value. The connected Camera not supporting this feature");
@@ -1576,6 +1624,9 @@ float PylonCameraImpl<CameraTraitT>::getNoiseReduction()
         if ( GenApi::IsAvailable(cam_->NoiseReduction) )
         {
             return static_cast<float>(cam_->NoiseReduction.GetValue());
+        } else if ( GenApi::IsAvailable(cam_->BslNoiseReduction) )
+        {
+            return static_cast<float>(cam_->BslNoiseReduction.GetValue());
         }
         else 
         {
@@ -1618,6 +1669,11 @@ std::string PylonCameraImpl<CameraTraitT>::setSharpnessEnhancement(const float& 
                     cam_->SharpnessEnhancement.SetValue(value);
                     return "done";
             }
+        else if ( GenApi::IsAvailable(cam_->BslSharpnessEnhancement) )
+            {
+                    cam_->BslSharpnessEnhancement.SetValue(value);
+                    return "done";
+            }
         else 
             {
                 ROS_ERROR_STREAM("Error while trying to change the sharpness enhancement value, The connected Camera not supporting this feature");
@@ -1639,6 +1695,10 @@ float PylonCameraImpl<CameraTraitT>::getSharpnessEnhancement()
         if ( GenApi::IsAvailable(cam_->SharpnessEnhancement) )
         {
             return static_cast<float>(cam_->SharpnessEnhancement.GetValue());
+        }
+        else if (GenApi::IsAvailable(cam_->BslSharpnessEnhancement))
+        {
+            return static_cast<float>(cam_->BslSharpnessEnhancement.GetValue());
         }
         else 
         {
@@ -2196,14 +2256,20 @@ std::string PylonCameraImpl<CameraTraitT>::setLineDebouncerTime(const float& val
 {
     try
     {     
-        if ( cam_->LineMode.GetValue() == LineModeEnums::LineMode_Input)
+        if ( GenApi::IsAvailable(cam_->LineDebouncerTime) ) 
         {
-            cam_->LineDebouncerTime.SetValue(value);
+                if ( cam_->LineMode.GetValue() == LineModeEnums::LineMode_Input)
+            {
+                cam_->LineDebouncerTime.SetValue(value);
+            }
+            else 
+            {
+                return "Error: can't set the line debouncer time, the selected line mode should be input";
+            }
+        } else {
+            return "The connected Camera not supporting this feature";
         }
-        else 
-        {
-            return "Error: can't set the line debouncer time, the selected line mode should be input";
-        }
+        
     }
     catch ( const GenICam::GenericException &e )
     {
@@ -2431,6 +2497,23 @@ std::string PylonCameraImpl<CameraTraitT>::setLightSourcePreset(const int& mode)
             {
                 return "Error: unknown value";
             }
+        } else if (GenApi::IsAvailable(cam_->BslLightSourcePreset)) {  
+            if (mode == 0)
+            {
+                cam_->BslLightSourcePreset.SetValue(Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Off);
+            }  
+            else if (mode == 1)
+            {
+                cam_->BslLightSourcePreset.SetValue(Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Daylight5000K);
+            } 
+            else if (mode == 2)
+            {
+                cam_->BslLightSourcePreset.SetValue(Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Daylight6500K);
+            }  
+            else 
+            {
+                return "Error: unknown value";
+            }
         }
         else 
         {
@@ -2468,6 +2551,24 @@ int PylonCameraImpl<CameraTraitT>::getLightSourcePreset()
             else if (cam_->LightSourcePreset.GetValue() == LightSourcePresetEnums::LightSourcePreset_Tungsten2800K)
             {
                 return 3; // Tungsten2800K
+            } 
+            else 
+            {
+                return -3; // Unkonwn
+            }
+        } else if ( GenApi::IsAvailable(cam_->BslLightSourcePreset))
+        {
+            if (cam_->BslLightSourcePreset.GetValue() == Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Off)
+            {
+                return 0; // Off
+            }  
+            else if (cam_->BslLightSourcePreset.GetValue() == Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Daylight5000K)
+            {
+                return 1; // Daylight5000K
+            } 
+            else if (cam_->BslLightSourcePreset.GetValue() == Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Daylight6500K)
+            {
+                return 2; // Daylight6500K
             } 
             else 
             {

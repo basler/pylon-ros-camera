@@ -399,6 +399,11 @@ std::string PylonUSBCamera::setAcquisitionFrameCount(const int& frameCount)
             cam_->AcquisitionBurstFrameCount.SetValue(frameCount);   
             return "done";
         }
+        else if ( GenApi::IsAvailable(cam_->AcquisitionFrameRate) )
+        {
+            cam_->AcquisitionFrameRate.SetValue(frameCount);   
+            return "done";
+        }
         else 
         {
              ROS_ERROR_STREAM("Error while trying to change the Acquisition frame count. The connected Camera not supporting this feature");
@@ -421,6 +426,10 @@ int PylonUSBCamera::getAcquisitionFrameCount()
         if ( GenApi::IsAvailable(cam_->AcquisitionBurstFrameCount) )
         {  
             return static_cast<int>(cam_->AcquisitionBurstFrameCount.GetValue());
+        }
+        else if ( GenApi::IsAvailable(cam_->AcquisitionFrameRate) )
+        {
+            return static_cast<int>(cam_->AcquisitionFrameRate.GetValue());
         }
         else 
         {

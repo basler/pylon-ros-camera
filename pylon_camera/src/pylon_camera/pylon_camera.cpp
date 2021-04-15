@@ -39,6 +39,7 @@ namespace pylon_camera
 enum PYLON_CAM_TYPE
 {
     GIGE = 1,
+    GIGE2 = 4,
     USB = 2,
     DART = 3,
     UNKNOWN = -1,
@@ -64,7 +65,19 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
         device_class = device_info.GetDeviceClass();
         if ( device_class == "BaslerGigE" )
         {
-            return GIGE;
+            if ( device_info.IsModelNameAvailable() ) {
+                std::string model_name(device_info.GetModelName());
+
+                if (model_name.compare(0, 3, "acA") == 0)
+                {
+                    return GIGE;
+                } else if ( model_name.compare(0, 3, "a2A") == 0  ){
+                    return GIGE2;
+                } else {
+                    return UNKNOWN;
+                }
+            }
+            
         }
         else if ( device_class == "BaslerUsb" )
         {
@@ -111,6 +124,7 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
                 << "its DeviceClass: Camera has no DeviceClass available!");
         return UNKNOWN;
     }
+    return UNKNOWN;
 }
 
 PylonCamera* createFromDevice(PYLON_CAM_TYPE cam_type, Pylon::IPylonDevice* device)
@@ -119,6 +133,8 @@ PylonCamera* createFromDevice(PYLON_CAM_TYPE cam_type, Pylon::IPylonDevice* devi
     {
         case GIGE:
             return new PylonGigECamera(device);
+        case GIGE2 :
+            return new PylonGigEAce2Camera(device);
         case USB:
             return new PylonUSBCamera(device);
         case DART:
