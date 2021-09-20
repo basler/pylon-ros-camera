@@ -2983,6 +2983,155 @@ std::string PylonCameraImpl<CameraTraitT>::setOutputQueueSize(const int& size) {
 
 }
 
+template <typename CameraTraitT> 
+std::string PylonCameraImpl<CameraTraitT>::setMaxNumBuffer(const int& size) {
+    if (GenApi::IsAvailable(cam_->MaxNumBuffer)){
+        try {
+            grabbingStopping();
+            cam_->MaxNumBuffer.SetValue(size);
+            grabbingStarting();
+            return "done";
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while setting the Maximum number of buffers size occurred:" << e.GetDescription());
+                return e.GetDescription();
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to set the maximum number buffers. The connected Camera not supporting this feature");
+        return "The connected Camera not supporting this feature";
+    }
+
+}
+
+template <typename CameraTraitT> 
+int PylonCameraImpl<CameraTraitT>::getMaxNumBuffer() {
+    if (GenApi::IsAvailable(cam_->MaxNumBuffer)){
+        try {
+            return cam_->MaxNumBuffer.GetValue();
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while getting the Maximum number of buffers size occurred:" << e.GetDescription());
+                return -2;  // Error
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to get the maximum number buffers. The connected Camera not supporting this feature");
+        return -1;      // No Supported 
+    }
+
+}
+
+template <typename CameraTraitT> 
+int PylonCameraImpl<CameraTraitT>::getStatisticTotalBufferCount() {
+    if (GenApi::IsAvailable(cam_->GetStreamGrabberParams().Statistic_Total_Buffer_Count)){
+        try {
+            return cam_->GetStreamGrabberParams().Statistic_Total_Buffer_Count.GetValue();
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while getting the Statistic Total Buffer Count occurred:" << e.GetDescription());
+                return -2;  // Error
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to get the Statistic Total Buffer Count. The connected Camera not supporting this feature");
+        return -1;      // No Supported 
+    }
+
+}
+
+template <typename CameraTraitT> 
+int PylonCameraImpl<CameraTraitT>::getStatisticFailedBufferCount() {
+    if (GenApi::IsAvailable(cam_->GetStreamGrabberParams().Statistic_Failed_Buffer_Count)){
+        try {
+            return cam_->GetStreamGrabberParams().Statistic_Failed_Buffer_Count.GetValue();
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while setting the Statistic Failed Buffer Count occurred:" << e.GetDescription());
+                return -2;  // Error
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to get the Statistic Failed Buffer Count. The connected Camera not supporting this feature");
+        return -1;      // No Supported 
+    }
+
+}
+
+template <typename CameraTraitT> 
+int PylonCameraImpl<CameraTraitT>::getStatisticBufferUnderrunCount() {
+    if (GenApi::IsAvailable(cam_->GetStreamGrabberParams().Statistic_Buffer_Underrun_Count)){
+        try {
+            return cam_->GetStreamGrabberParams().Statistic_Buffer_Underrun_Count.GetValue();
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while setting the Statistic Buffer Underrun Count occurred:" << e.GetDescription());
+                return -2;  // Error
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to get the Statistic Buffer Underrun Count. The connected Camera not supporting this feature");
+        return -1;      // No Supported 
+    }
+
+}
+
+template <typename CameraTraitT> 
+int PylonCameraImpl<CameraTraitT>::getStatisticFailedPacketCount() {
+    if (GenApi::IsAvailable(cam_->GetStreamGrabberParams().Statistic_Failed_Packet_Count)){
+        try {
+            return cam_->GetStreamGrabberParams().Statistic_Failed_Packet_Count.GetValue();
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while setting the Statistic Field Packet Count occurred:" << e.GetDescription());
+                return -2;  // Error
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to get the Statistic Field Packet Count. The connected Camera not supporting this feature");
+        return -1;      // No Supported 
+    }
+
+}
+
+template <typename CameraTraitT> 
+int PylonCameraImpl<CameraTraitT>::getStatisticResendRequestCount() {
+    if (GenApi::IsAvailable(cam_->GetStreamGrabberParams().Statistic_Resend_Request_Count)){
+        try {
+            return cam_->GetStreamGrabberParams().Statistic_Resend_Request_Count.GetValue();
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while setting the Statistic Resend Request Count occurred:" << e.GetDescription());
+                return -2;  // Error
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to get the Statistic Resend Request Count. The connected Camera not supporting this feature");
+        return -1;      // No Supported 
+    }
+
+}
+
+template <typename CameraTraitT> 
+int PylonCameraImpl<CameraTraitT>::getStatisticMissedFrameCount() {
+    if (GenApi::IsAvailable(cam_->GetStreamGrabberParams().Statistic_Missed_Frame_Count)){
+        try {
+            return cam_->GetStreamGrabberParams().Statistic_Missed_Frame_Count.GetValue();
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while setting the Statistic Missed Frame Count occurred:" << e.GetDescription());
+                return -2;  // Error
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to get the Statistic Missed Frame Count. The connected Camera not supporting this feature");
+        return -1;      // No Supported 
+    }
+
+}
+
+template <typename CameraTraitT> 
+int PylonCameraImpl<CameraTraitT>::getStatisticResynchronizationCount() {
+    if (GenApi::IsAvailable(cam_->GetStreamGrabberParams().Statistic_Resynchronization_Count)){
+        try {
+            return cam_->GetStreamGrabberParams().Statistic_Resynchronization_Count.GetValue();
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while setting the Statistic Resynchronization Count occurred:" << e.GetDescription());
+                return -2;  // Error
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to get the Statistic Resynchronization Count. The connected Camera not supporting this feature");
+        return -1;      // No Supported 
+    }
+
+}
+
+
+
 }  // namespace pylon_camera
 
 #endif  // PYLON_CAMERA_INTERNAL_BASE_HPP_

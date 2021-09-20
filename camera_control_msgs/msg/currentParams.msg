@@ -30,6 +30,7 @@ float32 gain
 float32 gamma 
 uint32 binning_x
 uint32 binning_y
+int32 MaxNumBuffer		# -2 = Error, -1 = Not available
 sensor_msgs/RegionOfInterest roi
 
 string[] available_image_encoding

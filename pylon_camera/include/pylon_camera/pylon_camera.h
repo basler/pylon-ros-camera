@@ -823,6 +823,60 @@ public:
     virtual std::string setOutputQueueSize(const int& size) = 0;
 
 
+    /**
+     * Set the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setMaxNumBuffer(const int& size) = 0;
+
+    /**
+     * Return the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and blaze.
+     * @return maximum number of buffers or -1/-2 if an error occurred.
+     */
+    virtual int getMaxNumBuffer() = 0;
+
+    /**
+     * Return the GigE cameras: Number of frames received Other cameras: Number of buffers processed - Applies to: BCON, GigE, USB and blaze.
+     * @return value or -1/-2 if an error occurred.
+     */
+    virtual int getStatisticTotalBufferCount() = 0;
+
+
+    /**
+     * Return the GigE cameras: Number of buffers with at least one failed packet. A packet is considered failed if its status is not 'success'. Other cameras: Number of buffers that returned an error.
+     * @return value or -1/-2 if an error occurred.
+     */
+    virtual int getStatisticFailedBufferCount() = 0;
+
+    /**
+     * Return the Number of frames lost because there were no buffers in the queue - Applies to: GigE and blaze.
+     * @return value or -1/-2 if an error occurred.
+     */
+    virtual int getStatisticBufferUnderrunCount() = 0;
+
+    /**
+     * Return the Number of failed packets, i.e., the number of packets whose status is not 'success'.
+     * @return value or -1/-2 if an error occurred.
+     */
+    virtual int getStatisticFailedPacketCount() = 0;
+
+    /**
+     * Return the Number of emitted packet resend commands sent - Applies to: GigE and blaze.
+     * @return value or -1/-2 if an error occurred.
+     */
+    virtual int getStatisticResendRequestCount() = 0;
+
+    /**
+     * Return the Number of corrupt or lost frames between successfully grabbed images - Applies to: BCON and USB.
+     * @return value or -1/-2 if an error occurred.
+     */
+    virtual int getStatisticMissedFrameCount() = 0;
+
+    /**
+     * Return the Number of stream resynchronizations - Applies to: USB.
+     * @return value or -1/-2 if an error occurred.
+     */
+    virtual int getStatisticResynchronizationCount() = 0;
 
     virtual ~PylonCamera();
 protected:
