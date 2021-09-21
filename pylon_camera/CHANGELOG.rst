@@ -2,12 +2,30 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+
+
+0.17.1 (2021-09-20)
+-------------------
+pylon6:
+* Add below listed new ROS services : 
+  - set_max_num_buffer
+  - get_max_num_buffer
+  - get_statistic_total_buffer_count
+  - get_statistic_failed_buffer_count
+  - get_statistic_buffer_underrun_count (GigE only)
+  - get_statistic_failed_packet_count (GigE only)
+  - get_statistic_resend_request_count (GigE only)
+  - get_statistic_missed_frame_count (USB only)
+  - get_statistic_resynchronization_count (USB only)
+* Update the rosdep installation to include Pylon 6 instead of pylon 5.
+
 0.17.0 (2021-04-14)
 -------------------
 pylon6:
 - replaced /opt/pylon5 with /opt/pylon in cmake
 - updated all calls for usb cameras
 - updated all calls for gige cameras
+
 
 0.16.7 (2020-12-08)
 -------------------

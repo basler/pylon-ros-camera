@@ -195,6 +195,33 @@ PylonCameraNode::PylonCameraNode()
       set_white_balance_srv(nh_.advertiseService("set_white_balance",
                                              &PylonCameraNode::setWhiteBalanceCallback,
                                              this)),
+      set_max_num_buffer_srv(nh_.advertiseService("set_max_num_buffer",
+                                             &PylonCameraNode::setMaxNumBufferCallback,
+                                             this)),
+      get_max_num_buffer_srv(nh_.advertiseService("get_max_num_buffer",
+                                             &PylonCameraNode::getMaxNumBufferCallback,
+                                             this)),
+      get_statistic_total_buffer_count_srv(nh_.advertiseService("get_statistic_total_buffer_count",
+                                             &PylonCameraNode::getStatisticTotalBufferCountCallback,
+                                             this)),
+      get_statistic_failed_buffer_count_srv(nh_.advertiseService("get_statistic_failed_buffer_count",
+                                             &PylonCameraNode::getStatisticFailedBufferCountCallback,
+                                             this)),
+      get_statistic_buffer_underrun_count_srv(nh_.advertiseService("get_statistic_buffer_underrun_count",
+                                             &PylonCameraNode::getStatisticBufferUnderrunCountCallback,
+                                             this)),
+      get_statistic_failed_packet_count_srv(nh_.advertiseService("get_statistic_failed_packet_count",
+                                             &PylonCameraNode::getStatisticFailedPacketCountCallback,
+                                             this)),
+      get_statistic_resend_request_count_srv(nh_.advertiseService("get_statistic_resend_request_count",
+                                             &PylonCameraNode::getStatisticResendRequestCountCallback,
+                                             this)),
+      get_statistic_missed_frame_count_srv(nh_.advertiseService("get_statistic_missed_frame_count",
+                                             &PylonCameraNode::getStatisticMissedFrameCountCallback,
+                                             this)),
+      get_statistic_resynchronization_count_srv(nh_.advertiseService("get_statistic_resynchronization_count",
+                                             &PylonCameraNode::getStatisticResynchronizationCountCallback,
+                                             this)),
       set_user_output_srvs_(),
       pylon_camera_(nullptr),
       it_(new image_transport::ImageTransport(nh_)),
@@ -3002,6 +3029,150 @@ bool PylonCameraNode::setOutputQueueSizeCallback(camera_control_msgs::SetInteger
     
     return true;
 }
+
+bool PylonCameraNode::setMaxNumBufferCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res)
+{
+
+    res.message = pylon_camera_->setMaxNumBuffer(req.value);
+    if ((res.message.find("done") != std::string::npos) != 0)
+    {
+        res.success = true;
+    } else {
+        res.success = false;
+    }
+    
+    return true;
+}
+
+bool PylonCameraNode::getMaxNumBufferCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
+{
+   int value = pylon_camera_->getMaxNumBuffer();
+   if (value == -1 ) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = true;
+      res.value = value;
+   }
+    return true;
+}
+
+bool PylonCameraNode::getStatisticTotalBufferCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
+{
+   int value = pylon_camera_->getStatisticTotalBufferCount();
+   if (value == -1 ) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = true;
+      res.value = value;
+   }
+    return true;
+}
+
+bool PylonCameraNode::getStatisticFailedBufferCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
+{
+   int value = pylon_camera_->getStatisticFailedBufferCount();
+   if (value == -1 ) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = true;
+      res.value = value;
+   }
+    return true;
+}
+
+
+bool PylonCameraNode::getStatisticBufferUnderrunCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
+{
+   int value = pylon_camera_->getStatisticBufferUnderrunCount();
+   if (value == -1 ) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = true;
+      res.value = value;
+   }
+    return true;
+}
+
+bool PylonCameraNode::getStatisticFailedPacketCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
+{
+   int value = pylon_camera_->getStatisticFailedPacketCount();
+   if (value == -1 ) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = true;
+      res.value = value;
+   }
+    return true;
+}
+
+bool PylonCameraNode::getStatisticResendRequestCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
+{
+   int value = pylon_camera_->getStatisticResendRequestCount();
+   if (value == -1 ) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = true;
+      res.value = value;
+   }
+    return true;
+}
+
+bool PylonCameraNode::getStatisticMissedFrameCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
+{
+   int value = pylon_camera_->getStatisticMissedFrameCount();
+   if (value == -1 ) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = true;
+      res.value = value;
+   }
+    return true;
+}
+
+bool PylonCameraNode::getStatisticResynchronizationCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
+{
+   int value = pylon_camera_->getStatisticResynchronizationCount();
+   if (value == -1 ) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = true;
+      res.value = value;
+   }
+    return true;
+}
+
 void PylonCameraNode::currentParamPub()
 {
   boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
@@ -3047,6 +3218,7 @@ void PylonCameraNode::currentParamPub()
       params.current_image_encoding = pylon_camera_->currentBaslerEncoding();
       params.current_image_ros_encoding = pylon_camera_->currentROSEncoding();
       params.temperature = pylon_camera_->getTemperature();
+      params.MaxNumBuffer = pylon_camera_->getMaxNumBuffer();
 
       params.sucess = true;
     }

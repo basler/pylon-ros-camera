@@ -101,6 +101,16 @@ This is a list of the supported functionality accesible through ROS services, wh
  * (GigE only) GevSCPD (Inter-Packet Delay)
  * (USB only) MaxTransferSize 
 
+### Stream & Statistic Parameters
+* MaxNumBuffer
+* Statistic Total Buffer Count
+* Statistic Failed Buffer Count
+* (GigE only) Statistic Buffer Underrun Count
+* (GigE only) Statistic Failed Packet Count
+* (GigE only) Statistic Resend Request Count
+* (USB only) Statistic Missed Frame Count
+* (USB only) Statistic Resynchronization Count
+
 ## ROS Service list
 
 The ROS interface with the camera was extended with new functionality. Here is presented a list of current available services.
@@ -159,6 +169,15 @@ Service Name  | Notes
 /pylon_camera_node/set_white_balance  | Triggering this service will turn off the white balance auto 
 /pylon_camera_node/set_grabbing_strategy | value : 0 = GrabStrategy_OneByOne, 1 = GrabStrategy_LatestImageOnly, 2 = GrabStrategy_LatestImages
 /pylon_camera_node/set_output_queue_size | -
+/pylon_camera_node/set_max_num_buffer | value  = Maximum number of buffers that can be used simultaneously for grabbing images.
+/pylon_camera_node/get_max_num_buffer | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/get_statistic_total_buffer_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/get_statistic_failed_buffer_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/get_statistic_buffer_underrun_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/get_statistic_failed_packet_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/get_statistic_resend_request_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/get_statistic_missed_frame_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/get_statistic_resynchronization_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
 
 ## Image pixel encoding
 

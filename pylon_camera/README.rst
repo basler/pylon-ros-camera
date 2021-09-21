@@ -138,6 +138,31 @@ The following settings do **NOT** have to be set. Each camera has default values
 - **grab_strategy**
   The camera grabbing strategy.
 
+**Image Intensity Settings**
+
+- **MaxNumBuffer**
+  Maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and blaze.
+
+- **Statistic_Total_Buffer_Count**
+  GigE cameras: Number of frames received Other cameras: Number of buffers processed - Applies to: BCON, GigE, USB and blaze.
+
+- **Statistic_Failed_Buffer_Count**
+  GigE cameras: Number of buffers with at least one failed packet A packet is considered failed if its status is not 'success' Other cameras: Number of buffers that returned with an error status - Applies to: BCON, GigE, USB and blaze.
+
+- **Statistic_Buffer_Underrun_Count**
+  Number of frames lost because there were no buffers in the queue - Applies to: GigE and blaze.
+
+- **Statistic_Failed_Packet_Count**
+  Number of failed packets - Applies to: GigE and blaze. 
+
+- **Statistic_Resend_Request_Count**
+  Number of emitted packet resend commands sent - Applies to: GigE and blaze.
+
+- **Statistic_Missed_Frame_Count**
+  Number of corrupt or lost frames between successfully grabbed images - Applies to: BCON and USB.
+
+- **Statistic_Resynchronization_Count**
+  Number of stream resynchronizations - Applies to: USB.
 
 ******
 **Usage**

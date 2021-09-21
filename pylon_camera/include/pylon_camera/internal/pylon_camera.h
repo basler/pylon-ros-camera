@@ -261,6 +261,24 @@ public:
 
     virtual std::string setOutputQueueSize(const int& size);
 
+    virtual std::string setMaxNumBuffer(const int& size);
+
+    virtual int getMaxNumBuffer();
+
+    virtual int getStatisticTotalBufferCount();
+
+    virtual int getStatisticFailedBufferCount();
+
+    virtual int getStatisticBufferUnderrunCount();
+
+    virtual int getStatisticFailedPacketCount();
+
+    virtual int getStatisticResendRequestCount();
+
+    virtual int getStatisticMissedFrameCount();
+
+    virtual int getStatisticResynchronizationCount();
+
 protected:
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
     typedef typename CameraTraitT::ExposureAutoEnums ExposureAutoEnums;

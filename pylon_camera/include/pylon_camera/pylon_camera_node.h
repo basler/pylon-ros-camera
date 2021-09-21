@@ -58,6 +58,7 @@
 #include <camera_control_msgs/SetStringValue.h>
 #include <camera_control_msgs/currentParams.h>
 #include <camera_control_msgs/SetWhiteBalance.h>
+#include <camera_control_msgs/GetIntegerValue.h>
 
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
@@ -965,6 +966,80 @@ protected:
     bool setOutputQueueSizeCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
 
 
+    /**
+     * Service callback for setting the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and blaze.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setMaxNumBufferCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
+
+    /**
+     * Service callback for getting the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and blaze.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getMaxNumBufferCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+
+    /**
+     * Service callback for getting the GigE cameras: Number of frames received Other cameras: Number of buffers processed - Applies to: BCON, GigE, USB and blaze.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getStatisticTotalBufferCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the GigE cameras: Number of buffers with at least one failed packet. A packet is considered failed if its status is not 'success'. Other cameras: Number of buffers that returned an error.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getStatisticFailedBufferCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the Number of frames lost because there were no buffers in the queue - Applies to: GigE and blaze.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getStatisticBufferUnderrunCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the Number of failed packets, i.e., the number of packets whose status is not 'success'.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getStatisticFailedPacketCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the Number of emitted packet resend commands sent - Applies to: GigE and blaze.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getStatisticResendRequestCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the Number of corrupt or lost frames between successfully grabbed images - Applies to: BCON and USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getStatisticMissedFrameCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the Number of stream resynchronizations - Applies to: USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getStatisticResynchronizationCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
     ros::NodeHandle nh_;
     PylonCameraParameter pylon_camera_parameter_set_;
     ros::ServiceServer set_binning_srv_;
@@ -1016,6 +1091,15 @@ protected:
     ros::ServiceServer set_white_balance_srv;
     ros::ServiceServer set_grabbing_strategy_srv;
     ros::ServiceServer set_output_queue_size_srv;
+    ros::ServiceServer set_max_num_buffer_srv;
+    ros::ServiceServer get_max_num_buffer_srv;
+    ros::ServiceServer get_statistic_total_buffer_count_srv;
+    ros::ServiceServer get_statistic_failed_buffer_count_srv;
+    ros::ServiceServer get_statistic_buffer_underrun_count_srv;
+    ros::ServiceServer get_statistic_failed_packet_count_srv;
+    ros::ServiceServer get_statistic_resend_request_count_srv;
+    ros::ServiceServer get_statistic_missed_frame_count_srv;
+    ros::ServiceServer get_statistic_resynchronization_count_srv;
 
     std::vector<ros::ServiceServer> set_user_output_srvs_;
 
