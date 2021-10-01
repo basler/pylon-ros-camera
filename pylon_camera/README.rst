@@ -215,6 +215,8 @@ Some of the ROS service use integer values for as a commands, below are a list o
 
 - **set_grabbing_strategy**  ROS Service: 0 = GrabStrategy_OneByOne, 1 = GrabStrategy_LatestImageOnly, 2 = GrabStrategy_LatestImages
 
+- **set_chunk_selector / get_chunk_selector** ROS Service: 1 = AutoBrightnessStatus , 2 = BrightPixel , 3 = CounterValue 4 = DynamicRangeMax , 5 = DynamicRangeMin , 6 = ExposureTime , 7 = FrameID ,  8 = FrameTriggerCounter , 9 = FrameTriggerIgnoredCounter , 10 = Framecounter , 11 = FramesPerTriggerCounter , 12 = Gain , 13 = GainAll , 14 = Height , 15 = Image , 16 = InputStatusAtLineTrigger , 17 = LineStatusAll , 18 = LineTriggerCounter , 19 = LineTriggerEndToEndCounter , 20 = LineTriggerIgnoredCounter, 21 = OffsetX , 22 = OffsetY, 23 = PayloadCRC16 , 24 = PixelFormat , 25 = SequenceSetIndex , 26 = SequencerSetActive, 27 = ShaftEncoderCounter , 28 = Stride , 29 = Timestamp , 30 = Triggerinputcounter , 31 = VirtLineStatusAll , 32 = Width 
+
 ******
 **Questions**
 ******

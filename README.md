@@ -111,6 +111,16 @@ This is a list of the supported functionality accesible through ROS services, wh
 * (USB only) Statistic Missed Frame Count
 * (USB only) Statistic Resynchronization Count
 
+### Chunk Data
+* ChunkModeActive
+* ChunkSelector
+* ChunkEnable
+* ChunkTimestamp
+* ChunkExposureTime
+* ChunkLineStatusAll
+* (ace GigE) ChunkFramecounter 
+* (ace 2 GigE/USB, ace USB) ChunkCounterValue 
+
 ## ROS Service list
 
 The ROS interface with the camera was extended with new functionality. Here is presented a list of current available services.
@@ -178,6 +188,19 @@ Service Name  | Notes
 /pylon_camera_node/get_statistic_resend_request_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
 /pylon_camera_node/get_statistic_missed_frame_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
 /pylon_camera_node/get_statistic_resynchronization_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/set_chunk_mode_active | -
+/pylon_camera_node/get_chunk_mode_active | value 1 : enabled , value 2 : disabled, -1 = Feature not supported by current camera, -2 = error setting the value.
+/pylon_camera_node/set_chunk_selector | 1 = AutoBrightnessStatus , 2 = BrightPixel , 3 = CounterValue 4 = DynamicRangeMax , 5 = DynamicRangeMin , 6 = ExposureTime , 7 = FrameID ,  8 = FrameTriggerCounter , 9 = FrameTriggerIgnoredCounter , 10 = Framecounter , 11 = FramesPerTriggerCounter , 12 = Gain , 13 = GainAll , 14 = Height , 15 = Image , 16 = InputStatusAtLineTrigger , 17 = LineStatusAll , 18 = LineTriggerCounter , 19 = LineTriggerEndToEndCounter , 20 = LineTriggerIgnoredCounter, 21 = OffsetX , 22 = OffsetY, 23 = PayloadCRC16 , 24 = PixelFormat , 25 = SequenceSetIndex , 26 = SequencerSetActive, 27 = ShaftEncoderCounter , 28 = Stride , 29 = Timestamp , 30 = Triggerinputcounter , 31 = VirtLineStatusAll , 32 = Width 
+/pylon_camera_node/get_chunk_selector | 1 = AutoBrightnessStatus , 2 = BrightPixel , 3 = CounterValue 4 = DynamicRangeMax , 5 = DynamicRangeMin , 6 = ExposureTime , 7 = FrameID ,  8 = FrameTriggerCounter , 9 = FrameTriggerIgnoredCounter , 10 = Framecounter , 11 = FramesPerTriggerCounter , 12 = Gain , 13 = GainAll , 14 = Height , 15 = Image , 16 = InputStatusAtLineTrigger , 17 = LineStatusAll , 18 = LineTriggerCounter , 19 = LineTriggerEndToEndCounter , 20 = LineTriggerIgnoredCounter, 21 = OffsetX , 22 = OffsetY, 23 = PayloadCRC16 , 24 = PixelFormat , 25 = SequenceSetIndex , 26 = SequencerSetActive, 27 = ShaftEncoderCounter , 28 = Stride , 29 = Timestamp , 30 = Triggerinputcounter , 31 = VirtLineStatusAll , 32 = Width 
+/pylon_camera_node/set_chunk_enable | -
+/pylon_camera_node/get_chunk_enable | value 1 : enabled , value 2 : disabled, -1 = Feature not supported by current camera, -2 = error setting the value.
+/pylon_camera_node/get_chunk_timestamp | -
+/pylon_camera_node/get_chunk_timestamp | -
+/pylon_camera_node/get_chunk_exposure_time | -
+/pylon_camera_node/set_chunk_exposure_time | -
+/pylon_camera_node/get_chunk_line_status_all | -
+/pylon_camera_node/get_chunk_frame_counter | -
+/pylon_camera_node/get_chunk_counter_value | -
 
 ## Image pixel encoding
 
