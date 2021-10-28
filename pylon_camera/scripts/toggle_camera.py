@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 # This script creates a ros node that looks for nodes that publish Image msgs and advertises a to a camera_control_msgs/SetSleeping service. 
 # If it does find any, it assumes it is a Pylon camera and sends it either to sleep or wakes it up, depending on argument.
@@ -16,7 +16,7 @@ if __name__ == '__main__':
     try:
         sleep_param = int(argument[0])==0
     except Exception:
-        print 'Usage: ./toggle_camera [0,1]'
+        print('Usage: ./toggle_camera [0,1]')
         exit(1)
         
     service_suffix = "/set_sleeping"
@@ -33,7 +33,7 @@ if __name__ == '__main__':
                     cameras.add(node_name)
 
     if not cameras:
-        print 'No cameras found!'
+        print('No cameras found!')
         exit(0)
         
     for camera in cameras:
@@ -41,8 +41,6 @@ if __name__ == '__main__':
             sleep_name = camera + service_suffix
             service_proxy = rospy.ServiceProxy(sleep_name, SetSleeping)
             res = service_proxy(sleep_param)
-            print "Toggling camera '" + camera + "'"
+            print("Toggling camera '" + camera + "'")
         except rospy.ServiceException as e:
-            print "Service call failed for %s: %s" % (camera, e)
-    
-
+            print("Service call failed for %s: %s" % (camera, e))

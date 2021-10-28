@@ -1,0 +1,272 @@
+[1mdiff --git a/pylon_camera/scripts/file_sequencer.py b/pylon_camera/scripts/file_sequencer.py[m
+[1mindex 3a72569..2146f1a 100755[m
+[1m--- a/pylon_camera/scripts/file_sequencer.py[m
+[1m+++ b/pylon_camera/scripts/file_sequencer.py[m
+[36m@@ -1,4 +1,4 @@[m
+[31m-#! /usr/bin/env python[m
+[32m+[m[32m#! /usr/bin/python3[m
+ #pylint: disable=E0611[m
+ import os[m
+ import cv2[m
+[36m@@ -17,7 +17,7 @@[m [mbridge = CvBridge()[m
+ [m
+ def load_folder(folder):[m
+     file_list = os.listdir(folder)[m
+[31m-    print file_list[m
+[32m+[m[32m    print(file_list)[m
+     file_map_ = dict()[m
+     for f in file_list:[m
+         try:[m
+[36m@@ -38,17 +38,17 @@[m [mdef select_images(file_map_, req_list):[m
+     res.images = []  #[m
+ [m
+     for t in sorted(file_map_.keys()):[m
+[31m-        print t,[m
+[31m-    print[m
+[32m+[m[32m        print(t)[m
+[32m+[m[32m    print("")[m
+ [m
+     for t in req_list:[m
+[31m-        print t,[m
+[31m-        best_exp = min(file_map_.keys(), key=lambda x: abs(x-t))[m
+[32m+[m[32m        print(t)[m
+[32m+[m[32m        best_exp = min(list(file_map_.keys()), key=lambda x: abs(x-t))[m
+         res.exposureTimes.append(best_exp)[m
+         best_file = file_map_[best_exp][m
+ [m
+         # create sensor_msgs/Image from files[m
+[31m-        print best_file[m
+[32m+[m[32m        print(best_file)[m
+         img = cv2.imread(best_file, 0)[m
+         as_sensor_msg = bridge.cv2_to_imgmsg(img, "mono8")[m
+         res.images.append(as_sensor_msg)[m
+[36m@@ -67,7 +67,7 @@[m [mdef grab_sequence_callback(goal):[m
+         return[m
+ [m
+     file_map = load_folder(folder)[m
+[31m-    print file_map[m
+[32m+[m[32m    print(file_map)[m
+ [m
+     res = select_images(file_map, goal.desiredExposureTimes)[m
+ [m
+[36m@@ -80,4 +80,4 @@[m [mif __name__ == "__main__":[m
+     server = actionlib.SimpleActionServer("/image_file_sequencer", GrabSequenceAction,[m
+                                           execute_cb=grab_sequence_callback, auto_start=False)[m
+     server.start()[m
+[31m-    rospy.spin()[m
+[32m+[m[32m    rospy.spin()[m
+\ No newline at end of file[m
+[1mdiff --git a/pylon_camera/scripts/grab_and_save_image_action_server.py b/pylon_camera/scripts/grab_and_save_image_action_server.py[m
+[1mindex 280df4a..9d08d21 100755[m
+[1m--- a/pylon_camera/scripts/grab_and_save_image_action_server.py[m
+[1m+++ b/pylon_camera/scripts/grab_and_save_image_action_server.py[m
+[36m@@ -1,4 +1,4 @@[m
+[31m-#!/usr/bin/env python[m
+[32m+[m[32m#!/usr/bin/python3[m
+ [m
+ import rospy[m
+ import cv2[m
+[1mdiff --git a/pylon_camera/scripts/individual_flash_test b/pylon_camera/scripts/individual_flash_test[m
+[1mdeleted file mode 100755[m
+[1mindex d7af8b8..0000000[m
+[1m--- a/pylon_camera/scripts/individual_flash_test[m
+[1m+++ /dev/null[m
+[36m@@ -1,95 +0,0 @@[m
+[31m-#! /usr/bin/python[m
+[31m-[m
+[31m-import rospy[m
+[31m-from std_srvs.srv import SetBoolRequest, SetBool[m
+[31m-from sensor_msgs.msg import Image[m
+[31m-[m
+[31m-from cv_bridge import CvBridge[m
+[31m-import cv2[m
+[31m-[m
+[31m-from camera_control_msgs.srv import SetExposure, SetExposureRequest[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-rospy.init_node("flash_test")[m
+[31m-[m
+[31m-# todo? check if auto_flash is activated for camera[m
+[31m-[m
+[31m-camera_name = rospy.get_param("~camera_name", "/pylon_camera_node")[m
+[31m-exposure = rospy.get_param("~exposure", 10000)[m
+[31m-img_topic = camera_name + '/image_raw'[m
+[31m-bridge = CvBridge()[m
+[31m-[m
+[31m-[m
+[31m-# ensure current value (e.g. defaults) are visible on parameter server[m
+[31m-rospy.set_param("~exposure", exposure)[m
+[31m-rospy.set_param("~camera_name", camera_name)[m
+[31m-[m
+[31m-if exposure > 0:[m
+[31m-    rospy.loginfo("Setting exposure to %i ns" % exposure)[m
+[31m-    exp_client = rospy.ServiceProxy(camera_name+'/set_exposure', SetExposure)[m
+[31m-    try:[m
+[31m-        exp_client.wait_for_service(3)[m
+[31m-    except Exception as e:[m
+[31m-       rospy.logerr("%s, terminating" % str(e))[m
+[31m-       exit(1)[m
+[31m-    print exp_client.call(target_exposure=exposure)[m
+[31m-[m
+[31m-# establish service clients for outputs[m
+[31m-clients = list()[m
+[31m-for i in [0, 1]:[m
+[31m-    client = rospy.ServiceProxy(camera_name + "/activate_autoflash_output_" + str(i), SetBool)[m
+[31m-    try:[m
+[31m-        client.wait_for_service(3)[m
+[31m-    except Exception as e:[m
+[31m-        rospy.logerr("%s, terminating" % str(e))[m
+[31m-        exit(1)[m
+[31m-    clients.append(client)[m
+[31m-[m
+[31m-assert len(clients) == 2[m
+[31m-[m
+[31m-[m
+[31m-# Create different light situations and capture image (turn both off at end to stop the party)[m
+[31m-lights = [(1, 1), (0, 1), (1, 0), (0, 0)][m
+[31m-[m
+[31m-img_prefix = "/tmp/flash_test_"[m
+[31m-[m
+[31m-rospy.loginfo("Writing images to %s_*.png", img_prefix)[m
+[31m-[m
+[31m-for light in lights:[m
+[31m-    rospy.loginfo("Setting lights to " + str(light))[m
+[31m-    print clients[0].call(bool(light[0]))[m
+[31m-    rospy.sleep(0.02)[m
+[31m-    print clients[1].call(bool(light[1]))[m
+[31m-    rospy.sleep(0.5) # needed??[m
+[31m-[m
+[31m-    # continue[m
+[31m-    try:[m
+[31m-      img = rospy.wait_for_message(img_topic, Image, 2)[m
+[31m-    except rospy.exceptions.ROSException as e:[m
+[31m-        rospy.logerr("Did not receive image at %s", img_topic)[m
+[31m-        continue[m
+[31m-[m
+[31m-    cv_img = bridge.imgmsg_to_cv2(img)[m
+[31m-    print cv_img.shape[m
+[31m-    filename = img_prefix + "%i_%i.png" % (light[0], light[1])[m
+[31m-    cv2.imwrite(filename, cv_img)[m
+[31m-    # rospy.sleep(2)[m
+[31m-[m
+[31m-[m
+[31m-rospy.loginfo("Test ended")[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[1mdiff --git a/pylon_camera/scripts/result_bag_to_action.py b/pylon_camera/scripts/result_bag_to_action.py[m
+[1mindex faaf1c8..d59c9ca 100755[m
+[1m--- a/pylon_camera/scripts/result_bag_to_action.py[m
+[1m+++ b/pylon_camera/scripts/result_bag_to_action.py[m
+[36m@@ -1,4 +1,4 @@[m
+[31m-#! /usr/bin/env python[m
+[32m+[m[32m#! /usr/bin/python3[m
+ [m
+ import rospy[m
+ import camera_control_msgs.msg[m
+[1mdiff --git a/pylon_camera/scripts/sequence_to_file.py b/pylon_camera/scripts/sequence_to_file.py[m
+[1mindex a43bf9c..1dceaf6 100755[m
+[1m--- a/pylon_camera/scripts/sequence_to_file.py[m
+[1m+++ b/pylon_camera/scripts/sequence_to_file.py[m
+[36m@@ -1,4 +1,4 @@[m
+[31m-#! /usr/bin/env python[m
+[32m+[m[32m#! /usr/bin/python3[m
+ [m
+ # __author__ = 'nikolas'[m
+ [m
+[36m@@ -39,7 +39,7 @@[m [mdef get_images(goal_folder):[m
+     bridge = CvBridge()[m
+     for i in range(len(result.exposureTimes)):[m
+         file_name = goal_folder+'/'+"img_"+str(int(result.exposureTimes[i]))+".png"[m
+[31m-        print file_name[m
+[32m+[m[32m        print(file_name)[m
+         mat = bridge.imgmsg_to_cv2(result.images[i], "mono8")[m
+         cv2.imwrite(file_name, mat)[m
+ [m
+[1mdiff --git a/pylon_camera/scripts/toggle_camera b/pylon_camera/scripts/toggle_camera[m
+[1mdeleted file mode 100644[m
+[1mindex a24e5c2..0000000[m
+[1m--- a/pylon_camera/scripts/toggle_camera[m
+[1m+++ /dev/null[m
+[36m@@ -1,48 +0,0 @@[m
+[31m-#!/usr/bin/env python[m
+[31m-[m
+[31m-# This script creates a ros node that looks for nodes that publish Image msgs and advertises a to a camera_control_msgs/SetSleeping service. [m
+[31m-# If it does find any, it assumes it is a Pylon camera and sends it either to sleep or wakes it up, depending on argument.[m
+[31m-# Will turn on/off all cameras at the same time. Best used as an alias in bashrc:[m
+[31m-# alias pylonon='rosrun pylon_camera toggle_camera 0' # turns cameras off[m
+[31m-# alias pylonoff='rosrun pylon_camera toggle_camera 1' # turns cameras on[m
+[31m-#[m
+[31m-# valid arguments: 1 wakes cameras, every other int sleeps cameras[m
+[31m-  [m
+[31m-import rospy[m
+[31m-from camera_control_msgs.srv import SetSleeping[m
+[31m-[m
+[31m-if __name__ == '__main__':[m
+[31m-    argument = rospy.myargv()[1:][m
+[31m-    try:[m
+[31m-        sleep_param = int(argument[0])==0[m
+[31m-    except Exception:[m
+[31m-        print 'Usage: ./toggle_camera [0,1]'[m
+[31m-        exit(1)[m
+[31m-        [m
+[31m-    service_suffix = "/set_sleeping"[m
+[31m-[m
+[31m-    cameras = set()[m
+[31m-    p_topics = rospy.get_published_topics()[m
+[31m-    system_state = rospy.get_master().getSystemState()[m
+[31m-    [m
+[31m-    for published_topic, published_type in p_topics:[m
+[31m-        node_name = published_topic.split('/')[1][m
+[31m-        if published_type == 'sensor_msgs/Image':[m
+[31m-            for service_name, listener_list in system_state[2][2]:[m
+[31m-                if service_name == "/"+node_name + service_suffix:[m
+[31m-                    cameras.add(node_name)[m
+[31m-[m
+[31m-    if not cameras:[m
+[31m-        print 'No cameras found!'[m
+[31m-        exit(0)[m
+[31m-        [m
+[31m-    for camera in cameras:[m
+[31m-        try:[m
+[31m-            sleep_name = camera + service_suffix[m
+[31m-            service_proxy = rospy.ServiceProxy(sleep_name, SetSleeping)[m
+[31m-            res = service_proxy(sleep_param)[m
+[31m-            print "Toggling camera '" + camera + "'"[m
+[31m-        except rospy.ServiceException as e:[m
+[31m-            print "Service call failed for %s: %s" % (camera, e)[m
+[31m-    [m
+[31m-[m
+[1mdiff --git a/pylon_camera/scripts/triggered_image_topic.py b/pylon_camera/scripts/triggered_image_topic.py[m
+[1mindex 291c108..16f5b08 100755[m
+[1m--- a/pylon_camera/scripts/triggered_image_topic.py[m
+[1m+++ b/pylon_camera/scripts/triggered_image_topic.py[m
+[36m@@ -1,4 +1,4 @@[m
+[31m-#!/usr/bin/env python[m
+[32m+[m[32m#!/usr/bin/python3[m
+ [m
+ import rospy[m
+ from actionlib import SimpleActionClient, SimpleActionServer[m
+[1mdiff --git a/pylon_camera/setup.py b/pylon_camera/setup.py[m
+[1mindex e1d3093..20101e9 100755[m
+[1m--- a/pylon_camera/setup.py[m
+[1m+++ b/pylon_camera/setup.py[m
+[36m@@ -1,4 +1,4 @@[m
+[31m-#!/usr/bin/env python[m
+[32m+[m[32m#!/usr/bin/python3[m
+ [m
+ from distutils.core import setup[m
+ from catkin_pkg.python_setup import generate_distutils_setup[m
