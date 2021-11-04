@@ -163,7 +163,7 @@ install(
      scripts/grab_and_save_image_action_server.py
      scripts/result_bag_to_action.py
      scripts/sequence_to_file.py
-     scripts/toggle_camera
+     scripts/toggle_camera.py
     DESTINATION
      ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
