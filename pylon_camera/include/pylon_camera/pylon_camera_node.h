@@ -59,6 +59,7 @@
 #include <camera_control_msgs/currentParams.h>
 #include <camera_control_msgs/SetWhiteBalance.h>
 #include <camera_control_msgs/GetIntegerValue.h>
+#include <camera_control_msgs/GetFloatValue.h>
 
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
@@ -1040,6 +1041,102 @@ protected:
      */
     bool getStatisticResynchronizationCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
 
+    /**
+     * Service callback for enabling/disabling  the chunk mode - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setChunkModeActiveCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
+
+    /**
+     * Service callback for getting  the chunk mode - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkModeActiveCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for selecting the sets for the chunk - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setChunkSelectorCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the sets for the chunk - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkSelectorCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for enabling/disabling  the Includes the currently selected chunk in the payload data - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setChunkEnableCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
+
+    /**
+     * Service callback for getting  the currently selected chunk in the payload data - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkEnableCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the Value of the timestamp when the image was acquired - Applies to: GigE and ace USB..
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkTimestampCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for setting the Exposure time used to acquire the image - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB 
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setChunkExposureTimeCallback(camera_control_msgs::SetFloatValue::Request &req, camera_control_msgs::SetFloatValue::Response &res);
+
+    /**
+     * Service callback for getting the Exposure time used to acquire the image - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB 
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkExposureTimeCallback(camera_control_msgs::GetFloatValue::Request &req, camera_control_msgs::GetFloatValue::Response &res);
+
+    /**
+     * Service callback for getting Bit field that indicates the status of all of the camera's input and output lines when the image was acquired - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkLineStatusAllCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting Value of the Frame counter when the image was acquired - Applies to: GigE.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkFramecounterCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting Value of the selected chunk counter - Applies to: ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkCounterValueCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
     ros::NodeHandle nh_;
     PylonCameraParameter pylon_camera_parameter_set_;
     ros::ServiceServer set_binning_srv_;
@@ -1100,6 +1197,18 @@ protected:
     ros::ServiceServer get_statistic_resend_request_count_srv;
     ros::ServiceServer get_statistic_missed_frame_count_srv;
     ros::ServiceServer get_statistic_resynchronization_count_srv;
+    ros::ServiceServer set_chunk_mode_active_srv;
+    ros::ServiceServer get_chunk_mode_active_srv;
+    ros::ServiceServer set_chunk_selector_srv;
+    ros::ServiceServer get_chunk_selector_srv;
+    ros::ServiceServer set_chunk_enable_srv;
+    ros::ServiceServer get_chunk_enable_srv;
+    ros::ServiceServer get_chunk_timestamp_srv;
+    ros::ServiceServer get_chunk_exposure_time_srv;
+    ros::ServiceServer set_chunk_exposure_time_srv;
+    ros::ServiceServer get_chunk_line_status_all_srv;
+    ros::ServiceServer get_chunk_frame_counter_srv;
+    ros::ServiceServer get_chunk_counter_value_srv;
 
     std::vector<ros::ServiceServer> set_user_output_srvs_;
 

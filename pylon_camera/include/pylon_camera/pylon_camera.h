@@ -878,6 +878,80 @@ public:
      */
     virtual int getStatisticResynchronizationCount() = 0;
 
+    /**
+     * Enable/Disable the chunk mode - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setChunkModeActive(const bool& enable) = 0;
+
+        /**
+     * Enable/Disable the chunk mode - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error code message if an error occurred or value message otherwise.
+     */
+    virtual int getChunkModeActive() = 0;
+
+    /**
+     * Sets which chunk can be enabled - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setChunkSelector(const int& value) = 0;
+
+    /**
+     * Sets which chunk can be enabled - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error code message if an error occurred or value message otherwise.
+     */
+    virtual int getChunkSelector() = 0;
+
+    /**
+     * Includes the currently selected chunk in the payload data - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setChunkEnable(const bool& enable) = 0;
+
+    /**
+     * Includes the currently selected chunk in the payload data - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error code message if an error occurred or value message otherwise.
+     */
+    virtual int getChunkEnable() = 0;
+
+    /**
+     * Value of the timestamp when the image was acquired - Applies to: GigE and ace USB.
+     * @return error code message if an error occurred or value message otherwise.
+     */
+    virtual int getChunkTimestamp() = 0;
+
+    /**
+     * Value of the Exposure time used to acquire the image - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error code message if an error occurred or value message otherwise.
+     */
+    virtual float getChunkExposureTime() = 0;
+
+    /**
+     * Value of the Exposure time used to acquire the image - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error  message if an error occurred or done message otherwise.
+     */
+    virtual std::string setChunkExposureTime(const float& value) = 0;
+
+    /**
+     * Bit field that indicates the status of all of the camera's input and output lines when the image was acquired - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error  message if an error occurred or done message otherwise.
+     */
+    virtual int getChunkLineStatusAll() = 0;
+
+    /**
+    * Value of the Frame counter when the image was acquired - Applies to: GigE.
+    * @return error  message if an error occurred or done message otherwise.
+    */
+    virtual int getChunkFramecounter() = 0;
+
+    /**
+    * Value of the selected chunk counter - Applies to: ace 2 GigE, ace 2 USB and ace USB.
+    * @return error  message if an error occurred or done message otherwise.
+    */
+    virtual int getChunkCounterValue() = 0;
+
+
+
     virtual ~PylonCamera();
 protected:
     /**

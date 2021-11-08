@@ -279,6 +279,30 @@ public:
 
     virtual int getStatisticResynchronizationCount();
 
+    virtual std::string setChunkModeActive(const bool& enable);
+
+    virtual int getChunkModeActive();
+
+    virtual std::string setChunkSelector(const int& value);
+
+    virtual int getChunkSelector();
+
+    virtual std::string setChunkEnable(const bool& enable);
+
+    virtual int getChunkEnable();
+
+    virtual int getChunkTimestamp();
+
+    virtual float getChunkExposureTime();
+
+    virtual std::string setChunkExposureTime(const float& value);
+
+    virtual int getChunkLineStatusAll();
+
+    virtual int getChunkFramecounter();
+
+    virtual int getChunkCounterValue();
+
 protected:
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
     typedef typename CameraTraitT::ExposureAutoEnums ExposureAutoEnums;
@@ -308,6 +332,7 @@ protected:
     typedef typename CameraTraitT::UserSetDefaultSelectorEnums UserSetDefaultSelectorEnums;
     typedef typename CameraTraitT::LineFormatEnums LineFormatEnums;
     typedef typename CameraTraitT::BalanceRatioSelectorEnums BalanceRatioSelectorEnums;
+
 
 
     CBaslerInstantCameraT* cam_;

@@ -3131,6 +3131,443 @@ int PylonCameraImpl<CameraTraitT>::getStatisticResynchronizationCount() {
 }
 
 
+template <typename CameraTraitT> 
+std::string PylonCameraImpl<CameraTraitT>::setChunkModeActive(const bool& enable) {
+    if (GenApi::IsAvailable(cam_->ChunkModeActive)){
+        try {
+            //cam_->StopGrabbing();
+            cam_->ChunkModeActive.SetValue(enable);
+            //grabbingStarting();
+            return "done";
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while setting the Chunk Mode Active occurred:" << e.GetDescription());
+                return e.GetDescription();
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to setting the Chunk Mode Active. The connected Camera not supporting this feature");
+        return "The connected Camera not supporting this feature";      // No Supported 
+    }
+
+}
+
+template <typename CameraTraitT> 
+int PylonCameraImpl<CameraTraitT>::getChunkModeActive() {
+    if (GenApi::IsAvailable(cam_->ChunkModeActive)){
+        try {
+            if (cam_->ChunkModeActive.GetValue()){
+                return 1;
+            } else {
+                return 0;
+            }
+        } catch ( ... ){ //const GenICam::GenericException &e
+                //ROS_ERROR_STREAM("An exception while getting the Chunk Mode Active occurred:" << e.GetDescription());
+                return -2;
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to getting the Chunk Mode Active. The connected Camera not supporting this feature");
+        return -1;      // No Supported 
+    }
+
+}
+
+
+template <typename CameraTraitT> 
+std::string PylonCameraImpl<CameraTraitT>::setChunkSelector(const int& value) {
+    if (GenApi::IsAvailable(cam_->ChunkSelector)){
+        try {
+            switch(value){
+                case 1 : 
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_AutoBrightnessStatus);
+                    return "done";
+                    break;
+                case 2 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_BrightPixel);
+                    return "done";
+                    break;
+                case 3 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_CounterValue);
+                    return "done";
+                    break;
+                case 4 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_DynamicRangeMax);
+                    return "done";
+                    break;
+                case 5 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_DynamicRangeMin);
+                    return "done";
+                    break;
+                case 6 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_ExposureTime);
+                    return "done";
+                    break;
+                case 7 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_FrameID);
+                    return "done";
+                    break;
+                case 8 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_FrameTriggerCounter);
+                    return "done";
+                    break;
+                case 9 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_FrameTriggerIgnoredCounter);
+                    return "done";
+                    break;
+                case 10 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Framecounter);
+                    return "done";
+                    break;
+                case 11 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_FramesPerTriggerCounter);
+                    return "done";
+                    break;
+                case 12 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Gain);
+                    return "done";
+                    break;
+                case 13 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_GainAll);
+                    return "done";
+                    break;
+                case 14 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Height);
+                    return "done";
+                    break;
+                case 15 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Image);
+                    return "done";
+                    break;
+                case 16 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_InputStatusAtLineTrigger);
+                    return "done";
+                    break;
+                case 17 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_LineStatusAll);
+                    return "done";
+                    break;
+                case 18 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_LineTriggerCounter);
+                    return "done";
+                    break;
+                case 19 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_LineTriggerEndToEndCounter);
+                    return "done";
+                    break;
+                case 20 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_LineTriggerIgnoredCounter);
+                    return "done";
+                    break;
+                case 21 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_OffsetX);
+                    return "done";
+                    break;
+                case 22 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_OffsetY);
+                    return "done";
+                    break;
+                case 23 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_PayloadCRC16);
+                    return "done";
+                    break;
+                case 24 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_PixelFormat);
+                    return "done";
+                    break;
+                case 25 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_SequenceSetIndex);
+                    return "done";
+                    break;
+                case 26 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_SequencerSetActive);
+                    return "done";
+                    break;
+                case 27 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_ShaftEncoderCounter);
+                    return "done";
+                    break;
+                case 28 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Stride);
+                    return "done";
+                    break;
+                case 29 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Timestamp);
+                    return "done";
+                    break;
+                case 30 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Triggerinputcounter);
+                    return "done";
+                    break;
+                case 31 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_VirtLineStatusAll);
+                    return "done";
+                    break;
+                case 32 :
+                    cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Width);
+                    return "done";
+                    break;
+                default :
+                    return "Error: Unknown selection number";
+                    break;
+            }
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while setting the Chunk Selector occurred:" << e.GetDescription());
+                return e.GetDescription();
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to setting the Chunk Selector. The connected Camera not supporting this feature");
+        return "The connected Camera not supporting this feature";      // No Supported 
+    }
+
+}
+
+
+template <typename CameraTraitT> 
+int PylonCameraImpl<CameraTraitT>::getChunkSelector() {
+    if (GenApi::IsAvailable(cam_->ChunkSelector)){
+
+        try {
+            Basler_UniversalCameraParams::ChunkSelectorEnums value;
+            value = cam_->ChunkSelector.GetValue();
+            switch(value){
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_AutoBrightnessStatus : 
+                    return 1;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_BrightPixel :
+                    return 2;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_CounterValue :
+                    return 3;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_DynamicRangeMax :
+                    return 4;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_DynamicRangeMin :
+                    return 5;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_ExposureTime :
+                    return 6;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_FrameID :
+                    return 7;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_FrameTriggerCounter :
+                    return 8;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_FrameTriggerIgnoredCounter :
+                    return 9;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Framecounter :
+                    return 10;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_FramesPerTriggerCounter :
+                    return 11;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Gain :
+                    return 12;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_GainAll :
+                    return 14;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Height :
+                    return 14;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Image :
+                    return 15;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_InputStatusAtLineTrigger :
+                    return 16;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_LineStatusAll :
+                    return 17;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_LineTriggerCounter :
+                    return 18;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_LineTriggerEndToEndCounter :
+                    return 19;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_LineTriggerIgnoredCounter :
+                    return 20;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_OffsetX :
+                    return 21;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_OffsetY :
+                    return 22;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_PayloadCRC16 :
+                    return 23;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_PixelFormat :
+                    return 24;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_SequenceSetIndex :
+                    return 25;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_SequencerSetActive :
+                    return 26;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_ShaftEncoderCounter :
+                    return 27;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Stride :
+                    return 28;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Timestamp :
+                    return 29;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Triggerinputcounter :
+                    return 30;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_VirtLineStatusAll :
+                    return 31;
+                    break;
+                case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Width :
+                    return 32;
+                    break;
+                default :
+                    return -3;
+                    break;
+            }
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while getting the Chunk Selector occurred:" << e.GetDescription());
+                return -2;
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to getting the Chunk Selector. The connected Camera not supporting this feature");
+        return -1;      // No Supported 
+    }
+
+}
+
+template <typename CameraTraitT> 
+std::string PylonCameraImpl<CameraTraitT>::setChunkEnable(const bool& enable) {
+    if (GenApi::IsAvailable(cam_->ChunkEnable)){
+        try {
+            cam_->ChunkEnable.SetValue(enable);
+            return "done";
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while setting the Chunk Enable occurred:" << e.GetDescription());
+                return e.GetDescription();
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to setting the Chunk Enable. The connected Camera not supporting this feature");
+        return "The connected Camera not supporting this feature";      // No Supported 
+    }
+
+}
+
+template <typename CameraTraitT> 
+int PylonCameraImpl<CameraTraitT>::getChunkEnable() {
+    if (GenApi::IsAvailable(cam_->ChunkEnable)){
+        try {
+            if (cam_->ChunkEnable.GetValue()){
+                return 1;
+            } else {
+                return 0;
+            }
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while getting the Chunk Enable occurred:" << e.GetDescription());
+                return -2;
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to getting the Chunk Enable. The connected Camera not supporting this feature");
+        return -1;      // No Supported 
+    }
+}
+
+
+template <typename CameraTraitT> 
+int PylonCameraImpl<CameraTraitT>::getChunkTimestamp() {
+    if (GenApi::IsAvailable(cam_->ChunkTimestamp)){
+        try {
+            return cam_->ChunkTimestamp.GetValue();
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while getting the Chunk Timestamp occurred:" << e.GetDescription());
+                return -2;
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to getting the Chunk Timestamp. The connected Camera not supporting this feature");
+        return -1;      // No Supported 
+    }
+}
+
+template <typename CameraTraitT> 
+float PylonCameraImpl<CameraTraitT>::getChunkExposureTime() {
+    if (GenApi::IsAvailable(cam_->ChunkExposureTime)){
+        try {
+            return cam_->ChunkExposureTime.GetValue();
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while getting the Chunk Exposure Time occurred:" << e.GetDescription());
+                return -2.0;
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to getting the Chunk Exposure Time. The connected Camera not supporting this feature");
+        return -1.0;      // No Supported 
+    }
+}
+
+template <typename CameraTraitT> 
+std::string PylonCameraImpl<CameraTraitT>::setChunkExposureTime(const float& value) {
+    if (GenApi::IsAvailable(cam_->ChunkExposureTime)){
+        try {
+            cam_->ChunkExposureTime.SetValue(value);
+            return "done";
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while setting the Chunk Exposure Time occurred:" << e.GetDescription());
+                return e.GetDescription();
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to setting the Chunk Exposure Time. The connected Camera not supporting this feature");
+        return "The connected Camera not supporting this feature";      // No Supported 
+    }
+}
+
+template <typename CameraTraitT> 
+int PylonCameraImpl<CameraTraitT>::getChunkLineStatusAll() {
+    if (GenApi::IsAvailable(cam_->ChunkLineStatusAll)){
+        try {
+            return cam_->ChunkLineStatusAll.GetValue();
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while getting the Chunk Line Status All occurred:" << e.GetDescription());
+                return -2;
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to getting the Chunk Line Status All. The connected Camera not supporting this feature");
+        return -1;      // No Supported 
+    }
+}
+
+
+template <typename CameraTraitT> 
+int PylonCameraImpl<CameraTraitT>::getChunkFramecounter() {
+    if (GenApi::IsAvailable(cam_->ChunkFramecounter)){
+        try {
+            return cam_->ChunkFramecounter.GetValue();
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while getting the Chunk Frame Counter occurred:" << e.GetDescription());
+                return -2;
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to getting the Chunk Frame Counter. The connected Camera not supporting this feature");
+        return -1;      // No Supported 
+    }
+}
+
+template <typename CameraTraitT> 
+int PylonCameraImpl<CameraTraitT>::getChunkCounterValue() {
+    if (GenApi::IsAvailable(cam_->ChunkCounterValue)){
+        try {
+            return cam_->ChunkCounterValue.GetValue();
+        } catch ( const GenICam::GenericException &e ){
+                ROS_ERROR_STREAM("An exception while getting the Chunk Counter Value occurred:" << e.GetDescription());
+                return -2;
+        }
+    } else {
+        ROS_ERROR_STREAM("Error while trying to getting the Chunk Counter Value. The connected Camera not supporting this feature");
+        return -1;      // No Supported 
+    }
+}
+
 
 }  // namespace pylon_camera
 

@@ -222,6 +222,42 @@ PylonCameraNode::PylonCameraNode()
       get_statistic_resynchronization_count_srv(nh_.advertiseService("get_statistic_resynchronization_count",
                                              &PylonCameraNode::getStatisticResynchronizationCountCallback,
                                              this)),
+      set_chunk_mode_active_srv(nh_.advertiseService("set_chunk_mode_active",
+                                             &PylonCameraNode::setChunkModeActiveCallback,
+                                             this)),
+      get_chunk_mode_active_srv(nh_.advertiseService("get_chunk_mode_active",
+                                             &PylonCameraNode::getChunkModeActiveCallback,
+                                             this)),
+      set_chunk_selector_srv(nh_.advertiseService("set_chunk_selector",
+                                             &PylonCameraNode::setChunkSelectorCallback,
+                                             this)),
+      get_chunk_selector_srv(nh_.advertiseService("get_chunk_selector",
+                                             &PylonCameraNode::getChunkSelectorCallback,
+                                             this)),
+      set_chunk_enable_srv(nh_.advertiseService("set_chunk_enable",
+                                             &PylonCameraNode::setChunkEnableCallback,
+                                             this)),
+      get_chunk_enable_srv(nh_.advertiseService("get_chunk_enable",
+                                             &PylonCameraNode::getChunkEnableCallback,
+                                             this)),
+      get_chunk_timestamp_srv(nh_.advertiseService("get_chunk_timestamp",
+                                             &PylonCameraNode::getChunkTimestampCallback,
+                                             this)),
+      get_chunk_exposure_time_srv(nh_.advertiseService("get_chunk_exposure_time",
+                                             &PylonCameraNode::getChunkExposureTimeCallback,
+                                             this)),
+      set_chunk_exposure_time_srv(nh_.advertiseService("set_chunk_exposure_time",
+                                             &PylonCameraNode::setChunkExposureTimeCallback,
+                                             this)),
+      get_chunk_line_status_all_srv(nh_.advertiseService("get_chunk_line_status_all",
+                                             &PylonCameraNode::getChunkLineStatusAllCallback,
+                                             this)),
+      get_chunk_frame_counter_srv(nh_.advertiseService("get_chunk_frame_counter",
+                                             &PylonCameraNode::getChunkFramecounterCallback,
+                                             this)),
+      get_chunk_counter_value_srv(nh_.advertiseService("get_chunk_counter_value",
+                                             &PylonCameraNode::getChunkCounterValueCallback,
+                                             this)),
       set_user_output_srvs_(),
       pylon_camera_(nullptr),
       it_(new image_transport::ImageTransport(nh_)),
@@ -3160,6 +3196,199 @@ bool PylonCameraNode::getStatisticMissedFrameCountCallback(camera_control_msgs::
 bool PylonCameraNode::getStatisticResynchronizationCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
 {
    int value = pylon_camera_->getStatisticResynchronizationCount();
+   if (value == -1 ) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = true;
+      res.value = value;
+   }
+    return true;
+}
+
+bool PylonCameraNode::setChunkModeActiveCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
+{
+    res.message = pylon_camera_->setChunkModeActive(req.data);
+    if (res.message == "done") {
+        res.success = true;
+    } else if (res.message == "Node is not writable."){
+          res.message = "Using this feature require stop image grabbing";
+    } else {
+        res.success = false;
+    }
+    return true;
+}
+
+bool PylonCameraNode::getChunkModeActiveCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
+{
+
+    int value = pylon_camera_->getChunkModeActive();
+    if (value >= 0 &&  value <= 1) {
+      res.success = true;
+      res.value = value;
+   } else if (value == -1) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = false;
+      res.message = "Unknown error";
+   }
+    return true;
+}
+
+bool PylonCameraNode::setChunkSelectorCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res)
+{
+
+    res.message = pylon_camera_->setChunkSelector(req.value);
+    if ((res.message.find("done") != std::string::npos) != 0)
+    {
+        res.success = true;
+    } else {
+        res.success = false;
+    }
+    
+    return true;
+}
+
+bool PylonCameraNode::getChunkSelectorCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
+{
+
+    int value = pylon_camera_->getChunkSelector();
+    if (value >= 1 &&  value <= 32) {
+      res.success = true;
+      res.value = value;
+   } else if (value == -1) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = false;
+      res.message = "Unknown error";
+   }
+    return true;
+}
+
+bool PylonCameraNode::setChunkEnableCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
+{
+    res.message = pylon_camera_->setChunkEnable(req.data);
+    if (res.message == "done") {
+        res.success = true;
+    } else if (res.message == "Node is not writable."){
+          res.message = "Using this feature require stop image grabbing";
+    } else {
+        res.success = false;
+    }
+    return true;
+}
+
+bool PylonCameraNode::getChunkEnableCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
+{
+
+    int value = pylon_camera_->getChunkEnable();
+    if (value >= 0 &&  value <= 1) {
+      res.success = true;
+      res.value = value;
+   } else if (value == -1) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = false;
+      res.message = "Unknown error";
+   }
+    return true;
+}
+
+bool PylonCameraNode::getChunkTimestampCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
+{
+   int value = pylon_camera_->getChunkTimestamp();
+   if (value == -1 ) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = true;
+      res.value = value;
+   }
+    return true;
+}
+
+bool PylonCameraNode::getChunkExposureTimeCallback(camera_control_msgs::GetFloatValue::Request &req, camera_control_msgs::GetFloatValue::Response &res)
+{
+   float value = pylon_camera_->getChunkExposureTime();
+   if (value == -1.0 ) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2.0){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = true;
+      res.value = value;
+   }
+    return true;
+}
+
+bool PylonCameraNode::setChunkExposureTimeCallback(camera_control_msgs::SetFloatValue::Request &req, camera_control_msgs::SetFloatValue::Response &res)
+{
+    res.message = pylon_camera_->setChunkExposureTime(req.value);
+    if ((res.message.find("done") != std::string::npos) != 0)
+    {
+        res.success = true;
+    } else {
+        res.success = false;
+    }
+    
+    return true;
+}
+
+bool PylonCameraNode::getChunkLineStatusAllCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
+{
+   int value = pylon_camera_->getChunkLineStatusAll();
+   if (value == -1 ) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = true;
+      res.value = value;
+   }
+    return true;
+}
+
+bool PylonCameraNode::getChunkFramecounterCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
+{
+   int value = pylon_camera_->getChunkFramecounter();
+   if (value == -1 ) {
+      res.success = false;
+      res.message = "The connected Camera not supporting this feature";
+   } else if (value == -2){
+      res.success = false;
+      res.message = "Error, Refer to the ROS console";
+   } else {
+      res.success = true;
+      res.value = value;
+   }
+    return true;
+}
+
+bool PylonCameraNode::getChunkCounterValueCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res)
+{
+   int value = pylon_camera_->getChunkCounterValue();
    if (value == -1 ) {
       res.success = false;
       res.message = "The connected Camera not supporting this feature";

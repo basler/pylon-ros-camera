@@ -2,6 +2,24 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.17.2 (2021-10-01)
+-------------------
+pylon6:
+* Add below listed new ROS services : 
+  - set_chunk_mode_active
+  - get_chunk_mode_active
+  - set_chunk_selector
+  - get_chunk_selector
+  - set_chunk_enable
+  - get_chunk_enable
+  - get_chunk_timestamp
+  - get_chunk_exposure_time
+  - set_chunk_exposure_time
+  - get_chunk_line_status_all
+  - get_chunk_frame_counter (ace GigE)
+  - get_chunk_counter_value  (ace 2 GigE/USB, ace USB)
+* Add new ROS srv type SetFloatValue.
+
 
 
 0.17.1 (2021-09-20)
