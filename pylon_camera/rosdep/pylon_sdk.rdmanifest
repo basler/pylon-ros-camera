@@ -31,8 +31,8 @@ install-script: |
   url="https://dnb-public-downloads-misc.s3.eu-central-1.amazonaws.com/pylon/${pkg}"
 
   wget --no-check-certificate -O $pkg $url
-  dpkg -i $pkg
-  udevadm control --reload-rules || true
+  sudo dpkg -i $pkg
+  sudo udevadm control --reload-rules || true
 
 check-presence-script: |
   #!/bin/bash
