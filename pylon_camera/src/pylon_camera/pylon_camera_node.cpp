@@ -383,7 +383,7 @@ bool PylonCameraNode::startGrabbing()
     {
         std::string srv_name = "set_user_output_" + std::to_string(i);
         std::string srv_name_af = "activate_autoflash_output_" + std::to_string(i);
-        if (! ros::service::exists(srv_name, false))
+        if (! ros::service::exists("~" + srv_name, false))
         {
         set_user_output_srvs_.at(i) =
             nh_.advertiseService< std_srvs::SetBool::Request,
@@ -392,7 +392,7 @@ bool PylonCameraNode::startGrabbing()
                                     boost::bind(&PylonCameraNode::setUserOutputCB,
                                                 this, i ,_1 ,_2));
         }
-        if (! ros::service::exists(srv_name_af, false))
+        if (! ros::service::exists("~" + srv_name_af, false))
         {
         set_user_output_srvs_.at(num_user_outputs+i) =
             nh_.advertiseService< std_srvs::SetBool::Request,
