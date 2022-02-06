@@ -803,7 +803,8 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     candidates.at(3) = goal->gamma_given ? goal->gamma_values.size() : 0;
 
     // Minimum of 1, in case user does not wish to target any parameters
-    size_t n_images = max(1, *std::max_element(candidates.begin(), candidates.end()));
+    size_t n_images = *std::max_element(candidates.begin(), candidates.end());
+    if (n_images == 0) n_images = 1;
 
     if ( goal->exposure_given && goal->exposure_times.size() != n_images )
     {
