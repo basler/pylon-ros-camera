@@ -3,6 +3,7 @@
 The official pylon ROS driver for [Basler](http://www.baslerweb.com/) GigE Vision and USB3 Vision cameras
 
 **Please Note:**
+BEWARE that this branch is a legacy one, compatible with pylon 5 but not pylon 6. This pylon-5-compatible ROS driver is not maintained any longer. If you want to use the pylon-6-compatble ROS driver, check out the master branch.
 This project is offered with no technical support by Basler AG.
 You are welcome to post any questions or issues on [GitHub](https://github.com/basler/pylon-ros-camera)
 
