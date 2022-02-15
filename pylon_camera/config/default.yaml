@@ -33,6 +33,29 @@ camera_info_url: ""
 #  Calling the GrabImages-Action can result in a higher framerate
 frame_rate: 5.0
 
+trigger_timeout: 5000  # in ms
+grab_timeout: 500  # in ms
+
+# Camera grab strategy 
+# 0 : GrabStrategy_OneByOne
+# 1 : GrabStrategy_LatestImageOnly
+# 2 : GrabStrategy_LatestImages
+grab_strategy : 0
+
+##--White Balance Auto--##
+# Automatically corrects color shifts in images acquired. 0 = Off, 1 = Once, 2 = Continuous
+# white_balance_auto : 0 
+##----------------------##
+
+##--White balance--##
+# The Balance White camera feature allows you to manually correct color shifts so that white objects appear white in images acquired.
+# The increase or decrease in intensity is proportional. For example, if the balance ratio for a color is set to 1.2, the intensity of that color is increased by 20 %.
+# Activating these values will turn off the white_balance_auto.
+# white_balance_ratio_red : 1.0
+# white_balance_ratio_green : 1.0
+# white_balance_ratio_blue : 1.0
+##--------------##
+
 #  Mode of camera's shutter.
 #  The supported modes are "rolling", "global" and "global_reset"
 #  Default value is "" (empty) means default_shutter_mode

@@ -39,6 +39,7 @@ namespace pylon_camera
 enum PYLON_CAM_TYPE
 {
     GIGE = 1,
+    GIGE2 = 4,
     USB = 2,
     DART = 3,
     UNKNOWN = -1,
@@ -64,7 +65,19 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
         device_class = device_info.GetDeviceClass();
         if ( device_class == "BaslerGigE" )
         {
-            return GIGE;
+            if ( device_info.IsModelNameAvailable() ) {
+                std::string model_name(device_info.GetModelName());
+
+                if (model_name.compare(0, 3, "acA") == 0)
+                {
+                    return GIGE;
+                } else if ( model_name.compare(0, 3, "a2A") == 0  ){
+                    return GIGE2;
+                } else {
+                    return UNKNOWN;
+                }
+            }
+            
         }
         else if ( device_class == "BaslerUsb" )
         {
@@ -111,6 +124,7 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
                 << "its DeviceClass: Camera has no DeviceClass available!");
         return UNKNOWN;
     }
+    return UNKNOWN;
 }
 
 PylonCamera* createFromDevice(PYLON_CAM_TYPE cam_type, Pylon::IPylonDevice* device)
@@ -119,6 +133,8 @@ PylonCamera* createFromDevice(PYLON_CAM_TYPE cam_type, Pylon::IPylonDevice* devi
     {
         case GIGE:
             return new PylonGigECamera(device);
+        case GIGE2 :
+            return new PylonGigEAce2Camera(device);
         case USB:
             return new PylonUSBCamera(device);
         case DART:
@@ -138,7 +154,7 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
 
         Pylon::CTlFactory& tl_factory = Pylon::CTlFactory::GetInstance();
         Pylon::DeviceInfoList_t device_list;
-
+        
         // EnumerateDevices() returns the number of devices found
         if ( 0 == tl_factory.EnumerateDevices(device_list) )
         {
@@ -151,23 +167,23 @@ PylonCamera* PylonCamera::create(const std::string& device_user_id_to_open)
             Pylon::DeviceInfoList_t::const_iterator it;
             if ( device_user_id_to_open.empty() )
             {
-		for (it = device_list.begin(); it != device_list.end(); ++it)
-		{
-		    ROS_INFO_STREAM("Found camera with DeviceUserID "
-				    << it->GetUserDefinedName() << ": "
-				    << it->GetModelName());
-		    PYLON_CAM_TYPE cam_type = detectPylonCamType(*it);
-		    if (cam_type != UNKNOWN)
-		    {
-		      PylonCamera* new_cam_ptr = createFromDevice(cam_type,
-					                          tl_factory.CreateDevice(*it));
-		      new_cam_ptr->device_user_id_ = it->GetUserDefinedName();
-		      return new_cam_ptr;
-		    }
-		}
-		Pylon::PylonTerminate();
-		ROS_ERROR_ONCE("No compatible camera present");
-		return nullptr;
+                for (it = device_list.begin(); it != device_list.end(); ++it)
+                {
+                    ROS_INFO_STREAM("Found camera with DeviceUserID "
+                            << it->GetUserDefinedName() << ": "
+                            << it->GetModelName());
+                    PYLON_CAM_TYPE cam_type = detectPylonCamType(*it);
+                    if (cam_type != UNKNOWN)
+                    {
+                    PylonCamera* new_cam_ptr = createFromDevice(cam_type,
+                                                    tl_factory.CreateDevice(*it));
+                    new_cam_ptr->device_user_id_ = it->GetUserDefinedName();
+                    return new_cam_ptr;
+                    }
+                }
+                Pylon::PylonTerminate();
+                ROS_ERROR_ONCE("No compatible camera present");
+                return nullptr;
             }
             bool found_desired_device = false;
             for ( it = device_list.begin(); it != device_list.end(); ++it )

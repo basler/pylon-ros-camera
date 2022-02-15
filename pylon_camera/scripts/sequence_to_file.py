@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/python3
 
 # __author__ = 'nikolas'
 
@@ -39,7 +39,7 @@ def get_images(goal_folder):
     bridge = CvBridge()
     for i in range(len(result.exposureTimes)):
         file_name = goal_folder+'/'+"img_"+str(int(result.exposureTimes[i]))+".png"
-        print file_name
+        print(file_name)
         mat = bridge.imgmsg_to_cv2(result.images[i], "mono8")
         cv2.imwrite(file_name, mat)
 

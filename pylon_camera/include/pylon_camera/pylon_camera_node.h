@@ -53,10 +53,13 @@
 #include <camera_control_msgs/SetGamma.h>
 #include <camera_control_msgs/SetROI.h>
 #include <camera_control_msgs/SetSleeping.h>
-#include <camera_control_msgs/SetIntegerValue.h>   
-#include <camera_control_msgs/SetFloatValue.h> 
-#include <camera_control_msgs/SetStringValue.h> 
-#include <camera_control_msgs/currentParams.h> 
+#include <camera_control_msgs/SetIntegerValue.h>
+#include <camera_control_msgs/SetFloatValue.h>
+#include <camera_control_msgs/SetStringValue.h>
+#include <camera_control_msgs/currentParams.h>
+#include <camera_control_msgs/SetWhiteBalance.h>
+#include <camera_control_msgs/GetIntegerValue.h>
+#include <camera_control_msgs/GetFloatValue.h>
 
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
@@ -922,6 +925,218 @@ protected:
      */
     std::string gammaEnable(const int& enable);
 
+    /**
+     * Service callback for setting the camera grab timeout in ms
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setGrabTimeoutCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
+    /**
+     * Service callback for setting the camera trigger timeout in ms
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setTriggerTimeoutCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
+    /**
+     * Service callback for setting the white balance of the image channels
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setWhiteBalanceCallback(camera_control_msgs::SetWhiteBalance::Request &req, camera_control_msgs::SetWhiteBalance::Response &res);
+
+
+    /**
+     * Service callback for setting the camera grabbing strategy 
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setGrabbingStrategyCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
+    /**
+     * Service callback for setting the size of the grab result buffer output queue.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setOutputQueueSizeCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
+
+    /**
+     * Service callback for setting the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and blaze.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setMaxNumBufferCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
+
+    /**
+     * Service callback for getting the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and blaze.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getMaxNumBufferCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+
+    /**
+     * Service callback for getting the GigE cameras: Number of frames received Other cameras: Number of buffers processed - Applies to: BCON, GigE, USB and blaze.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getStatisticTotalBufferCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the GigE cameras: Number of buffers with at least one failed packet. A packet is considered failed if its status is not 'success'. Other cameras: Number of buffers that returned an error.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getStatisticFailedBufferCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the Number of frames lost because there were no buffers in the queue - Applies to: GigE and blaze.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getStatisticBufferUnderrunCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the Number of failed packets, i.e., the number of packets whose status is not 'success'.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getStatisticFailedPacketCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the Number of emitted packet resend commands sent - Applies to: GigE and blaze.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getStatisticResendRequestCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the Number of corrupt or lost frames between successfully grabbed images - Applies to: BCON and USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getStatisticMissedFrameCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the Number of stream resynchronizations - Applies to: USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getStatisticResynchronizationCountCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for enabling/disabling  the chunk mode - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setChunkModeActiveCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
+
+    /**
+     * Service callback for getting  the chunk mode - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkModeActiveCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for selecting the sets for the chunk - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setChunkSelectorCallback(camera_control_msgs::SetIntegerValue::Request &req, camera_control_msgs::SetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the sets for the chunk - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkSelectorCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for enabling/disabling  the Includes the currently selected chunk in the payload data - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setChunkEnableCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
+
+    /**
+     * Service callback for getting  the currently selected chunk in the payload data - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkEnableCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting the Value of the timestamp when the image was acquired - Applies to: GigE and ace USB..
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkTimestampCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for setting the Exposure time used to acquire the image - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB 
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool setChunkExposureTimeCallback(camera_control_msgs::SetFloatValue::Request &req, camera_control_msgs::SetFloatValue::Response &res);
+
+    /**
+     * Service callback for getting the Exposure time used to acquire the image - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB 
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkExposureTimeCallback(camera_control_msgs::GetFloatValue::Request &req, camera_control_msgs::GetFloatValue::Response &res);
+
+    /**
+     * Service callback for getting Bit field that indicates the status of all of the camera's input and output lines when the image was acquired - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkLineStatusAllCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting Value of the Frame counter when the image was acquired - Applies to: GigE.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkFramecounterCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
+    /**
+     * Service callback for getting Value of the selected chunk counter - Applies to: ace 2 GigE, ace 2 USB and ace USB.
+     * @param req request
+     * @param res response
+     * @return true on success
+     */
+    bool getChunkCounterValueCallback(camera_control_msgs::GetIntegerValue::Request &req, camera_control_msgs::GetIntegerValue::Response &res);
+
     ros::NodeHandle nh_;
     PylonCameraParameter pylon_camera_parameter_set_;
     ros::ServiceServer set_binning_srv_;
@@ -967,7 +1182,34 @@ protected:
     ros::ServiceServer stop_grabbing_srv_;  
     ros::ServiceServer set_max_transfer_size_srv_; 
     ros::ServiceServer set_gamma_selector_srv; 
-    ros::ServiceServer gamma_enable_srv; 
+    ros::ServiceServer gamma_enable_srv;
+    ros::ServiceServer set_grab_timeout_srv;
+    ros::ServiceServer set_trigger_timeout_srv;
+    ros::ServiceServer set_white_balance_srv;
+    ros::ServiceServer set_grabbing_strategy_srv;
+    ros::ServiceServer set_output_queue_size_srv;
+    ros::ServiceServer set_max_num_buffer_srv;
+    ros::ServiceServer get_max_num_buffer_srv;
+    ros::ServiceServer get_statistic_total_buffer_count_srv;
+    ros::ServiceServer get_statistic_failed_buffer_count_srv;
+    ros::ServiceServer get_statistic_buffer_underrun_count_srv;
+    ros::ServiceServer get_statistic_failed_packet_count_srv;
+    ros::ServiceServer get_statistic_resend_request_count_srv;
+    ros::ServiceServer get_statistic_missed_frame_count_srv;
+    ros::ServiceServer get_statistic_resynchronization_count_srv;
+    ros::ServiceServer set_chunk_mode_active_srv;
+    ros::ServiceServer get_chunk_mode_active_srv;
+    ros::ServiceServer set_chunk_selector_srv;
+    ros::ServiceServer get_chunk_selector_srv;
+    ros::ServiceServer set_chunk_enable_srv;
+    ros::ServiceServer get_chunk_enable_srv;
+    ros::ServiceServer get_chunk_timestamp_srv;
+    ros::ServiceServer get_chunk_exposure_time_srv;
+    ros::ServiceServer set_chunk_exposure_time_srv;
+    ros::ServiceServer get_chunk_line_status_all_srv;
+    ros::ServiceServer get_chunk_frame_counter_srv;
+    ros::ServiceServer get_chunk_counter_value_srv;
+
     std::vector<ros::ServiceServer> set_user_output_srvs_;
 
     // DNB component status publisher

@@ -30,6 +30,7 @@ float32 gain
 float32 gamma 
 uint32 binning_x
 uint32 binning_y
+int32 MaxNumBuffer		# -2 = Error, -1 = Not available
 sensor_msgs/RegionOfInterest roi
 
 string[] available_image_encoding
@@ -39,3 +40,4 @@ string current_image_ros_encoding
 bool sucess
 string message
 
+float32 temperature # Shows the camera temperature. If not available, then 0.0. USB uses DeviceTemperature and GigE TemperatureAbs parameters.

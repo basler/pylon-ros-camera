@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 
 import rospy
 from std_srvs.srv import SetBoolRequest, SetBool
@@ -33,7 +33,7 @@ if exposure > 0:
     except Exception as e:
        rospy.logerr("%s, terminating" % str(e))
        exit(1)
-    print exp_client.call(target_exposure=exposure)
+    print(exp_client.call(target_exposure=exposure))
 
 # establish service clients for outputs
 clients = list()
@@ -58,9 +58,9 @@ rospy.loginfo("Writing images to %s_*.png", img_prefix)
 
 for light in lights:
     rospy.loginfo("Setting lights to " + str(light))
-    print clients[0].call(bool(light[0]))
+    print(clients[0].call(bool(light[0])))
     rospy.sleep(0.02)
-    print clients[1].call(bool(light[1]))
+    print(clients[1].call(bool(light[1])))
     rospy.sleep(0.5) # needed??
 
     # continue
@@ -71,7 +71,7 @@ for light in lights:
         continue
 
     cv_img = bridge.imgmsg_to_cv2(img)
-    print cv_img.shape
+    print(cv_img.shape)
     filename = img_prefix + "%i_%i.png" % (light[0], light[1])
     cv2.imwrite(filename, cv_img)
     # rospy.sleep(2)

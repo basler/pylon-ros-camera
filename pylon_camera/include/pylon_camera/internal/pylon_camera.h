@@ -243,7 +243,7 @@ public:
 
     virtual std::string triggerDeviceReset();  
 
-    virtual std::string grabbingStarting();  
+    virtual std::string grabbingStarting() const;  
 
     virtual std::string grabbingStopping();  
 
@@ -252,6 +252,56 @@ public:
     virtual std::string setGammaSelector(const int& gammaSelector);
 
     virtual std::string gammaEnable(const bool& enable);
+
+    virtual float getTemperature();
+
+    virtual std::string setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue);
+
+    virtual bool setGrabbingStrategy(const int& strategy);
+
+    virtual std::string setOutputQueueSize(const int& size);
+
+    virtual std::string setMaxNumBuffer(const int& size);
+
+    virtual int getMaxNumBuffer();
+
+    virtual int getStatisticTotalBufferCount();
+
+    virtual int getStatisticFailedBufferCount();
+
+    virtual int getStatisticBufferUnderrunCount();
+
+    virtual int getStatisticFailedPacketCount();
+
+    virtual int getStatisticResendRequestCount();
+
+    virtual int getStatisticMissedFrameCount();
+
+    virtual int getStatisticResynchronizationCount();
+
+    virtual std::string setChunkModeActive(const bool& enable);
+
+    virtual int getChunkModeActive();
+
+    virtual std::string setChunkSelector(const int& value);
+
+    virtual int getChunkSelector();
+
+    virtual std::string setChunkEnable(const bool& enable);
+
+    virtual int getChunkEnable();
+
+    virtual int getChunkTimestamp();
+
+    virtual float getChunkExposureTime();
+
+    virtual std::string setChunkExposureTime(const float& value);
+
+    virtual int getChunkLineStatusAll();
+
+    virtual int getChunkFramecounter();
+
+    virtual int getChunkCounterValue();
 
 protected:
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
@@ -281,6 +331,8 @@ protected:
     typedef typename CameraTraitT::UserSetSelectorEnums UserSetSelectorEnums;
     typedef typename CameraTraitT::UserSetDefaultSelectorEnums UserSetDefaultSelectorEnums;
     typedef typename CameraTraitT::LineFormatEnums LineFormatEnums;
+    typedef typename CameraTraitT::BalanceRatioSelectorEnums BalanceRatioSelectorEnums;
+
 
 
     CBaslerInstantCameraT* cam_;
@@ -312,5 +364,6 @@ protected:
 #include <pylon_camera/internal/impl/pylon_camera_usb.hpp>
 #include <pylon_camera/internal/impl/pylon_camera_dart.hpp>
 #include <pylon_camera/internal/impl/pylon_camera_gige.hpp>
+#include <pylon_camera/internal/impl/pylon_camera_gige_ace2.hpp>
 
 #endif  // PYLON_CAMERA_INTERNAL_PYLON_CAMERA_H

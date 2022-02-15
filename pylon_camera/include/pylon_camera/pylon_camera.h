@@ -763,7 +763,7 @@ public:
      * start camera aqcuisition
      * @return error message if an error occurred or done message otherwise.
      */
-    virtual std::string grabbingStarting() = 0; 
+    virtual std::string grabbingStarting() const = 0; 
 
     /**
      * stop camera aqcuisition
@@ -791,6 +791,166 @@ public:
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string gammaEnable(const bool& enable) = 0;
+
+    /**
+     * returns the current internal camera temperature
+     * @return 0.0 if error or unknown
+     */
+    virtual float getTemperature() = 0;
+
+    /**
+     * manual correction of the color shifts so that white objects appear white in images acquired.
+     * The increase or decrease in intensity is proportional. For example, if the balance ratio for a color is set to 1.2, the intensity of that color is increased by 20 %
+     * @param redValue : balancd ratio of red channel 
+     * @param greenValue : balancd ratio of green channel 
+     * @param blueValue : balancd ratio of blue channel 
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue) = 0;
+
+    /**
+     * set the camera grapping strategy 
+     * @param strategy : 0 = GrabStrategy_OneByOne, 1 = GrabStrategy_LatestImageOnly, 2 = GrabStrategy_LatestImages
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual bool setGrabbingStrategy(const int& strategy) = 0;
+
+
+    /**
+     * set The size of the grab result buffer output queue
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setOutputQueueSize(const int& size) = 0;
+
+
+    /**
+     * Set the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setMaxNumBuffer(const int& size) = 0;
+
+    /**
+     * Return the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and blaze.
+     * @return maximum number of buffers or -1/-2 if an error occurred.
+     */
+    virtual int getMaxNumBuffer() = 0;
+
+    /**
+     * Return the GigE cameras: Number of frames received Other cameras: Number of buffers processed - Applies to: BCON, GigE, USB and blaze.
+     * @return value or -1/-2 if an error occurred.
+     */
+    virtual int getStatisticTotalBufferCount() = 0;
+
+
+    /**
+     * Return the GigE cameras: Number of buffers with at least one failed packet. A packet is considered failed if its status is not 'success'. Other cameras: Number of buffers that returned an error.
+     * @return value or -1/-2 if an error occurred.
+     */
+    virtual int getStatisticFailedBufferCount() = 0;
+
+    /**
+     * Return the Number of frames lost because there were no buffers in the queue - Applies to: GigE and blaze.
+     * @return value or -1/-2 if an error occurred.
+     */
+    virtual int getStatisticBufferUnderrunCount() = 0;
+
+    /**
+     * Return the Number of failed packets, i.e., the number of packets whose status is not 'success'.
+     * @return value or -1/-2 if an error occurred.
+     */
+    virtual int getStatisticFailedPacketCount() = 0;
+
+    /**
+     * Return the Number of emitted packet resend commands sent - Applies to: GigE and blaze.
+     * @return value or -1/-2 if an error occurred.
+     */
+    virtual int getStatisticResendRequestCount() = 0;
+
+    /**
+     * Return the Number of corrupt or lost frames between successfully grabbed images - Applies to: BCON and USB.
+     * @return value or -1/-2 if an error occurred.
+     */
+    virtual int getStatisticMissedFrameCount() = 0;
+
+    /**
+     * Return the Number of stream resynchronizations - Applies to: USB.
+     * @return value or -1/-2 if an error occurred.
+     */
+    virtual int getStatisticResynchronizationCount() = 0;
+
+    /**
+     * Enable/Disable the chunk mode - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setChunkModeActive(const bool& enable) = 0;
+
+        /**
+     * Enable/Disable the chunk mode - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error code message if an error occurred or value message otherwise.
+     */
+    virtual int getChunkModeActive() = 0;
+
+    /**
+     * Sets which chunk can be enabled - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setChunkSelector(const int& value) = 0;
+
+    /**
+     * Sets which chunk can be enabled - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error code message if an error occurred or value message otherwise.
+     */
+    virtual int getChunkSelector() = 0;
+
+    /**
+     * Includes the currently selected chunk in the payload data - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setChunkEnable(const bool& enable) = 0;
+
+    /**
+     * Includes the currently selected chunk in the payload data - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error code message if an error occurred or value message otherwise.
+     */
+    virtual int getChunkEnable() = 0;
+
+    /**
+     * Value of the timestamp when the image was acquired - Applies to: GigE and ace USB.
+     * @return error code message if an error occurred or value message otherwise.
+     */
+    virtual int getChunkTimestamp() = 0;
+
+    /**
+     * Value of the Exposure time used to acquire the image - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error code message if an error occurred or value message otherwise.
+     */
+    virtual float getChunkExposureTime() = 0;
+
+    /**
+     * Value of the Exposure time used to acquire the image - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error  message if an error occurred or done message otherwise.
+     */
+    virtual std::string setChunkExposureTime(const float& value) = 0;
+
+    /**
+     * Bit field that indicates the status of all of the camera's input and output lines when the image was acquired - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+     * @return error  message if an error occurred or done message otherwise.
+     */
+    virtual int getChunkLineStatusAll() = 0;
+
+    /**
+    * Value of the Frame counter when the image was acquired - Applies to: GigE.
+    * @return error  message if an error occurred or done message otherwise.
+    */
+    virtual int getChunkFramecounter() = 0;
+
+    /**
+    * Value of the selected chunk counter - Applies to: ace 2 GigE, ace 2 USB and ace USB.
+    * @return error  message if an error occurred or done message otherwise.
+    */
+    virtual int getChunkCounterValue() = 0;
+
+
 
     virtual ~PylonCamera();
 protected:
@@ -843,6 +1003,19 @@ protected:
      * acquisition contains valid data
      */
     bool is_ready_;
+
+    /**
+     * Camera trigger timeout in ms
+     */
+    int trigger_timeout;
+
+    /**
+     * Camera grab strategy
+     * 0 = GrabStrategy_OneByOne
+     * 1 = GrabStrategy_LatestImageOnly
+     * 2 = GrabStrategy_LatestImages
+     */
+    int grab_strategy ;
 
     /**
      * True if the extended binary exposure search is running.

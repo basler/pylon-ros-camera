@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/python3
 #pylint: disable=E0611
 import os
 import cv2
@@ -17,7 +17,7 @@ bridge = CvBridge()
 
 def load_folder(folder):
     file_list = os.listdir(folder)
-    print file_list
+    print(file_list)
     file_map_ = dict()
     for f in file_list:
         try:
@@ -38,17 +38,17 @@ def select_images(file_map_, req_list):
     res.images = []  #
 
     for t in sorted(file_map_.keys()):
-        print t,
-    print
+        print(t)
+    print("")
 
     for t in req_list:
-        print t,
-        best_exp = min(file_map_.keys(), key=lambda x: abs(x-t))
+        print(t)
+        best_exp = min(list(file_map_.keys()), key=lambda x: abs(x-t))
         res.exposureTimes.append(best_exp)
         best_file = file_map_[best_exp]
 
         # create sensor_msgs/Image from files
-        print best_file
+        print(best_file)
         img = cv2.imread(best_file, 0)
         as_sensor_msg = bridge.cv2_to_imgmsg(img, "mono8")
         res.images.append(as_sensor_msg)
@@ -67,7 +67,7 @@ def grab_sequence_callback(goal):
         return
 
     file_map = load_folder(folder)
-    print file_map
+    print(file_map)
 
     res = select_images(file_map, goal.desiredExposureTimes)
 

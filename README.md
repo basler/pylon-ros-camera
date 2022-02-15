@@ -55,6 +55,7 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Light Source Preset
  * Balance White Auto
  * Brightness Control
+ * Balance White
 
 ### Acquisition Control
  * Sensor Readout Mode
@@ -71,6 +72,10 @@ This is a list of the supported functionality accesible through ROS services, wh
  * Auto Exposure Time Upper Limit
  * Acquisition Frame Rate
  * Resulting Frame Rate
+ * Trigger Timeout
+ * Grabbing Timeout
+ * Grabbing Strategy
+ * Output Queue Size
 
 ### Digital I/O Control
  * Line Selector
@@ -95,6 +100,26 @@ This is a list of the supported functionality accesible through ROS services, wh
  * (GigE only) GevSCPSPacketSize (Packet Size)
  * (GigE only) GevSCPD (Inter-Packet Delay)
  * (USB only) MaxTransferSize 
+
+### Stream & Statistic Parameters
+* MaxNumBuffer
+* Statistic Total Buffer Count
+* Statistic Failed Buffer Count
+* (GigE only) Statistic Buffer Underrun Count
+* (GigE only) Statistic Failed Packet Count
+* (GigE only) Statistic Resend Request Count
+* (USB only) Statistic Missed Frame Count
+* (USB only) Statistic Resynchronization Count
+
+### Chunk Data
+* ChunkModeActive
+* ChunkSelector
+* ChunkEnable
+* ChunkTimestamp
+* ChunkExposureTime
+* ChunkLineStatusAll
+* (ace GigE) ChunkFramecounter 
+* (ace 2 GigE/USB, ace USB) ChunkCounterValue 
 
 ## ROS Service list
 
@@ -149,6 +174,33 @@ Service Name  | Notes
 /pylon_camera_node/set_trigger_source | value : 0 = Software, 1 = Line1, 2 = Line3, 3 = Line4, 4 = Action1 (only selected GigE Camera)
 /pylon_camera_node/start_grabbing | -
 /pylon_camera_node/stop_grabbing  | -
+/pylon_camera_node/set_grab_timeout  | -
+/pylon_camera_node/set_trigger_timeout  | -
+/pylon_camera_node/set_white_balance  | Triggering this service will turn off the white balance auto 
+/pylon_camera_node/set_grabbing_strategy | value : 0 = GrabStrategy_OneByOne, 1 = GrabStrategy_LatestImageOnly, 2 = GrabStrategy_LatestImages
+/pylon_camera_node/set_output_queue_size | -
+/pylon_camera_node/set_max_num_buffer | value  = Maximum number of buffers that can be used simultaneously for grabbing images.
+/pylon_camera_node/get_max_num_buffer | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/get_statistic_total_buffer_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/get_statistic_failed_buffer_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/get_statistic_buffer_underrun_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/get_statistic_failed_packet_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/get_statistic_resend_request_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/get_statistic_missed_frame_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/get_statistic_resynchronization_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
+/pylon_camera_node/set_chunk_mode_active | -
+/pylon_camera_node/get_chunk_mode_active | value 1 : enabled , value 2 : disabled, -1 = Feature not supported by current camera, -2 = error setting the value.
+/pylon_camera_node/set_chunk_selector | 1 = AutoBrightnessStatus , 2 = BrightPixel , 3 = CounterValue 4 = DynamicRangeMax , 5 = DynamicRangeMin , 6 = ExposureTime , 7 = FrameID ,  8 = FrameTriggerCounter , 9 = FrameTriggerIgnoredCounter , 10 = Framecounter , 11 = FramesPerTriggerCounter , 12 = Gain , 13 = GainAll , 14 = Height , 15 = Image , 16 = InputStatusAtLineTrigger , 17 = LineStatusAll , 18 = LineTriggerCounter , 19 = LineTriggerEndToEndCounter , 20 = LineTriggerIgnoredCounter, 21 = OffsetX , 22 = OffsetY, 23 = PayloadCRC16 , 24 = PixelFormat , 25 = SequenceSetIndex , 26 = SequencerSetActive, 27 = ShaftEncoderCounter , 28 = Stride , 29 = Timestamp , 30 = Triggerinputcounter , 31 = VirtLineStatusAll , 32 = Width 
+/pylon_camera_node/get_chunk_selector | 1 = AutoBrightnessStatus , 2 = BrightPixel , 3 = CounterValue 4 = DynamicRangeMax , 5 = DynamicRangeMin , 6 = ExposureTime , 7 = FrameID ,  8 = FrameTriggerCounter , 9 = FrameTriggerIgnoredCounter , 10 = Framecounter , 11 = FramesPerTriggerCounter , 12 = Gain , 13 = GainAll , 14 = Height , 15 = Image , 16 = InputStatusAtLineTrigger , 17 = LineStatusAll , 18 = LineTriggerCounter , 19 = LineTriggerEndToEndCounter , 20 = LineTriggerIgnoredCounter, 21 = OffsetX , 22 = OffsetY, 23 = PayloadCRC16 , 24 = PixelFormat , 25 = SequenceSetIndex , 26 = SequencerSetActive, 27 = ShaftEncoderCounter , 28 = Stride , 29 = Timestamp , 30 = Triggerinputcounter , 31 = VirtLineStatusAll , 32 = Width 
+/pylon_camera_node/set_chunk_enable | -
+/pylon_camera_node/get_chunk_enable | value 1 : enabled , value 2 : disabled, -1 = Feature not supported by current camera, -2 = error setting the value.
+/pylon_camera_node/get_chunk_timestamp | -
+/pylon_camera_node/get_chunk_timestamp | -
+/pylon_camera_node/get_chunk_exposure_time | -
+/pylon_camera_node/set_chunk_exposure_time | -
+/pylon_camera_node/get_chunk_line_status_all | -
+/pylon_camera_node/get_chunk_frame_counter | -
+/pylon_camera_node/get_chunk_counter_value | -
 
 ## Image pixel encoding
 
@@ -179,14 +231,14 @@ Start the driver with command: `roslaunch pylon_camera pylon_camera_node.launch`
 
 To test if the driver is correctly working we recommend to use the rqt ROS tool (http://wiki.ros.org/rqt). You will need to add an image viewer through the the contextual menu RQT Plugin --> Visualization --> Image View. Then please select the `pylon_camera_node/image_raw` to display the current camera picture. If the intrinsic calibration file was configured, `pylon_camera_node/image_rect` will also appear. Please check Intrinsic calibration section for further information.
 
-This drivers offers different ROS services to change the camera parameters. To see the list of available services plese use `rosservice list` command. Once you have located the desired service you can call it by using the `rosservice call /service_name {...parameters...}` (with the corresponding service and parameters). E.g.:
+This drivers offers different ROS services to change the camera parameters. To see the list of available services please use `rosservice list` command. Once you have located the desired service you can call it by using the `rosservice call /service_name {...parameters...}` (with the corresponding service and parameters). E.g.:
 
 ```
 ~/workspace/dnb_docs$ rosservice call /pylon_camera_node/set_reverse_x "data: true" 
 success: True
 message: "done"
 ```
-To auto-fill the parameters you can use Tab after writting the service name. Please refer to http://wiki.ros.org/rosservice for ros service usage.
+To auto-fill the parameters you can use Tab after writing the service name. Please refer to http://wiki.ros.org/rosservice for ros service usage.
 
 ### Intrinsic calibration
 

@@ -36,42 +36,42 @@
 #include <vector>
 
 #include <pylon_camera/internal/pylon_camera.h>
-
-#include <pylon/usb/BaslerUsbInstantCamera.h>
+#include <pylon/BaslerUniversalInstantCamera.h>
 
 namespace pylon_camera
 {
 
 struct USBCameraTrait
 {
-    typedef Pylon::CBaslerUsbInstantCamera CBaslerInstantCameraT;
-    typedef Basler_UsbCameraParams::ExposureAutoEnums ExposureAutoEnums;
-    typedef Basler_UsbCameraParams::GainAutoEnums GainAutoEnums;
-    typedef Basler_UsbCameraParams::PixelFormatEnums PixelFormatEnums;
-    typedef Basler_UsbCameraParams::PixelSizeEnums PixelSizeEnums;
+    typedef Pylon::CBaslerUniversalInstantCamera CBaslerInstantCameraT;
+    typedef Basler_UniversalCameraParams::ExposureAutoEnums ExposureAutoEnums;
+    typedef Basler_UniversalCameraParams::GainAutoEnums GainAutoEnums;
+    typedef Basler_UniversalCameraParams::PixelFormatEnums PixelFormatEnums;
+    typedef Basler_UniversalCameraParams::PixelSizeEnums PixelSizeEnums;
     typedef GenApi::IFloat AutoTargetBrightnessType;
     typedef GenApi::IFloat GainType;
     typedef double AutoTargetBrightnessValueType;
-    typedef Basler_UsbCameraParams::ShutterModeEnums ShutterModeEnums;
-    typedef Basler_UsbCameraParams::UserOutputSelectorEnums UserOutputSelectorEnums;
-    typedef Basler_UsbCameraParams::AcquisitionStatusSelectorEnums AcquisitionStatusSelectorEnums;
-    typedef Basler_UsbCameraParams::SensorReadoutModeEnums SensorReadoutModeEnums;
-    typedef Basler_UsbCameraParams::TriggerSelectorEnums TriggerSelectorEnums;
-    typedef Basler_UsbCameraParams::TriggerModeEnums TriggerModeEnums;
-    typedef Basler_UsbCameraParams::TriggerSourceEnums TriggerSourceEnums;
-    typedef Basler_UsbCameraParams::TriggerActivationEnums TriggerActivationEnums;
-    typedef Basler_UsbCameraParams::LineSelectorEnums LineSelectorEnums;
-    typedef Basler_UsbCameraParams::LineModeEnums LineModeEnums;
-    typedef Basler_UsbCameraParams::DeviceLinkThroughputLimitModeEnums DeviceLinkThroughputLimitModeEnums;
-    typedef Basler_UsbCameraParams::AutoFunctionROISelectorEnums AutoFunctionROISelectorEnums;
-    typedef Basler_UsbCameraParams::BalanceWhiteAutoEnums BalanceWhiteAutoEnums;
-    typedef Basler_UsbCameraParams::LightSourcePresetEnums LightSourcePresetEnums;
-    typedef Basler_UsbCameraParams::LineSourceEnums LineSourceEnums;
-    typedef Basler_UsbCameraParams::DemosaicingModeEnums DemosaicingModeEnums;
-    typedef Basler_UsbCameraParams::PgiModeEnums PgiModeEnums;
-    typedef Basler_UsbCameraParams::UserSetSelectorEnums UserSetSelectorEnums;
-    typedef Basler_UsbCameraParams::UserSetDefaultEnums UserSetDefaultSelectorEnums;
-    typedef Basler_UsbCameraParams::LineFormatEnums LineFormatEnums;
+    typedef Basler_UniversalCameraParams::ShutterModeEnums ShutterModeEnums;
+    typedef Basler_UniversalCameraParams::UserOutputSelectorEnums UserOutputSelectorEnums;
+    typedef Basler_UniversalCameraParams::AcquisitionStatusSelectorEnums AcquisitionStatusSelectorEnums;
+    typedef Basler_UniversalCameraParams::SensorReadoutModeEnums SensorReadoutModeEnums;
+    typedef Basler_UniversalCameraParams::TriggerSelectorEnums TriggerSelectorEnums;
+    typedef Basler_UniversalCameraParams::TriggerModeEnums TriggerModeEnums;
+    typedef Basler_UniversalCameraParams::TriggerSourceEnums TriggerSourceEnums;
+    typedef Basler_UniversalCameraParams::TriggerActivationEnums TriggerActivationEnums;
+    typedef Basler_UniversalCameraParams::LineSelectorEnums LineSelectorEnums;
+    typedef Basler_UniversalCameraParams::LineModeEnums LineModeEnums;
+    typedef Basler_UniversalCameraParams::DeviceLinkThroughputLimitModeEnums DeviceLinkThroughputLimitModeEnums;
+    typedef Basler_UniversalCameraParams::AutoFunctionROISelectorEnums AutoFunctionROISelectorEnums;
+    typedef Basler_UniversalCameraParams::BalanceWhiteAutoEnums BalanceWhiteAutoEnums;
+    typedef Basler_UniversalCameraParams::LightSourcePresetEnums LightSourcePresetEnums;
+    typedef Basler_UniversalCameraParams::LineSourceEnums LineSourceEnums;
+    typedef Basler_UniversalCameraParams::DemosaicingModeEnums DemosaicingModeEnums;
+    typedef Basler_UniversalCameraParams::PgiModeEnums PgiModeEnums;
+    typedef Basler_UniversalCameraParams::UserSetSelectorEnums UserSetSelectorEnums;
+    typedef Basler_UniversalCameraParams::UserSetDefaultEnums UserSetDefaultSelectorEnums;
+    typedef Basler_UniversalCameraParams::LineFormatEnums LineFormatEnums;
+    typedef Basler_UniversalCameraParams::BalanceRatioSelectorEnums BalanceRatioSelectorEnums;
 
 
     static inline AutoTargetBrightnessValueType convertBrightness(const int& value)
@@ -87,16 +87,19 @@ bool PylonUSBCamera::applyCamSpecificStartupSettings(const PylonCameraParameter&
 {
     try
     {
+        //cam_->StartGrabbing();
+        grabbingStarting();
+        cam_->StopGrabbing();
         if (parameters.startup_user_set_ == "Default")
             {
 
             // Remove all previous settings (sequencer etc.)
             // Default Setting = Free-Running
-            cam_->UserSetSelector.SetValue(Basler_UsbCameraParams::UserSetSelector_Default);
+            cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_Default);
             cam_->UserSetLoad.Execute();
             // UserSetSelector_Default overrides Software Trigger Mode !!
-            cam_->TriggerSource.SetValue(Basler_UsbCameraParams::TriggerSource_Software);
-            cam_->TriggerMode.SetValue(Basler_UsbCameraParams::TriggerMode_On);
+            cam_->TriggerSource.SetValue(Basler_UniversalCameraParams::TriggerSource_Software);
+            cam_->TriggerMode.SetValue(Basler_UniversalCameraParams::TriggerMode_On);
 
              /* Thresholds for the AutoExposure Functions:
               *  - lower limit can be used to get rid of changing light conditions
@@ -113,7 +116,7 @@ bool PylonUSBCamera::applyCamSpecificStartupSettings(const PylonCameraParameter&
 
             // The gain auto function and the exposure auto function can be used at the same time. In this case,
             // however, you must also set the Auto Function Profile feature.
-            //  cam_->AutoFunctionProfile.SetValue(Basler_UsbCameraParams::AutoFunctionProfile_MinimizeGain);
+            //  cam_->AutoFunctionProfile.SetValue(Basler_UniversalCameraParams::AutoFunctionProfile_MinimizeGain);
 
             if ( GenApi::IsAvailable(cam_->BinningHorizontal) &&
                  GenApi::IsAvailable(cam_->BinningVertical) )
@@ -145,19 +148,19 @@ bool PylonUSBCamera::applyCamSpecificStartupSettings(const PylonCameraParameter&
             }
         else if (parameters.startup_user_set_ == "UserSet1")
             {
-                cam_->UserSetSelector.SetValue(Basler_UsbCameraParams::UserSetSelector_UserSet1);
+                cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet1);
                 cam_->UserSetLoad.Execute();
                 ROS_WARN("User Set 1 Loaded");
             } 
         else if (parameters.startup_user_set_ == "UserSet2")
             {
-                cam_->UserSetSelector.SetValue(Basler_UsbCameraParams::UserSetSelector_UserSet2);
+                cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet2);
                 cam_->UserSetLoad.Execute();
                 ROS_WARN("User Set 2 Loaded");
             } 
         else if (parameters.startup_user_set_ == "UserSet3")
             {
-                cam_->UserSetSelector.SetValue(Basler_UsbCameraParams::UserSetSelector_UserSet3);
+                cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet3);
                 cam_->UserSetLoad.Execute();
                 ROS_WARN("User Set 3 Loaded");
             } 
@@ -184,14 +187,14 @@ bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times,
         // Runtime Sequencer: cam_->IsGrabbing() ? cam_->StopGrabbing(); //10ms
         if ( GenApi::IsWritable(cam_->SequencerMode) )
         {
-            cam_->SequencerMode.SetValue(Basler_UsbCameraParams::SequencerMode_Off);
+            cam_->SequencerMode.SetValue(Basler_UniversalCameraParams::SequencerMode_Off);
         }
         else
         {
             ROS_ERROR("Sequencer Mode not writable");
         }
 
-        cam_->SequencerConfigurationMode.SetValue(Basler_UsbCameraParams::SequencerConfigurationMode_On);
+        cam_->SequencerConfigurationMode.SetValue(Basler_UniversalCameraParams::SequencerConfigurationMode_On);
 
         // **** valid for all sets: reset on software signal 1 ****
         int64_t initial_set = cam_->SequencerSetSelector.GetMin();
@@ -199,10 +202,10 @@ bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times,
         cam_->SequencerSetSelector.SetValue(initial_set);
         cam_->SequencerPathSelector.SetValue(0);
         cam_->SequencerSetNext.SetValue(initial_set);
-        cam_->SequencerTriggerSource.SetValue(Basler_UsbCameraParams::SequencerTriggerSource_SoftwareSignal1);
+        cam_->SequencerTriggerSource.SetValue(Basler_UniversalCameraParams::SequencerTriggerSource_SoftwareSignal1);
         // advance on Frame Start
         cam_->SequencerPathSelector.SetValue(1);
-        cam_->SequencerTriggerSource.SetValue(Basler_UsbCameraParams::SequencerTriggerSource_FrameStart);
+        cam_->SequencerTriggerSource.SetValue(Basler_UniversalCameraParams::SequencerTriggerSource_FrameStart);
         // ********************************************************
 
         for ( std::size_t i = 0; i < exposure_times.size(); ++i )
@@ -227,8 +230,8 @@ bool PylonUSBCamera::setupSequencer(const std::vector<float>& exposure_times,
         }
 
         // config finished
-        cam_->SequencerConfigurationMode.SetValue(Basler_UsbCameraParams::SequencerConfigurationMode_Off);
-        cam_->SequencerMode.SetValue(Basler_UsbCameraParams::SequencerMode_On);
+        cam_->SequencerConfigurationMode.SetValue(Basler_UniversalCameraParams::SequencerConfigurationMode_Off);
+        cam_->SequencerMode.SetValue(Basler_UniversalCameraParams::SequencerMode_On);
     }
     catch ( const GenICam::GenericException &e )
     {
@@ -396,6 +399,11 @@ std::string PylonUSBCamera::setAcquisitionFrameCount(const int& frameCount)
             cam_->AcquisitionBurstFrameCount.SetValue(frameCount);   
             return "done";
         }
+        else if ( GenApi::IsAvailable(cam_->AcquisitionFrameRate) )
+        {
+            cam_->AcquisitionFrameRate.SetValue(frameCount);   
+            return "done";
+        }
         else 
         {
              ROS_ERROR_STREAM("Error while trying to change the Acquisition frame count. The connected Camera not supporting this feature");
@@ -419,6 +427,10 @@ int PylonUSBCamera::getAcquisitionFrameCount()
         {  
             return static_cast<int>(cam_->AcquisitionBurstFrameCount.GetValue());
         }
+        else if ( GenApi::IsAvailable(cam_->AcquisitionFrameRate) )
+        {
+            return static_cast<int>(cam_->AcquisitionFrameRate.GetValue());
+        }
         else 
         {
              return -10000;
@@ -441,6 +453,25 @@ template <>
 std::string PylonUSBCamera::gammaEnable(const bool& enable)
 {
     return "Error, the connect camera not supporting this feature";
+}
+
+template <> 
+float PylonUSBCamera::getTemperature(){
+    try
+    {
+        if ( GenApi::IsAvailable(cam_->DeviceTemperature) )
+        {  
+            return static_cast<float>(cam_->DeviceTemperature.GetValue());   
+        }
+        else 
+        {
+             return 0.0;
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        return 0.0;
+    }
 }
 
 }  // namespace pylon_camera
