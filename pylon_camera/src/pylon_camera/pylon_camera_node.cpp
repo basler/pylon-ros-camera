@@ -461,7 +461,7 @@ bool PylonCameraNode::startGrabbing()
     {
         std::string srv_name = "set_user_output_" + std::to_string(i);
         std::string srv_name_af = "activate_autoflash_output_" + std::to_string(i);
-        if (! ros::service::exists("/pylon_camera_node/"+srv_name, false))
+        if (! ros::service::exists("~" + srv_name, false))
         {
         set_user_output_srvs_.at(i) =
             nh_.advertiseService< std_srvs::SetBool::Request,
@@ -470,7 +470,7 @@ bool PylonCameraNode::startGrabbing()
                                     boost::bind(&PylonCameraNode::setUserOutputCB,
                                                 this, i ,_1 ,_2));
         }
-        if (! ros::service::exists("/pylon_camera_node/"+srv_name_af, false))
+        if (! ros::service::exists("~" + srv_name_af, false))
         {
         set_user_output_srvs_.at(num_user_outputs+i) =
             nh_.advertiseService< std_srvs::SetBool::Request,
@@ -880,7 +880,9 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
     candidates.at(2) = goal->brightness_given ? goal->brightness_values.size() : 0;
     candidates.at(3) = goal->gamma_given ? goal->gamma_values.size() : 0;
 
+    // Minimum of 1, in case user does not wish to target any parameters
     size_t n_images = *std::max_element(candidates.begin(), candidates.end());
+    if (n_images == 0) n_images = 1;
 
     if ( goal->exposure_given && goal->exposure_times.size() != n_images )
     {

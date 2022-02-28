@@ -106,7 +106,7 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     {
         int binning_x;
         nh.getParam("binning_x", binning_x);
-        std::cout << "binning x is given and has value " << binning_x << std::endl;
+        ROS_DEBUG_STREAM("binning x is given and has value " << binning_x);
         if ( binning_x > 32 || binning_x < 0 )
         {
             ROS_WARN_STREAM("Desired horizontal binning_x factor not in valid "
@@ -124,7 +124,7 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     {
         int binning_y;
         nh.getParam("binning_y", binning_y);
-        std::cout << "binning y is given and has value " << binning_y << std::endl;
+        ROS_DEBUG_STREAM("binning y is given and has value " << binning_y);
         if ( binning_y > 32 || binning_y < 0 )
         {
             ROS_WARN_STREAM("Desired vertical binning_y factor not in valid "
@@ -168,29 +168,28 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     if ( exposure_given_ )
     {
         nh.getParam("exposure", exposure_);
-        std::cout << "exposure is given and has value " << exposure_ << std::endl;
+        ROS_DEBUG_STREAM("exposure is given and has value " << exposure_);
     }
 
     gain_given_ = nh.hasParam("gain");
     if ( gain_given_ )
     {
         nh.getParam("gain", gain_);
-        std::cout << "gain is given and has value " << gain_ << std::endl;
+        ROS_DEBUG_STREAM("gain is given and has value " << gain_);
     }
 
     gamma_given_ = nh.hasParam("gamma");
     if ( gamma_given_ )
     {
         nh.getParam("gamma", gamma_);
-        std::cout << "gamma is given and has value " << gamma_ << std::endl;
+        ROS_DEBUG_STREAM("gamma is given and has value " << gamma_);
     }
 
     brightness_given_ = nh.hasParam("brightness");
     if ( brightness_given_ )
     {
         nh.getParam("brightness", brightness_);
-        std::cout << "brightness is given and has value " << brightness_
-            << std::endl;
+        ROS_DEBUG_STREAM("brightness is given and has value " << brightness_);
         if ( gain_given_ && exposure_given_ )
         {
             ROS_WARN_STREAM("Gain ('gain') and Exposure Time ('exposure') "
@@ -205,17 +204,17 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
             if ( nh.hasParam("brightness_continuous") )
             {
                 nh.getParam("brightness_continuous", brightness_continuous_);
-                std::cout << "brightness is continuous" << std::endl;
+                ROS_DEBUG_STREAM("brightness is continuous");
             }
             if ( nh.hasParam("exposure_auto") )
             {
                 nh.getParam("exposure_auto", exposure_auto_);
-                std::cout << "exposure is set to auto" << std::endl;
+                ROS_DEBUG_STREAM("exposure is set to auto");
             }
             if ( nh.hasParam("gain_auto") )
             {
                 nh.getParam("gain_auto", gain_auto_);
-                std::cout << "gain is set to auto" << std::endl;
+                ROS_DEBUG_STREAM("gain is set to auto");
             }
         }
     }
