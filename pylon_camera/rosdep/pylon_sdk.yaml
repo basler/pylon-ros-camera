@@ -1,4 +1,0 @@
-pylon:
-  ubuntu:
-    source:
-      uri: "https://raw.githubusercontent.com/dragandbot/pylon-ros-camera/pylon6-dev/pylon_camera/rosdep/pylon_sdk.rdmanifest"

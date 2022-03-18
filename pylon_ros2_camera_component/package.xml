@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+
+  <name>pylon_ros2_camera_component</name>
+  
+  <version>0.1.0</version>
+  
+  <description>
+  	Proprietary ROS2 Package for Basler Cameras using the the Pylon API.
+  	Supports DART, USB3 and GigE cameras.
+  </description>
+    
+  <maintainer email="fpi@teknologisk.dk">Francois Picard</maintainer>
+  
+  <license>BSD</license>
+  
+  <url type="website">https://www.baslerweb.com/en/</url>
+  <url type="repository">todo</url>
+  <url type="bugtracker">todo</url>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  
+  <build_depend>pylon_ros2_camera_interfaces</build_depend>
+  <build_depend>rclcpp</build_depend>
+  <build_depend>rclcpp_action</build_depend>
+  <build_depend>rclcpp_components</build_depend>
+  <build_depend>rcutils</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>camera_info_manager</build_depend>
+  <build_depend>image_geometry</build_depend>
+  <build_depend>image_transport</build_depend>
+  <build_depend>diagnostic_updater</build_depend>
+
+  <exec_depend>pylon_ros2_camera_interfaces</exec_depend>
+  <exec_depend>rclcpp</exec_depend>
+  <exec_depend>rclcpp_action</exec_depend>
+  <exec_depend>rclcpp_components</exec_depend>
+  <exec_depend>rcutils</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>camera_info_manager</exec_depend>
+  <exec_depend>image_geometry</exec_depend>
+  <exec_depend>image_transport</exec_depend>
+  <exec_depend>diagnostic_updater</exec_depend>
+
+  <!-- The auto-magic functions for ease to use of the ament linters in CMake. -->
+  <test_depend>ament_lint_auto</test_depend>
+  <!-- The list of commonly used linters in the ament buildsytem in CMake. -->
+  <test_depend>ament_lint_common</test_depend>
+  <!-- The ROS launch tool. -->
+  <test_depend>launch</test_depend>
+  <!-- A package to create tests which involve launch files and multiple processes. -->
+  <test_depend>launch_testing</test_depend>
+  <!-- A package providing utilities for writing ROS2 enabled launch tests. -->
+  <test_depend>launch_testing_ros</test_depend>
+  <!-- A package providing cmake functions for running launch tests from the build. -->
+  <test_depend>launch_testing_ament_cmake</test_depend>
+  <!-- CMake functions which can discover and enumerate available implementations. -->
+  <test_depend>rmw_implementation_cmake</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+  
+</package>

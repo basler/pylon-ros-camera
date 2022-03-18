@@ -1,248 +1,326 @@
-# pylon-ROS-camera
+# ROS2-Driver for Basler Cameras
 
-The official pylon ROS driver for [Basler](http://www.baslerweb.com/) GigE Vision and USB3 Vision cameras
+The official pylon ROS2 driver for [Basler](http://www.baslerweb.com/) GigE Vision and USB3 Vision cameras
+
+This driver provides many functionalities available through the Basler [pylon Camera Software Suite](https://www.baslerweb.com/en/products/software/basler-pylon-camera-software-suite/) C++ API.
 
 **Please Note:**
 This project is offered with no technical support by Basler AG.
-You are welcome to post any questions or issues on [GitHub](https://github.com/basler/pylon-ros-camera)
+You are welcome to post any questions or issues on [GitHub](https://github.com/basler/pylon-ros-camera/issues)
 
-This driver was improved by [drag and bot GmbH](https://www.dragandbot.com) from the version originally released by [Magazino GmbH](https://github.com/magazino/pylon_camera).
 
-**ROS packages included:**
+## Installation
 
-- **pylon_camera**: the driver itself
-- **camera_control_msgs**: message and service definitions for interacting with the camera driver
+### Prerequisites
 
-Please check the README file of each package for more details and help.
+- From [Ubuntu 20.04 Focal Fossa](https://releases.ubuntu.com/focal/)
+- From [ROS2 Galactic Geochelone](https://docs.ros.org/en/galactic/Installation/Ubuntu-Install-Binary.html). Your ROS2 environment must be [configured](https://docs.ros.org/en/galactic/Tutorials/Configuring-ROS2-Environment.html), your workspace [created](https://docs.ros.org/en/galactic/Tutorials/Workspace/Creating-A-Workspace.html), and colcon, used to build the packages, [installed](https://docs.ros.org/en/galactic/Tutorials/Colcon-Tutorial.html).
+- From [pylon Camera Software Suite](https://www.baslerweb.com/de/support/downloads/downloads-software/) version 6. The latest APi libraries must be installed manually. Download and install the latest pylon Camera Software Suite Linux Debian Installer Package for your architecture.
+- [xterm](https://invisible-island.net/xterm/). The xterm terminal emulator must be installed (refer to the *Know Issues* section below) as a debian package (`sudo apt update && sudo apt install xterm`).
 
-## For the Impatient
- * Clone this repository in your catkin workspace (e.g. catkin_ws): `cd ~/catkin_ws/src && git clone https://github.com/basler/pylon-ros-camera`
- * Clone drag&bot public common messages: `git clone https://github.com/dragandbot/dragandbot_common.git`
- * Install ROS dependencies: `sudo sh -c 'echo "yaml https://raw.githubusercontent.com/basler/pylon-ros-camera/master/pylon_camera/rosdep/pylon_sdk.yaml" > /etc/ros/rosdep/sources.list.d/30-pylon_camera.list' && rosdep update && sudo rosdep install --from-paths . --ignore-src --rosdistro=$ROS_DISTRO -y`
- * Compile the workspace using catkin build or catkin make: `cd ~/catkin_ws && catkin clean -y && catkin build && source ~/.bashrc` or `cd ~/catkin_ws && catkin_make clean && catkin_make && source ~/.bashrc`
- * Start the driver: `roslaunch pylon_camera pylon_camera_node.launch`
- * GigE Cameras IP Configuration can be done using the command: `roslaunch pylon_camera pylon_camera_ip_configuration.launch`
+### Install and build the packages
 
-The pylon Camera Software Suite is automatically installed through rosdep installation.
+This repository including the pylon ROS2 packages must be cloned in your workspace (e.g. `dev_ws`):  
+**For ROS2 Galactic Geochelone:** ``cd ~/dev_ws/src && git clone -b galactic https://github.com/basler/pylon-ros-camera pylon_ros2_camera``  
+Due to a known issue with ROS2 (see the dedicated section below), the latest version of the `image_common` package must be installed from sources:  
+**For ROS2 Galactic Geochelone:** ``cd ~/dev_ws/src/pylon_ros2_camera && git clone https://github.com/ros-perception/image_common.git -b galactic``  
 
-## Available functionalities:
+Install the ROS2 dependencies required by the pylon ROS2 packages:  
+``cd ~/dev_ws/src && rosdep install --from-paths src --ignore-src -r -y``  
 
-This package offers many functions of the Basler [pylon Camera Software Suite](https://www.baslerweb.com/en/products/software/basler-pylon-camera-software-suite/) C++ API inside the ROS-Framework.
+Compile the workspace using `colcon`:  
+``cd ~/dev_ws/src && colcon build``  
 
-This is a list of the supported functionality accesible through ROS services, which may depend on the exact camera model you are using:
+**Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g. Python files or other not compiled resourced) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/galactic/Tutorials/Colcon-Tutorial.html?highlight=colcon)).
 
-### Image Format Control
- * Offset X
- * Offset Y
- * Reverse X
- * Reverse Y
- * Pixel Format
- * Binning Control
- * ROI Control
+**Note**: The packages are built in Release by default. The build type can be modfied by using the `--cmake-args` flag (for instance `colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Debug`).
 
-### Analog Control
- * Black Level
- * Black Level Raw
- * Gain Control
- * Gamma Control
- * Gain Auto
+Source the environment:  
+``cd ~/dev_ws/src && . install/setup.bash``  
 
-### Image Quality Control
- * PGI Control
- * Demosaicing Mode
- * Noise Reduction
- * Sharpness Enhancement
- * Light Source Preset
- * Balance White Auto
- * Brightness Control
- * Balance White
+**Note**: This step can be skipped if the `setup.bash` file is sourced in your `.bashrc`.
 
-### Acquisition Control
- * Sensor Readout Mode
- * Acquisition Burst Frame
- * Acquisition Frame Count
- * Trigger Selector
- * Trigger Mode
- * Generate Software Trigger
- * Trigger Source
- * Trigger Activation
- * Trigger Delay
- * Exposure Time
- * Exposure Auto
- * Auto Exposure Time Upper Limit
- * Acquisition Frame Rate
- * Resulting Frame Rate
- * Trigger Timeout
- * Grabbing Timeout
- * Grabbing Strategy
- * Output Queue Size
+Start the driver:  
+``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py``  
 
-### Digital I/O Control
- * Line Selector
- * Line Mode
- * Line Source
- * Line Inverter
- * Line Debouncer Time
 
-### User Set Control
- * User Set Selector
- * User Set Load
- * User Set Save
- * User Set Default
+## Usage in a nutshell
 
-### Device Control
- * Device Link Throughput Limit Mode
- * Device Link Throughput Limit
- * Device Reset
- * Device User ID
- 
-### Transport Layer
- * (GigE only) GevSCPSPacketSize (Packet Size)
- * (GigE only) GevSCPD (Inter-Packet Delay)
- * (USB only) MaxTransferSize 
+Starting the *pylon_ros2_camera_node* starts the acquisition from a given Basler camera. The nodes allows as well to access many camera parameters and parameters related to the grabbing process itself.
 
-### Stream & Statistic Parameters
-* MaxNumBuffer
-* Statistic Total Buffer Count
-* Statistic Failed Buffer Count
-* (GigE only) Statistic Buffer Underrun Count
-* (GigE only) Statistic Failed Packet Count
-* (GigE only) Statistic Resend Request Count
-* (USB only) Statistic Missed Frame Count
-* (USB only) Statistic Resynchronization Count
+The *pylon_ros2_camera_node* can be started thanks to a dedicated launch file thanks to the command:  
+``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py``  
+Several parameters can be set through the launch file and the user parameter file loaded through it (the `pylon_ros2_camera_component/config/default.yaml` user parameter file is loaded by default).
 
-### Chunk Data
-* ChunkModeActive
-* ChunkSelector
-* ChunkEnable
-* ChunkTimestamp
-* ChunkExposureTime
-* ChunkLineStatusAll
-* (ace GigE) ChunkFramecounter 
-* (ace 2 GigE/USB, ace USB) ChunkCounterValue 
+Acquisition from a specific camera is possible by setting the `device_user_id` parameter. If no specific camera is specified, the first available camera is connected automatically.  
 
-## ROS Service list
+The pylon node defines the different interface names according to the following convention:  
+``[Camera name (= my_camera by default)]/[Node name (= pylon_ros2_camera_node)]/[Interface name]``  
+The camera and the node names can be set thanks respectively to the `camera_name` and `node_name` parameters.  
 
-The ROS interface with the camera was extended with new functionality. Here is presented a list of current available services.
+Acquisition images are published through the `[Camera name]/[Node name]/[image_raw]` topic, only if a subscriber to this topic has been registered.  
+To visualize the images, [rqt](https://docs.ros.org/en/galactic/Tutorials/Turtlesim/Introducing-Turtlesim.html#install-rqt) can be used. Add an image viewer plugin through thanks to the contextual menu (Plugin -> Visualization -> Image View) and select the `[Camera name]/[Node name]/[image_raw]` topic to display the acquired and published images.  
 
-Service Name  | Notes
-------------- | -------------
-/pylon_camera_node/get_loggers  | -
-/pylon_camera_node/gamma_enable | (For GigE Cameras)
-/pylon_camera_node/set_binning  | -
-/pylon_camera_node/set_brightness | -
-/pylon_camera_node/set_camera_info | -
-/pylon_camera_node/set_exposure | -
-/pylon_camera_node/set_gain | -
-/pylon_camera_node/set_gamma | -
-/pylon_camera_node/set_gamma_selector | value : 0 = User, 1 = sRGB (For GigE Cameras)
-/pylon_camera_node/set_logger_level | -
-/pylon_camera_node/set_roi | -
-/pylon_camera_node/set_sleeping | -
-/pylon_camera_node/execute_software_trigger | -
-/pylon_camera_node/load_user_set | -
-/pylon_camera_node/reset_device | -
-/pylon_camera_node/save_user_set | -
-/pylon_camera_node/select_default_user_set | value : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw
-/pylon_camera_node/select_user_set | value : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw
-/pylon_camera_node/set_acquisition_frame_count | value = new targeted frame count
-/pylon_camera_node/set_balance_white_auto | value : 0 = Off, 1 = Once, 2 = Continuous
-/pylon_camera_node/set_black_level | value = new targeted black level
-/pylon_camera_node/set_demosaicing_mode | value : 0 = Simple, 1 = Basler PGI
-/pylon_camera_node/set_device_link_throughput_limit | value = new targeted throughput limit in Bytes/sec.
-/pylon_camera_node/set_device_link_throughput_limit_mode | data : false = deactivate, true = activate
-/pylon_camera_node/set_image_encoding | value = mono8, mono16, bgr8, rgb8, bayer_bggr8, bayer_gbrg8, bayer_rggb8, bayer_grbg8, bayer_rggb16, bayer_bggr16, bayer_gbrg16, bayer_grbg16
-/pylon_camera_node/set_light_source_preset | value : 0 = Off, 1 = Daylight5000K, 2 = Daylight6500K, 3 = Tungsten2800K
-/pylon_camera_node/set_line_debouncer_time | value = delay in micro sec.
-/pylon_camera_node/set_line_inverter | data : false = deactivate, true = activate
-/pylon_camera_node/set_line_mode | value : 0 = Input, 1 = Output
-/pylon_camera_node/set_line_selector | value : 0 = Line1, 1 = Line2, 2 = Line3, 3 = Line4
-/pylon_camera_node/set_line_source | value : 0 = Exposure Active, 1 = FrameTriggerWait, 2 = UserOutput1, 3 = Timer1Active, 4 = FlashWindow
-/pylon_camera_node/set_noise_reduction | value = reduction value
-/pylon_camera_node/set_max_transfer_size | Maximum USB data transfer size in bytes
-/pylon_camera_node/set_offset_x | value = targeted offset in x-axis
-/pylon_camera_node/set_offset_y | value = targeted offset in y-axis
-/pylon_camera_node/set_pgi_mode | data : false = deactivate, true = activate
-/pylon_camera_node/set_reverse_x | data : false = deactivate, true = activate
-/pylon_camera_node/set_reverse_y | data : false = deactivate, true = activate
-/pylon_camera_node/set_sensor_readout_mode | value : 0 = Normal, 1 = Fast
-/pylon_camera_node/set_sharpness_enhancement | value = sharpness value
-/pylon_camera_node/set_trigger_activation | value : 0 = RigingEdge, 1 = FallingEdge
-/pylon_camera_node/set_trigger_delay | value = delay in micro sec.
-/pylon_camera_node/set_trigger_mode | data : false = deactivate, true = activate
-/pylon_camera_node/set_trigger_selector | value : 0 = Frame start, 1 = Frame burst start (ace USB cameras) / Acquisition Start (ace GigE cameras)
-/pylon_camera_node/set_trigger_source | value : 0 = Software, 1 = Line1, 2 = Line3, 3 = Line4, 4 = Action1 (only selected GigE Camera)
-/pylon_camera_node/start_grabbing | -
-/pylon_camera_node/stop_grabbing  | -
-/pylon_camera_node/set_grab_timeout  | -
-/pylon_camera_node/set_trigger_timeout  | -
-/pylon_camera_node/set_white_balance  | Triggering this service will turn off the white balance auto 
-/pylon_camera_node/set_grabbing_strategy | value : 0 = GrabStrategy_OneByOne, 1 = GrabStrategy_LatestImageOnly, 2 = GrabStrategy_LatestImages
-/pylon_camera_node/set_output_queue_size | -
-/pylon_camera_node/set_max_num_buffer | value  = Maximum number of buffers that can be used simultaneously for grabbing images.
-/pylon_camera_node/get_max_num_buffer | value : -1 = Feature not supported by current camera, -2 = error getting the value.
-/pylon_camera_node/get_statistic_total_buffer_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
-/pylon_camera_node/get_statistic_failed_buffer_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
-/pylon_camera_node/get_statistic_buffer_underrun_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
-/pylon_camera_node/get_statistic_failed_packet_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
-/pylon_camera_node/get_statistic_resend_request_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
-/pylon_camera_node/get_statistic_missed_frame_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
-/pylon_camera_node/get_statistic_resynchronization_count | value : -1 = Feature not supported by current camera, -2 = error getting the value.
-/pylon_camera_node/set_chunk_mode_active | -
-/pylon_camera_node/get_chunk_mode_active | value 1 : enabled , value 2 : disabled, -1 = Feature not supported by current camera, -2 = error setting the value.
-/pylon_camera_node/set_chunk_selector | 1 = AutoBrightnessStatus , 2 = BrightPixel , 3 = CounterValue 4 = DynamicRangeMax , 5 = DynamicRangeMin , 6 = ExposureTime , 7 = FrameID ,  8 = FrameTriggerCounter , 9 = FrameTriggerIgnoredCounter , 10 = Framecounter , 11 = FramesPerTriggerCounter , 12 = Gain , 13 = GainAll , 14 = Height , 15 = Image , 16 = InputStatusAtLineTrigger , 17 = LineStatusAll , 18 = LineTriggerCounter , 19 = LineTriggerEndToEndCounter , 20 = LineTriggerIgnoredCounter, 21 = OffsetX , 22 = OffsetY, 23 = PayloadCRC16 , 24 = PixelFormat , 25 = SequenceSetIndex , 26 = SequencerSetActive, 27 = ShaftEncoderCounter , 28 = Stride , 29 = Timestamp , 30 = Triggerinputcounter , 31 = VirtLineStatusAll , 32 = Width 
-/pylon_camera_node/get_chunk_selector | 1 = AutoBrightnessStatus , 2 = BrightPixel , 3 = CounterValue 4 = DynamicRangeMax , 5 = DynamicRangeMin , 6 = ExposureTime , 7 = FrameID ,  8 = FrameTriggerCounter , 9 = FrameTriggerIgnoredCounter , 10 = Framecounter , 11 = FramesPerTriggerCounter , 12 = Gain , 13 = GainAll , 14 = Height , 15 = Image , 16 = InputStatusAtLineTrigger , 17 = LineStatusAll , 18 = LineTriggerCounter , 19 = LineTriggerEndToEndCounter , 20 = LineTriggerIgnoredCounter, 21 = OffsetX , 22 = OffsetY, 23 = PayloadCRC16 , 24 = PixelFormat , 25 = SequenceSetIndex , 26 = SequencerSetActive, 27 = ShaftEncoderCounter , 28 = Stride , 29 = Timestamp , 30 = Triggerinputcounter , 31 = VirtLineStatusAll , 32 = Width 
-/pylon_camera_node/set_chunk_enable | -
-/pylon_camera_node/get_chunk_enable | value 1 : enabled , value 2 : disabled, -1 = Feature not supported by current camera, -2 = error setting the value.
-/pylon_camera_node/get_chunk_timestamp | -
-/pylon_camera_node/get_chunk_timestamp | -
-/pylon_camera_node/get_chunk_exposure_time | -
-/pylon_camera_node/set_chunk_exposure_time | -
-/pylon_camera_node/get_chunk_line_status_all | -
-/pylon_camera_node/get_chunk_frame_counter | -
-/pylon_camera_node/get_chunk_counter_value | -
+Specific user set can be specified thanks to the `startup_user_set` parameter.  
+``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=Default``  or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet1`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet2`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet3``  
 
-## Image pixel encoding
+The default trigger mode is set to software trigger. This means that the image acquisition is triggered with a certain frame rate and the camera is not running in continuous mode.
 
-This package currently support the following ROS image pixel formats :
+### Image pixel encoding
+
+The pylon ROS2 driver support currently the following ROS2 image pixel formats :
 
 	* mono8	        (Basler Format : Mono8)
-	* mono16	(Basler Format : Mono16, Mono12)       (Notes 1&2)
-	* bgr8 		(Basler Format : BGR8)
-	* rgb8 		(Basler Format : RGB8)
+	* mono16	      (Basler Format : Mono16, Mono12)        (Notes 1&2)
+	* bgr8 		      (Basler Format : BGR8)
+	* rgb8 		      (Basler Format : RGB8)
 	* bayer_bggr8 	(Basler Format : BayerBG8)
 	* bayer_gbrg8 	(Basler Format : BayerGB8)
 	* bayer_rggb8 	(Basler Format : BayerRG8)
 	* bayer_grbg8 	(Basler Format : BayerRG8)
-	* bayer_rggb16	(Basler Format : BayerRG16, BayerRG12) (Notes 1&2)
-	* bayer_bggr16 	(Basler Format : BayerBG16, BayerBG12) (Notes 1&2)
-	* bayer_gbrg16 	(Basler Format : BayerGB16, BayerGB12) (Notes 1&2)
-	* bayer_grbg16 	(Basler Format : BayerGR16, BayerGR12) (Notes 1&2)
+	* bayer_rggb16	(Basler Format : BayerRG16, BayerRG12)  (Notes 1&2)
+	* bayer_bggr16 	(Basler Format : BayerBG16, BayerBG12)  (Notes 1&2)
+	* bayer_gbrg16 	(Basler Format : BayerGB16, BayerGB12)  (Notes 1&2)
+	* bayer_grbg16 	(Basler Format : BayerGR16, BayerGR12)  (Notes 1&2)
 
-<u>NOTES: </u>
+**NOTES:**
 
-1 : 12-bits image will be remapped to 16-bits using bit shifting to make it work with the ROS 16-bits sensor standard message.
+1 : 12-bits image will be remapped to 16-bits using bit shifting to make it work with the ROS2 16-bits sensor standard message.
 
-2 : When the user call the /pylon_camera_node/set_image_encoding to use 16-bits encoding, the driver will check first for the availability of the requested 16-bits encoding to set it, when the requested 16-bits image encoding is not available, then the driver will check the availability of the equivalent 12-bits encoding to set it. When both 16-bits and 12-bits image encoding are not available then an error message will be returned.
+2 : When the user calls the `set_image_encoding` service to use 16-bits encoding, the driver will check first for the availability of the requested 16-bits encoding to set it, when the requested 16-bits image encoding is not available, then the driver will check the availability of the equivalent 12-bits encoding to set it. When both 16-bits and 12-bits image encoding are not available then an error message will be returned.
 
-## Usage
+### Intrinsic calibration and rectified images
 
-Start the driver with command: `roslaunch pylon_camera pylon_camera_node.launch`. Then the driver will try to connect to the available cameras automatically.
+ROS2 includes a standardised camera intrinsic calibration process through the *camera_calibration* package. This calibration process generates a file, which can be processed by the pylon ROS2 driver by setting the `camera_info_url` parameter in the `pylon_ros2_camera_component/config/default.yaml` file (it is the user parameter file loaded by default through the driver main launch file) to the correct URI (e.g. file:///home/user/data/calibrations/my_calibration.yaml).
 
-To test if the driver is correctly working we recommend to use the rqt ROS tool (http://wiki.ros.org/rqt). You will need to add an image viewer through the the contextual menu RQT Plugin --> Visualization --> Image View. Then please select the `pylon_camera_node/image_raw` to display the current camera picture. If the intrinsic calibration file was configured, `pylon_camera_node/image_rect` will also appear. Please check Intrinsic calibration section for further information.
+If the calibration is valid, the rectified images are published through the `[Camera name]/[Node name]/[image_rect]` topic, only if a subscriber to this topic has been registered.
 
-This drivers offers different ROS services to change the camera parameters. To see the list of available services please use `rosservice list` command. Once you have located the desired service you can call it by using the `rosservice call /service_name {...parameters...}` (with the corresponding service and parameters). E.g.:
 
-```
-~/workspace/dnb_docs$ rosservice call /pylon_camera_node/set_reverse_x "data: true" 
-success: True
-message: "done"
-```
-To auto-fill the parameters you can use Tab after writing the service name. Please refer to http://wiki.ros.org/rosservice for ros service usage.
+## Packages
 
-### Intrinsic calibration
+- **pylon_ros2_camera_component**: the driver itself. The package includes the main *pylon_ros2_camera_node* developed as a component.
+- **pylon_ros2_camera_wrapper**: wrapper creating the main component `pylon_ros2_camera::PylonROS2CameraNode` implemented in the *pylon_ros2_camera_component* package. The wrapper starts the driver in a sinle process.
+- **pylon_ros2_camera_interfaces**: package implementing *pylon_ros2_camera_node* interfaces (messages, services and actions).
 
-ROS includes a standardised camera intrinsic calibration process through **camera_calibration** package (http://wiki.ros.org/camera_calibration). This calibration process generates a file which can be read by the **pylon-ros-camera** driver by setting the **camera_info_url** parameter of the **config/default.yaml** file to the correct URI (e.g. file:///home/user/data/calibrations/my_calibration.yaml)
+
+## Parameters
+
+**Common parameters**
+
+- **camera_frame**  
+  The tf frame under which the images were published.
+
+- **device_user_id**  
+  The DeviceUserID of the camera. If empty, the first camera found in the device list will be used.
+
+- **camera_info_url**  
+  The CameraInfo URL (Uniform Resource Locator) where the optional intrinsic camera calibration parameters are stored. This URL string will be parsed from the CameraInfoManager.
+
+- **image_encoding**  
+  The encoding of the pixels -- channel meaning, ordering, size taken from the list of strings in include file *sensor_msgs/image_encodings.h*. The supported encodings are 'mono8', 'bgr8', 'rgb8', 'bayer_bggr8', 'bayer_gbrg8' and 'bayer_rggb8'. Default values are 'mono8' and 'rgb8'.
+
+- **binning_x & binning_y**  
+  Binning factor to get downsampled images. It refers here to any camera setting which combines rectangular neighborhoods of pixels into larger "super-pixels." It reduces the resolution of the output image to (width / binning_x) x (height / binning_y). The default values binning_x = binning_y = 0 are considered the same as binning_x = binning_y = 1 (no subsampling).
+
+- **downsampling_factor_exposure_search**  
+  To speed up the exposure search, the mean brightness is not calculated on the entire image, but on a subset instead. The image is downsampled until a desired window hight is reached. The window hight is calculated out of the image height divided by the downsampling_factor_exposure search.
+
+- **frame_rate**  
+  The desired publisher frame rate if listening to the topics. This parameter can only be set once at start-up. Calling the GrabImages-Action can result in a higher frame rate.
+
+- **shutter_mode**  
+  Set mode of camera's shutter if the value is not empty. The supported modes are 'rolling', 'global' and 'global_reset'. Default value is '' (empty)
+
+- **white_balance_auto**  
+  Camera white balance auto.
+
+- **white_balance_ratio_red & white_balance_ratio_green & white_balance_ratio_blue**  
+  Camera white balance ratio.
+
+- **trigger_timeout**  
+  Camera trigger timeout in ms.
+
+- **grab_timeout**  
+  Camera grab timeout in ms.
+
+- **grab_strategy**  
+  Camera grab strategy: 0 = GrabStrategy_OneByOne / 1 = GrabStrategy_LatestImageOnly / 2 = GrabStrategy_LatestImages
+
+**Image Intensity Settings**
+
+The following settings do **NOT** have to be set. Each camera has default values which provide an automatic image adjustment resulting in valid images.
+
+- **exposure**  
+  The exposure time in microseconds to be set after opening the camera.
+
+- **gain**  
+  The target gain in percent of the maximal value the camera supports. For USB-Cameras, the gain is in dB, for GigE-Cameras it is given in so called 'device specific units'.
+
+- **gamma**  
+  Gamma correction of pixel intensity. Adjusts the brightness of the pixel values output by the camera's sensor to account for a non-linearity in the human perception of brightness or of the display system (such as CRT).
+
+- **brightness**  
+  The average intensity value of the images. It depends the exposure time as well as the gain setting. If '**exposure**' is provided, the interface will try to reach the desired brightness by only varying the gain. (What may often fail, because the range of possible exposure values is many times higher than the gain range). If '**gain**' is provided, the interface will try to reach the desired brightness by only varying the exposure time. If '**gain**' AND '**exposure**' are given, it is not possible to reach the brightness, because both are assumed to be fix.
+
+- **brightness_continuous**  
+  Only relevant, if '**brightness**' is set: The brightness_continuous flag controls the auto brightness function. If it is set to false, the brightness will only be reached once. Hence changing light conditions lead to changing brightness values. If it is set to true, the given brightness will be reached continuously, trying to adapt to changing light conditions. This is only possible for values in the possible auto range of the pylon API which is e.g. [50 - 205] for acA2500-14um and acA1920-40gm.
+
+- **exposure_auto & gain_auto**  
+  Only relevant, if '**brightness**' is set: If the camera should try to reach and / or keep the brightness, hence adapting to changing light conditions, at least one of the following flags must be set. If both are set, the interface will use the profile that tries to keep the gain at minimum to reduce white noise. The exposure_auto flag indicates, that the desired brightness will be reached by adapting the exposure time. The gain_auto flag indicates, that the desired brightness will be reached by adapting the gain.
+
+**Optional and device specific parameter**
+
+- **exposure_search_timeout**  
+  The timeout while searching the exposure which is connected to the desired brightness. For slow system this has to be increased.
+
+- **auto_exposure_upper_limit**  
+  The exposure search can be limited with an upper bound. This is to prevent very high exposure times and resulting timeouts. A typical value for this upper bound is ~2000000us.
+
+- **gige/mtu_size**  
+  The MTU size. Only used for GigE cameras. To prevent lost frames configure the camera has to be configured with the MTU size the network card supports. A value greater 3000 should be good (1500 for RaspberryPI)
+
+- **gige/inter_pkg_delay**  
+  The inter-package delay in ticks. Only used for GigE cameras. To prevent lost frames it should be greater 0. For most of GigE-Cameras, a value of 1000 is reasonable. For GigE-Cameras used on a RaspberryPI this value should be set to 11772.
+
+- **auto_flash**  
+  Flag that indicates if the camera has a flash connected which should be on on exposure. Only supported for GigE cameras. Default: false.
+
+- **auto_flash_line_2**  
+  Flag that indicates if the camera has a flash connected on line 2 which should be on on exposure. Only supported for GigE cameras. Default: true.
+
+- **auto_flash_line_3**  
+  Flag that indicates if the camera has a flash connected on line 3 which should be on on exposure. Only supported for GigE cameras. Default: true.
+
+**ROS2 pylon node specific parameter**
+
+- **startup_user_set**  
+  Flag specifying if a given user set is used when starting the camera.
+
+- **enable_status_publisher**  
+  Flag used to enable/disable the node status publisher.
+
+- **enable_current_params_publisher**  
+  Flag used to enable/disable the current camera publisher.
+
+
+## Publishers
+
+Name          | Notes
+------------- | -------------
+/my_camera/pylon_ros2_camera_node/camera_info  | sensor_msgs/msg/CameraInfo
+/my_camera/pylon_ros2_camera_node/current_params  | current camera parameter
+/my_camera/pylon_ros2_camera_node/image_raw  | acquired images
+/my_camera/pylon_ros2_camera_node/image_rect  | rectified images if the camera is calibrated
+/my_camera/pylon_ros2_camera_node/status  | camera status
+
+
+## Service servers
+
+Name          | Notes
+------------- | -------------
+/my_camera/pylon_ros2_camera_node/activate_autoflash_output_[index]  | data : false = deactivate, true = activate
+/my_camera/pylon_ros2_camera_node/describe_parameters  | -
+/my_camera/pylon_ros2_camera_node/execute_software_trigger  | -
+/my_camera/pylon_ros2_camera_node/get_chunk_counter_value  | -
+/my_camera/pylon_ros2_camera_node/get_chunk_enable  | -
+/my_camera/pylon_ros2_camera_node/get_chunk_exposure_time  | -
+/my_camera/pylon_ros2_camera_node/get_chunk_frame_counter  | -
+/my_camera/pylon_ros2_camera_node/get_chunk_line_status_all  | -
+/my_camera/pylon_ros2_camera_node/get_chunk_mode_active  | -
+/my_camera/pylon_ros2_camera_node/get_chunk_selector  | -
+/my_camera/pylon_ros2_camera_node/get_chunk_timestamp  | -
+/my_camera/pylon_ros2_camera_node/get_max_num_buffer  | -
+/my_camera/pylon_ros2_camera_node/get_parameter_types  | -
+/my_camera/pylon_ros2_camera_node/get_parameters  | -
+/my_camera/pylon_ros2_camera_node/get_statistic_buffer_underrun_count  | -
+/my_camera/pylon_ros2_camera_node/get_statistic_failed_buffer_count  | -
+/my_camera/pylon_ros2_camera_node/get_statistic_failed_packet_count  | -
+/my_camera/pylon_ros2_camera_node/get_statistic_missed_frame_count  | -
+/my_camera/pylon_ros2_camera_node/get_statistic_resend_request_count  | -
+/my_camera/pylon_ros2_camera_node/get_statistic_resynchronization_count  | -
+/my_camera/pylon_ros2_camera_node/get_statistic_total_buffer_count  | -
+/my_camera/pylon_ros2_camera_node/list_parameters  | -
+/my_camera/pylon_ros2_camera_node/load_user_set  | -
+/my_camera/pylon_ros2_camera_node/reset_device  | -
+/my_camera/pylon_ros2_camera_node/save_user_set  | -
+/my_camera/pylon_ros2_camera_node/set_PGI_mode  | data : false = deactivate, true = activate
+/my_camera/pylon_ros2_camera_node/set_acquisition_frame_count  | value = new targeted frame count
+/my_camera/pylon_ros2_camera_node/set_binning  | -
+/my_camera/pylon_ros2_camera_node/set_black_level  | value = new targeted black level
+/my_camera/pylon_ros2_camera_node/set_brightness  | -
+/my_camera/pylon_ros2_camera_node/set_chunk_enable  | data : false = deactivate, true = activate
+/my_camera/pylon_ros2_camera_node/set_chunk_exposure_time  | -
+/my_camera/pylon_ros2_camera_node/set_chunk_mode_active  | data : false = deactivate, true = activate
+/my_camera/pylon_ros2_camera_node/set_chunk_selector  | -
+/my_camera/pylon_ros2_camera_node/set_demosaicing_mode  | value : 0 = Simple, 1 = Basler PGI
+/my_camera/pylon_ros2_camera_node/set_device_link_throughput_limit  | value = new targeted throughput limit in Bytes/sec.
+/my_camera/pylon_ros2_camera_node/set_device_link_throughput_limit_mode  | data : false = deactivate, true = activate
+/my_camera/pylon_ros2_camera_node/set_exposure  | -
+/my_camera/pylon_ros2_camera_node/set_gain  | -
+/my_camera/pylon_ros2_camera_node/set_gamma  | value: 0 = User, 1 = sRGB
+/my_camera/pylon_ros2_camera_node/set_gamma_activation  | (For GigE Cameras)
+/my_camera/pylon_ros2_camera_node/set_gamma_selector  | value : 0 = User, 1 = sRGB (For GigE Cameras)
+/my_camera/pylon_ros2_camera_node/set_grab_timeout  | -
+/my_camera/pylon_ros2_camera_node/set_grabbing_strategy  | -
+/my_camera/pylon_ros2_camera_node/set_image_encoding  | value = mono8, mono16, bgr8, rgb8, bayer_bggr8, bayer_gbrg8, bayer_rggb8, bayer_grbg8, bayer_rggb16, bayer_bggr16, bayer_gbrg16, bayer_grbg16
+/my_camera/pylon_ros2_camera_node/set_light_source_preset  | value : 0 = Off, 1 = Daylight5000K, 2 = Daylight6500K, 3 = Tungsten2800K
+/my_camera/pylon_ros2_camera_node/set_line_debouncer_time  | value = delay in micro sec.
+/my_camera/pylon_ros2_camera_node/set_line_inverter  | data : false = deactivate, true = activate
+/my_camera/pylon_ros2_camera_node/set_line_mode  | value : 0 = Input, 1 = Output
+/my_camera/pylon_ros2_camera_node/set_line_selector  | value : 0 = Line1, 1 = Line2, 2 = Line3, 3 = Line4
+/my_camera/pylon_ros2_camera_node/set_line_source  | value : 0 = Exposure Active, 1 = FrameTriggerWait, 2 = UserOutput1, 3 = Timer1Active, 4 = FlashWindow
+/my_camera/pylon_ros2_camera_node/set_max_num_buffer  | -
+/my_camera/pylon_ros2_camera_node/set_max_transfer_size  | maximum USB data transfer size in bytes
+/my_camera/pylon_ros2_camera_node/set_noise_reduction  | value = reduction value
+/my_camera/pylon_ros2_camera_node/set_offset_x  | value = targeted offset in x-axis
+/my_camera/pylon_ros2_camera_node/set_offset_y  | value = targeted offset in y-axis
+/my_camera/pylon_ros2_camera_node/set_output_queue_size  | -
+/my_camera/pylon_ros2_camera_node/set_parameters  | -
+/my_camera/pylon_ros2_camera_node/set_parameters_atomically  | -
+/my_camera/pylon_ros2_camera_node/set_reverse_x  | data : false = deactivate, true = activate
+/my_camera/pylon_ros2_camera_node/set_reverse_y  | data : false = deactivate, true = activate
+/my_camera/pylon_ros2_camera_node/set_roi  | -
+/my_camera/pylon_ros2_camera_node/set_sensor_readout_mode  | value : 0 = Normal, 1 = Fast
+/my_camera/pylon_ros2_camera_node/set_sharpness_enhancement  | value = sharpness value
+/my_camera/pylon_ros2_camera_node/set_sleeping  | -
+/my_camera/pylon_ros2_camera_node/set_trigger_activation  | value : 0 = RigingEdge, 1 = FallingEdge
+/my_camera/pylon_ros2_camera_node/set_trigger_delay  | value = delay in micro sec.
+/my_camera/pylon_ros2_camera_node/set_trigger_mode  | data : false = deactivate, true = activate
+/my_camera/pylon_ros2_camera_node/set_trigger_selector  | value : 0 = Frame start, 1 = Frame burst start (ace USB cameras) / Acquisition Start (ace GigE cameras)
+/my_camera/pylon_ros2_camera_node/set_trigger_source  | value : 0 = Software, 1 = Line1, 2 = Line3, 3 = Line4, 4 = Action1 (only selected GigE Camera)
+/my_camera/pylon_ros2_camera_node/set_trigger_timeout  | -
+/my_camera/pylon_ros2_camera_node/set_user_output_[index]  | data : false = deactivate, true = activate
+/my_camera/pylon_ros2_camera_node/set_user_set_default_selector  | value : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw
+/my_camera/pylon_ros2_camera_node/set_user_set_selector  | value : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw
+/my_camera/pylon_ros2_camera_node/set_white_balance  | -
+/my_camera/pylon_ros2_camera_node/set_white_balance_auto  | value : 0 = Off, 1 = Once, 2 = Continuous
+/my_camera/pylon_ros2_camera_node/start_grabbing  | -
+/my_camera/pylon_ros2_camera_node/stop_grabbing  | -
+/my_camera/set_camera_info  | -
+
+
+## Action servers
+
+Name          | Notes
+------------- | -------------
+/my_camera/pylon_ros2_camera_node/grab_images_raw  | -
+
+Through this action, it is possible to grab one image or a sequence of images with user-specified parameters (exposure time, brightness value, etc.). Refer to the action definition to get more information. 
+
+The camera-characteristic parameter such as hight, width, projection matrices and camera_frame were published over the /camera_info topic. Furthermore an action-based image grabbing with desired exposure, gain, gamma and / or brightness is provided. Hence one can grab a sequence of images with above target settings as well as a single image. Grabbing images through this action can result in a higher frame rate.
+
+
+## Known issues
+
+### Getting the number of subscribers from camera publisher
+It is not possible to count correctly the number of subscribers to the `image_raw` and `image_rect` topics because of a known issue with the function `CameraPublisher::getNumSubscribers`. That is why [this image_common package](https://github.com/ros-perception/image_common/tree/galactic), fixing this issue, needs to be cloned and compiled together with the `pylon_ros2_camera_node`. 
+
+### User input in terminal when starting node through launch files
+The ros2 launch mechanism doesn't allow to access stdin through a terminal (see [here](https://github.com/ros2/launch_ros/issues/165) and [here](https://answers.ros.org/question/343326/ros2-prefix-in-launch-file/)). This is solved in this implementation by installing and using `xterm` to emulate a terminal with possible user interaction.
+
+### Service shutdown
+In the ROS pylon implementation, the `activate_autoflash_output` and `set_user_output` service servers are shutdowned when the connection with a camera is lost. It is not possible for now to do so with ROS2 without shutting down the whole node (see [here](https://discourse.ros.org/t/how-to-shutdown-and-reinitialize-a-publisher-node-in-ros-2/4090)). There is no way to overcome this issue at the moment. 
+
 
 ## Troubleshooting
 
