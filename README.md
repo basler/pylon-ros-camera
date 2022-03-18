@@ -26,17 +26,17 @@ Due to a known issue with ROS2 (see the dedicated section below), the latest ver
 **For ROS2 Galactic Geochelone:** ``cd ~/dev_ws/src/pylon_ros2_camera && git clone https://github.com/ros-perception/image_common.git -b galactic``  
 
 Install the ROS2 dependencies required by the pylon ROS2 packages:  
-``cd ~/dev_ws/src && rosdep install --from-paths src --ignore-src -r -y``  
+``cd ~/dev_ws && rosdep install --from-paths src --ignore-src -r -y``  
 
 Compile the workspace using `colcon`:  
-``cd ~/dev_ws/src && colcon build``  
+``cd ~/dev_ws && colcon build``  
 
 **Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g. Python files or other not compiled resourced) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/galactic/Tutorials/Colcon-Tutorial.html?highlight=colcon)).
 
 **Note**: The packages are built in Release by default. The build type can be modfied by using the `--cmake-args` flag (for instance `colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Debug`).
 
 Source the environment:  
-``cd ~/dev_ws/src && . install/setup.bash``  
+``cd ~/dev_ws && . install/setup.bash``  
 
 **Note**: This step can be skipped if the `setup.bash` file is sourced in your `.bashrc`.
 
