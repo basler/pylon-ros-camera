@@ -16,8 +16,8 @@
   <license>BSD</license>
   
   <url type="website">https://www.baslerweb.com/en/</url>
-  <url type="repository">todo</url>
-  <url type="bugtracker">todo</url>
+  <url type="repository">https://github.com/basler/pylon-ros-camera</url>
+  <url type="bugtracker">https://github.com/basler/pylon-ros-camera/issues</url>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   
