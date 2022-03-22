@@ -25,4 +25,4 @@
 int32 value 		# value to be setted
 ---
 bool success   # indicate successful run of triggered service
-string message # informational, e.g. for error messages
+string message # informational, e.g., for error messages

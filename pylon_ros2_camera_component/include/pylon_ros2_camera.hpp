@@ -1,7 +1,7 @@
 /******************************************************************************
  * Software License Agreement (BSD License)
  *
- * Copyright (C) 2022, Basler GmbH. All rights reserved.
+ * Copyright (C) 2022, Basler AG. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -93,8 +93,8 @@ public:
 
     /**
      * Configures the camera according to the provided ros parameters.
-     * This will use the device specific parameters as e.g. the mtu size for
-     * GigE-Cameras
+     * This will use the device specific parameters as e.g., the mtu size for
+     * GigE cameras
      * @param parameters The PylonROS2CameraParameter set to use
      * @return true if all parameters could be sent to the camera.
      */
@@ -185,7 +185,7 @@ public:
 
     /**
      * Sets autoflash active for the specified lines
-     * @param flash_on_lines map from line e.g. 1 or 2 to a boolean to 
+     * @param flash_on_lines map from line e.g., 1 or 2 to a boolean to 
               activate or deactivate the autoflash for this line .
      * @return false if a communication error occurred or true otherwise.
      */
@@ -231,7 +231,7 @@ public:
      *        provides. This might be zero for some cameras. The size affects
      *        the number of 'set' ros-services the camera_node will provide.
      *        A vector which length equals the number of user-settable outputs
-     *        will be generated. Hence e.g. output '1' can be accessed via
+     *        will be generated. Hence e.g., output '1' can be accessed via
      *        user_output_selector_enums_.at(1).
      * @return the UserOutputSelector enum list
      */

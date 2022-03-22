@@ -1,7 +1,7 @@
 /******************************************************************************
  * Software License Agreement (BSD License)
  *
- * Copyright (C) 2022, Basler GmbH. All rights reserved.
+ * Copyright (C) 2022, Basler AG. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -155,7 +155,7 @@ bool PylonROS2GigEAce2Camera::applyCamSpecificStartupSettings(const PylonROS2Cam
                 // 'the image buffer was incompletely grabbed'
                 // also in ubuntu settings -> network -> options -> MTU Size
                 // from 'automatic' to 3000 if card supports it
-                // Raspberry PI has MTU = 1500, max value for some cards: 9000
+                // single-board computers have MTU = 1500, max value for some cards: 9000
                 RCLCPP_WARN(LOGGER_GIGE_ACE2, "setting MTU");
                 cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
                 RCLCPP_WARN(LOGGER_GIGE_ACE2, "MTU Setted");

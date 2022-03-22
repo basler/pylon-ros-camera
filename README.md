@@ -1,6 +1,6 @@
 # ROS2-Driver for Basler Cameras
 
-The official pylon ROS2 driver for [Basler](http://www.baslerweb.com/) GigE Vision and USB3 Vision cameras
+The official pylon ROS2 driver for [Basler](http://www.baslerweb.com/) 2D GigE Vision and USB3 Vision cameras
 
 This driver provides many functionalities available through the Basler [pylon Camera Software Suite](https://www.baslerweb.com/en/products/software/basler-pylon-camera-software-suite/) C++ API.
 
@@ -15,12 +15,12 @@ You are welcome to post any questions or issues on [GitHub](https://github.com/b
 
 - From [Ubuntu 20.04 Focal Fossa](https://releases.ubuntu.com/focal/)
 - From [ROS2 Galactic Geochelone](https://docs.ros.org/en/galactic/Installation/Ubuntu-Install-Binary.html). Your ROS2 environment must be [configured](https://docs.ros.org/en/galactic/Tutorials/Configuring-ROS2-Environment.html), your workspace [created](https://docs.ros.org/en/galactic/Tutorials/Workspace/Creating-A-Workspace.html), and colcon, used to build the packages, [installed](https://docs.ros.org/en/galactic/Tutorials/Colcon-Tutorial.html).
-- From [pylon Camera Software Suite](https://www.baslerweb.com/de/support/downloads/downloads-software/) version 6. The latest APi libraries must be installed manually. Download and install the latest pylon Camera Software Suite Linux Debian Installer Package for your architecture.
+- From [pylon Camera Software Suite](https://www.baslerweb.com/de/support/downloads/downloads-software/) version 6.2 or newer. The latest APi libraries must be installed manually. Download and install the latest pylon Camera Software Suite Linux Debian Installer Package for your architecture.
 - [xterm](https://invisible-island.net/xterm/). The xterm terminal emulator must be installed (refer to the *Know Issues* section below) as a debian package (`sudo apt update && sudo apt install xterm`).
 
 ### Install and build the packages
 
-This repository including the pylon ROS2 packages must be cloned in your workspace (e.g. `dev_ws`):  
+This repository including the pylon ROS2 packages must be cloned in your workspace (e.g., `dev_ws`):  
 **For ROS2 Galactic Geochelone:** ``cd ~/dev_ws/src && git clone -b galactic https://github.com/basler/pylon-ros-camera pylon_ros2_camera``  
 Due to a known issue with ROS2 (see the dedicated section below), the latest version of the `image_common` package must be installed from sources:  
 **For ROS2 Galactic Geochelone:** ``cd ~/dev_ws/src/pylon_ros2_camera && git clone https://github.com/ros-perception/image_common.git -b galactic``  
@@ -31,7 +31,7 @@ Install the ROS2 dependencies required by the pylon ROS2 packages:
 Compile the workspace using `colcon`:  
 ``cd ~/dev_ws && colcon build``  
 
-**Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g. Python files or other not compiled resourced) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/galactic/Tutorials/Colcon-Tutorial.html?highlight=colcon)).
+**Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g., Python files or other not compiled resourced) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/galactic/Tutorials/Colcon-Tutorial.html?highlight=colcon)).
 
 **Note**: The packages are built in Release by default. The build type can be modfied by using the `--cmake-args` flag (for instance `colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Debug`).
 
@@ -46,7 +46,7 @@ Start the driver:
 
 ## Usage in a nutshell
 
-Starting the *pylon_ros2_camera_node* starts the acquisition from a given Basler camera. The nodes allows as well to access many camera parameters and parameters related to the grabbing process itself.
+Starting the *pylon_ros2_camera_node* starts the acquisition from a given Basler camera. The nodes allow as well to access many camera parameters and parameters related to the grabbing process itself.
 
 The *pylon_ros2_camera_node* can be started thanks to a dedicated launch file thanks to the command:  
 ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py``  
@@ -64,7 +64,7 @@ To visualize the images, [rqt](https://docs.ros.org/en/galactic/Tutorials/Turtle
 Specific user set can be specified thanks to the `startup_user_set` parameter.  
 ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=Default``  or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet1`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet2`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet3``  
 
-The default trigger mode is set to software trigger. This means that the image acquisition is triggered with a certain frame rate and the camera is not running in continuous mode.
+The default trigger mode is set to software trigger. This means that the image acquisition is triggered with a certain frame rate, which may be lower than the maximum camera frame rate. The maximum camera frame rate can be reached when running a camera in a free-run or a hardware trigger mode.
 
 ### Image pixel encoding
 
@@ -91,7 +91,7 @@ The pylon ROS2 driver support currently the following ROS2 image pixel formats :
 
 ### Intrinsic calibration and rectified images
 
-ROS2 includes a standardised camera intrinsic calibration process through the *camera_calibration* package. This calibration process generates a file, which can be processed by the pylon ROS2 driver by setting the `camera_info_url` parameter in the `pylon_ros2_camera_component/config/default.yaml` file (it is the user parameter file loaded by default through the driver main launch file) to the correct URI (e.g. file:///home/user/data/calibrations/my_calibration.yaml).
+ROS2 includes a standardised camera intrinsic calibration process through the *camera_calibration* package. This calibration process generates a file, which can be processed by the pylon ROS2 driver by setting the `camera_info_url` parameter in the `pylon_ros2_camera_component/config/default.yaml` file (it is the user parameter file loaded by default through the driver main launch file) to the correct URI (e.g., file:///home/user/data/calibrations/my_calibration.yaml).
 
 If the calibration is valid, the rectified images are published through the `[Camera name]/[Node name]/[image_rect]` topic, only if a subscriber to this topic has been registered.
 
@@ -99,7 +99,7 @@ If the calibration is valid, the rectified images are published through the `[Ca
 ## Packages
 
 - **pylon_ros2_camera_component**: the driver itself. The package includes the main *pylon_ros2_camera_node* developed as a component.
-- **pylon_ros2_camera_wrapper**: wrapper creating the main component `pylon_ros2_camera::PylonROS2CameraNode` implemented in the *pylon_ros2_camera_component* package. The wrapper starts the driver in a sinle process.
+- **pylon_ros2_camera_wrapper**: wrapper creating the main component `pylon_ros2_camera::PylonROS2CameraNode` implemented in the *pylon_ros2_camera_component* package. The wrapper starts the driver in a single process.
 - **pylon_ros2_camera_interfaces**: package implementing *pylon_ros2_camera_node* interfaces (messages, services and actions).
 
 
@@ -108,7 +108,8 @@ If the calibration is valid, the rectified images are published through the `[Ca
 **Common parameters**
 
 - **camera_frame**  
-  The tf frame under which the images were published.
+  The tf2 frame under which the images were published.  
+  ROS2 provides a library called [tf2](https://docs.ros.org/en/galactic/Concepts/About-Tf2.html) (*TransForm* version 2) to manage the coordinate transformations between the different frames (coordinate systems) defined by the user and assigned to the components of a robotics system.
 
 - **device_user_id**  
   The DeviceUserID of the camera. If empty, the first camera found in the device list will be used.
@@ -154,7 +155,7 @@ The following settings do **NOT** have to be set. Each camera has default values
   The exposure time in microseconds to be set after opening the camera.
 
 - **gain**  
-  The target gain in percent of the maximal value the camera supports. For USB-Cameras, the gain is in dB, for GigE-Cameras it is given in so called 'device specific units'.
+  The target gain in percent of the maximal value the camera supports. For USB cameras, the gain is in dB, for GigE cameras it is given in so called 'device specific units'.
 
 - **gamma**  
   Gamma correction of pixel intensity. Adjusts the brightness of the pixel values output by the camera's sensor to account for a non-linearity in the human perception of brightness or of the display system (such as CRT).
@@ -163,7 +164,7 @@ The following settings do **NOT** have to be set. Each camera has default values
   The average intensity value of the images. It depends the exposure time as well as the gain setting. If '**exposure**' is provided, the interface will try to reach the desired brightness by only varying the gain. (What may often fail, because the range of possible exposure values is many times higher than the gain range). If '**gain**' is provided, the interface will try to reach the desired brightness by only varying the exposure time. If '**gain**' AND '**exposure**' are given, it is not possible to reach the brightness, because both are assumed to be fix.
 
 - **brightness_continuous**  
-  Only relevant, if '**brightness**' is set: The brightness_continuous flag controls the auto brightness function. If it is set to false, the brightness will only be reached once. Hence changing light conditions lead to changing brightness values. If it is set to true, the given brightness will be reached continuously, trying to adapt to changing light conditions. This is only possible for values in the possible auto range of the pylon API which is e.g. [50 - 205] for acA2500-14um and acA1920-40gm.
+  Only relevant, if '**brightness**' is set: The brightness_continuous flag controls the auto brightness function. If it is set to false, the brightness will only be reached once. Hence changing light conditions lead to changing brightness values. If it is set to true, the given brightness will be reached continuously, trying to adapt to changing light conditions. This is only possible for values in the possible auto range of the pylon API which is e.g., [50 - 205] for acA2500-14um and acA1920-40gm.
 
 - **exposure_auto & gain_auto**  
   Only relevant, if '**brightness**' is set: If the camera should try to reach and / or keep the brightness, hence adapting to changing light conditions, at least one of the following flags must be set. If both are set, the interface will use the profile that tries to keep the gain at minimum to reduce white noise. The exposure_auto flag indicates, that the desired brightness will be reached by adapting the exposure time. The gain_auto flag indicates, that the desired brightness will be reached by adapting the gain.
@@ -177,19 +178,19 @@ The following settings do **NOT** have to be set. Each camera has default values
   The exposure search can be limited with an upper bound. This is to prevent very high exposure times and resulting timeouts. A typical value for this upper bound is ~2000000us.
 
 - **gige/mtu_size**  
-  The MTU size. Only used for GigE cameras. To prevent lost frames configure the camera has to be configured with the MTU size the network card supports. A value greater 3000 should be good (1500 for RaspberryPI)
+  The MTU size. Only used for GigE cameras. To prevent lost frames configure the camera has to be configured with the MTU size the network card supports. A value greater 3000 should be good (1500 for single-board computer)
 
 - **gige/inter_pkg_delay**  
-  The inter-package delay in ticks. Only used for GigE cameras. To prevent lost frames it should be greater 0. For most of GigE-Cameras, a value of 1000 is reasonable. For GigE-Cameras used on a RaspberryPI this value should be set to 11772.
+  The inter-packet delay in ticks. Only used for GigE cameras. To prevent lost frames it should be greater than 0. For most of GigE cameras, a value of 1000 is reasonable. For GigE cameras used on single-board computer, this value should be set to 11772.
 
 - **auto_flash**  
-  Flag that indicates if the camera has a flash connected which should be on on exposure. Only supported for GigE cameras. Default: false.
+  Flag that indicates if the camera has a flash connected, which should be on exposure. Only supported for GigE cameras. Default: false.
 
 - **auto_flash_line_2**  
-  Flag that indicates if the camera has a flash connected on line 2 which should be on on exposure. Only supported for GigE cameras. Default: true.
+  Flag that indicates if the camera has a flash connected on line 2, which should be on exposure. Only supported for GigE cameras. Default: true.
 
 - **auto_flash_line_3**  
-  Flag that indicates if the camera has a flash connected on line 3 which should be on on exposure. Only supported for GigE cameras. Default: true.
+  Flag that indicates if the camera has a flash connected on line 3, which should be on exposure. Only supported for GigE cameras. Default: true.
 
 **ROS2 pylon node specific parameter**
 
@@ -305,9 +306,9 @@ Name          | Notes
 ------------- | -------------
 /my_camera/pylon_ros2_camera_node/grab_images_raw  | -
 
-Through this action, it is possible to grab one image or a sequence of images with user-specified parameters (exposure time, brightness value, etc.). Refer to the action definition to get more information. 
+Through this action, it is possible to grab one image or a sequence of images with user-specified parameters (e.g., exposure time, brightness value, etc.). Refer to the action definition to get more information. 
 
-The camera-characteristic parameter such as hight, width, projection matrices and camera_frame were published over the /camera_info topic. Furthermore an action-based image grabbing with desired exposure, gain, gamma and / or brightness is provided. Hence one can grab a sequence of images with above target settings as well as a single image. Grabbing images through this action can result in a higher frame rate.
+The camera-characteristic parameter such as height, width, projection matrix (by ROS2 convention, this matrix specifies the intrinsic (camera) matrix of the processed (rectified) image - see the [CameraInfo message definition](https://github.com/ros2/common_interfaces/blob/master/sensor_msgs/msg/CameraInfo.msg) for detailed information) and camera_frame were published over the /camera_info topic. Furthermore, an action-based image grabbing with desired exposure time, gain, gamma and / or brightness is provided. Hence, one can grab a sequence of images with above target settings as well as a single image. Grabbing images through this action can result in a higher frame rate.
 
 
 ## Known issues
@@ -328,7 +329,7 @@ To increase performance and to minimize CPU usage when grabbing images, the foll
 
 ### Camera hot-swapping
 
-If you hot-swap the camera with a different camera with a non-compatible pixel encoding format (e.g. mono and color cameras), you need to restart the ROS system to replace the encoding value or replace the rosparam directly by setting the image_encoding parameter. E.g.:
+If you hot-swap the camera with a different camera with a non-compatible pixel encoding format (e.g., mono and color cameras), you need to restart the ROS system to replace the encoding value or replace the rosparam directly by setting the image_encoding parameter. e.g.,:
 `rosparam set /pylon_camera_node/image_encoding "mono8"`
 
 ### GigE Devices

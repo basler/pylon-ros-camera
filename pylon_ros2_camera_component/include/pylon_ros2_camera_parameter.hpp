@@ -2,7 +2,7 @@
 /******************************************************************************
  * Software License Agreement (BSD License)
  *
- * Copyright (C) 2022, Basler GmbH. All rights reserved.
+ * Copyright (C) 2022, Basler AG. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -160,7 +160,7 @@ public:
 
     /**
      * The target gain in percent of the maximal value the camera supports
-     * For USB-Cameras, the gain is in dB, for GigE-Cameras it is given in so
+     * For USB cameras, the gain is in dB, for GigE cameras it is given in so
      * called 'device specific units'.
      */
     double gain_;
@@ -212,7 +212,7 @@ public:
      * If it is set to true, the given brightness will be reached continuously,
      * trying to adapt to changing light conditions. This is only possible for
      * values in the possible auto range of the pylon API which is
-     * e.g. [50 - 205] for acA2500-14um and acA1920-40gm
+     * e.g., [50 - 205] for acA2500-14um and acA1920-40gm
      */
     bool brightness_continuous_;
     /**
@@ -248,7 +248,7 @@ public:
      * The MTU size. Only used for GigE cameras.
      * To prevent lost frames the camera has to be configured
      * with the MTU size the network card supports. A value greater 3000
-     * should be good (1500 for RaspberryPI)
+     * should be good (1500 for single-board computer)
      */
     int mtu_size_;
 
@@ -270,8 +270,8 @@ public:
     /**
      * The inter-package delay in ticks. Only used for GigE cameras.
      * To prevent lost frames it should be greater 0.
-     * For most of GigE-Cameras, a value of 1000 is reasonable.
-     * For GigE-Cameras used on a RaspberryPI this value should be set to 11772
+     * For most of GigE cameras, a value of 1000 is reasonable.
+     * For GigE cameras used on a single-board computer this value should be set to 11772
      */
     int inter_pkg_delay_;
 

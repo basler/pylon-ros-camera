@@ -1,7 +1,7 @@
 /******************************************************************************
  * Software License Agreement (BSD License)
  *
- * Copyright (C) 2022, Basler GmbH. All rights reserved.
+ * Copyright (C) 2022, Basler AG. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -486,7 +486,7 @@ bool PylonROS2CameraNode::initAndRegister()
 
   if (!this->pylon_camera_->applyCamSpecificStartupSettings(this->pylon_camera_parameter_set_))
   {
-    RCLCPP_ERROR_STREAM(LOGGER, "Error while applying the cam specific startup settings " << "(e.g. mtu size for GigE, ...) to the camera!");
+    RCLCPP_ERROR_STREAM(LOGGER, "Error while applying the cam specific startup settings " << "(e.g., mtu size for GigE, ...) to the camera!");
     this->cm_status_.status_id = pylon_ros2_camera_interfaces::msg::ComponentStatus::ERROR;
     this->cm_status_.status_msg = "Error while applying the cam specific startup settings";
     if (this->pylon_camera_parameter_set_.enable_status_publisher_)

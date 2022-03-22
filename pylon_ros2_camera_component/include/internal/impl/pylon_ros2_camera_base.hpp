@@ -1,7 +1,7 @@
 /******************************************************************************
  * Software License Agreement (BSD License)
  *
- * Copyright (C) 2022, Basler GmbH. All rights reserved.
+ * Copyright (C) 2022, Basler AG. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -357,7 +357,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
         available_image_encodings_ = detectAvailableImageEncodings(true); // Basler format
 
         // Check if the image can be encoded with the parameter defined value
-        if ( setImageEncoding(parameters.imageEncoding()).find("done") == std::string::npos )
+        if (setImageEncoding(parameters.imageEncoding()).find("done") == std::string::npos)
         {
             bool error = true;
             // The desired encoding cannot be used. We will try to use one of the available
@@ -1109,7 +1109,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::setBrightness(const int& target_brightne
                 // pre control to the possible pylon limits, no matter where
                 // we are currently
                 // This is not the best solution in case the current brightness
-                // is e.g. 35 and we want to reach e.g. 33, because we first go
+                // is e.g., 35 and we want to reach e.g., 33, because we first go
                 // up to 50 and then start the binary exposure search to go down
                 // again.
                 // But in fact it's the only solution, because the exact exposure
@@ -1304,7 +1304,7 @@ std::vector<int> PylonROS2CameraImpl<CameraTraitT>::detectAndCountNumUserOutputs
             if ( 0 != typeName().compare("GigE") )
             {
                 // TODO: @marcel: Contact Basler support why this is necessary
-                // for all USB-cameras
+                // for all USB cameras
                 num_value += 1;
             }
             user_output_vec.push_back(num_value);

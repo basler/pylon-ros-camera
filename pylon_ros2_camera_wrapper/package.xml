@@ -4,7 +4,7 @@
 
   <name>pylon_ros2_camera_wrapper</name>
   
-  <version>0.1.0</version>
+  <version>1.0.0</version>
   
   <description>
     Wrapper loading pylon_ros2_camera component in a single process
