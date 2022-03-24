@@ -3,6 +3,7 @@
 #############
 build
 cmake-*
+image_common/
 
 #############
 ##  files  ##
