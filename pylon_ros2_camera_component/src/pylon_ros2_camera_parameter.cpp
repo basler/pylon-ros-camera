@@ -83,37 +83,10 @@ PylonROS2CameraParameter::~PylonROS2CameraParameter()
 
 void PylonROS2CameraParameter::readFromRosParameterServer(rclcpp::Node& nh)
 {
-    try
-    {
-        nh.declare_parameter<std::string>("camera_frame", "pylon_camera");
-    }
-    catch(const rclcpp::exceptions::ParameterAlreadyDeclaredException& e)
-    {
-        RCLCPP_DEBUG_STREAM(LOGGER, "PylonROS2CameraParameter::readFromRosParameterServer: " << e.what());
-    }
-    nh.get_parameter("camera_frame", this->camera_frame_);
-
-    try
-    {
-        nh.declare_parameter<std::string>("device_user_id", "");
-    }
-    catch(const rclcpp::exceptions::ParameterAlreadyDeclaredException& e)
-    {
-        RCLCPP_DEBUG_STREAM(LOGGER, "PylonROS2CameraParameter::readFromRosParameterServer: " << e.what());
-    }
-    nh.get_parameter("device_user_id", this->device_user_id_);
-
     // if the parameter does not exist, the variable stays unchanged
+    nh.get_parameter("camera_frame", this->camera_frame_);
+    nh.get_parameter("device_user_id", this->device_user_id_);
     nh.get_parameter("frame_rate", this->frame_rate_);
-    
-    try
-    {
-        nh.declare_parameter<std::string>("camera_info_url", "");
-    }
-    catch(const rclcpp::exceptions::ParameterAlreadyDeclaredException& e)
-    {
-        RCLCPP_DEBUG_STREAM(LOGGER, "PylonROS2CameraParameter::readFromRosParameterServer: " << e.what());
-    }
     nh.get_parameter("camera_info_url", this->camera_info_url_);
 
     this->binning_x_given_ = nh.has_parameter("binning_x");

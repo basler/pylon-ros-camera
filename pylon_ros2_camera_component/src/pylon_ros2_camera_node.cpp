@@ -119,6 +119,7 @@ void PylonROS2CameraNode::init()
   // detected, the interface will reset them to the default values.
   // These parameters furthermore contain the intrinsic calibration matrices,
   // in case they are provided
+
   this->pylon_camera_parameter_set_.readFromRosParameterServer(*this);
   
   // creating the target PylonCamera-Object with the specified
