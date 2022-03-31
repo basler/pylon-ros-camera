@@ -51,7 +51,7 @@ roslint_cpp(
     src/${PROJECT_NAME}/${PROJECT_NAME}_node.cpp
     src/${PROJECT_NAME}/${PROJECT_NAME}_parameter.cpp
     src/${PROJECT_NAME}/${PROJECT_NAME}.cpp
-    src/${PROJECT_NAME}/write_device_user_id_to_camera.cpp
+    src/${PROJECT_NAME}/set_device_user_id.cpp
     src/${PROJECT_NAME}/IPConfigAuto.cpp
     include/${PROJECT_NAME}/binary_exposure_search.h
     include/${PROJECT_NAME}/encoding_conversions.h
@@ -107,8 +107,8 @@ target_link_libraries(
 )
 
 add_executable(
-    write_device_user_id_to_camera
-     src/${PROJECT_NAME}/write_device_user_id_to_camera.cpp
+    set_device_user_id
+     src/${PROJECT_NAME}/set_device_user_id.cpp
 )
 
 add_executable(
@@ -117,7 +117,7 @@ add_executable(
 )
 
 target_link_libraries(
-    write_device_user_id_to_camera
+    set_device_user_id
      ${Pylon_LIBRARIES}
 )
 
@@ -172,7 +172,7 @@ install(
     TARGETS
      ${PROJECT_NAME}
      ${PROJECT_NAME}_node
-     write_device_user_id_to_camera
+     set_device_user_id
      IPConfigAuto
     LIBRARY DESTINATION
      ${CATKIN_PACKAGE_LIB_DESTINATION}
