@@ -244,6 +244,11 @@ To auto-fill the parameters you can use Tab after writing the service name. Plea
 
 ROS includes a standardised camera intrinsic calibration process through **camera_calibration** package (http://wiki.ros.org/camera_calibration). This calibration process generates a file which can be read by the **pylon-ros-camera** driver by setting the **camera_info_url** parameter of the **config/default.yaml** file to the correct URI (e.g. file:///home/user/data/calibrations/my_calibration.yaml)
 
+### Setting device user id
+
+Set the device user id with command: `rosrun pylon_camera set_device_user_id [-sn SERIAL_NB] your_device_user_id`. If no serial number is specified thanks to the option `-sn`, the specified device user id `your_device_user_id` will be assigned to the first available camera.
+USB cameras must be disconnected and then reconnected after setting a new device user id. USB cameras keep their old user id otherwise.
+
 ## Troubleshooting
 
 To increase performance and to minimize CPU usage when grabbing images, the following settings should be considered:

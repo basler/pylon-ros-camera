@@ -10,8 +10,7 @@
  *   * Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
  *     documentation and/or other materials provided with the distribution.
- *   * Neither the names of Magazino GmbH nor the names of its
- *     contributors may be used to endorse or promote products derived from
+ *   * No contributors' name may be used to endorse or promote products derived from
  *     this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -30,16 +29,11 @@
 // no arguments -> set user id to the first connected camera 
 // -sn with serial -> set user id of the camera with the specified serial
 
-// TODO: test with usb cameras, test with several cameras, test the use case from github
-// TODO: change the copyrights
-// TODO: remove les std::cout if needed
-
 #include <pylon/PylonIncludes.h>
 
 #include <algorithm>
 #include <unistd.h>
 #include <string>
-
 
 // Argument parser
 // from https://stackoverflow.com/questions/865668/parsing-command-line-arguments-in-c
@@ -97,7 +91,7 @@ int main(int argc, char* argv[])
         std::cout << "USAGE:" << std::endl;
         std::cout << "   set_user_id_to_camera DEVICE_USER_ID           " << "\t-> Assign user id to first available camera" << std::endl;
         std::cout << "   set_user_id_to_camera -sn SERIAL DEVICE_USER_ID" << "\t-> Assign user id to camera specified by serial" << std::endl;
-        std::cout << "TIPS: run IPAutoConfig to get the serials of the available cameras" << std::endl;
+        std::cout << "TIPS: run IPAutoConfig to get the serials of the available gigE cameras and \"lsusb -v | grep Serial\" to get the serials of the available USB cameras" << std::endl;
         return 1;
     }
 
@@ -152,6 +146,7 @@ int main(int argc, char* argv[])
 
             std::cout << "Successfully wrote " << current_device_user_id->GetValue() << " to the camera "
                     << dev.GetDeviceInfo().GetModelName() << std::endl;
+            std::cout << "  Don't forget to disconnect/reconnect the camera if it is a USB one" << std::endl;
             dev.Close();
         }
         else
@@ -183,6 +178,7 @@ int main(int argc, char* argv[])
 
                     std::cout << "Successfully wrote " << current_device_user_id->GetValue() << " to the camera "
                         << dev.GetDeviceInfo().GetModelName() << std::endl;
+                    std::cout << "  Don't forget to disconnect/reconnect the camera if it is a USB one" << std::endl;
                     dev.Close();
                     
                     break;
@@ -190,7 +186,10 @@ int main(int argc, char* argv[])
             }
 
             if (i == devices.size())
-                std::cout << "Camera with serial " << serial << " not found!\n\nVerify serial with \n\tlsusb -v | grep Serial" << std::endl;
+            {
+                std::cout << "Camera with serial " << serial << " not found!" << std::endl
+                        << "Check the serial by running IPAutoConfig for gigE cameras and \"lsusb -v | grep Serial\" for USB cameras" << std::endl;
+            }
         }
     } 
     catch (GenICam::GenericException &e) 
@@ -208,4 +207,3 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-
