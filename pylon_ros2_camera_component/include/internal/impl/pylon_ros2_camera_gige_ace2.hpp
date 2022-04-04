@@ -100,7 +100,7 @@ bool PylonROS2GigEAce2Camera::applyCamSpecificStartupSettings(const PylonROS2Cam
                  *    due to 50Hz lamps (-> 20ms cycle duration)
                  *  - upper limit is to prevent motion blur
                  */
-                double upper_lim = std::min(parameters.auto_exp_upper_lim_,
+                double upper_lim = std::min(parameters.auto_exposure_upper_limit_,
                                             cam_->ExposureTimeAbs.GetMax());
                 cam_->AutoExposureTimeAbsLowerLimit.SetValue(cam_->ExposureTimeAbs.GetMin());
                 cam_->AutoExposureTimeAbsUpperLimit.SetValue(upper_lim);

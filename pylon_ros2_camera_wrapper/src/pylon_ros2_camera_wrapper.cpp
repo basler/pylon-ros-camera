@@ -43,12 +43,21 @@ int main(int argc, char * argv[])
   rclcpp::NodeOptions options;
   auto pylon_ros2_camera_node = std::make_shared<pylon_ros2_camera::PylonROS2CameraNode>(options);
   
-  // executor responsible for execution of callbacks for a set of nodes
-  rclcpp::executors::SingleThreadedExecutor exec;
-  exec.add_node(pylon_ros2_camera_node);
-  exec.spin();
+  try
+  {
+    // executor responsible for execution of callbacks for a set of nodes
+    rclcpp::executors::SingleThreadedExecutor exec;
+    exec.add_node(pylon_ros2_camera_node);
+    exec.spin();
 
-  rclcpp::shutdown();
+    rclcpp::shutdown();
+  }
+  catch(const std::exception& e)
+  {
+    std::cerr << "Impossible to spin" << std::endl;
+    std::cerr << e.what() << std::endl;
+    return EXIT_FAILURE;
+  }
 
   return EXIT_SUCCESS;
 }
