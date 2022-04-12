@@ -25,13 +25,12 @@ def generate_launch_description():
 
     # node
     ip_auto_config_node = Node(
-        package='pylon_ros2_camera_component',        
+        package='pylon_ros2_camera_component',
         executable='ip_auto_config',
         name=node_name,
         output='screen',
         emulate_tty=True,
         respawn=respawn,
-        emulate_tty=True,
         prefix=['xterm -e gdb -ex run --args']
     )
 

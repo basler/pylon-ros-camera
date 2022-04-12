@@ -85,6 +85,7 @@ float32[] reached_gamma_values
 # In case of failure, the images-vector contains only the images, that could be
 # grabbed before the failure occurred.
 bool success
+
 ---
 ##########################################
 ################ FEEDBACK ################

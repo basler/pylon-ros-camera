@@ -95,7 +95,7 @@ public:
     /**
      * Setter for the image encoding
      */
-    bool setimageEncodingParam(rclcpp::Node& nh, const std::string& format); 
+    void setimageEncodingParam(rclcpp::Node& nh, const std::string& format); 
 
     /**
      * Setter for the frame_rate_ initially set from ros-parameter server
@@ -137,7 +137,7 @@ public:
      * search to find the desired brightness.
      * The smallest window height is img_rows/downsampling_factor
      */
-    int downsampling_factor_exp_search_;
+    int downsampling_factor_exposure_search_;
 
     // #######################################################################
     // ###################### Image Intensity Settings  ######################
@@ -242,7 +242,7 @@ public:
      * prevent very high exposure times and resulting timeouts.
      * A typical value for this upper bound is ~2000000us.
      */
-    double auto_exp_upper_lim_;
+    double auto_exposure_upper_limit_;
 
     /**
      * The MTU size. Only used for GigE cameras.
@@ -265,7 +265,7 @@ public:
     /**
      * The startup user set.
      */
-    std::string startup_user_set_;    
+    std::string startup_user_set_;
 
     /**
      * The inter-package delay in ticks. Only used for GigE cameras.

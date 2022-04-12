@@ -66,7 +66,8 @@ PylonROS2CameraNode::PylonROS2CameraNode(const rclcpp::NodeOptions& options)
   this->initInterfaces();
 
   // initialize camera instance and start grabbing
-  this->init();
+  if (!this->init())
+    return;
 
   // starting spinning thread
   RCLCPP_INFO_STREAM(LOGGER, "Start image grabbing if node connects to topic with " << "a frame_rate of: " << this->frameRate() << " Hz");
@@ -112,7 +113,7 @@ const std::string& PylonROS2CameraNode::cameraFrame() const
   return this->pylon_camera_parameter_set_.cameraFrame();
 }
 
-void PylonROS2CameraNode::init()
+bool PylonROS2CameraNode::init()
 {
   // reading all necessary parameter to open the desired camera from the
   // ros-parameter-server. In case that invalid parameter values can be
@@ -129,7 +130,7 @@ void PylonROS2CameraNode::init()
   {
     RCLCPP_ERROR(LOGGER, "Error when trying to init and register. Shutting down now.");
     rclcpp::shutdown();
-    return;
+    return false;
   }
 
   // starting the grabbing procedure with the desired image-settings
@@ -137,8 +138,10 @@ void PylonROS2CameraNode::init()
   {
     RCLCPP_ERROR(LOGGER, "Error when trying to start grabbing. Shutting down now.");
     rclcpp::shutdown();
-    return;
+    return false;
   }
+
+  return true;
 }
 
 void PylonROS2CameraNode::initInterfaces()
@@ -555,7 +558,7 @@ bool PylonROS2CameraNode::startGrabbing()
   this->setupSamplingIndices(sampling_indices_,
                              this->pylon_camera_->imageRows(),
                              this->pylon_camera_->imageCols(),
-                             this->pylon_camera_parameter_set_.downsampling_factor_exp_search_);
+                             this->pylon_camera_parameter_set_.downsampling_factor_exposure_search_);
 
 
   // Initial setting of the CameraInfo-msg, assuming no calibration given
@@ -735,7 +738,7 @@ void PylonROS2CameraNode::spin()
     if (this->img_raw_pub_.getNumSubscribers() || this->getNumSubscribersRectImagePub())
     {
       if (!this->grabImage())
-      { 
+      {
         return;
       }
     }
@@ -777,7 +780,7 @@ void PylonROS2CameraNode::spin()
   }
 
   if (this->pylon_camera_parameter_set_.enable_current_params_publisher_)
-  { 
+  {
     this->currentParamPub();
   }
 }
@@ -1219,7 +1222,7 @@ bool PylonROS2CameraNode::setBinningX(const size_t& target_binning_x,
   this->setupSamplingIndices(this->sampling_indices_,
                              this->pylon_camera_->imageRows(),
                              this->pylon_camera_->imageCols(),
-                             this->pylon_camera_parameter_set_.downsampling_factor_exp_search_);
+                             this->pylon_camera_parameter_set_.downsampling_factor_exposure_search_);
 
   return true;
 }
@@ -1266,7 +1269,7 @@ bool PylonROS2CameraNode::setBinningY(const size_t& target_binning_y,
   this->setupSamplingIndices(this->sampling_indices_,
                              this->pylon_camera_->imageRows(),
                              this->pylon_camera_->imageCols(),
-                             this->pylon_camera_parameter_set_.downsampling_factor_exp_search_);
+                             this->pylon_camera_parameter_set_.downsampling_factor_exposure_search_);
   
   return true;
 }
@@ -3067,7 +3070,7 @@ rclcpp_action::CancelResponse PylonROS2CameraNode::handleGrabRawImagesActionGoal
 
 void PylonROS2CameraNode::handleGrabRawImagesActionGoalAccepted(const std::shared_ptr<GrabImagesGoalHandle> goal_handle)
 {
-  RCLCPP_DEBUG(this->get_logger(), "PylonROS2CameraNode::handleGrabRawImagesActionGoalAccepted -> Goal has been accepted, starting the thread");
+  RCLCPP_DEBUG(LOGGER, "PylonROS2CameraNode::handleGrabRawImagesActionGoalAccepted -> Goal has been accepted, starting the thread");
 
   using namespace std::placeholders;
   // this needs to return quickly to avoid blocking the executor, so spin up a new thread
@@ -3526,6 +3529,7 @@ std::shared_ptr<GrabImagesAction::Result> PylonROS2CameraNode::grabRawImages(con
     previous_exp = this->pylon_camera_->currentExposure();
   }
 
+  RCLCPP_DEBUG_STREAM(LOGGER, "Number of grabbed images: " << n_images);
   for (std::size_t i = 0; i < n_images; ++i)
   {
     // user cancel request
@@ -3731,7 +3735,7 @@ void PylonROS2CameraNode::currentParamPub()
 
       this->current_params_.success = true;
     }
-    catch ( const GenICam::GenericException &e )
+    catch (const GenICam::GenericException &e)
     {
       RCLCPP_ERROR_STREAM(LOGGER, "An exception while getting the camera current params occurred:" << e.GetDescription());
       this->current_params_.success = false;

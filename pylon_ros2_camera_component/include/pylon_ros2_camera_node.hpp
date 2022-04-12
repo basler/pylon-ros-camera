@@ -129,7 +129,7 @@ protected:
   /**
    * @brief initialize the camera and the node. Calls ros::shutdown if an error occurs.
    */
-  void init();
+  bool init();
 
   /**
    * @brief initialize the node interfaces (topics, services, actions, diagnostics)

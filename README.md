@@ -95,6 +95,11 @@ ROS2 includes a standardised camera intrinsic calibration process through the *c
 
 If the calibration is valid, the rectified images are published through the `[Camera name]/[Node name]/[image_rect]` topic, only if a subscriber to this topic has been registered.
 
+### Setting device user id
+
+Set the device user id with command: `ros2 run pylon_ros2_camera_component set_device_user_id [-sn SERIAL_NB] your_device_user_id`. If no serial number is specified thanks to the option `-sn`, the specified device user id `your_device_user_id` will be assigned to the first available camera.
+USB cameras must be disconnected and then reconnected after setting a new device user id. USB cameras keep their old user id otherwise.
+
 
 ## Packages
 

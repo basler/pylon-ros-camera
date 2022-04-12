@@ -135,17 +135,17 @@ target_link_libraries(ip_auto_config
 )
 
 # set user id
-add_executable(set_user_id
-	${CMAKE_CURRENT_SOURCE_DIR}/src/tools/set_user_id.cpp
+add_executable(set_device_user_id
+	${CMAKE_CURRENT_SOURCE_DIR}/src/tools/set_device_user_id.cpp
 )
 
-target_include_directories(set_user_id
+target_include_directories(set_device_user_id
 	PUBLIC
 		$<BUILD_INTERFACE:${Pylon_INCLUDE_DIRS}>
     	$<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(set_user_id
+target_link_libraries(set_device_user_id
 	${PYLON_ROS2_CAMERA_LIBRARIES}
 )
 
@@ -155,7 +155,7 @@ install(
   TARGETS
   	${PROJECT_NAME}
 	ip_auto_config
-	set_user_id
+	set_device_user_id
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
