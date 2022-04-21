@@ -343,7 +343,7 @@ If you hot-swap the camera with a different camera with a non-compatible pixel e
 
 #### No connection with connected camera
 
-To be sure to be able to connect to a specific camera, its network configuration must be manually set through Basler's pylon IP configurator. To do, click on the camera in the list of connected devices, select the `Static IP` option, set an `IP Address` within the same range as the one of your computer, and set the same `Subnet Mask` as the one from your computer.
+To be sure to be able to connect to a specific camera, its network configuration must be manually set through Basler's pylon IP configurator. To do so, click on the camera in the list of connected devices, select the `Static IP` option, set an `IP Address` within the same range as the one of your computer, and set the same `Subnet Mask` as the one from your computer.
 
 #### Maximum UDP Socket Buffer Size
 
@@ -358,6 +358,8 @@ Many GigE network adapters support so-called jumbo frames, i.e., network packets
 If your network adapter supports jumbo frames, you set the adapter's MTU to 8192 as described above. In order to take advantage of the adapter's jumbo frame capability, you must also set the packet size used by the camera to 8192.
 
 If you are working with the pylon Viewer application, you can set the packet size by first selecting a camera from the tree in the "Device" pane. In the "Features" pane, expand the features group that shows the camera's name, expand the "Transport Layer" parameters group, and set the "Packet Size" parameter to 8192. If you write your own application, use the camera API to set the PacketSize parameter to 8192.
+
+It is possible to change the packet size by changing the default value of the `mtu_size` parameter in the pylon ROS2 wrapper launch file. When the camera is grabbing, it is not possible to modify this parameter.
 
 #### Real-time Priority
 
