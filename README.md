@@ -97,7 +97,9 @@ If the calibration is valid, the rectified images are published through the `[Ca
 
 ### Setting device user id
 
-Set the device user id with command: `ros2 run pylon_ros2_camera_component set_device_user_id [-sn SERIAL_NB] your_device_user_id`. If no serial number is specified thanks to the option `-sn`, the specified device user id `your_device_user_id` will be assigned to the first available camera.
+It is easily possible to connect to a specific camera through its user id. This user id can be set through the parameter `device_user_id` listed in the .yaml user parameter file loaded at launch time (by default `pylon_ros2_camera_component/config/default.yaml`). It is up to the user to create specific launch files, loading specific .yaml user parameter files, which would specify the user ids of the cameras that need to be connected. If no specific camera is specified, either because the `device_user_id` parameter is not set or no .yaml user parameter file is loaded, the first available camera is connected automatically.  
+
+In addition to being able to do so through the pylon Viewer provided by Basler, it is possible to set the device user id with the command: `ros2 run pylon_ros2_camera_component set_device_user_id [-sn SERIAL_NB] your_device_user_id`. If no serial number is specified thanks to the option `-sn`, the specified device user id `your_device_user_id` will be assigned to the first available camera.
 USB cameras must be disconnected and then reconnected after setting a new device user id. USB cameras keep their old user id otherwise.
 
 
@@ -338,6 +340,10 @@ If you hot-swap the camera with a different camera with a non-compatible pixel e
 `rosparam set /pylon_camera_node/image_encoding "mono8"`
 
 ### GigE Devices
+
+#### No connection with connected camera
+
+To be sure to be able to connect to a specific camera, its network configuration must be manually set through Basler's pylon IP configurator. To do, click on the camera in the list of connected devices, select the `Static IP` option, set an `IP Address` within the same range as the one of your computer, and set the same `Subnet Mask` as the one from your computer.
 
 #### Maximum UDP Socket Buffer Size
 
