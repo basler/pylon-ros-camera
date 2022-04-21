@@ -593,7 +593,7 @@ std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& r
             }
         }
         if (! is_encoding_available)
-            return "Error: unsporrted/unknown image format";
+            return "Error: unsupported/unknown image format";
     }
     if ( !conversion_found )
     {
