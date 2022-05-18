@@ -41,6 +41,7 @@ int main(int argc, char * argv[])
 
   // pylon camera node
   rclcpp::NodeOptions options;
+  options.automatically_declare_parameters_from_overrides(true);
   auto pylon_ros2_camera_node = std::make_shared<pylon_ros2_camera::PylonROS2CameraNode>(options);
   
   try
