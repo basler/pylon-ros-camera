@@ -168,7 +168,7 @@ bool PylonROS2USBCamera::applyCamSpecificStartupSettings(const PylonROS2CameraPa
             } 
         else if (parameters.startup_user_set_ == "CurrentSetting")
             {
-                RCLCPP_WARN(LOGGER_USB, "No User Set Is selected, Camera current setting will be used");
+                RCLCPP_WARN(LOGGER_USB, "No user set is provided -> Camera current setting will be applied");
             }
     }
     catch ( const GenICam::GenericException &e )

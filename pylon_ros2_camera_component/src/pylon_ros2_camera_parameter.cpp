@@ -416,46 +416,45 @@ void PylonROS2CameraParameter::validateParameterSet(rclcpp::Node& nh)
 {
     if (!this->device_user_id_.empty())
     {
-        RCLCPP_INFO_STREAM(LOGGER, "Trying to open the following camera: " << this->device_user_id_.c_str());
+        RCLCPP_INFO_STREAM(LOGGER, "Trying to connect the camera device with the following device user id: " << this->device_user_id_.c_str());
     }
     else
     {
-        RCLCPP_INFO_STREAM(LOGGER, "No Device User ID set -> Will open the camera device " << "found first");
+        RCLCPP_INFO_STREAM(LOGGER, "No Device User ID set -> Will connect the first available camera device");
     }
 
     if (this->frame_rate_ < 0 && this->frame_rate_ != -1)
     {
-        RCLCPP_WARN_STREAM(LOGGER, "Unexpected frame rate (" << this->frame_rate_ << "). Will "
-                << "reset it to default value which is 5 Hz");
+        RCLCPP_WARN_STREAM(LOGGER, "The specified frame rate value - " << this->frame_rate_ << " Hz - is not valid!"
+                                << "-> Will reset it to default value (5 Hz).");
         this->setFrameRate(nh, 5.0);
     }
 
     if (this->exposure_given_ && ( this->exposure_ <= 0.0 || this->exposure_ > 1e7 ))
     {
-        RCLCPP_WARN_STREAM(LOGGER, "Desired exposure measured in microseconds not in "
-                << "valid range! Exposure time = " << this->exposure_ << ". Will "
-                << "reset it to default value!");
+        RCLCPP_WARN_STREAM(LOGGER, "The specified exposure value - " << this->exposure_ << " ms - is out of valid range!"
+                                << "-> Will reset it to default value.");
         this->exposure_given_ = false;
     }
 
     if (this->gain_given_ && ( this->gain_ < 0.0 || this->gain_ > 1.0 ))
     {
-        RCLCPP_WARN_STREAM(LOGGER, "Desired gain (in percent) not in allowed range! "
-                << "Gain = " << this->gain_ << ". Will reset it to default value!");
+        RCLCPP_WARN_STREAM(LOGGER, "The specified gain value - " << this->gain_ << " % - is out of valid range!"
+                                << "-> Will reset it to default value.");
         this->gain_given_ = false;
     }
 
     if (this->brightness_given_ && ( this->brightness_ < 0.0 || this->brightness_ > 255 ))
     {
-        RCLCPP_WARN_STREAM(LOGGER, "Desired brightness not in allowed range [0 - 255]! "
-               << "Brightness = " << this->brightness_ << ". Will reset it to "
-               << "default value!");
+        RCLCPP_WARN_STREAM(LOGGER, "The specified brightness value - " << this->brightness_ << " - is out of valid range (0 to 255)!"
+                                << "-> Will reset it to default value.");
         this->brightness_given_ = false;
     }
 
     if (this->exposure_search_timeout_ < 5.)
     {
-        RCLCPP_WARN_STREAM(LOGGER, "Low timeout for exposure search detected! Exposure " << "search may fail.");
+        RCLCPP_WARN_STREAM(LOGGER, "The specified exposure search timeout value - " << this->exposure_search_timeout_ << " - is too low!"
+                                << "-> Exposure search may fail.");
     }
 }
 

@@ -55,7 +55,7 @@ PylonROS2CameraNode::PylonROS2CameraNode(const rclcpp::NodeOptions& options)
   , diagnostics_updater_(this)
 {
   // information logging severity mode
-  //rcutils_ret_t __attribute__((unused)) res = rcutils_logging_set_logger_level(LOGGER.get_name(), RCUTILS_LOG_SEVERITY_DEBUG);
+  rcutils_ret_t __attribute__((unused)) res = rcutils_logging_set_logger_level(LOGGER.get_name(), RCUTILS_LOG_SEVERITY_DEBUG);
   //RCUTILS_LOG_SEVERITY_DEBUG
   //RCUTILS_LOG_SEVERITY_INFO
   //RCUTILS_LOG_SEVERITY_WARN
@@ -120,7 +120,6 @@ bool PylonROS2CameraNode::init()
   // detected, the interface will reset them to the default values.
   // These parameters furthermore contain the intrinsic calibration matrices,
   // in case they are provided
-
   this->pylon_camera_parameter_set_.readFromRosParameterServer(*this);
   
   // creating the target PylonCamera-Object with the specified
@@ -417,12 +416,15 @@ bool PylonROS2CameraNode::initAndRegister()
   if (this->pylon_camera_ == nullptr)
   {
     this->cm_status_.status_id = pylon_ros2_camera_interfaces::msg::ComponentStatus::ERROR;
-    this->cm_status_.status_msg = "No camera present";
+    this->cm_status_.status_msg = "No available camera";
 
     if (this->pylon_camera_parameter_set_.enable_status_publisher_)
     {
       this->component_status_pub_->publish(this->cm_status_);
     }
+
+    RCLCPP_WARN_STREAM(LOGGER, "Failed to connect camera device with device user id: "<< this->pylon_camera_parameter_set_.deviceUserID() << ". "
+                            << "Wait and retry to connect until the specified camera is available...");
 
     // wait and retry until a camera is present
     rclcpp::Time end = rclcpp::Node::now() + std::chrono::duration<double>(15);
@@ -430,11 +432,17 @@ bool PylonROS2CameraNode::initAndRegister()
     while (rclcpp::ok() && this->pylon_camera_ == nullptr)
     {
       this->pylon_camera_ = PylonROS2Camera::create(this->pylon_camera_parameter_set_.deviceUserID());
+      if (this->pylon_camera_ == nullptr)
+      {
+        RCLCPP_WARN_STREAM(LOGGER, "Failed to connect camera device with device user id: "<< this->pylon_camera_parameter_set_.deviceUserID() << ". "
+                            << "Trying again in a bit...");
+      }
+
       if (rclcpp::Node::now() > end)
       {
-        RCLCPP_WARN_STREAM(LOGGER, "No camera present. Keep waiting ...");
+        RCLCPP_WARN_STREAM(LOGGER, "No available camera. Keep waiting and trying...");
         this->cm_status_.status_id = pylon_ros2_camera_interfaces::msg::ComponentStatus::ERROR;
-        this->cm_status_.status_msg = "No camera present";
+        this->cm_status_.status_msg = "No available camera";
 
         if (this->pylon_camera_parameter_set_.enable_status_publisher_)
         {
@@ -466,7 +474,7 @@ bool PylonROS2CameraNode::initAndRegister()
 
   if (!this->pylon_camera_->registerCameraConfiguration())
   {
-    RCLCPP_ERROR_STREAM(LOGGER, "Error while registering the camera configuration to " << "software-trigger mode!");
+    RCLCPP_ERROR_STREAM(LOGGER, "Error while registering the camera configuration to software-trigger mode!");
     this->cm_status_.status_id = pylon_ros2_camera_interfaces::msg::ComponentStatus::ERROR;
     this->cm_status_.status_msg = "Error while registering the camera configuration";
     if (this->pylon_camera_parameter_set_.enable_status_publisher_)
@@ -478,9 +486,9 @@ bool PylonROS2CameraNode::initAndRegister()
 
   if (!this->pylon_camera_->openCamera())
   {
-    RCLCPP_ERROR(LOGGER, "Error while trying to open the desired camera!");
+    RCLCPP_ERROR(LOGGER, "Error while trying to open the user-specified camera!");
     this->cm_status_.status_id = pylon_ros2_camera_interfaces::msg::ComponentStatus::ERROR;
-    this->cm_status_.status_msg = "Error while trying to open the desired camera!";
+    this->cm_status_.status_msg = "Error while trying to open the user-specified camera!";
     if (this->pylon_camera_parameter_set_.enable_status_publisher_)
     {
       this->component_status_pub_->publish(this->cm_status_);
@@ -490,9 +498,9 @@ bool PylonROS2CameraNode::initAndRegister()
 
   if (!this->pylon_camera_->applyCamSpecificStartupSettings(this->pylon_camera_parameter_set_))
   {
-    RCLCPP_ERROR_STREAM(LOGGER, "Error while applying the cam specific startup settings " << "(e.g., mtu size for GigE, ...) to the camera!");
+    RCLCPP_ERROR_STREAM(LOGGER, "Error while applying the user-specified startup settings " << "(e.g., mtu size for GigE, ...) to the camera!");
     this->cm_status_.status_id = pylon_ros2_camera_interfaces::msg::ComponentStatus::ERROR;
-    this->cm_status_.status_msg = "Error while applying the cam specific startup settings";
+    this->cm_status_.status_msg = "Error while applying the user-specified startup settings";
     if (this->pylon_camera_parameter_set_.enable_status_publisher_)
     {
       this->component_status_pub_->publish(this->cm_status_);

@@ -57,7 +57,7 @@ PylonROS2CameraImpl<CameraTraitT>::PylonROS2CameraImpl(Pylon::IPylonDevice* devi
     cam_(new CBaslerInstantCameraT(device))
 {
   // information logging severity mode
-  //rcutils_ret_t __attribute__((unused)) res = rcutils_logging_set_logger_level(LOGGER.get_name(), RCUTILS_LOG_SEVERITY_DEBUG);
+  //rcutils_ret_t __attribute__((unused)) res = rcutils_logging_set_logger_level(LOGGER_BASE.get_name(), RCUTILS_LOG_SEVERITY_DEBUG);
   //RCUTILS_LOG_SEVERITY_DEBUG
   //RCUTILS_LOG_SEVERITY_INFO
   //RCUTILS_LOG_SEVERITY_WARN
@@ -552,7 +552,7 @@ std::vector<std::string> PylonROS2CameraImpl<CameraTraitT>::detectAvailableImage
     GenApi::NodeList_t feature_list;
     img_encoding_enumeration_ptr->GetEntries(feature_list);
     std::stringstream ss;
-    ss << "Cam supports the following [GenAPI|ROS] image encodings: ";
+    ss << "The camera device supports the following [GenAPI|ROS] image encodings: ";
     for (GenApi::NodeList_t::iterator it = feature_list.begin();
          it != feature_list.end();
          ++it)
@@ -567,10 +567,12 @@ std::vector<std::string> PylonROS2CameraImpl<CameraTraitT>::detectAvailableImage
             available_encodings.push_back(encoding_gen_api);
         }
     }
+    
     if (show_message)
     {
-        RCLCPP_INFO(LOGGER_BASE, ss.str().c_str());
+        RCLCPP_DEBUG(LOGGER_BASE, ss.str().c_str());
     }
+    
     return available_encodings;
 }
 
@@ -612,8 +614,7 @@ std::string PylonROS2CameraImpl<CameraTraitT>::setImageEncoding(const std::strin
     {
         if ( ros_encoding.empty() )
         {
-            RCLCPP_WARN_STREAM(LOGGER_BASE, "No image encoding provided. Will use 'mono8' or "
-                << "'rgb8' as fallback!");
+            RCLCPP_WARN_STREAM(LOGGER_BASE, "No image encoding provided -> Will use 'mono8' or 'rgb8' as fallback");
         }
         else
         {
