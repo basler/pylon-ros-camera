@@ -166,12 +166,12 @@ bool PylonUSBCamera::applyCamSpecificStartupSettings(const PylonCameraParameter&
             } 
         else if (parameters.startup_user_set_ == "CurrentSetting")
             {
-                ROS_WARN("No User Set Is selected, Camera current setting will be used");
+                ROS_WARN("No user set is provided -> Camera current setting will be applied");
             }
     }
     catch ( const GenICam::GenericException &e )
     {
-        ROS_ERROR_STREAM("Error applying cam specific startup setting for USB cameras: "
+        ROS_ERROR_STREAM("Error applying camera specific startup setting for USB cameras: "
                 << e.GetDescription());
         return false;
     }

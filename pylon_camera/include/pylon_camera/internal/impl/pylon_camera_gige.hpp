@@ -286,12 +286,12 @@ bool PylonGigECamera::applyCamSpecificStartupSettings(const PylonCameraParameter
         else if (parameters.startup_user_set_ == "CurrentSetting")
             {
                 cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
-                ROS_WARN("No User Set Is selected, Camera current setting will be used");
+                ROS_WARN("No user set is provided -> Camera current setting will be applied");
             }
     }
     catch ( const GenICam::GenericException &e )
     {
-        ROS_ERROR_STREAM("Error applying cam specific startup setting for GigE cameras: "
+        ROS_ERROR_STREAM("Error applying camera specific startup setting for GigE cameras: "
                 << e.GetDescription());
         return false;
     }

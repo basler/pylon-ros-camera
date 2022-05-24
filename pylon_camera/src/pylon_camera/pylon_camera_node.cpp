@@ -359,26 +359,31 @@ bool PylonCameraNode::initAndRegister()
     pylon_camera_ = PylonCamera::create(
                                     pylon_camera_parameter_set_.deviceUserID());
 
-    if ( pylon_camera_ == nullptr )
+    if (pylon_camera_ == nullptr)
     {
         cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
-        cm_status.status_msg = "No camera present";
+        cm_status.status_msg = "No available camera";
         if (pylon_camera_parameter_set_.enable_status_publisher_)
-          {
+        {
             componentStatusPublisher.publish(cm_status);
-          }
+        }
+
+        ROS_WARN_STREAM("Failed to connect camera device with device user id: "<< this->pylon_camera_parameter_set_.deviceUserID() << ". "
+        << "Wait and retry to connect until the specified camera is available...");
+
+
         // wait and retry until a camera is present
         ros::Time end = ros::Time::now() + ros::Duration(15.0);
         ros::Rate r(0.5);
         while ( ros::ok() && pylon_camera_ == nullptr )
         {
-            pylon_camera_ = PylonCamera::create(
-                                    pylon_camera_parameter_set_.deviceUserID());
-            if ( ros::Time::now() > end )
+            pylon_camera_ = PylonCamera::create(pylon_camera_parameter_set_.deviceUserID());
+            
+            if (ros::Time::now() > end)
             {
-                ROS_WARN_STREAM("No camera present. Keep waiting ...");
+                ROS_WARN_STREAM("No available camera. Keep waiting and trying...");
                 cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
-                cm_status.status_msg = "No camera present";
+                cm_status.status_msg = "No available camera";
                 if (pylon_camera_parameter_set_.enable_status_publisher_)
                 {
                   componentStatusPublisher.publish(cm_status);
@@ -401,15 +406,14 @@ bool PylonCameraNode::initAndRegister()
         }
     }
 
-    if ( !ros::ok() )
+    if (!ros::ok())
     {
         return false;
     }
 
-    if ( !pylon_camera_->registerCameraConfiguration() )
+    if (!pylon_camera_->registerCameraConfiguration())
     {
-        ROS_ERROR_STREAM("Error while registering the camera configuration to "
-            << "software-trigger mode!");
+        ROS_ERROR_STREAM("Error while registering the camera configuration to software-trigger mode!");
         cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
         cm_status.status_msg = "Error while registering the camera configuration";
         if (pylon_camera_parameter_set_.enable_status_publisher_)
@@ -423,7 +427,7 @@ bool PylonCameraNode::initAndRegister()
     {
         ROS_ERROR("Error while trying to open the desired camera!");
         cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
-        cm_status.status_msg = "Error while trying to open the desired camera!";
+        cm_status.status_msg = "Error while trying to open the user-specified camera!";
         if (pylon_camera_parameter_set_.enable_status_publisher_)
         {
           componentStatusPublisher.publish(cm_status);
@@ -433,10 +437,9 @@ bool PylonCameraNode::initAndRegister()
 
     if ( !pylon_camera_->applyCamSpecificStartupSettings(pylon_camera_parameter_set_) )
     {
-        ROS_ERROR_STREAM("Error while applying the cam specific startup settings "
-                << "(e.g. mtu size for GigE, ...) to the camera!");
+        ROS_ERROR_STREAM("Error while applying the user-specified specific startup settings (e.g. mtu size for GigE, ...) to the camera!");
         cm_status.status_id = dnb_msgs::ComponentStatus::ERROR;
-        cm_status.status_msg = "Error while applying the cam specific startup settings";
+        cm_status.status_msg = "Error while applying the user-specified specific startup settings";
         if (pylon_camera_parameter_set_.enable_status_publisher_)
         {
           componentStatusPublisher.publish(cm_status);

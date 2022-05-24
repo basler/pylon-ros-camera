@@ -541,7 +541,7 @@ std::vector<std::string> PylonCameraImpl<CameraTraitT>::detectAvailableImageEnco
     GenApi::NodeList_t feature_list;
     img_encoding_enumeration_ptr->GetEntries(feature_list);
     std::stringstream ss;
-    ss << "Cam supports the following [GenAPI|ROS] image encodings: ";
+    ss << "The camera device supports the following [GenAPI|ROS] image encodings: ";
     for (GenApi::NodeList_t::iterator it = feature_list.begin();
          it != feature_list.end();
          ++it)
@@ -556,8 +556,12 @@ std::vector<std::string> PylonCameraImpl<CameraTraitT>::detectAvailableImageEnco
             available_encodings.push_back(encoding_gen_api);
         }
     }
+
     if (show_message)
-        ROS_INFO_STREAM(ss.str().c_str());
+    {
+        ROS_DEBUG_STREAM(ss.str().c_str());
+    }
+
     return available_encodings;
 }
 
@@ -599,8 +603,7 @@ std::string PylonCameraImpl<CameraTraitT>::setImageEncoding(const std::string& r
     {
         if ( ros_encoding.empty() )
         {
-            ROS_WARN_STREAM("No image encoding provided. Will use 'mono8' or "
-                << "'rgb8' as fallback!");
+            ROS_WARN_STREAM("No image encoding provided -> Will use 'mono8' or 'rgb8' as fallback");
         }
         else
         {

@@ -315,52 +315,48 @@ void PylonCameraParameter::adaptDeviceUserId(const ros::NodeHandle& nh, const st
 
 void PylonCameraParameter::validateParameterSet(const ros::NodeHandle& nh)
 {
-    if ( !device_user_id_.empty() )
+    if (!device_user_id_.empty())
     {
-        ROS_INFO_STREAM("Trying to open the following camera: "
-            << device_user_id_.c_str());
+        ROS_INFO_STREAM("Trying to connect the camera device with the following device user id: " << this->device_user_id_.c_str());
     }
     else
     {
-        ROS_INFO_STREAM("No Device User ID set -> Will open the camera device "
-                << "found first");
+        ROS_INFO_STREAM("No Device User ID set -> Will connect the first available camera device");
     }
 
-    if ( frame_rate_ < 0 && frame_rate_ != -1 )
+    if (frame_rate_ < 0 && frame_rate_ != -1)
     {
-        ROS_WARN_STREAM("Unexpected frame rate (" << frame_rate_ << "). Will "
-                << "reset it to default value which is 5 Hz");
+        ROS_WARN_STREAM("The specified frame rate value - " << this->frame_rate_ << " Hz - is not valid!"
+        << "-> Will reset it to default value (5 Hz).");
         frame_rate_ = 5.0;
         nh.setParam("frame_rate", frame_rate_);
     }
 
-    if ( exposure_given_ && ( exposure_ <= 0.0 || exposure_ > 1e7 ) )
+    if (exposure_given_ && (exposure_ <= 0.0 || exposure_ > 1e7))
     {
-        ROS_WARN_STREAM("Desired exposure measured in microseconds not in "
-                << "valid range! Exposure time = " << exposure_ << ". Will "
-                << "reset it to default value!");
+        ROS_WARN_STREAM("The specified exposure value - " << this->exposure_ << " ms - is out of valid range!"
+        << "-> Will reset it to default value.");
         exposure_given_ = false;
     }
 
-    if ( gain_given_ && ( gain_ < 0.0 || gain_ > 1.0 ) )
+    if (gain_given_ && (gain_ < 0.0 || gain_ > 1.0))
     {
-        ROS_WARN_STREAM("Desired gain (in percent) not in allowed range! "
-                << "Gain = " << gain_ << ". Will reset it to default value!");
+        ROS_WARN_STREAM("The specified gain value - " << this->gain_ << " % - is out of valid range!"
+        << "-> Will reset it to default value.");
         gain_given_ = false;
     }
 
-    if ( brightness_given_ && ( brightness_ < 0.0 || brightness_ > 255 ) )
+    if (brightness_given_ && (brightness_ < 0.0 || brightness_ > 255))
     {
-        ROS_WARN_STREAM("Desired brightness not in allowed range [0 - 255]! "
-               << "Brightness = " << brightness_ << ". Will reset it to "
-               << "default value!");
+        ROS_WARN_STREAM("The specified brightness value - " << this->brightness_ << " - is out of valid range (0 to 255)!"
+        << "-> Will reset it to default value.");
         brightness_given_ = false;
     }
 
-    if ( exposure_search_timeout_ < 5.)
+    if (exposure_search_timeout_ < 5.)
     {
-        ROS_WARN_STREAM("Low timeout for exposure search detected! Exposure "
-            << "search may fail.");
+        ROS_WARN_STREAM("The specified exposure search timeout value - " << this->exposure_search_timeout_ << " - is too low!"
+        << "-> Exposure search may fail.");
     }
     return;
 }
