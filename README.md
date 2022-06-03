@@ -50,7 +50,7 @@ Starting the *pylon_ros2_camera_node* starts the acquisition from a given Basler
 
 The *pylon_ros2_camera_node* can be started thanks to a dedicated launch file thanks to the command:  
 ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py``  
-Several parameters can be set through the launch file and the user parameter file loaded through it (the `pylon_ros2_camera_component/config/default.yaml` user parameter file is loaded by default).
+Several parameters can be set through the launch file and the user parameter file loaded through it (the `pylon_ros2_camera_wrapper/config/default.yaml` user parameter file is loaded by default).
 
 Acquisition from a specific camera is possible by setting the `device_user_id` parameter. If no specific camera is specified, the first available camera is connected automatically.  
 
