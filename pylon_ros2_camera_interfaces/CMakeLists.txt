@@ -35,6 +35,9 @@ set(SRV_FILES
   "srv/SetIntegerValue.srv"
   "srv/SetFloatValue.srv"
   "srv/SetStringValue.srv"
+  "srv/SetActionTriggerConfiguration.srv"
+  "srv/IssueActionCommand.srv"
+  "srv/IssueScheduledActionCommand.srv"
 )
 
 set(ACTION_FILES

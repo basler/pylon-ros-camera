@@ -4,7 +4,7 @@
 
   <name>pylon_ros2_camera_component</name>
   
-  <version>1.0.1</version>
+  <version>1.1.0</version>
   
   <description>
   	Proprietary ROS2 Package for Basler Cameras using the the Pylon API.

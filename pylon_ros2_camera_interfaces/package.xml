@@ -4,7 +4,7 @@
 
   <name>pylon_ros2_camera_interfaces</name>
   
-  <version>1.0.0</version>
+  <version>1.1.0</version>
   
   <description>
   	Interface package from the pylon_camera package.
@@ -20,8 +20,6 @@
   <url type="bugtracker">https://github.com/basler/pylon-ros-camera/issues</url>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <!-- TODO: according to migration guide the following needs to replace the one further down -->
-  <!-- <buildtool_depend>rosidl_default_generators</buildtool_depend> -->
   
   <build_depend>builtin_interfaces</build_depend>
   <build_depend>std_msgs</build_depend>
@@ -41,8 +39,6 @@
   <test_depend>ament_lint_common</test_depend>
 
   <member_of_group>rosidl_interface_packages</member_of_group>
-
-  <!-- TODO: according to migration guide I need to add the following somewhere: <depend>message_package</depend> -->
 
   <export>
     <build_type>ament_cmake</build_type>

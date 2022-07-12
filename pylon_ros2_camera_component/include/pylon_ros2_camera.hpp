@@ -807,7 +807,7 @@ public:
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue) = 0;
-
+    
     /**
      * set the camera grapping strategy 
      * @param strategy : 0 = GrabStrategy_OneByOne, 1 = GrabStrategy_LatestImageOnly, 2 = GrabStrategy_LatestImages
@@ -946,6 +946,133 @@ public:
     * @return error  message if an error occurred or done message otherwise.
     */
     virtual int getChunkCounterValue() = 0;
+
+    /**
+    * Set timer selector - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+    * @return error  message if an error occurred or done message otherwise.
+    */
+    virtual std::string setTimerSelector(const int& selector) = 0;
+
+    /**
+    * Service callback for setting the internal camera signal used to trigger the selected timer - Applies to: GigE, ace 2 GigE, ace 2 USB, ace USB and dart 2 USB.
+    * @return error  message if an error occurred or done message otherwise.
+    */
+    virtual std::string setTimerTriggerSource(const int& source) = 0;
+
+    /**
+    * Set timer duration - Applies to: ace 2 GigE, ace 2 USB, ace USB and dart 2 USB.
+    * @return error  message if an error occurred or done message otherwise.
+    */
+    virtual std::string setTimerDuration(const float& duration) = 0;
+
+    /**
+     * Sets the PTP priority - Applies to: ace 2 GigE.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setPTPPriority(const int& value) = 0;
+
+    /**
+     * Sets the PTP profile - Applies to: ace 2 GigE.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setPTPProfile(const int& value) = 0;
+
+    /**
+     * Sets the PTP network mode - Applies to: ace 2 GigE.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setPTPNetworkMode(const int& value) = 0;
+
+    /**
+     * Sets the PTP unicast port address index - Applies to: ace 2 GigE.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setPTPUCPortAddressIndex(const int& value) = 0;
+
+    /**
+     * Sets the PTP unicast port address - Applies to: ace 2 GigE.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setPTPUCPortAddress(const int& value) = 0;
+
+    /**
+     * Length of the periodic signal in microseconds - Applies to: ace 2 GigE.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setPeriodicSignalPeriod(const float& value) = 0;
+
+    /**
+     * Delay to be applied to the periodic signal in microseconds - Applies to: ace 2 GigE.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setPeriodicSignalDelay(const float& value) = 0;
+
+    /**
+     * Low 32 bits of the synchronous free run trigger start time - Applies to: GigE and blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setSyncFreeRunTimerStartTimeLow(const int& value) = 0;
+
+    /**
+     * High 32 bits of the synchronous free run trigger start time - Applies to: GigE and blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setSyncFreeRunTimerStartTimeHigh(const int& value) = 0;
+
+    /**
+     * Synchronous free run trigger rate - Applies to: GigE.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setSyncFreeRunTimerTriggerRateAbs(const float& value) = 0;
+
+    /**
+     * Enables/Disables PTP management protocol - Applies to: ace 2 GigE.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enablePTPManagementProtocol(const bool& value) = 0;
+
+    /**
+     * Enables/Disables PTP two step operation - Applies to: ace 2 GigE.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enablePTPTwoStepOperation(const bool& value) = 0;
+
+    /**
+     * Enables/Disables PTP - Applies to: GigE, ace 2 GigE.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enablePTP(const bool& value) = 0;
+
+    /**
+     * Enables the synchronous free run mode - Applies to: GigE and blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableSyncFreeRunTimer(const bool& value) = 0;
+
+    /**
+     * Updates synchronous free run settings - Applies to: GigE and blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string updateSyncFreeRunTimer() = 0;
+
+    /**
+     * Set the action trigger configuration of the camera. Needed when issuing scheduled or not action commands - Applies to: ace 2 GigE.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setActionTriggerConfiguration(const int& action_device_key, const int& action_group_key, const unsigned int& action_group_mask,
+                                                      const int& registration_mode, const int& cleanup) = 0;
+
+    /**
+     * Issue an action command via broadcast - Applies to: GigE, ace 2 GigE.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string issueActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const std::string& broadcast_address) = 0;
+
+    /**
+     * Issue a scheduled action command via broadcast - Applies to: GigE, ace 2 GigE.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string issueScheduledActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const int64_t& action_time_ns_from_current_timestamp, const std::string& broadcast_address) = 0;
 
     virtual ~PylonROS2Camera();
 

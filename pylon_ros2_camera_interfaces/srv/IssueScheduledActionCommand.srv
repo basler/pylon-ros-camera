@@ -1,0 +1,14 @@
+# Issue action command
+# The action command feature lets you trigger actions in multiple devices (e.g. cameras) 
+# at roughly the same time or at a defined point in time (scheduled action command) 
+# by using a single broadcast protocol message (without extra cabling). 
+# Action commands are used in cameras in the same way as for example the digital input lines.
+
+int32 device_key
+int32 group_key
+uint32 group_mask
+uint64 action_time_ns_from_current_timestamp
+string broadcast_address
+---
+bool success                # success or not
+string message              # status message

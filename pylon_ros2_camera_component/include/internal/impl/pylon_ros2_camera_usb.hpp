@@ -74,7 +74,8 @@ struct USBCameraTrait
     typedef Basler_UniversalCameraParams::UserSetDefaultEnums UserSetDefaultSelectorEnums;
     typedef Basler_UniversalCameraParams::LineFormatEnums LineFormatEnums;
     typedef Basler_UniversalCameraParams::BalanceRatioSelectorEnums BalanceRatioSelectorEnums;
-
+    typedef Basler_UniversalCameraParams::TimerSelectorEnums TimerSelectorEnums;
+    typedef Basler_UniversalCameraParams::TimerTriggerSourceEnums TimerTriggerSourceEnums;
 
     static inline AutoTargetBrightnessValueType convertBrightness(const int& value)
     {
@@ -476,6 +477,40 @@ float PylonROS2USBCamera::getTemperature(){
     {
         return 0.0;
     }
+}
+
+template <>
+std::string PylonROS2USBCamera::setTimerSelector(const int& selector)
+{
+    try
+    {   if (GenApi::IsAvailable(cam_->TimerSelector))
+        {
+            switch (selector)
+            {
+                case 1:
+                    cam_->TimerSelector.SetValue(TimerSelectorEnums::TimerSelector_Timer1);
+                    break;
+                case 2:
+                    cam_->TimerSelector.SetValue(TimerSelectorEnums::TimerSelector_Timer2);
+                    break;
+                default:
+                    RCLCPP_ERROR_STREAM(LOGGER_USB, "Timer selector value is invalid! Please choose between 1 -> Timer 1 / 2 -> Timer 2");
+                    return "Error: unknown value for timer selector";
+            }
+        }
+        else 
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_USB, "Error while trying to change the timer selector. The connected camera does not support this feature");
+            return "The connected camera does not support this feature";
+        }
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_USB, "An exception while setting the timer selector occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    
+    return "done";
 }
 
 }  // namespace pylon_ros2_camera

@@ -2,6 +2,11 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.0 (2022-07-12)
+-------------------
+* All the PTP-related parameters and commands are now implemented withiin the driver.
+* Documentation is updated as well with a dedicated chapter on PTP parameters and commands.
+
 1.0.2 (2022-04-21)
 -------------------
 * New chapters in the documentation about the device user id, the manual IP configuration of the camera and the packet size parameter modification

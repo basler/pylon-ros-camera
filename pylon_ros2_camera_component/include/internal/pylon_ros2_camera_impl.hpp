@@ -302,6 +302,50 @@ public:
 
     virtual int getChunkCounterValue();
 
+    virtual std::string setTimerSelector(const int& selector);
+
+    virtual std::string setTimerTriggerSource(const int& source);
+
+    virtual std::string setTimerDuration(const float& duration);
+
+    virtual std::string setPTPPriority(const int& value);
+
+    virtual std::string setPTPProfile(const int& value);
+
+    virtual std::string setPTPNetworkMode(const int& value);
+
+    virtual std::string setPTPUCPortAddressIndex(const int& value);
+
+    virtual std::string setPTPUCPortAddress(const int& value);
+
+    virtual std::string setPeriodicSignalPeriod(const float& value);
+
+    virtual std::string setPeriodicSignalDelay(const float& value);
+
+    virtual std::string setSyncFreeRunTimerStartTimeLow(const int& value);
+
+    virtual std::string setSyncFreeRunTimerStartTimeHigh(const int& value);
+
+    virtual std::string setSyncFreeRunTimerTriggerRateAbs(const float& value);
+
+    virtual std::string enablePTPManagementProtocol(const bool& value);
+
+    virtual std::string enablePTPTwoStepOperation(const bool& value);
+
+    virtual std::string enablePTP(const bool& value);
+
+    virtual std::string enableSyncFreeRunTimer(const bool& value);
+
+    virtual std::string updateSyncFreeRunTimer();
+
+    virtual std::string setActionTriggerConfiguration(const int& action_device_key, const int& action_group_key, const unsigned int& action_group_mask,
+                                                      const int& registration_mode, const int& cleanup);
+
+    virtual std::string issueActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const std::string& broadcast_address);
+
+    virtual std::string issueScheduledActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const int64_t& action_time_ns_from_current_timestamp, const std::string& broadcast_address);
+
+
 protected:
 
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
@@ -332,6 +376,8 @@ protected:
     typedef typename CameraTraitT::UserSetDefaultSelectorEnums UserSetDefaultSelectorEnums;
     typedef typename CameraTraitT::LineFormatEnums LineFormatEnums;
     typedef typename CameraTraitT::BalanceRatioSelectorEnums BalanceRatioSelectorEnums;
+    typedef typename CameraTraitT::TimerSelectorEnums TimerSelectorEnums;
+    typedef typename CameraTraitT::TimerTriggerSourceEnums TimerTriggerSourceEnums;
 
     CBaslerInstantCameraT* cam_;
 

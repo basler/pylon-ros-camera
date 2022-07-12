@@ -430,7 +430,7 @@ void PylonROS2CameraParameter::validateParameterSet(rclcpp::Node& nh)
         this->setFrameRate(nh, 5.0);
     }
 
-    if (this->exposure_given_ && ( this->exposure_ <= 0.0 || this->exposure_ > 1e7 ))
+    if (this->exposure_given_ && (this->exposure_ <= 0.0 || this->exposure_ > 1e7))
     {
         RCLCPP_WARN_STREAM(LOGGER, "The specified exposure value - " << this->exposure_ << " ms - is out of valid range!"
                                 << "-> Will reset it to default value.");

@@ -56,6 +56,9 @@
 #include "pylon_ros2_camera_interfaces/srv/set_integer_value.hpp"
 #include "pylon_ros2_camera_interfaces/srv/set_float_value.hpp"
 #include "pylon_ros2_camera_interfaces/srv/set_string_value.hpp"
+#include "pylon_ros2_camera_interfaces/srv/set_action_trigger_configuration.hpp"
+#include "pylon_ros2_camera_interfaces/srv/issue_action_command.hpp"
+#include "pylon_ros2_camera_interfaces/srv/issue_scheduled_action_command.hpp"
 
 #include <std_srvs/srv/set_bool.hpp>
 #include <std_srvs/srv/trigger.hpp>
@@ -82,26 +85,29 @@
 namespace pylon_ros2_camera
 {
 
-using GetIntegerSrv         = pylon_ros2_camera_interfaces::srv::GetIntegerValue;
-using GetFloatSrv           = pylon_ros2_camera_interfaces::srv::GetFloatValue;
+using GetIntegerSrv                 = pylon_ros2_camera_interfaces::srv::GetIntegerValue;
+using GetFloatSrv                   = pylon_ros2_camera_interfaces::srv::GetFloatValue;
 
-using SetBinningSrv         = pylon_ros2_camera_interfaces::srv::SetBinning;
-using SetBrightnessSrv      = pylon_ros2_camera_interfaces::srv::SetBrightness;
-using SetExposureSrv        = pylon_ros2_camera_interfaces::srv::SetExposure;
-using SetGainSrv            = pylon_ros2_camera_interfaces::srv::SetGain;
-using SetGammaSrv           = pylon_ros2_camera_interfaces::srv::SetGamma;
-using SetROISrv             = pylon_ros2_camera_interfaces::srv::SetROI;
-using SetSleepingSrv        = pylon_ros2_camera_interfaces::srv::SetSleeping;
-using SetWhiteBalanceSrv    = pylon_ros2_camera_interfaces::srv::SetWhiteBalance;
-using SetIntegerSrv         = pylon_ros2_camera_interfaces::srv::SetIntegerValue;
-using SetFloatSrv           = pylon_ros2_camera_interfaces::srv::SetFloatValue;
-using SetStringSrv          = pylon_ros2_camera_interfaces::srv::SetStringValue;
+using SetBinningSrv                 = pylon_ros2_camera_interfaces::srv::SetBinning;
+using SetBrightnessSrv              = pylon_ros2_camera_interfaces::srv::SetBrightness;
+using SetExposureSrv                = pylon_ros2_camera_interfaces::srv::SetExposure;
+using SetGainSrv                    = pylon_ros2_camera_interfaces::srv::SetGain;
+using SetGammaSrv                   = pylon_ros2_camera_interfaces::srv::SetGamma;
+using SetROISrv                     = pylon_ros2_camera_interfaces::srv::SetROI;
+using SetSleepingSrv                = pylon_ros2_camera_interfaces::srv::SetSleeping;
+using SetWhiteBalanceSrv            = pylon_ros2_camera_interfaces::srv::SetWhiteBalance;
+using SetIntegerSrv                 = pylon_ros2_camera_interfaces::srv::SetIntegerValue;
+using SetFloatSrv                   = pylon_ros2_camera_interfaces::srv::SetFloatValue;
+using SetStringSrv                  = pylon_ros2_camera_interfaces::srv::SetStringValue;
+using SetActionTriggerConfiguration = pylon_ros2_camera_interfaces::srv::SetActionTriggerConfiguration;
+using IssueActionCommand            = pylon_ros2_camera_interfaces::srv::IssueActionCommand;
+using IssueScheduledActionCommand   = pylon_ros2_camera_interfaces::srv::IssueScheduledActionCommand;
 
-using SetBoolSrv            = std_srvs::srv::SetBool;
-using TriggerSrv            = std_srvs::srv::Trigger;
+using SetBoolSrv                    = std_srvs::srv::SetBool;
+using TriggerSrv                    = std_srvs::srv::Trigger;
 
-using GrabImagesAction      = pylon_ros2_camera_interfaces::action::GrabImages;
-using GrabImagesGoalHandle  = rclcpp_action::ServerGoalHandle<GrabImagesAction>;
+using GrabImagesAction              = pylon_ros2_camera_interfaces::action::GrabImages;
+using GrabImagesGoalHandle          = rclcpp_action::ServerGoalHandle<GrabImagesAction>;
 
 
 class PylonROS2CameraNode : public rclcpp::Node
@@ -490,7 +496,6 @@ protected:
    * @brief Service callback for getting the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and blaze.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getMaxNumBufferCallback(const std::shared_ptr<GetIntegerSrv::Request> request,
                                std::shared_ptr<GetIntegerSrv::Response> response);
@@ -499,7 +504,6 @@ protected:
    * @brief Service callback for getting the GigE cameras: Number of frames received Other cameras: Number of buffers processed - Applies to: BCON, GigE, USB and blaze.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getStatisticTotalBufferCountCallback(const std::shared_ptr<GetIntegerSrv::Request> request,
                                             std::shared_ptr<GetIntegerSrv::Response> response);
@@ -508,7 +512,6 @@ protected:
    * @brief Service callback for getting the GigE cameras: Number of buffers with at least one failed packet. A packet is considered failed if its status is not 'success'. Other cameras: Number of buffers that returned an error.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getStatisticFailedBufferCountCallback(const std::shared_ptr<GetIntegerSrv::Request> request,
                                              std::shared_ptr<GetIntegerSrv::Response> response);
@@ -517,7 +520,6 @@ protected:
    * @brief Service callback for getting the Number of frames lost because there were no buffers in the queue - Applies to: GigE and blaze.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getStatisticBufferUnderrunCountCallback(const std::shared_ptr<GetIntegerSrv::Request> request,
                                                std::shared_ptr<GetIntegerSrv::Response> response);
@@ -526,7 +528,6 @@ protected:
    * @brief Service callback for getting the Number of failed packets, i.e., the number of packets whose status is not 'success'.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getStatisticFailedPacketCountCallback(const std::shared_ptr<GetIntegerSrv::Request> request,
                                              std::shared_ptr<GetIntegerSrv::Response> response);
@@ -535,7 +536,6 @@ protected:
    * @brief Service callback for getting the Number of emitted packet resend commands sent - Applies to: GigE and blaze.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getStatisticResendRequestCountCallback(const std::shared_ptr<GetIntegerSrv::Request> request,
                                               std::shared_ptr<GetIntegerSrv::Response> response);
@@ -544,7 +544,6 @@ protected:
    * @brief Service callback for getting the Number of corrupt or lost frames between successfully grabbed images - Applies to: BCON and USB.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getStatisticMissedFrameCountCallback(const std::shared_ptr<GetIntegerSrv::Request> request,
                                             std::shared_ptr<GetIntegerSrv::Response> response);
@@ -553,7 +552,6 @@ protected:
    * @brief Service callback for getting the Number of stream resynchronizations - Applies to: USB.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getStatisticResynchronizationCountCallback(const std::shared_ptr<GetIntegerSrv::Request> request,
                                                   std::shared_ptr<GetIntegerSrv::Response> response);
@@ -562,7 +560,6 @@ protected:
    * @brief Service callback for getting  the chunk mode - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getChunkModeActiveCallback(const std::shared_ptr<GetIntegerSrv::Request> request,
                                   std::shared_ptr<GetIntegerSrv::Response> response);
@@ -571,7 +568,6 @@ protected:
    * @brief Service callback for getting the sets for the chunk - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getChunkSelectorCallback(const std::shared_ptr<GetIntegerSrv::Request> request,
                                 std::shared_ptr<GetIntegerSrv::Response> response);
@@ -580,7 +576,6 @@ protected:
    * @brief Service callback for getting  the currently selected chunk in the payload data - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getChunkEnableCallback(const std::shared_ptr<GetIntegerSrv::Request> request,
                               std::shared_ptr<GetIntegerSrv::Response> response);
@@ -589,7 +584,6 @@ protected:
    * @brief Service callback for getting the Value of the timestamp when the image was acquired - Applies to: GigE and ace USB..
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getChunkTimestampCallback(const std::shared_ptr<GetIntegerSrv::Request> request,
                                  std::shared_ptr<GetIntegerSrv::Response> response);
@@ -598,7 +592,6 @@ protected:
    * @brief Service callback for getting Bit field that indicates the status of all of the camera's input and output lines when the image was acquired - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getChunkLineStatusAllCallback(const std::shared_ptr<GetIntegerSrv::Request> request,
                                       std::shared_ptr<GetIntegerSrv::Response> response);
@@ -607,7 +600,6 @@ protected:
    * @brief Service callback for getting Value of the Frame counter when the image was acquired - Applies to: GigE.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getChunkFramecounterCallback(const std::shared_ptr<GetIntegerSrv::Request> request,
                                     std::shared_ptr<GetIntegerSrv::Response> response);
@@ -616,7 +608,6 @@ protected:
    * @brief Service callback for getting Value of the selected chunk counter - Applies to: ace 2 GigE, ace 2 USB and ace USB.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getChunkCounterValueCallback(const std::shared_ptr<GetIntegerSrv::Request> request,
                                     std::shared_ptr<GetIntegerSrv::Response> response);
@@ -625,7 +616,6 @@ protected:
    * @brief Service callback for getting the Exposure time used to acquire the image - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB 
    * @param req request
    * @param res response
-   * @return true on success
    */
   void getChunkExposureTimeCallback(const std::shared_ptr<GetFloatSrv::Request> request,
                                     std::shared_ptr<GetFloatSrv::Response> response);
@@ -634,7 +624,6 @@ protected:
    * @brief Service callback for updating the cameras binning setting
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setBinningCallback(const std::shared_ptr<SetBinningSrv::Request> request,
                           std::shared_ptr<SetBinningSrv::Response> response);
@@ -643,7 +632,6 @@ protected:
    * @brief Service callback for setting the brightness
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setBrightnessCallback(const std::shared_ptr<SetBrightnessSrv::Request> request,
                              std::shared_ptr<SetBrightnessSrv::Response> response);
@@ -652,7 +640,6 @@ protected:
    * @brief Service callback for setting the exposure
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setExposureCallback(const std::shared_ptr<SetExposureSrv::Request> request,
                            std::shared_ptr<SetExposureSrv::Response> response);
@@ -661,7 +648,6 @@ protected:
    * @brief Service callback for setting the desired gain in percent
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setGainCallback(const std::shared_ptr<SetGainSrv::Request> request,
                        std::shared_ptr<SetGainSrv::Response> response);
@@ -670,7 +656,6 @@ protected:
    * @brief Service callback for setting the desired gamma correction value
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setGammaCallback(const std::shared_ptr<SetGammaSrv::Request> request,
                         std::shared_ptr<SetGammaSrv::Response> response);
@@ -679,7 +664,6 @@ protected:
    * @brief Service callback for updating the cameras roi setting
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setROICallback(const std::shared_ptr<SetROISrv::Request> request,
                       std::shared_ptr<SetROISrv::Response> response);
@@ -688,7 +672,6 @@ protected:
    * @brief Callback that puts the camera to sleep
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setSleepingCallback(const std::shared_ptr<SetSleepingSrv::Request> request,
                            std::shared_ptr<SetSleepingSrv::Response> response);
@@ -697,16 +680,38 @@ protected:
    * @brief Service callback for setting the white balance of the image channels
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setWhiteBalanceCallback(const std::shared_ptr<SetWhiteBalanceSrv::Request> request,
                                std::shared_ptr<SetWhiteBalanceSrv::Response> response);
 
   /**
+   * @brief Service callback for setting the action trigger configuration
+   * @param req request
+   * @param res response
+   */
+  void setActionTriggerConfigurationCallback(const std::shared_ptr<SetActionTriggerConfiguration::Request> request,
+                                             std::shared_ptr<SetActionTriggerConfiguration::Response> response);
+
+  /**
+   * @brief Service callback for issuing an action command
+   * @param req request
+   * @param res response
+   */
+  void issueActionCommandCallback(const std::shared_ptr<IssueActionCommand::Request> request,
+                                  std::shared_ptr<IssueActionCommand::Response> response);
+
+  /**
+   * @brief Service callback for issuing a scheduled action command
+   * @param req request
+   * @param res response
+   */
+  void issueScheduledActionCommandCallback(const std::shared_ptr<IssueScheduledActionCommand::Request> request,
+                                           std::shared_ptr<IssueScheduledActionCommand::Response> response);
+
+  /**
    * @brief Service callback for setting camera x-axis offset 
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setOffsetXCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                           std::shared_ptr<SetIntegerSrv::Response> response);
@@ -715,7 +720,6 @@ protected:
    * @brief Service callback for setting camera y-axis offset 
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setOffsetYCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                           std::shared_ptr<SetIntegerSrv::Response> response);
@@ -724,7 +728,6 @@ protected:
    * @brief Service callback for increasing/decreasing the image black level 
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setBlackLevelCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                              std::shared_ptr<SetIntegerSrv::Response> response);
@@ -733,7 +736,6 @@ protected:
    * @brief Service callback for setting the demosaicing mode 
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setDemosaicingModeCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                   std::shared_ptr<SetIntegerSrv::Response> response);
@@ -742,7 +744,6 @@ protected:
    * @brief Service callback for setting the camera light source preset 
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setLightSourcePresetCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                     std::shared_ptr<SetIntegerSrv::Response> response);
@@ -751,7 +752,6 @@ protected:
    * @brief Service callback for setting the camera balance white auto 
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setWhiteBalanceAutoCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                    std::shared_ptr<SetIntegerSrv::Response> response);
@@ -760,7 +760,6 @@ protected:
    * @brief Service callback for setting the sensor readout mode (Normal or Fast)
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setSensorReadoutModeCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                     std::shared_ptr<SetIntegerSrv::Response> response);
@@ -769,7 +768,6 @@ protected:
    * @brief Service callback for setting the acquisition frame count
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setAcquisitionFrameCountCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                         std::shared_ptr<SetIntegerSrv::Response> response);
@@ -778,7 +776,6 @@ protected:
    * @brief Service callback for setting the trigger selector
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setTriggerSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                   std::shared_ptr<SetIntegerSrv::Response> response);
@@ -787,7 +784,6 @@ protected:
    * @brief Service callback for setting the camera trigger source
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setTriggerSourceCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                 std::shared_ptr<SetIntegerSrv::Response> response);
@@ -796,7 +792,6 @@ protected:
    * @brief Service callback for setting the camera trigger activation type
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setTriggerActivationCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                     std::shared_ptr<SetIntegerSrv::Response> response);
@@ -805,7 +800,6 @@ protected:
    * @brief Service callback for setting the camera line selector
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setLineSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                std::shared_ptr<SetIntegerSrv::Response> response);
@@ -814,7 +808,6 @@ protected:
    * @brief Service callback for setting the camera line mode
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setLineModeCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                            std::shared_ptr<SetIntegerSrv::Response> response);
@@ -823,7 +816,6 @@ protected:
    * @brief Service callback for setting the camera line source
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setLineSourceCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                              std::shared_ptr<SetIntegerSrv::Response> response);
@@ -832,7 +824,6 @@ protected:
    * @brief Service callback for setting the camera user set selector
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setUserSetSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                   std::shared_ptr<SetIntegerSrv::Response> response);
@@ -841,7 +832,6 @@ protected:
    * @brief Service callback for setting the camera user set default selector
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setUserSetDefaultSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                          std::shared_ptr<SetIntegerSrv::Response> response);
@@ -850,7 +840,6 @@ protected:
    * @brief Service callback for setting the device link throughput limit  
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setDeviceLinkThroughputLimitCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                             std::shared_ptr<SetIntegerSrv::Response> response);
@@ -859,7 +848,6 @@ protected:
    * @brief Service callback for setting the camera Maximum USB data transfer size in bytes
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setMaxTransferSizeCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                   std::shared_ptr<SetIntegerSrv::Response> response);
@@ -868,7 +856,6 @@ protected:
    * @brief Service callback for setting the camera gamma selector (GigE Camera only)
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setGammaSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                 std::shared_ptr<SetIntegerSrv::Response> response);
@@ -877,7 +864,6 @@ protected:
    * @brief Service callback for setting the camera grab timeout in ms
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setGrabTimeoutCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                               std::shared_ptr<SetIntegerSrv::Response> response);
@@ -886,7 +872,6 @@ protected:
    * @brief Service callback for setting the camera trigger timeout in ms
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setTriggerTimeoutCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                  std::shared_ptr<SetIntegerSrv::Response> response);
@@ -895,7 +880,6 @@ protected:
    * @brief Service callback for setting the camera grabbing strategy 
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setGrabbingStrategyCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                    std::shared_ptr<SetIntegerSrv::Response> response);
@@ -904,7 +888,6 @@ protected:
    * @brief Service callback for setting the size of the grab result buffer output queue.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setOutputQueueSizeCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                   std::shared_ptr<SetIntegerSrv::Response> response);
@@ -913,7 +896,6 @@ protected:
    * @brief Service callback for setting the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and blaze.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setMaxNumBufferCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                std::shared_ptr<SetIntegerSrv::Response> response);
@@ -922,16 +904,86 @@ protected:
    * @brief Service callback for selecting the sets for the chunk - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setChunkSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                 std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
+   * @brief Service callback for setting timer selector - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
+   * @param req request
+   * @param res response
+   */
+  void setTimerSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the internal camera signal used to trigger the selected timer - Applies to: GigE, ace 2 GigE, ace 2 USB, ace USB and dart 2 USB.
+   * @param req request
+   * @param res response
+   */
+  void setTimerTriggerSourceCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                     std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the ptp priority - Applies to: GigE, ace 2 GigE, ace 2 USB, ace USB and dart 2 USB.
+   * @param req request
+   * @param res response
+   */
+  void setPTPPriorityCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                              std::shared_ptr<SetIntegerSrv::Response> response);
+  
+  /**
+   * @brief Service callback for setting the ptp profile - Applies to: ace 2 GigE.
+   * @param req request
+   * @param res response
+   */
+  void setPTPProfileCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                             std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the ptp network mode - Applies to: ace 2 GigE.
+   * @param req request
+   * @param res response
+   */
+  void setPTPNetworkModeCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                 std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the ptp uc port address index - Applies to: ace 2 GigE.
+   * @param req request
+   * @param res response
+   */
+  void setPTPUCPortAddressIndexCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                        std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the ptp uc port address - Applies to: ace 2 GigE.
+   * @param req request
+   * @param res response
+   */
+  void setPTPUCPortAddressCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                   std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the sync free run timer start time low - Applies to: GigE.
+   * @param req request
+   * @param res response
+   */
+  void setSyncFreeRunTimerStartTimeLowCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                               std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the sync free run timer start time high - Applies to: GigE.
+   * @param req request
+   * @param res response
+   */
+  void setSyncFreeRunTimerStartTimeHighCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                                std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
    * @brief Service callback for setting the noise reduction value 
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setNoiseReductionCallback(const std::shared_ptr<SetFloatSrv::Request> request,
                                  std::shared_ptr<SetFloatSrv::Response> response);
@@ -940,7 +992,6 @@ protected:
    * @brief Service callback for setting the sharpness enhancement value. 
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setSharpnessEnhancementCallback(const std::shared_ptr<SetFloatSrv::Request> request,
                                        std::shared_ptr<SetFloatSrv::Response> response);
@@ -949,7 +1000,6 @@ protected:
    * @brief Service callback for setting the camera trigger delay value
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setTriggerDelayCallback(const std::shared_ptr<SetFloatSrv::Request> request,
                                std::shared_ptr<SetFloatSrv::Response> response);
@@ -958,7 +1008,6 @@ protected:
    * @brief Service callback for setting the camera line debouncer time
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setLineDebouncerTimeCallback(const std::shared_ptr<SetFloatSrv::Request> request,
                                     std::shared_ptr<SetFloatSrv::Response> response);
@@ -967,16 +1016,46 @@ protected:
    * @brief Service callback for setting the Exposure time used to acquire the image - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB 
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setChunkExposureTimeCallback(const std::shared_ptr<SetFloatSrv::Request> request,
                                     std::shared_ptr<SetFloatSrv::Response> response);
 
   /**
+   * @brief Service callback for setting the timer duration - Applies to: ace 2 GigE, ace 2 USB, ace USB and dart 2 USB.
+   * @param req request
+   * @param res response
+   */
+  void setTimerDurationCallback(const std::shared_ptr<SetFloatSrv::Request> request,
+                                std::shared_ptr<SetFloatSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the length of the periodic signal in microseconds - Applies to: ace 2 GigE.
+   * @param req request
+   * @param res response
+   */
+  void setPeriodicSignalPeriodCallback(const std::shared_ptr<SetFloatSrv::Request> request,
+                                       std::shared_ptr<SetFloatSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the delay to be applied to the periodic signal in microseconds - Applies to: ace 2 GigE.
+   * @param req request
+   * @param res response
+   */
+  void setPeriodicSignalDelayCallback(const std::shared_ptr<SetFloatSrv::Request> request,
+                                      std::shared_ptr<SetFloatSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the synchronous free run trigger rate - Applies to: GigE.
+   * @param req request
+   * @param res response
+   */
+  void setSyncFreeRunTimerTriggerRateAbsCallback(const std::shared_ptr<SetFloatSrv::Request> request,
+                                                 std::shared_ptr<SetFloatSrv::Response> response);
+
+  /**
    * @brief Service callback for setting the camera image encoding
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setImageEncodingCallback(const std::shared_ptr<SetStringSrv::Request> request,
                                 std::shared_ptr<SetStringSrv::Response> response);
@@ -985,7 +1064,6 @@ protected:
    * @brief Service callback for reversing X
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setReverseXCallback(const std::shared_ptr<SetBoolSrv::Request> request,
                            std::shared_ptr<SetBoolSrv::Response> response);
@@ -994,7 +1072,6 @@ protected:
    * @brief Service callback for reversing Y
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setReverseYCallback(const std::shared_ptr<SetBoolSrv::Request> request,
                            std::shared_ptr<SetBoolSrv::Response> response);
@@ -1003,7 +1080,6 @@ protected:
    * @brief Service callback for setting the PGI mode 
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setPGIModeCallback(const std::shared_ptr<SetBoolSrv::Request> request,
                           std::shared_ptr<SetBoolSrv::Response> response);
@@ -1012,7 +1088,6 @@ protected:
    * @brief Service callback for setting the trigger mode
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setTriggerModeCallback(const std::shared_ptr<SetBoolSrv::Request> request,
                               std::shared_ptr<SetBoolSrv::Response> response);
@@ -1021,7 +1096,6 @@ protected:
    * @brief Service callback for setting the camera line inverter
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setLineInverterCallback(const std::shared_ptr<SetBoolSrv::Request> request,
                                std::shared_ptr<SetBoolSrv::Response> response);
@@ -1030,7 +1104,6 @@ protected:
    * @brief Service callback for setting the device link throughput limit mode 
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setDeviceLinkThroughputLimitModeCallback(const std::shared_ptr<SetBoolSrv::Request> request,
                                                 std::shared_ptr<SetBoolSrv::Response> response);
@@ -1039,7 +1112,6 @@ protected:
    * @brief Service callback for enable/disable the camera gamma
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setGammaEnableCallback(const std::shared_ptr<SetBoolSrv::Request> request,
                               std::shared_ptr<SetBoolSrv::Response> response);
@@ -1048,7 +1120,6 @@ protected:
    * @brief Service callback for enabling/disabling  the chunk mode - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setChunkModeActiveCallback(const std::shared_ptr<SetBoolSrv::Request> request,
                                   std::shared_ptr<SetBoolSrv::Response> response);
@@ -1057,7 +1128,6 @@ protected:
    * @brief Service callback for enabling/disabling  the Includes the currently selected chunk in the payload data - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setChunkEnableCallback(const std::shared_ptr<SetBoolSrv::Request> request,
                               std::shared_ptr<SetBoolSrv::Response> response);
@@ -1067,7 +1137,6 @@ protected:
    * @param output_id the ID of the user output to set
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setUserOutputCallback(const int output_id,
                              const std::shared_ptr<SetBoolSrv::Request> request,
@@ -1078,17 +1147,47 @@ protected:
    * @param output_id the ID of the user output to set
    * @param req request
    * @param res response
-   * @return true on success
    */
   void setAutoflashCallback(const int output_id,
                             const std::shared_ptr<SetBoolSrv::Request> request,
                             std::shared_ptr<SetBoolSrv::Response> response);
 
   /**
+   * @brief Service callback for enabling/disabling PTP management protocol - Applies to: ace 2 GigE.
+   * @param req request
+   * @param res response
+   */
+  void enablePTPManagementProtocolCallback(const std::shared_ptr<SetBoolSrv::Request> request,
+                                           std::shared_ptr<SetBoolSrv::Response> response);
+  
+  /**
+   * @brief Service callback for enabling/disabling PTP two step operation - Applies to: ace 2 GigE.
+   * @param req request
+   * @param res response
+   */
+  void enablePTPTwoStepOperationCallback(const std::shared_ptr<SetBoolSrv::Request> request,
+                                         std::shared_ptr<SetBoolSrv::Response> response);
+  
+  /**
+   * @brief Service callback for enabling/disabling PTP - Applies to: GigE, ace 2 GigE.
+   * @param req request
+   * @param res response
+   */
+  void enablePTPCallback(const std::shared_ptr<SetBoolSrv::Request> request,
+                         std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling the synchronous free run mode - Applies to: GigE.
+   * @param req request
+   * @param res response
+   */
+  void enableSyncFreeRunTimerCallback(const std::shared_ptr<SetBoolSrv::Request> request,
+                                      std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
    * @brief Service callback for executing a software trigger
    * @param req request
    * @param res response
-   * @return true on success
    */
   void executeSoftwareTriggerCallback(const std::shared_ptr<TriggerSrv::Request> request,
                                       std::shared_ptr<TriggerSrv::Response> response);
@@ -1097,7 +1196,6 @@ protected:
    * @brief Service callback for saving the user set
    * @param req request
    * @param res response
-   * @return true on success
    */
   void saveUserSetCallback(const std::shared_ptr<TriggerSrv::Request> request,
                            std::shared_ptr<TriggerSrv::Response> response);
@@ -1106,7 +1204,6 @@ protected:
    * @brief Service callback for loading the user set
    * @param req request
    * @param res response
-   * @return true on success
    */
   void loadUserSetCallback(const std::shared_ptr<TriggerSrv::Request> request,
                            std::shared_ptr<TriggerSrv::Response> response);
@@ -1115,7 +1212,6 @@ protected:
    * @brief Service callback for reseting the camera device
    * @param req request
    * @param res response
-   * @return true on success
    */
   void triggerDeviceResetCallback(const std::shared_ptr<TriggerSrv::Request> request,
                                   std::shared_ptr<TriggerSrv::Response> response);
@@ -1124,7 +1220,6 @@ protected:
    * @brief Service callback for starting camera aqcuisition
    * @param req request
    * @param res response
-   * @return true on success
    */
   void startGrabbingCallback(const std::shared_ptr<TriggerSrv::Request> request,
                              std::shared_ptr<TriggerSrv::Response> response);
@@ -1133,10 +1228,17 @@ protected:
    * @brief Service callback for stopping camera aqcuisition
    * @param req request
    * @param res response
-   * @return true on success
    */
   void stopGrabbingCallback(const std::shared_ptr<TriggerSrv::Request> request,
                             std::shared_ptr<TriggerSrv::Response> response);
+
+  /**
+   * @brief Service callback for updating synchronous free run settings - Applies to: GigE.
+   * @param req request
+   * @param res response
+   */
+  void updateSyncFreeRunTimerCallback(const std::shared_ptr<TriggerSrv::Request> request,
+                                      std::shared_ptr<TriggerSrv::Response> response);
 
   /**
    * @brief Handle action goal relatively raw image grabbing
@@ -1337,6 +1439,9 @@ protected:
   rclcpp::Service<SetROISrv>::SharedPtr set_roi_srv_;
   rclcpp::Service<SetSleepingSrv>::SharedPtr set_sleeping_srv_;
   rclcpp::Service<SetWhiteBalanceSrv>::SharedPtr set_white_balance_srv_;
+  rclcpp::Service<SetActionTriggerConfiguration>::SharedPtr set_ac_trigger_config_srv_;
+  rclcpp::Service<IssueActionCommand>::SharedPtr issue_action_command_srv_;
+  rclcpp::Service<IssueScheduledActionCommand>::SharedPtr issue_scheduled_action_command_srv_;
 
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_offset_x_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_offset_y_srv_;
@@ -1363,12 +1468,25 @@ protected:
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_output_queue_size_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_max_num_buffer_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_chunk_selector_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_timer_selector_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_timer_trigger_source_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_ptp_priority_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_ptp_profile_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_ptp_network_mode_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_ptp_uc_port_address_index_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_ptp_uc_port_address_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_sync_free_run_timer_start_time_low_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_sync_free_run_timer_start_time_high_srv_;
 
   rclcpp::Service<SetFloatSrv>::SharedPtr set_noise_reduction_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_sharpness_enhancement_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_trigger_delay_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_line_debouncer_time_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_chunk_exposure_time_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_timer_duration_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_periodic_signal_period_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_periodic_signal_delay_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_sync_free_run_timer_trigger_rate_abs_srv_;
 
   rclcpp::Service<SetStringSrv>::SharedPtr set_image_encoding_srv_;
   
@@ -1381,6 +1499,10 @@ protected:
   rclcpp::Service<SetBoolSrv>::SharedPtr set_gamma_activation_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr set_chunk_mode_active_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr set_chunk_enable_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_ptp_management_protocol_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_two_step_operation_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_ptp_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_sync_free_run_timer_srv_;
   
   rclcpp::Service<TriggerSrv>::SharedPtr execute_software_trigger_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr save_user_set_srv_;
@@ -1388,6 +1510,7 @@ protected:
   rclcpp::Service<TriggerSrv>::SharedPtr reset_device_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr start_grabbing_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr stop_grabbing_srv_;
+  rclcpp::Service<TriggerSrv>::SharedPtr update_sync_free_run_timer_srv_;
 
   std::vector<rclcpp::Service<SetBoolSrv>::SharedPtr> set_user_output_srvs_;
 

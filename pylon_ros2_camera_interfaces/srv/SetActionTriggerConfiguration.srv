@@ -1,0 +1,15 @@
+# Set action trigger configuration through service
+# Changes the configuration of the camera so that it is triggered by the first available action command.
+# This configuration enables the frame start trigger and disables all other trigger types. 
+# As trigger source the first available action command is selected, i.e., the camera will be triggered 
+# by action commands issued by the application.
+# In contrast to using the software trigger triggering with action commands allows to trigger multiple cameras simultaneously.
+
+int32 action_device_key
+int32 action_group_key
+uint32 action_group_mask
+int32 registration_mode     # ERegistrationMode: 1 -> RegistrationMode_Append, 2 -> RegistrationMode_ReplaceAll
+int32 cleanup               # ECleanup: 1 -> Cleanup_None, 2 -> Cleanup_Delete
+---
+bool success                # success or not
+string message              # status message

@@ -32,7 +32,10 @@
 #include <vector>
 
 #include "internal/pylon_ros2_camera_impl.hpp"
+
 #include <pylon/BaslerUniversalInstantCamera.h>
+#include <pylon/gige/GigETransportLayer.h>
+#include <pylon/gige/ActionTriggerConfiguration.h>
 
 
 namespace pylon_ros2_camera
@@ -79,7 +82,8 @@ struct GigECameraTrait
     typedef Basler_UniversalCameraParams::LineFormatEnums LineFormatEnums;
     typedef Basler_UniversalCameraParams::GammaSelectorEnums GammaSelectorEnums;
     typedef Basler_UniversalCameraParams::BalanceRatioSelectorEnums BalanceRatioSelectorEnums;
-
+    typedef Basler_UniversalCameraParams::TimerSelectorEnums TimerSelectorEnums;
+    typedef Basler_UniversalCameraParams::TimerTriggerSourceEnums TimerTriggerSourceEnums;
 
     static inline AutoTargetBrightnessValueType convertBrightness(const int& value)
     {
@@ -88,7 +92,6 @@ struct GigECameraTrait
 };
 
 typedef PylonROS2CameraImpl<GigECameraTrait> PylonROS2GigECamera;
-
 
 template <>
 bool PylonROS2GigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
@@ -300,7 +303,6 @@ bool PylonROS2GigECamera::applyCamSpecificStartupSettings(const PylonROS2CameraP
     return true;
 }
 
-
 template <>
 bool PylonROS2GigECamera::setupSequencer(const std::vector<float>& exposure_times,
                                      std::vector<float>& exposure_times_set)
@@ -357,7 +359,6 @@ GenApi::IFloat& PylonROS2GigECamera::exposureTime()
         throw std::runtime_error("Error while accessing ExposureTimeAbs in PylonROS2GigECamera");
     }
 }
-
 
 template <>
 GigECameraTrait::GainType& PylonROS2GigECamera::gain()
@@ -765,13 +766,15 @@ std::string PylonROS2GigECamera::setTriggerSelector(const int& mode)
         {  
             if (mode == 0)
             {
-            cam_->TriggerSelector.SetValue(TriggerSelectorEnums::TriggerSelector_FrameStart);   
-            return "done";
+                cam_->TriggerSelector.SetValue(TriggerSelectorEnums::TriggerSelector_FrameStart);
+                RCLCPP_INFO_STREAM(LOGGER_GIGE, "Trigger selector: Frame Start");
+                return "done";
             }
             else if (mode == 1)
             {
-            cam_->TriggerSelector.SetValue(TriggerSelectorEnums::TriggerSelector_AcquisitionStart);   
-            return "done";
+                cam_->TriggerSelector.SetValue(TriggerSelectorEnums::TriggerSelector_AcquisitionStart);
+                RCLCPP_INFO_STREAM(LOGGER_GIGE, "Trigger selector: Acquisition Start");
+                return "done";
             }
             else
             {
@@ -828,44 +831,46 @@ template <>
 std::string PylonROS2GigECamera::setTriggerSource(const int& source)
 {
     try
-    {   if ( GenApi::IsAvailable(cam_->TriggerSource) )
+    {   if (GenApi::IsAvailable(cam_->TriggerSource))
         {
-            if (source == 0)
+            switch (source)
             {
-                cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Software);
-            }
-            else if (source == 1)
-            {
-                cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Line1);
-            }
-            else if (source == 2)
-            {
-                cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Line3);
-            }
-            else if (source == 3)
-            {
-                cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Line4);
-            }
-            else if (source == 4)
-            {
-                cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Action1);
-            }
-            else 
-            {
-                return "Error: unknown value";
+                case 0:
+                    cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Software);
+                    RCLCPP_INFO_STREAM(LOGGER_GIGE, "Trigger source: Software");
+                    break;
+                case 1:
+                    cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Line1);
+                    RCLCPP_INFO_STREAM(LOGGER_GIGE, "Trigger source: Line 1");
+                    break;
+                case 2:
+                    cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Line3);
+                    RCLCPP_INFO_STREAM(LOGGER_GIGE, "Trigger source: Line 3");
+                    break;
+                case 3:
+                    cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Line4);
+                    RCLCPP_INFO_STREAM(LOGGER_GIGE, "Trigger source: Line 4");
+                    break;
+                case 4:
+                    cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Action1);
+                    RCLCPP_INFO_STREAM(LOGGER_GIGE, "Trigger source: Action 1");
+                    break;
+                default:
+                    RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Trigger source value is invalid! Please choose between 0 -> Trigger Software / 1 -> Line 1 / 2 -> Line 3 / 3 -> Line 4 / 4 -> Action 1");
+                    return "Error: unknown value for trigger source";
             }
         }
         else 
         {
-            RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to change the trigger mode. The connected Camera not supporting this feature");
-            return "The connected Camera not supporting this feature";
+            RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to change the trigger source. The connected camera does not support this feature");
+            return "The connected camera does not support this feature";
         }
 
     }
-    catch ( const GenICam::GenericException &e )
+    catch (const GenICam::GenericException &e)
     {
-        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while setting the trigger mode occurred:" << e.GetDescription());
-        return e.GetDescription(); // + " Check the TriggerSelector setting";
+        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while setting the trigger source occurred:" << e.GetDescription());
+        return e.GetDescription();
     }
     return "done";
 }
@@ -1476,7 +1481,7 @@ std::string PylonROS2GigECamera::gammaEnable(const bool& enable)
 {
     try
     {
-        if ( GenApi::IsAvailable(cam_->GammaEnable))
+        if (GenApi::IsAvailable(cam_->GammaEnable))
         {
             cam_->GammaEnable.SetValue(enable);
             return "done";
@@ -1496,7 +1501,8 @@ std::string PylonROS2GigECamera::gammaEnable(const bool& enable)
 }
 
 template <> 
-float PylonROS2GigECamera::getTemperature(){
+float PylonROS2GigECamera::getTemperature()
+{
     try
     {
         if ( GenApi::IsAvailable(cam_->TemperatureAbs) )
@@ -1515,26 +1521,327 @@ float PylonROS2GigECamera::getTemperature(){
 }
 
 template <> 
-std::string PylonROS2GigECamera::setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue){
+std::string PylonROS2GigECamera::setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue)
+{
     try
     {
-        if ( GenApi::IsAvailable(cam_->BalanceWhiteAuto) && GenApi::IsAvailable(cam_->BalanceRatioAbs)) {
-           cam_->BalanceWhiteAuto.SetValue(BalanceWhiteAutoEnums::BalanceWhiteAuto_Off);
+        if (GenApi::IsAvailable(cam_->BalanceWhiteAuto) && GenApi::IsAvailable(cam_->BalanceRatioAbs)) 
+        {
+            cam_->BalanceWhiteAuto.SetValue(BalanceWhiteAutoEnums::BalanceWhiteAuto_Off);
             cam_->BalanceRatioSelector.SetValue(BalanceRatioSelectorEnums::BalanceRatioSelector_Red);
             cam_->BalanceRatioAbs.SetValue(redValue);
             cam_->BalanceRatioSelector.SetValue(BalanceRatioSelectorEnums::BalanceRatioSelector_Green);
             cam_->BalanceRatioAbs.SetValue(greenValue);
             cam_->BalanceRatioSelector.SetValue(BalanceRatioSelectorEnums::BalanceRatioSelector_Blue);
             cam_->BalanceRatioAbs.SetValue(blueValue);
-            return "done"; 
-        } else {
+
+            return "done";
+        } 
+        else 
+        {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to set the white balance. The connected Camera not supporting this feature");
             return "The connected Camera not supporting this feature";
         }
     }
-    catch ( const GenICam::GenericException &e )
+    catch (const GenICam::GenericException &e)
     {
         RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while setting the white balance occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <>
+std::string PylonROS2GigECamera::setTimerSelector(const int& selector)
+{
+    try
+    {   if (GenApi::IsAvailable(cam_->TimerSelector))
+        {
+            switch (selector)
+            {
+                case 1:
+                    cam_->TimerSelector.SetValue(TimerSelectorEnums::TimerSelector_Timer1);
+                    break;
+                case 2:
+                    cam_->TimerSelector.SetValue(TimerSelectorEnums::TimerSelector_Timer2);
+                    break;
+                case 3:
+                    cam_->TimerSelector.SetValue(TimerSelectorEnums::TimerSelector_Timer3);
+                    break;
+                case 4:
+                    cam_->TimerSelector.SetValue(TimerSelectorEnums::TimerSelector_Timer4);
+                    break;
+                default:
+                    RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Timer selector value is invalid! Please choose between 1 -> Timer 1 / 2 -> Timer 2 / 3 -> Timer 3 / 4 -> Timer 4");
+                    return "Error: unknown value for timer selector";
+            }
+        }
+        else 
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to change the timer selector. The connected camera does not support this feature");
+            return "The connected camera does not support this feature";
+        }
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while setting the timer selector occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    
+    return "done";
+}
+
+template <>
+std::string PylonROS2GigECamera::setSyncFreeRunTimerStartTimeLow(const int& value)
+{
+    try
+    {
+        if (GenApi::IsAvailable(cam_->SyncFreeRunTimerStartTimeLow))
+        {
+            cam_->SyncFreeRunTimerStartTimeLow.SetValue(value);   
+            return "done";
+        }
+        else 
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to set sync. free run timer start time low. The connected camera does not support this feature.");
+            return "The connected camera does not support this feature";
+        }
+
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while setting sync. free run timer start time low:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <>
+std::string PylonROS2GigECamera::setSyncFreeRunTimerStartTimeHigh(const int& value)
+{
+    try
+    {
+        if (GenApi::IsAvailable(cam_->SyncFreeRunTimerStartTimeHigh))
+        {
+            cam_->SyncFreeRunTimerStartTimeHigh.SetValue(value);   
+            return "done";
+        }
+        else 
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to set sync. free run timer start time high. The connected camera does not support this feature.");
+            return "The connected camera does not support this feature";
+        }
+
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while setting sync. free run timer start time high:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <>
+std::string PylonROS2GigECamera::setSyncFreeRunTimerTriggerRateAbs(const float& value)
+{
+    try
+    {
+        if (GenApi::IsAvailable(cam_->SyncFreeRunTimerTriggerRateAbs))
+        {
+            cam_->SyncFreeRunTimerTriggerRateAbs.SetValue(value);
+            return "done";
+        }
+        else 
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to set sync. free run timer trigger rate abs. The connected camera does not support this feature.");
+            return "The connected camera does not support this feature";
+        }
+
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while setting sync. free run timer trigger rate abs:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <> 
+std::string PylonROS2GigECamera::enablePTP(const bool& value)
+{
+    try
+    {
+        if (GenApi::IsAvailable(cam_->GevIEEE1588))
+        {
+            cam_->GevIEEE1588.SetValue(value);
+            return "done";
+        }
+        else
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to enable/disable PTP. The connected camera does not support this feature.");
+            return "The connected camera does not support this feature";
+        }
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while enabling/disabling PTP occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <> 
+std::string PylonROS2GigECamera::enableSyncFreeRunTimer(const bool& value)
+{
+    try
+    {
+        if (GenApi::IsAvailable(cam_->SyncFreeRunTimerEnable))
+        {
+            cam_->SyncFreeRunTimerEnable.SetValue(value);
+            return "done";
+        }
+        else 
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to enable/disable sync. free run timer. The connected camera does not support this feature.");
+            return "The connected camera does not support this feature";
+        }
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while enabling/disabling sync. free run timer:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <> 
+std::string PylonROS2GigECamera::updateSyncFreeRunTimer()
+{
+    try
+    {
+        if (GenApi::IsAvailable(cam_->SyncFreeRunTimerUpdate))
+        {
+            cam_->SyncFreeRunTimerUpdate.Execute();
+            return "done";
+        }
+        else 
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to update sync. free run timer. The connected camera does not support this feature.");
+            return "The connected camera does not support this feature";
+        }
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while updating sync. free run timer:" << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+template <> 
+std::string PylonROS2GigECamera::setActionTriggerConfiguration(const int& action_device_key, const int& action_group_key, const unsigned int& action_group_mask,
+                                                               const int& registration_mode, const int& cleanup)
+{
+    try
+    {
+        Pylon::ERegistrationMode reg_mode;
+        switch (registration_mode)
+        {
+            case 1:
+                reg_mode = Pylon::ERegistrationMode::RegistrationMode_Append;
+                break;
+            case 2:
+                reg_mode = Pylon::ERegistrationMode::RegistrationMode_ReplaceAll;
+                break;
+            default:
+                return "The registration mode value specified by the user is invalid";
+        }
+
+        Pylon::ECleanup cu;
+        switch (cleanup)
+        {
+            case 1:
+                cu = Pylon::ECleanup::Cleanup_None;
+                break;
+            case 2:
+                cu = Pylon::ECleanup::Cleanup_Delete;
+                break;
+            default:
+                return "The cleanup value specified by the user is invalid";
+        }
+
+        cam_->RegisterConfiguration(new Pylon::CActionTriggerConfiguration(action_device_key, action_group_key, action_group_mask), reg_mode, cu);
+
+        RCLCPP_INFO_STREAM(LOGGER_GIGE, "Action trigger configuration has been set successfully: " 
+                                        << "Device key -> " << action_device_key << ", "
+                                        << "Group key -> " << action_group_key << ", "
+                                        << "Group mask -> " << std::hex << action_group_mask << ", "
+                                        << "Registration mode -> " << (reg_mode == Pylon::ERegistrationMode::RegistrationMode_Append ? "RegistrationMode_Append" : "RegistrationMode_ReplaceAll") << ", "
+                                        << "Cleanup -> " << (cu == Pylon::ECleanup::Cleanup_None ? "Cleanup_None" : "Cleanup_Delete"));
+        
+        return "done";
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while setting action trigger connfiguration occurred: " << e.GetDescription());
+        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "The connected camera may not support this feature");
+        return e.GetDescription();
+    }
+}
+
+template <> 
+std::string PylonROS2GigECamera::issueActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const std::string& broadcast_address)
+{
+    try
+    {
+        // get transport layer
+        Pylon::CTlFactory & factory(Pylon::CTlFactory::GetInstance());
+        Pylon::IGigETransportLayer* pTl = dynamic_cast<Pylon::IGigETransportLayer*>(factory.CreateTl(Pylon::BaslerGigEDeviceClass));
+
+        // Send an action command to the cameras
+        pTl->IssueActionCommand(device_key, group_key, group_mask, broadcast_address.c_str());
+
+        RCLCPP_INFO_STREAM(LOGGER_GIGE, "Action command has been issued successfully: " 
+                                        << "Device key -> " << device_key << ", "
+                                        << "Group key -> " << group_key << ", "
+                                        << "Group mask -> " << std::hex << group_mask << ", "
+                                        << "Broadcast address -> " << broadcast_address);
+        
+        return "done";
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while issuing an action command occurred: " << e.GetDescription());
+        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "The connected camera may not support this feature");
+        return e.GetDescription();
+    }
+}
+
+template <>
+std::string PylonROS2GigECamera::issueScheduledActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const int64_t& action_time_ns_from_current_timestamp, const std::string& broadcast_address)
+{
+    try
+    {
+        // get transport layer
+        Pylon::CTlFactory & factory(Pylon::CTlFactory::GetInstance());
+        Pylon::IGigETransportLayer* pTl = dynamic_cast<Pylon::IGigETransportLayer*>(factory.CreateTl(Pylon::BaslerGigEDeviceClass));
+
+        // Get the current timestamp of the first camera
+        // NOTE: All cameras must be synchronized via Precision Time Protocol
+        cam_->GevTimestampControlLatch.Execute();
+        int64_t current_timestamp = cam_->GevTimestampValue.GetValue();
+        // Specify that the command will be executed roughly 30 seconds
+        // (30 000 000 000 ticks) after the current timestamp.
+        int64_t action_time = current_timestamp + action_time_ns_from_current_timestamp;
+        // Send a scheduled action command to the cameras
+        pTl->IssueScheduledActionCommand(device_key, group_key, group_mask, action_time, broadcast_address.c_str());
+
+        RCLCPP_INFO_STREAM(LOGGER_GIGE, "Scheduled action command has been issued successfully: " 
+                                        << "Device key -> " << device_key << ", "
+                                        << "Group key -> " << group_key << ", "
+                                        << "Group mask -> " << std::hex << group_mask << ", "
+                                        << "Action time from current timestamp -> " << (double)action_time_ns_from_current_timestamp << " ns, "
+                                        << "Broadcast address -> " << broadcast_address);
+        
+        return "done";
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while issuing a scheduled action command occurred: " << e.GetDescription());
+        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "The connected camera may not support this feature");
         return e.GetDescription();
     }
 }

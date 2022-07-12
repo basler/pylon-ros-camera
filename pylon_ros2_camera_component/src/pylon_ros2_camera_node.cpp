@@ -247,6 +247,15 @@ void PylonROS2CameraNode::initServices()
   srv_name = srv_prefix + "set_white_balance";
   this->set_white_balance_srv_ = this->create_service<SetWhiteBalanceSrv>(srv_name, std::bind(&PylonROS2CameraNode::setWhiteBalanceCallback, this, _1, _2));
   
+  srv_name = srv_prefix + "set_action_trigger_configuration";
+  this->set_ac_trigger_config_srv_ = this->create_service<SetActionTriggerConfiguration>(srv_name, std::bind(&PylonROS2CameraNode::setActionTriggerConfigurationCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "issue_action_command";
+  this->issue_action_command_srv_ = this->create_service<IssueActionCommand>(srv_name, std::bind(&PylonROS2CameraNode::issueActionCommandCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "issue_scheduled_action_command";
+  this->issue_scheduled_action_command_srv_ = this->create_service<IssueScheduledActionCommand>(srv_name, std::bind(&PylonROS2CameraNode::issueScheduledActionCommandCallback, this, _1, _2));
+
   srv_name = srv_prefix + "set_offset_x";
   this->set_offset_x_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setOffsetXCallback, this, _1, _2));
   
@@ -322,6 +331,33 @@ void PylonROS2CameraNode::initServices()
   srv_name = srv_prefix + "set_chunk_selector";
   this->set_chunk_selector_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setChunkSelectorCallback, this, _1, _2));
   
+  srv_name = srv_prefix + "set_timer_selector";
+  this->set_timer_selector_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setTimerSelectorCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "set_timer_trigger_source";
+  this->set_timer_trigger_source_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setTimerTriggerSourceCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "set_ptp_priority";
+  this->set_ptp_priority_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setPTPPriorityCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_ptp_profile";
+  this->set_ptp_profile_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setPTPProfileCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_ptp_network_mode";
+  this->set_ptp_network_mode_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setPTPNetworkModeCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_ptp_uc_port_address_index";
+  this->set_ptp_uc_port_address_index_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setPTPUCPortAddressIndexCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_ptp_uc_port_address";
+  this->set_ptp_uc_port_address_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setPTPUCPortAddressCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_sync_free_run_timer_start_time_low";
+  this->set_sync_free_run_timer_start_time_low_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setSyncFreeRunTimerStartTimeLowCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_sync_free_run_timer_start_time_high";
+  this->set_sync_free_run_timer_start_time_high_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setSyncFreeRunTimerStartTimeHighCallback, this, _1, _2));
+  
   srv_name = srv_prefix + "set_noise_reduction";
   this->set_noise_reduction_srv_ = this->create_service<SetFloatSrv>(srv_name, std::bind(&PylonROS2CameraNode::setNoiseReductionCallback, this, _1, _2));
   
@@ -336,6 +372,18 @@ void PylonROS2CameraNode::initServices()
   
   srv_name = srv_prefix + "set_chunk_exposure_time";
   this->set_chunk_exposure_time_srv_ = this->create_service<SetFloatSrv>(srv_name, std::bind(&PylonROS2CameraNode::setChunkExposureTimeCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_timer_duration";
+  this->set_timer_duration_srv_ = this->create_service<SetFloatSrv>(srv_name, std::bind(&PylonROS2CameraNode::setTimerDurationCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_periodic_signal_period";
+  this->set_periodic_signal_period_srv_ = this->create_service<SetFloatSrv>(srv_name, std::bind(&PylonROS2CameraNode::setPeriodicSignalPeriodCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_periodic_signal_delay";
+  this->set_periodic_signal_delay_srv_ = this->create_service<SetFloatSrv>(srv_name, std::bind(&PylonROS2CameraNode::setPeriodicSignalDelayCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_sync_free_run_timer_trigger_rate_abs";
+  this->set_sync_free_run_timer_trigger_rate_abs_srv_ = this->create_service<SetFloatSrv>(srv_name, std::bind(&PylonROS2CameraNode::setSyncFreeRunTimerTriggerRateAbsCallback, this, _1, _2));
   
   srv_name = srv_prefix + "set_image_encoding";
   this->set_image_encoding_srv_ = this->create_service<SetStringSrv>(srv_name, std::bind(&PylonROS2CameraNode::setImageEncodingCallback, this, _1, _2));
@@ -366,6 +414,18 @@ void PylonROS2CameraNode::initServices()
   
   srv_name = srv_prefix + "set_chunk_enable";
   this->set_chunk_enable_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::setChunkEnableCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_ptp_management_protocol";
+  this->enable_ptp_management_protocol_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enablePTPManagementProtocolCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "enable_two_step_operation";
+  this->enable_two_step_operation_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enablePTPTwoStepOperationCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_ptp";
+  this->enable_ptp_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enablePTPCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_sync_free_run_timer";
+  this->enable_sync_free_run_timer_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableSyncFreeRunTimerCallback, this, _1, _2));
   
   srv_name = srv_prefix + "execute_software_trigger";
   this->execute_software_trigger_srv_ = this->create_service<TriggerSrv>(srv_name, std::bind(&PylonROS2CameraNode::executeSoftwareTriggerCallback, this, _1, _2));
@@ -384,6 +444,9 @@ void PylonROS2CameraNode::initServices()
   
   srv_name = srv_prefix + "stop_grabbing";
   this->stop_grabbing_srv_ = this->create_service<TriggerSrv>(srv_name, std::bind(&PylonROS2CameraNode::stopGrabbingCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "update_sync_free_run_timer";
+  this->update_sync_free_run_timer_srv_ = this->create_service<TriggerSrv>(srv_name, std::bind(&PylonROS2CameraNode::updateSyncFreeRunTimerCallback, this, _1, _2));
 }
 
 void PylonROS2CameraNode::initActions()
@@ -2193,6 +2256,52 @@ void PylonROS2CameraNode::setWhiteBalanceCallback(const std::shared_ptr<SetWhite
   }
 }
 
+void PylonROS2CameraNode::setActionTriggerConfigurationCallback(const std::shared_ptr<SetActionTriggerConfiguration::Request> request,
+                                                                std::shared_ptr<SetActionTriggerConfiguration::Response> response)
+{
+  response->message = this->pylon_camera_->setActionTriggerConfiguration(request->action_device_key, request->action_group_key, request->action_group_mask,
+                                                                         request->registration_mode, request->cleanup);
+
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::issueActionCommandCallback(const std::shared_ptr<IssueActionCommand::Request> request,
+                                                     std::shared_ptr<IssueActionCommand::Response> response)
+{
+  response->message = this->pylon_camera_->issueActionCommand(request->device_key, request->group_key, request->group_mask, request->broadcast_address);
+
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::issueScheduledActionCommandCallback(const std::shared_ptr<IssueScheduledActionCommand::Request> request,
+                                                              std::shared_ptr<IssueScheduledActionCommand::Response> response)
+{
+  response->message = this->pylon_camera_->issueScheduledActionCommand(request->device_key, request->group_key, request->group_mask, request->action_time_ns_from_current_timestamp, request->broadcast_address);
+
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
 void PylonROS2CameraNode::setOffsetXCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                              std::shared_ptr<SetIntegerSrv::Response> response)
 {
@@ -2668,6 +2777,134 @@ void PylonROS2CameraNode::setChunkSelectorCallback(const std::shared_ptr<SetInte
   }
 }
 
+void PylonROS2CameraNode::setTimerSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                                   std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setTimerSelector(request->value);
+
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setTimerTriggerSourceCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                                        std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setTimerTriggerSource(request->value);
+
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setPTPPriorityCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                                 std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setPTPPriority(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setPTPProfileCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                                std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setPTPProfile(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+  
+void PylonROS2CameraNode::setPTPNetworkModeCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                                    std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setPTPNetworkMode(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setPTPUCPortAddressIndexCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                                           std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setPTPUCPortAddressIndex(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setPTPUCPortAddressCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                                      std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setPTPUCPortAddress(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setSyncFreeRunTimerStartTimeLowCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                                                  std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setSyncFreeRunTimerStartTimeLow(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setSyncFreeRunTimerStartTimeHighCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                                                   std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setSyncFreeRunTimerStartTimeHigh(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
 void PylonROS2CameraNode::setNoiseReductionCallback(const std::shared_ptr<SetFloatSrv::Request> request,
                                                     std::shared_ptr<SetFloatSrv::Response> response)
 {
@@ -2748,6 +2985,66 @@ void PylonROS2CameraNode::setChunkExposureTimeCallback(const std::shared_ptr<Set
   {
     response->success = true;
   } 
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setTimerDurationCallback(const std::shared_ptr<SetFloatSrv::Request> request,
+                                                   std::shared_ptr<SetFloatSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setTimerDuration(request->value);
+
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+  
+void PylonROS2CameraNode::setPeriodicSignalPeriodCallback(const std::shared_ptr<SetFloatSrv::Request> request,
+                                                          std::shared_ptr<SetFloatSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setPeriodicSignalPeriod(request->value);
+
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setPeriodicSignalDelayCallback(const std::shared_ptr<SetFloatSrv::Request> request,
+                                                         std::shared_ptr<SetFloatSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setPeriodicSignalDelay(request->value);
+
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setSyncFreeRunTimerTriggerRateAbsCallback(const std::shared_ptr<SetFloatSrv::Request> request,
+                                                                    std::shared_ptr<SetFloatSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setSyncFreeRunTimerTriggerRateAbs(request->value);
+
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
   else
   {
     response->success = false;
@@ -2959,6 +3256,62 @@ void PylonROS2CameraNode::setAutoflashCallback(const int output_id,
   response->success = true;
 }
 
+void PylonROS2CameraNode::enablePTPManagementProtocolCallback(const std::shared_ptr<SetBoolSrv::Request> request,
+                                                              std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enablePTPManagementProtocol(request->data);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::enablePTPTwoStepOperationCallback(const std::shared_ptr<SetBoolSrv::Request> request,
+                                                            std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enablePTPTwoStepOperation(request->data);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::enablePTPCallback(const std::shared_ptr<SetBoolSrv::Request> request,
+                                            std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enablePTP(request->data);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::enableSyncFreeRunTimerCallback(const std::shared_ptr<SetBoolSrv::Request> request,
+                                                         std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enableSyncFreeRunTimer(request->data);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
 void PylonROS2CameraNode::executeSoftwareTriggerCallback(const std::shared_ptr<TriggerSrv::Request> request,
                                                          std::shared_ptr<TriggerSrv::Response> response)
 {
@@ -3051,6 +3404,21 @@ void PylonROS2CameraNode::stopGrabbingCallback(const std::shared_ptr<TriggerSrv:
 {
   (void)request;
   response->message = this->grabbingStopping();
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else 
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::updateSyncFreeRunTimerCallback(const std::shared_ptr<TriggerSrv::Request> request,
+                                                         std::shared_ptr<TriggerSrv::Response> response)
+{
+  (void)request;
+  response->message = this->pylon_camera_->updateSyncFreeRunTimer();
   if ((response->message.find("done") != std::string::npos) != 0)
   {
     response->success = true;
