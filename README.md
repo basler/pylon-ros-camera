@@ -71,9 +71,9 @@ The default trigger mode is set to software trigger. This means that the image a
 The pylon ROS2 driver support currently the following ROS2 image pixel formats :
 
 	* mono8	        (Basler Format : Mono8)
-	* mono16	      (Basler Format : Mono16, Mono12)        (Notes 1&2)
-	* bgr8 		      (Basler Format : BGR8)
-	* rgb8 		      (Basler Format : RGB8)
+	* mono16	(Basler Format : Mono16, Mono12)        (Notes 1&2)
+	* bgr8 		(Basler Format : BGR8)
+	* rgb8 		(Basler Format : RGB8)
 	* bayer_bggr8 	(Basler Format : BayerBG8)
 	* bayer_gbrg8 	(Basler Format : BayerGB8)
 	* bayer_rggb8 	(Basler Format : BayerRG8)
