@@ -102,59 +102,6 @@ It is easily possible to connect to a specific camera through its user id. This 
 In addition to being able to do so through the pylon Viewer provided by Basler, it is possible to set the device user id with the command: `ros2 run pylon_ros2_camera_component set_device_user_id [-sn SERIAL_NB] your_device_user_id`. If no serial number is specified thanks to the option `-sn`, the specified device user id `your_device_user_id` will be assigned to the first available camera.
 USB cameras must be disconnected and then reconnected after setting a new device user id. USB cameras keep their old user id otherwise.
 
-### PTP synchronization
-
-The Precision Time Protocol (PTP) camera feature allows you to synchronize multiple GigE cameras in the same network. It enables a camera to use the following features, if available:
-- **Scheduled Action Commands** & **Action Commands**
-- **Synchronous Free Run** (applies to ace 1 cameras)
-- **Periodic Signal** (applies to ace 2 cameras)  
-
-Refer to [the documentation](https://docs.baslerweb.com/precision-time-protocol) for more info about these features, with multiple code samples.  
-
-The pylon driver gives accordingly access through ROS2 services to the following parameters and commands:
-
-#### ACE 1
-
-**PTP configuration & activation**
-- *GevIEEE1588*                    -> /my_camera/pylon_ros2_camera_node/enable_ptp [std_srvs/srv/SetBool]
-
-**Scheduled Action Commands** & **Action Commands**
-- *ActionDeviceKey*                -> /my_camera/pylon_ros2_camera_node/set_action_trigger_configuration [pylon_ros2_camera_interfaces/srv/SetActionTriggerConfiguration]
-- *ActionGroupKey*                 -> /my_camera/pylon_ros2_camera_node/set_action_trigger_configuration [pylon_ros2_camera_interfaces/srv/SetActionTriggerConfiguration]
-- *ActionGroupMask*                -> /my_camera/pylon_ros2_camera_node/set_action_trigger_configuration [pylon_ros2_camera_interfaces/srv/SetActionTriggerConfiguration]
-- *IssueScheduledActionCommand*    -> /my_camera/pylon_ros2_camera_node/issue_scheduled_action_command [pylon_ros2_camera_interfaces/srv/IssueScheduledActionCommand]
-- *IssueActionCommand*             -> /my_camera/pylon_ros2_camera_node/issue_action_command [pylon_ros2_camera_interfaces/srv/IssueActionCommand]
-
-**Synchronous Free Run**
-- *SyncFreeRunTimerStartTimeLow*   -> /my_camera/pylon_ros2_camera_node/set_sync_free_run_timer_start_time_low [pylon_ros2_camera_interfaces/srv/SetIntegerValue]
-- *SyncFreeRunTimerStartTimeHigh*  -> /my_camera/pylon_ros2_camera_node/set_sync_free_run_timer_start_time_high [pylon_ros2_camera_interfaces/srv/SetIntegerValue]
-- *SyncFreeRunTimerTriggerRateAbs* -> /my_camera/pylon_ros2_camera_node/set_sync_free_run_timer_trigger_rate_abs [pylon_ros2_camera_interfaces/srv/SetFloatValue]
-- *SyncFreeRunTimerUpdate*         -> /my_camera/pylon_ros2_camera_node/update_sync_free_run_timer [std_srvs/srv/Trigger]
-- *SyncFreeRunTimerEnable*         -> //my_camera/pylon_ros2_camera_node/enable_sync_free_run_timer [std_srvs/srv/SetBool]
-
-#### ACE 2
-
-**PTP configuration & activation**
-- *BslPtpPriority1*                -> /my_camera/pylon_ros2_camera_node/set_ptp_priority [pylon_ros2_camera_interfaces/srv/SetIntegerValue]
-- *BslPtpProfile*                  -> /my_camera/pylon_ros2_camera_node/set_ptp_profile [pylon_ros2_camera_interfaces/srv/SetIntegerValue]
-- *BslPtpNetworkMode*              -> /my_camera/pylon_ros2_camera_node/set_ptp_network_mode [pylon_ros2_camera_interfaces/srv/SetIntegerValue]
-- *BslPtpUcPortAddrIndex*          -> /my_camera/pylon_ros2_camera_node/set_ptp_uc_port_address_index [pylon_ros2_camera_interfaces/srv/SetIntegerValue]
-- *BslPtpUcPortAddr*               -> /my_camera/pylon_ros2_camera_node/set_ptp_uc_port_address [pylon_ros2_camera_interfaces/srv/SetIntegerValue]
-- *BslPtpManagementEnable*         -> /my_camera/pylon_ros2_camera_node/enable_ptp_management_protocol [std_srvs/srv/SetBool]
-- *BslTwoStep*                     -> /my_camera/pylon_ros2_camera_node/enable_two_step_operation [std_srvs/srv/SetBool]
-- *PtpEnable*                      -> /my_camera/pylon_ros2_camera_node/enable_ptp [std_srvs/srv/SetBool]
-
-**Scheduled Action Commands** & **Action Commands**
-- *ActionDeviceKey*                -> /my_camera/pylon_ros2_camera_node/set_action_trigger_configuration [pylon_ros2_camera_interfaces/srv/SetActionTriggerConfiguration]
-- *ActionGroupKey*                 -> /my_camera/pylon_ros2_camera_node/set_action_trigger_configuration [pylon_ros2_camera_interfaces/srv/SetActionTriggerConfiguration]
-- *ActionGroupMask*                -> /my_camera/pylon_ros2_camera_node/set_action_trigger_configuration [pylon_ros2_camera_interfaces/srv/SetActionTriggerConfiguration]
-- *IssueScheduledActionCommand*    -> /my_camera/pylon_ros2_camera_node/issue_scheduled_action_command [pylon_ros2_camera_interfaces/srv/IssueScheduledActionCommand]
-- *IssueActionCommand*             -> /my_camera/pylon_ros2_camera_node/issue_action_command [pylon_ros2_camera_interfaces/srv/IssueActionCommand]
-
-**Periodic Signal**
-- *BslPeriodicSignalDelay*         -> /my_camera/pylon_ros2_camera_node/set_periodic_signal_delay [pylon_ros2_camera_interfaces/srv/SetFloatValue]
-- *BslPeriodicSignalPeriod*        -> /my_camera/pylon_ros2_camera_node/set_periodic_signal_period [pylon_ros2_camera_interfaces/srv/SetFloatValue]
-
 
 ## Packages
 
@@ -262,6 +209,60 @@ The following settings do **NOT** have to be set. Each camera has default values
 
 - **enable_current_params_publisher**  
   Flag used to enable/disable the current camera publisher.
+
+
+## PTP synchronization
+
+The Precision Time Protocol (PTP) camera feature allows you to synchronize multiple GigE cameras in the same network. It enables a camera to use the following features, if available:
+- **Scheduled Action Commands** & **Action Commands**
+- **Synchronous Free Run** (applies to ace 1 cameras)
+- **Periodic Signal** (applies to ace 2 cameras)  
+
+Refer to [the documentation](https://docs.baslerweb.com/precision-time-protocol) for more info about these features, with multiple code samples.  
+
+The pylon driver gives accordingly access through ROS2 services to the following parameters and commands:
+
+### ACE 1
+
+**PTP configuration & activation**
+- *GevIEEE1588*                    -> /my_camera/pylon_ros2_camera_node/enable_ptp [std_srvs/srv/SetBool]
+
+**Scheduled Action Commands** & **Action Commands**
+- *ActionDeviceKey*                -> /my_camera/pylon_ros2_camera_node/set_action_trigger_configuration [pylon_ros2_camera_interfaces/srv/SetActionTriggerConfiguration]
+- *ActionGroupKey*                 -> /my_camera/pylon_ros2_camera_node/set_action_trigger_configuration [pylon_ros2_camera_interfaces/srv/SetActionTriggerConfiguration]
+- *ActionGroupMask*                -> /my_camera/pylon_ros2_camera_node/set_action_trigger_configuration [pylon_ros2_camera_interfaces/srv/SetActionTriggerConfiguration]
+- *IssueScheduledActionCommand*    -> /my_camera/pylon_ros2_camera_node/issue_scheduled_action_command [pylon_ros2_camera_interfaces/srv/IssueScheduledActionCommand]
+- *IssueActionCommand*             -> /my_camera/pylon_ros2_camera_node/issue_action_command [pylon_ros2_camera_interfaces/srv/IssueActionCommand]
+
+**Synchronous Free Run**
+- *SyncFreeRunTimerStartTimeLow*   -> /my_camera/pylon_ros2_camera_node/set_sync_free_run_timer_start_time_low [pylon_ros2_camera_interfaces/srv/SetIntegerValue]
+- *SyncFreeRunTimerStartTimeHigh*  -> /my_camera/pylon_ros2_camera_node/set_sync_free_run_timer_start_time_high [pylon_ros2_camera_interfaces/srv/SetIntegerValue]
+- *SyncFreeRunTimerTriggerRateAbs* -> /my_camera/pylon_ros2_camera_node/set_sync_free_run_timer_trigger_rate_abs [pylon_ros2_camera_interfaces/srv/SetFloatValue]
+- *SyncFreeRunTimerUpdate*         -> /my_camera/pylon_ros2_camera_node/update_sync_free_run_timer [std_srvs/srv/Trigger]
+- *SyncFreeRunTimerEnable*         -> //my_camera/pylon_ros2_camera_node/enable_sync_free_run_timer [std_srvs/srv/SetBool]
+
+### ACE 2
+
+**PTP configuration & activation**
+- *BslPtpPriority1*                -> /my_camera/pylon_ros2_camera_node/set_ptp_priority [pylon_ros2_camera_interfaces/srv/SetIntegerValue]
+- *BslPtpProfile*                  -> /my_camera/pylon_ros2_camera_node/set_ptp_profile [pylon_ros2_camera_interfaces/srv/SetIntegerValue]
+- *BslPtpNetworkMode*              -> /my_camera/pylon_ros2_camera_node/set_ptp_network_mode [pylon_ros2_camera_interfaces/srv/SetIntegerValue]
+- *BslPtpUcPortAddrIndex*          -> /my_camera/pylon_ros2_camera_node/set_ptp_uc_port_address_index [pylon_ros2_camera_interfaces/srv/SetIntegerValue]
+- *BslPtpUcPortAddr*               -> /my_camera/pylon_ros2_camera_node/set_ptp_uc_port_address [pylon_ros2_camera_interfaces/srv/SetIntegerValue]
+- *BslPtpManagementEnable*         -> /my_camera/pylon_ros2_camera_node/enable_ptp_management_protocol [std_srvs/srv/SetBool]
+- *BslTwoStep*                     -> /my_camera/pylon_ros2_camera_node/enable_two_step_operation [std_srvs/srv/SetBool]
+- *PtpEnable*                      -> /my_camera/pylon_ros2_camera_node/enable_ptp [std_srvs/srv/SetBool]
+
+**Scheduled Action Commands** & **Action Commands**
+- *ActionDeviceKey*                -> /my_camera/pylon_ros2_camera_node/set_action_trigger_configuration [pylon_ros2_camera_interfaces/srv/SetActionTriggerConfiguration]
+- *ActionGroupKey*                 -> /my_camera/pylon_ros2_camera_node/set_action_trigger_configuration [pylon_ros2_camera_interfaces/srv/SetActionTriggerConfiguration]
+- *ActionGroupMask*                -> /my_camera/pylon_ros2_camera_node/set_action_trigger_configuration [pylon_ros2_camera_interfaces/srv/SetActionTriggerConfiguration]
+- *IssueScheduledActionCommand*    -> /my_camera/pylon_ros2_camera_node/issue_scheduled_action_command [pylon_ros2_camera_interfaces/srv/IssueScheduledActionCommand]
+- *IssueActionCommand*             -> /my_camera/pylon_ros2_camera_node/issue_action_command [pylon_ros2_camera_interfaces/srv/IssueActionCommand]
+
+**Periodic Signal**
+- *BslPeriodicSignalDelay*         -> /my_camera/pylon_ros2_camera_node/set_periodic_signal_delay [pylon_ros2_camera_interfaces/srv/SetFloatValue]
+- *BslPeriodicSignalPeriod*        -> /my_camera/pylon_ros2_camera_node/set_periodic_signal_period [pylon_ros2_camera_interfaces/srv/SetFloatValue]
 
 
 ## Publishers
