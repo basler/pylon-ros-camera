@@ -861,11 +861,13 @@ bool PylonROS2CameraNode::grabImage()
   using namespace std::chrono_literals;
 
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
+  // Store current time before the image is transmitted for a more accurate grab time estimation
+  auto grab_time = rclcpp::Node::now();
   if (!this->pylon_camera_->grab(img_raw_msg_.data))
   {
     return false;
   }
-  img_raw_msg_.header.stamp = rclcpp::Node::now(); 
+  img_raw_msg_.header.stamp = grab_time;
   return true;
 }
 
@@ -3960,14 +3962,15 @@ std::shared_ptr<GrabImagesAction::Result> PylonROS2CameraNode::grabRawImages(con
     // already contains the number of channels
     img.step = img.width * this->pylon_camera_->imagePixelDepth();
 
+    // Store current time before the image is transmitted for a more accurate grab time estimation
+    img.header.stamp = rclcpp::Node::now();
+    img.header.frame_id = cameraFrame();
+
     if (!this->pylon_camera_->grab(img.data))
     {
       result->success = false;
       break;
     }
-
-    img.header.stamp = rclcpp::Node::now();
-    img.header.frame_id = cameraFrame();
 
     feedback->curr_nr_images_taken = i + 1;
     RCLCPP_DEBUG_STREAM(LOGGER, "Publishing feedback...");
