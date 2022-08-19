@@ -814,7 +814,7 @@ void PylonROS2CameraNode::spin()
       }
     }
 
-    if (this->img_raw_pub_.getNumSubscribers() > 0)
+    if (this->img_raw_pub_.getNumSubscribers()+img_rect_pub_->getNumSubscribers() > 0)
     {
       // get actual cam_info-object in every frame, because it might have
       // changed due to a 'set_camera_info'-service call
