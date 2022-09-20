@@ -824,7 +824,8 @@ void PylonROS2CameraNode::spin()
       this->img_raw_pub_.publish(this->img_raw_msg_, cam_info);
     }
 
-    if (this->getNumSubscribersRectImagePub() > 0 && this->camera_info_manager_->isCalibrated())
+    // this->getNumSubscribersRectImagePub() involves that this->camera_info_manager_->isCalibrated() == true
+    if (this->getNumSubscribersRectImagePub() > 0)
     {
       this->cv_bridge_img_rect_->header.stamp = this->img_raw_msg_.header.stamp;
       assert(this->pinhole_model_->initialized());
