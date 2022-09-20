@@ -777,12 +777,14 @@ void PylonCameraNode::spin()
 
 bool PylonCameraNode::grabImage()
 {
-    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_); 
+    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+    // Store current time before the image is transmitted for a more accurate grab time estimation
+    ros::Time grab_time = ros::Time::now();
     if ( !pylon_camera_->grab(img_raw_msg_.data) )
     {
         return false;
     }
-    img_raw_msg_.header.stamp = ros::Time::now(); 
+    img_raw_msg_.header.stamp = grab_time; 
     return true;
 }
 
@@ -1004,6 +1006,10 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         // step = full row length in bytes, img_size = (step * rows), imagePixelDepth
         // already contains the number of channels
         img.step = img.width * pylon_camera_->imagePixelDepth();
+        
+        // Store current time before the image is transmitted for a more accurate grab time estimation
+        img.header.stamp = ros::Time::now();
+        img.header.frame_id = cameraFrame();
 
         if ( !pylon_camera_->grab(img.data) )
         {
@@ -1011,8 +1017,6 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
             break;
         }
 
-        img.header.stamp = ros::Time::now();
-        img.header.frame_id = cameraFrame();
         feedback.curr_nr_images_taken = i+1;
 
         if ( action_server != nullptr )
