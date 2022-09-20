@@ -132,11 +132,6 @@ protected:
     void setupRectification();
 
     /**
-     * Returns the total number of subscribers on any advertised image topic.
-     */
-    uint32_t getNumSubscribers() const;
-
-    /**
      * Returns the number of subscribers for the raw image topic
      */
     uint32_t getNumSubscribersRaw() const;

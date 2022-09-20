@@ -692,6 +692,12 @@ uint32_t  PylonCameraNode::getNumSubscribersRaw() const
     return ((CameraPublisherLocal*)(&img_raw_pub_))->impl_->image_pub_.getNumSubscribers();
 }
 
+uint32_t PylonCameraNode::getNumSubscribersRect() const
+{
+    return camera_info_manager_->isCalibrated() ? img_rect_pub_->getNumSubscribers() : 0;
+}
+
+
 void PylonCameraNode::spin()
 {   
     if ( camera_info_manager_->isCalibrated() )
@@ -725,16 +731,17 @@ void PylonCameraNode::spin()
     }
     // images were published if subscribers are available or if someone calls
     // the GrabImages Action
-    if ( !isSleeping() && (img_raw_pub_.getNumSubscribers() || getNumSubscribersRect() ) )
-    { 
-        if ( getNumSubscribersRaw() || getNumSubscribersRect())
+    if (!isSleeping() && (getNumSubscribersRaw() || getNumSubscribersRect()))
+    {
+        if (getNumSubscribersRaw() || getNumSubscribersRect())
         { 
-            if (!grabImage() )
+            if (!grabImage())
             { 
                 return;
             }
         }
-        if ( img_raw_pub_.getNumSubscribers() > 0 )
+
+        if (getNumSubscribersRaw() > 0)
         { 
             // get actual cam_info-object in every frame, because it might have
             // changed due to a 'set_camera_info'-service call
@@ -746,7 +753,9 @@ void PylonCameraNode::spin()
             // Publish via image_transport
             img_raw_pub_.publish(img_raw_msg_, *cam_info);
         }
-        if ( getNumSubscribersRect() > 0 && camera_info_manager_->isCalibrated() )
+
+        // this->getNumSubscribersRectImagePub() involves that this->camera_info_manager_->isCalibrated() == true
+        if (getNumSubscribersRect() > 0)
         { 
             cv_bridge_img_rect_->header.stamp = img_raw_msg_.header.stamp;
             assert(pinhole_model_->initialized());
@@ -1082,16 +1091,6 @@ const double& PylonCameraNode::frameRate() const
 const std::string& PylonCameraNode::cameraFrame() const
 {
     return pylon_camera_parameter_set_.cameraFrame();
-}
-
-uint32_t PylonCameraNode::getNumSubscribersRect() const
-{
-    return camera_info_manager_->isCalibrated() ? img_rect_pub_->getNumSubscribers() : 0;
-}
-
-uint32_t PylonCameraNode::getNumSubscribers() const
-{
-    return img_raw_pub_.getNumSubscribers() + img_rect_pub_->getNumSubscribers();
 }
 
 void PylonCameraNode::setupInitialCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
