@@ -60,6 +60,7 @@ def generate_launch_description():
 
     declare_startup_user_set_cmd = DeclareLaunchArgument(
         'startup_user_set',
+        # possible value: Default, UserSet1, UserSet2, UserSet3, CurrentSetting
         default_value='CurrentSetting',
         description='Specific user set defining user parameters to run the camera.'
     )

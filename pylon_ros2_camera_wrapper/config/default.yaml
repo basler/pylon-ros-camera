@@ -39,7 +39,7 @@
     #  Mode of camera's shutter.
     #  The supported modes are "rolling", "global" and "global_reset"
     #  Default value is "" (empty) means default_shutter_mode
-    #shutter_mode: ""
+    # shutter_mode: ""
 
     ##########################################################################
     ######################## Image Intensity Settings ########################
@@ -50,7 +50,7 @@
     ##########################################################################
 
     #  The exposure time in microseconds to be set after opening the camera.
-    # exposure: 10000.0
+    # exposure: 1000.0
 
     #  The target gain in percent of the maximal value the camera supports
     #  For USB cameras, the gain is in dB, for GigE cameras it is given in so
@@ -105,6 +105,7 @@
     #  The exposure search can be limited with an upper bound. This is to prevent
     #  very high exposure times and resulting timeouts.
     #  A typical value for this upper bound is ~2000000us.
+    #  Beware that this upper limit is only set if `startup_user_set` is set to `Default`.
     # auto_exposure_upper_limit: 2000000.0
 
     #  The MTU size. Only used for GigE cameras.

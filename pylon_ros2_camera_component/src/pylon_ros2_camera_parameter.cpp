@@ -78,12 +78,12 @@ PylonROS2CameraParameter::PylonROS2CameraParameter() :
     image_encoding_("")
 {
     // information logging severity mode
-  //rcutils_ret_t __attribute__((unused)) res = rcutils_logging_set_logger_level(LOGGER.get_name(), RCUTILS_LOG_SEVERITY_DEBUG);
-  //RCUTILS_LOG_SEVERITY_DEBUG
-  //RCUTILS_LOG_SEVERITY_INFO
-  //RCUTILS_LOG_SEVERITY_WARN
-  //RCUTILS_LOG_SEVERITY_ERROR
-  //RCUTILS_LOG_SEVERITY_FATAL
+    //rcutils_ret_t __attribute__((unused)) res = rcutils_logging_set_logger_level(LOGGER.get_name(), RCUTILS_LOG_SEVERITY_DEBUG);
+    //RCUTILS_LOG_SEVERITY_DEBUG
+    //RCUTILS_LOG_SEVERITY_INFO
+    //RCUTILS_LOG_SEVERITY_WARN
+    //RCUTILS_LOG_SEVERITY_ERROR
+    //RCUTILS_LOG_SEVERITY_FATAL
 }
 
 PylonROS2CameraParameter::~PylonROS2CameraParameter()
@@ -265,6 +265,7 @@ void PylonROS2CameraParameter::readFromRosParameterServer(rclcpp::Node& nh)
         nh.declare_parameter<double>("auto_exposure_upper_limit", 10000000.);
     }
     nh.get_parameter("auto_exposure_upper_limit", this->auto_exposure_upper_limit_);
+    RCLCPP_DEBUG_STREAM(LOGGER, "auto_exposure_upper_limit has value " << this->auto_exposure_upper_limit_);
 
     RCLCPP_DEBUG(LOGGER, "---> gige/mtu_size");
     if (!nh.has_parameter("gige/mtu_size"))
@@ -324,6 +325,7 @@ void PylonROS2CameraParameter::readFromRosParameterServer(rclcpp::Node& nh)
         nh.declare_parameter<std::string>("startup_user_set", "");
     }
     nh.get_parameter("startup_user_set", this->startup_user_set_);
+    RCLCPP_DEBUG_STREAM(LOGGER, "startup_user_set is set to " << this->startup_user_set_);
 
     RCLCPP_DEBUG(LOGGER, "---> grab_timeout");
     if (!nh.has_parameter("grab_timeout"))
