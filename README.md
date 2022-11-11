@@ -66,6 +66,8 @@ Specific user set can be specified thanks to the `startup_user_set` parameter.
 
 The default trigger mode is set to software trigger. This means that the image acquisition is triggered with a certain frame rate, which may be lower than the maximum camera frame rate. The maximum camera frame rate can be reached when running a camera in a free-run or a hardware trigger mode.
 
+Beware that some parameters implemented by the driver, like for instance the parameter `startup_user_set`, can be set through both the ROS2 parameter server and the driver launch file `pylon_ros2_camera.launch.py`, and that the latter has the priority over the ROS2 parameter server. For instance, if `startup_user_set` is set to `Default` in the `pylon_ros2_camera_wrapper/config/default.yaml` user parameter file and if it is set to `CurrentSetting` in the driver launch file (and if the driver is started thanks to it), then `startup_user_set` will be set to `CurrentSetting`.    
+
 ### Image pixel encoding
 
 The pylon ROS2 driver support currently the following ROS2 image pixel formats :
@@ -182,7 +184,7 @@ The following settings do **NOT** have to be set. Each camera has default values
   The timeout while searching the exposure which is connected to the desired brightness. For slow system this has to be increased.
 
 - **auto_exposure_upper_limit**  
-  The exposure search can be limited with an upper bound. This is to prevent very high exposure times and resulting timeouts. A typical value for this upper bound is ~2000000us.
+  The exposure search can be limited with an upper bound. This is to prevent very high exposure times and resulting timeouts. A typical value for this upper bound is ~2000000us. Beware that this upper limit is only set if `startup_user_set` is set to `Default`.  
 
 - **gige/mtu_size**  
   The MTU size. Only used for GigE cameras. To prevent lost frames configure the camera has to be configured with the MTU size the network card supports. A value greater 3000 should be good (1500 for single-board computer)
@@ -202,7 +204,7 @@ The following settings do **NOT** have to be set. Each camera has default values
 **ROS2 pylon node specific parameter**
 
 - **startup_user_set**  
-  Flag specifying if a given user set is used when starting the camera.
+  Flag specifying if a given user set is used when starting the camera. Can be set to `Default`, `UserSet1`, `UserSet2`, `UserSet3`, and `CurrentSetting`.  
 
 - **enable_status_publisher**  
   Flag used to enable/disable the node status publisher.

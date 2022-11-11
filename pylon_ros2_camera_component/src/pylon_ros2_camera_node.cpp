@@ -710,16 +710,18 @@ bool PylonROS2CameraNode::startGrabbing()
             << ", reached: " << reached_gamma);
   }
 
-  if ( pylon_camera_parameter_set_.brightness_given_ )
-  {   
+  if (pylon_camera_parameter_set_.brightness_given_)
+  {
     int reached_brightness;
     this->setBrightness(this->pylon_camera_parameter_set_.brightness_,
                         reached_brightness,
                         this->pylon_camera_parameter_set_.exposure_auto_,
                         this->pylon_camera_parameter_set_.gain_auto_);
+
     RCLCPP_INFO_STREAM(LOGGER, "Setting brightness to: "
             << this->pylon_camera_parameter_set_.brightness_ << ", reached: "
             << reached_brightness);
+
     if (this->pylon_camera_parameter_set_.brightness_continuous_)
     {   
       if ( this->pylon_camera_parameter_set_.exposure_auto_)
