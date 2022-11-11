@@ -13,17 +13,17 @@ You are welcome to post any questions or issues on [GitHub](https://github.com/b
 
 ### Prerequisites
 
-- From [Ubuntu 20.04 Focal Fossa](https://releases.ubuntu.com/focal/)
-- From [ROS2 Galactic Geochelone](https://docs.ros.org/en/galactic/Installation/Ubuntu-Install-Binary.html). Your ROS2 environment must be [configured](https://docs.ros.org/en/galactic/Tutorials/Configuring-ROS2-Environment.html), your workspace [created](https://docs.ros.org/en/galactic/Tutorials/Workspace/Creating-A-Workspace.html), and colcon, used to build the packages, [installed](https://docs.ros.org/en/galactic/Tutorials/Colcon-Tutorial.html).
-- From [pylon Camera Software Suite](https://www.baslerweb.com/de/support/downloads/downloads-software/) version 6.2 or newer. The latest APi libraries must be installed manually. Download and install the latest pylon Camera Software Suite Linux Debian Installer Package for your architecture.
+- From [Ubuntu 22.04 Jammy Jellyfish](https://releases.ubuntu.com/jammy/)
+- From [Humble Hawksbill](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html). Your ROS2 environment must be [configured](https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools/Configuring-ROS2-Environment.html), your workspace [created](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace.html), and colcon, used to build the packages, [installed](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html).
+- From [pylon Camera Software Suite](https://www.baslerweb.com/de/support/downloads/downloads-software/) version 7.2 or newer. The latest APi libraries must be installed manually. Download and install the latest pylon Camera Software Suite Linux Debian Installer Package for your architecture. You may be experiencing some problems with the codemeter debian package installation. Just drop it for now and install only the pylon debian package in this case.
 - [xterm](https://invisible-island.net/xterm/). The xterm terminal emulator must be installed (refer to the *Know Issues* section below) as a debian package (`sudo apt update && sudo apt install xterm`).
 
 ### Install and build the packages
 
 This repository including the pylon ROS2 packages must be cloned in your workspace (e.g., `dev_ws`):  
-**For ROS2 Galactic Geochelone:** ``cd ~/dev_ws/src && git clone -b galactic https://github.com/basler/pylon-ros-camera pylon_ros2_camera``  
+**For ROS2 Humble Hawksbill:** ``cd ~/dev_ws/src && git clone -b humble https://github.com/basler/pylon-ros-camera pylon_ros2_camera``  
 Due to a known issue with ROS2 (see the dedicated section below), the latest version of the `image_common` package must be installed from sources:  
-**For ROS2 Galactic Geochelone:** ``cd ~/dev_ws/src/pylon_ros2_camera && git clone https://github.com/ros-perception/image_common.git -b galactic``  
+**For ROS2 Humble Hawksbill:** ``cd ~/dev_ws/src/pylon_ros2_camera && git clone https://github.com/ros-perception/image_common.git -b humble``  
 
 Install the ROS2 dependencies required by the pylon ROS2 packages:  
 ``cd ~/dev_ws && rosdep install --from-paths src --ignore-src -r -y``  
@@ -31,7 +31,7 @@ Install the ROS2 dependencies required by the pylon ROS2 packages:
 Compile the workspace using `colcon`:  
 ``cd ~/dev_ws && colcon build``  
 
-**Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g., Python files or other not compiled resourced) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/galactic/Tutorials/Colcon-Tutorial.html?highlight=colcon)).
+**Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g., Python files or other not compiled resourced) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html)).
 
 **Note**: The packages are built in Release by default. The build type can be modfied by using the `--cmake-args` flag (for instance `colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Debug`).
 
@@ -59,7 +59,7 @@ The pylon node defines the different interface names according to the following 
 The camera and the node names can be set thanks respectively to the `camera_name` and `node_name` parameters.  
 
 Acquisition images are published through the `[Camera name]/[Node name]/[image_raw]` topic, only if a subscriber to this topic has been registered.  
-To visualize the images, [rqt](https://docs.ros.org/en/galactic/Tutorials/Turtlesim/Introducing-Turtlesim.html#install-rqt) can be used. Add an image viewer plugin through thanks to the contextual menu (Plugin -> Visualization -> Image View) and select the `[Camera name]/[Node name]/[image_raw]` topic to display the acquired and published images.  
+To visualize the images, [rqt](https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools/Introducing-Turtlesim/Introducing-Turtlesim.html#install-rqt) can be used. Add an image viewer plugin through thanks to the contextual menu (Plugin -> Visualization -> Image View) and select the `[Camera name]/[Node name]/[image_raw]` topic to display the acquired and published images.  
 
 Specific user set can be specified thanks to the `startup_user_set` parameter.  
 ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=Default``  or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet1`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet2`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet3``  
@@ -116,7 +116,7 @@ USB cameras must be disconnected and then reconnected after setting a new device
 
 - **camera_frame**  
   The tf2 frame under which the images were published.  
-  ROS2 provides a library called [tf2](https://docs.ros.org/en/galactic/Concepts/About-Tf2.html) (*TransForm* version 2) to manage the coordinate transformations between the different frames (coordinate systems) defined by the user and assigned to the components of a robotics system.
+  ROS2 provides a library called [tf2](https://docs.ros.org/en/humble/Concepts/About-Tf2.html) (*TransForm* version 2) to manage the coordinate transformations between the different frames (coordinate systems) defined by the user and assigned to the components of a robotics system.
 
 - **device_user_id**  
   The DeviceUserID of the camera. If empty, the first camera found in the device list will be used.
@@ -396,7 +396,7 @@ The camera-characteristic parameter such as height, width, projection matrix (by
 ## Known issues
 
 ### Getting the number of subscribers from camera publisher
-It is not possible to count correctly the number of subscribers to the `image_raw` and `image_rect` topics because of a known issue with the function `CameraPublisher::getNumSubscribers`. That is why [this image_common package](https://github.com/ros-perception/image_common/tree/galactic), fixing this issue, needs to be cloned and compiled together with the `pylon_ros2_camera_node`. 
+It is not possible to count correctly the number of subscribers to the `image_raw` and `image_rect` topics because of a known issue with the function `CameraPublisher::getNumSubscribers`. That is why [this image_common package](https://github.com/ros-perception/image_common/tree/humble), fixing this issue, needs to be cloned and compiled together with the `pylon_ros2_camera_node`. 
 
 ### User input in terminal when starting node through launch files
 The ros2 launch mechanism doesn't allow to access stdin through a terminal (see [here](https://github.com/ros2/launch_ros/issues/165) and [here](https://answers.ros.org/question/343326/ros2-prefix-in-launch-file/)). This is solved in this implementation by installing and using `xterm` to emulate a terminal with possible user interaction.
