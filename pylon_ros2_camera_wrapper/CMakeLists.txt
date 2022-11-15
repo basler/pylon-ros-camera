@@ -39,12 +39,14 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(pylon_ros2_camera_component REQUIRED)
+find_package(cv_bridge REQUIRED)
 
 set(CAMERA_WRAPPER_DEPENDENCIES
 	rclcpp
 	rclcpp_components
 	rcutils
 	pylon_ros2_camera_component
+	cv_bridge
 )
 
 add_executable(${PROJECT_NAME}
@@ -55,7 +57,29 @@ ament_target_dependencies(${PROJECT_NAME}
 	${CAMERA_WRAPPER_DEPENDENCIES}
 )
 
-install(TARGETS ${PROJECT_NAME}
+### test
+
+add_library(action_client SHARED
+	${CMAKE_CURRENT_SOURCE_DIR}/test/test_grab_image_action_client.cpp
+)
+
+target_compile_definitions(action_client
+  PRIVATE "TEST_GRAB_IMAGE_ACTION_CLIENT_BUILDING_DLL")
+
+ament_target_dependencies(action_client
+  ${CAMERA_WRAPPER_DEPENDENCIES}
+)
+
+rclcpp_components_register_node(action_client
+	PLUGIN "pylon_ros2_camera::TestGrabImageActionClient" 
+	EXECUTABLE test_grab_image_action_client
+)
+
+### installation
+
+install(TARGETS
+			${PROJECT_NAME}
+			action_client
 	ARCHIVE DESTINATION lib
 	LIBRARY DESTINATION lib
 	RUNTIME DESTINATION lib/${PROJECT_NAME}

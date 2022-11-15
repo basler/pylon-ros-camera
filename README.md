@@ -394,6 +394,10 @@ Through this action, it is possible to grab one image or a sequence of images wi
 
 The camera-characteristic parameter such as height, width, projection matrix (by ROS2 convention, this matrix specifies the intrinsic (camera) matrix of the processed (rectified) image - see the [CameraInfo message definition](https://github.com/ros2/common_interfaces/blob/master/sensor_msgs/msg/CameraInfo.msg) for detailed information) and camera_frame were published over the /camera_info topic. Furthermore, an action-based image grabbing with desired exposure time, gain, gamma and / or brightness is provided. Hence, one can grab a sequence of images with above target settings as well as a single image. Grabbing images through this action can result in a higher frame rate.
 
+### Tests
+
+The folder `pylon_ros2_camera_wrapper/test` includes a test program implementing an action client sending the goal to trigger the image grabbing through the action `/my_camera/pylon_ros2_camera_node/grab_images_raw`. Each grabbed image is displayed in a dedicated popup window. This program is for testing purposes and should be adapted according to one's needs.  
+
 
 ## Known issues
 
