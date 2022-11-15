@@ -26,10 +26,13 @@
   <build_depend>rcutils</build_depend>
   
   <exec_depend>pylon_ros2_camera_component</exec_depend>
-  <!-- ROS specific extensions to the launch tool. -->
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>rclcpp_components</exec_depend>
   <exec_depend>rcutils</exec_depend>
+
+  <!-- For the tests -->
+  <build_depend>cv_bridge</build_depend>
+  <exec_depend>cv_bridge</exec_depend>
 
   <!-- The ability to run Python tests using pytest in the ament buildsystem in CMake. -->
   <test_depend>ament_cmake_pytest</test_depend>

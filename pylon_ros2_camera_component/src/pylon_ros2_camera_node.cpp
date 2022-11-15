@@ -3976,8 +3976,9 @@ std::shared_ptr<GrabImagesAction::Result> PylonROS2CameraNode::grabRawImages(con
     }
 
     feedback->curr_nr_images_taken = i + 1;
-    RCLCPP_DEBUG_STREAM(LOGGER, "Publishing feedback...");
+    //RCLCPP_DEBUG_STREAM(LOGGER, "Publishing feedback...");
     goal_handle->publish_feedback(feedback);
+    //RCLCPP_DEBUG_STREAM(LOGGER, "Feedback is published!");
   }
 
   if (this->camera_info_manager_)
@@ -4133,7 +4134,5 @@ bool PylonROS2CameraNode::isSleeping()
 }
 
 } // namespace pylon_ros2_camera
-
-#include <rclcpp_components/register_node_macro.hpp>
 
 RCLCPP_COMPONENTS_REGISTER_NODE(pylon_ros2_camera::PylonROS2CameraNode)
