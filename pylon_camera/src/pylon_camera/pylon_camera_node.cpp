@@ -1255,6 +1255,10 @@ bool PylonCameraNode::setROI(const sensor_msgs::RegionOfInterest target_roi,
     // step = full row length in bytes, img_size = (step * rows), imagePixelDepth
     // already contains the number of channels
     img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
+    setupSamplingIndices(sampling_indices_,
+                        pylon_camera_->imageRows(),
+                        pylon_camera_->imageCols(),
+                        pylon_camera_parameter_set_.downsampling_factor_exp_search_);
     return true;
 }
 
