@@ -1822,6 +1822,12 @@ float PylonCameraNode::calcCurrentBrightness()
     float sum = 0.0;
     if ( sensor_msgs::image_encodings::isMono(img_raw_msg_.encoding) )
     {
+        // Check if image is expected size so indices don't fall out of bounds
+        if ( img_raw_msg_.data.size() != img_raw_msg_.height * img_raw_msg_.width )
+        {
+        return 0.0;
+        }
+        
         // The mean brightness is calculated using a subset of all pixels
         for ( const std::size_t& idx : sampling_indices_ )
         {
