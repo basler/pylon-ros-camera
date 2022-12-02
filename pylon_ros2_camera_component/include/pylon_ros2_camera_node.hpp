@@ -71,9 +71,9 @@
 #include "pylon_ros2_camera_parameter.hpp"
 
 #include <camera_info_manager/camera_info_manager.hpp>
-#include <image_geometry/pinhole_camera_model.h>
+#include <image_geometry/pinhole_camera_model.hpp>
 
-#include <cv_bridge/cv_bridge.h>
+#include <cv_bridge/cv_bridge.hpp>
 
 #include <image_transport/image_transport.hpp>
 #include <image_transport/camera_publisher.hpp>
