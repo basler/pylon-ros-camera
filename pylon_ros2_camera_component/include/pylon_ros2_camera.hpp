@@ -32,7 +32,10 @@
 #include <vector>
 #include <map>
 
+#include "sensor_msgs/msg/camera_info.hpp"
 #include "sensor_msgs/msg/region_of_interest.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
+#include "sensor_msgs/msg/image.hpp"
 
 #include "pylon_ros2_camera_parameter.hpp"
 #include "binary_exposure_search.hpp"
@@ -101,6 +104,12 @@ public:
     virtual bool applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters) = 0;
 
     /**
+     * Get initial camera info 
+     * @return initial camera info.
+     */
+    virtual void getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg) = 0;
+
+    /**
      * Initializes the internal parameters of the PylonROS2Camera instance.
      * @param parameters The PylonROS2CameraParameter set to use
      * @return true if all parameters could be sent to the camera.
@@ -121,6 +130,22 @@ public:
      * @return true if the image was grabbed successfully.
      */
     virtual bool grab(uint8_t* image) = 0;
+
+    /**
+     * Dedicated to blaze integration within the pylon driver - specify if the connected camera is a blaze
+     * @return true if a blaze is connected.
+     */
+    virtual bool isBlaze() = 0;
+
+    /**
+     * Dedicated to blaze integration within the pylon driver - grab data from blaze and return ros messages
+     * @return true if the process is successful.
+     */
+    virtual bool grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
+                           sensor_msgs::msg::Image& intensity_map_msg, 
+                           sensor_msgs::msg::Image& depth_map_msg, 
+                           sensor_msgs::msg::Image& depth_map_color_msg, 
+                           sensor_msgs::msg::Image& confidence_map_msg) = 0;
 
     /**
      * @brief sets shutter mode for the camera (rolling or global_reset)
@@ -1073,6 +1098,138 @@ public:
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string issueScheduledActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const int64_t& action_time_ns_from_current_timestamp, const std::string& broadcast_address) = 0;
+
+    /**
+     * Set depth min - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setDepthMin(const int& depth_min) = 0;
+
+    /**
+     * Set depth max - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setDepthMax(const int& depth_max) = 0;
+
+    /**
+     * Set temporal filter strength - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setTemporalFilterStrength(const int& strength) = 0;
+
+    /**
+     * Set outlier removal threshold - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setOutlierRemovalThreshold(const int& threshold) = 0;
+
+    /**
+     * Set outlier removal tolerance - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setOutlierRemovalTolerance(const int& tolerance) = 0;
+
+    /**
+     * Set ambiguity filter threshold - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setAmbiguityFilterThreshold(const int& threshold) = 0;
+
+    /**
+     * Set confidence threshold - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setConfidenceThreshold(const int& threshold) = 0;
+
+    /**
+     * Set intensity calculation - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setIntensityCalculation(const int& calculation) = 0;
+
+    /**
+     * Set exposure time selector - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setExposureTimeSelector(const int& selector) = 0;
+
+    /**
+     * Set operating mode - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setOperatingMode(const int& mode) = 0;
+
+    /**
+     * Set multi camera channel - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setMultiCameraChannel(const int& channel) = 0;
+
+    /**
+     * Set acquisition frame rate - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setAcquisitionFrameRate(const float& framerate) = 0;
+
+    /**
+     * Set scan 3d calibration offset - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setScan3dCalibrationOffset(const float& offset) = 0;
+
+    /**
+     * Enable/Disable spatial filter - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableSpatialFilter(const bool& enable) = 0;
+
+    /**
+     * Enable/Disable temporal filter - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableTemporalFilter(const bool& enable) = 0;
+
+    /**
+     * Enable/Disable outlier removal - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableOutlierRemoval(const bool& enable) = 0;
+
+    /**
+     * Enable/Disable ambiguity filter - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableAmbiguityFilter(const bool& enable) = 0;
+
+    /**
+     * Enable/Disable thermal drift correction - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableThermalDriftCorrection(const bool& enable) = 0;
+
+    /**
+     * Enable/Disable distortion correction - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableDistortionCorrection(const bool& enable) = 0;
+
+    /**
+     * Enable/Disable acquisition framerate - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableAcquisitionFrameRate(const bool& enable) = 0;
+
+    /**
+     * Enable/Disable HDR mode - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableHDRMode(const bool& enable) = 0;
+
+    /**
+     * Enable/Disable fast mode - Applies to: blaze.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableFastMode(const bool& enable) = 0;
 
     virtual ~PylonROS2Camera();
 

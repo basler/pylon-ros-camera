@@ -16,12 +16,13 @@ You are welcome to post any questions or issues on [GitHub](https://github.com/b
 - From [Ubuntu 20.04 Focal Fossa](https://releases.ubuntu.com/focal/)
 - From [ROS2 Galactic Geochelone](https://docs.ros.org/en/galactic/Installation/Ubuntu-Install-Debians.html). Your ROS2 environment must be [configured](https://docs.ros.org/en/galactic/Tutorials/Configuring-ROS2-Environment.html), your workspace [created](https://docs.ros.org/en/galactic/Tutorials/Workspace/Creating-A-Workspace.html), and colcon, used to build the packages, [installed](https://docs.ros.org/en/galactic/Tutorials/Colcon-Tutorial.html).
 - From [pylon Camera Software Suite](https://www.baslerweb.com/de/support/downloads/downloads-software/) version 6.2 or newer. The latest APi libraries must be installed manually. Download and install the latest pylon Camera Software Suite Linux Debian Installer Package for your architecture.
+- From [pylon Supplementary Package for blaze](https://www.baslerweb.com/de/support/downloads/downloads-software/) version 1.2 or newer (compatibility with the installed pylon Camera Software Suite needs to be ensured, please refer to the documentation). The latest APi libraries must be installed manually. Download and install the latest pylon Supplementary Package for blaze Linux Debian Installer Package for your architecture.
 - [xterm](https://invisible-island.net/xterm/). The xterm terminal emulator must be installed (refer to the *Know Issues* section below) as a debian package (`sudo apt update && sudo apt install xterm`).
 
 ### Install and build the packages
 
 This repository including the pylon ROS2 packages must be cloned in your workspace (e.g., `dev_ws`):  
-**For ROS2 Galactic Geochelone:** ``cd ~/dev_ws/src && git clone -b galactic https://github.com/basler/pylon-ros-camera pylon_ros2_camera``  
+**For ROS2 Galactic Geochelone:** ``cd ~/dev_ws/src && git clone -b galactic_incl_blaze_beta https://github.com/basler/pylon-ros-camera pylon_ros2_camera``  
 Due to a known issue with ROS2 (see the dedicated section below), the latest version of the `image_common` package must be installed from sources:  
 **For ROS2 Galactic Geochelone:** ``cd ~/dev_ws/src/pylon_ros2_camera && git clone https://github.com/ros-perception/image_common.git -b galactic``  
 
@@ -41,8 +42,20 @@ Source the environment:
 **Note**: This step can be skipped if the `setup.bash` file is sourced in your `.bashrc`.
 
 Start the driver:  
-``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py``  
+``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py``  or  
+``ros2 launch pylon_ros2_camera_wrapper my_blaze.launch.py``  to start the acquisition through the blaze.  
 
+
+## Notes related to this beta version integrating the blaze
+
+This is a beta version and the rest of this documentation does not reflect all the changes related to the blaze integration within the pylon driver:
+- A specific action dedicated to trigger the acquisition of data with the blaze still needs to be implemented.
+- The access to some blaze parameters, such as ``OutlierRemovalTolerance``, still needs to be implemented. Nevertheless most of the blaze parameters are now accessible, mainly through services.
+- The publishing of the diagnostics through the driver still needs to be checked.
+- The ``ip_auto_config`` and the ``set_device_user_id`` tools still need to be tested and eventually adjusted.
+- This documentation needs to be completed with the list of specific topics, services and actions dedicated to the blaze. Moreover some of the commands and parameters described in the next chapters are irrelevant for the blaze. It needs to be specified.
+
+The final version of the pylon driver integrating the blaze is planned to be released early january 2023.  
 
 ## Usage in a nutshell
 

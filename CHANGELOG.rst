@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.2.0.beta (2022-12-20)
+-------------------
+* Beta version of the galactic version integrating the blaze.
+
 1.1.2 (2022-11-15)
 -------------------
 * Adding test program implementing an action client sending the goal to trigger the image grabbing through the action `/my_camera/pylon_ros2_camera_node/grab_images_raw`.

@@ -84,8 +84,8 @@ public:
     virtual std::string setActionTriggerConfiguration(const int& action_device_key, const int& action_group_key, const unsigned int& action_group_mask,
                                                       const int& registration_mode, const int& cleanup);
     virtual std::string issueActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const std::string& broadcast_address);
-    virtual std::string issueScheduledActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const int64_t& action_time_ns_from_current_timestamp, const std::string& broadcast_address);
-
+    virtual std::string issueScheduledActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const int64_t& action_time_ns_from_current_timestamp,
+                                                    const std::string& broadcast_address);
 };
 
 PylonROS2GigEAce2Camera::PylonROS2GigEAce2Camera(Pylon::IPylonDevice* device) :
@@ -126,6 +126,7 @@ bool PylonROS2GigEAce2Camera::applyCamSpecificStartupSettings(const PylonROS2Cam
                     << cam_->ExposureTimeAbs.GetMin()
                     << " - " << upper_lim << " (max possible value from cam is " << cam_->ExposureTimeAbs.GetMax() << ")"
                     << "].");
+
             // The gain auto function and the exposure auto function can be used at the
             // same time. In this case, however, you must also set the
             // Auto Function Profile feature.
@@ -206,14 +207,16 @@ bool PylonROS2GigEAce2Camera::applyCamSpecificStartupSettings(const PylonROS2Cam
             cam_->UserSetLoad.Execute();
             cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
             RCLCPP_WARN(LOGGER_GIGE_ACE2, "User Set 1 Loaded");
-        }
+        } 
+
         else if (parameters.startup_user_set_ == "UserSet2")
         {
             cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet2);
             cam_->UserSetLoad.Execute();
             cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
             RCLCPP_WARN(LOGGER_GIGE_ACE2, "User Set 2 Loaded");
-        }
+        } 
+
         else if (parameters.startup_user_set_ == "UserSet3")
         {
             cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet3);
@@ -261,7 +264,7 @@ GenApi::IFloat& PylonROS2GigEAce2Camera::autoGainLowerLimit()
 
 GenApi::IFloat& PylonROS2GigEAce2Camera::autoGainUpperLimit()
 {
-    if ( GenApi::IsAvailable(cam_->AutoGainUpperLimit) )
+    if (GenApi::IsAvailable(cam_->AutoGainUpperLimit))
     {
         return cam_->AutoGainUpperLimit;
     }
@@ -275,6 +278,7 @@ float PylonROS2GigEAce2Camera::currentGain()
 {
     float curr_gain = (static_cast<float>(gain().GetValue()) - static_cast<float>(gain().GetMin())) /
         (static_cast<float>(gain().GetMax() - static_cast<float>(gain().GetMin())));
+
     return curr_gain;
 }
 
@@ -602,7 +606,7 @@ bool PylonROS2GigEAce2Camera::setGain(const float& target_gain, float& reached_g
 {
     try
     {
-        cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Off);
+        cam_->GainAuto.TrySetValue(GainAutoEnums::GainAuto_Off);
         float truncated_gain = target_gain;
         if ( truncated_gain < 0.0 )
         {

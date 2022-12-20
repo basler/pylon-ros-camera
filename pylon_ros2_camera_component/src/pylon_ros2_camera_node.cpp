@@ -70,7 +70,7 @@ PylonROS2CameraNode::PylonROS2CameraNode(const rclcpp::NodeOptions& options)
     return;
 
   // starting spinning thread
-  RCLCPP_INFO_STREAM(LOGGER, "Start image grabbing if node connects to topic with " << "a frame_rate of: " << this->frameRate() << " Hz");
+  RCLCPP_INFO_STREAM(LOGGER, "Start image grabbing if node connects to topic with " << "a spinning rate of: " << this->frameRate() << " Hz");
   timer_ = this->create_wall_timer(
             std::chrono::duration<double>(1. / this->frameRate()),
             std::bind(&PylonROS2CameraNode::spin, this));
@@ -160,12 +160,26 @@ void PylonROS2CameraNode::initPublishers()
   std::string msg_prefix = "~/";
 
   msg_name = msg_prefix + "current_params";
-  current_params_pub_ = this->create_publisher<pylon_ros2_camera_interfaces::msg::CurrentParams>(msg_name, 5);
+  this->current_params_pub_ = this->create_publisher<pylon_ros2_camera_interfaces::msg::CurrentParams>(msg_name, 10);
   msg_name = msg_prefix + "status";
-  component_status_pub_ = this->create_publisher<pylon_ros2_camera_interfaces::msg::ComponentStatus>(msg_name, 5);
+  this->component_status_pub_ = this->create_publisher<pylon_ros2_camera_interfaces::msg::ComponentStatus>(msg_name, 5);
 
   msg_name = msg_prefix + "image_raw";
-  img_raw_pub_ = image_transport::create_camera_publisher(this, msg_name);
+  this->img_raw_pub_ = image_transport::create_camera_publisher(this, msg_name);
+
+  // blaze related topics
+  msg_name = msg_prefix + "blaze_cloud"; this->blaze_cloud_topic_name_ = msg_name;
+  this->blaze_cloud_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(msg_name, 10);
+  msg_name = msg_prefix + "blaze_intensity"; this->blaze_intensity_topic_name_ = msg_name;
+  this->blaze_intensity_pub_ = this->create_publisher<sensor_msgs::msg::Image>(msg_name, 10);
+  msg_name = msg_prefix + "blaze_depth_map"; this->blaze_depth_map_topic_name_ = msg_name;
+  this->blaze_depth_map_pub_ = this->create_publisher<sensor_msgs::msg::Image>(msg_name, 10);
+  msg_name = msg_prefix + "blaze_depth_map_color"; this->blaze_depth_map_color_topic_name_ = msg_name;
+  this->blaze_depth_map_color_pub_ = this->create_publisher<sensor_msgs::msg::Image>(msg_name, 10);
+  msg_name = msg_prefix + "blaze_confidence"; this->blaze_confidence_topic_name_ = msg_name;
+  this->blaze_confidence_pub_ = this->create_publisher<sensor_msgs::msg::Image>(msg_name, 10);
+  msg_name = msg_prefix + "blaze_camera_info";
+  this->blaze_cam_info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>(msg_name, 10);
 }
 
 void PylonROS2CameraNode::initServices()
@@ -358,6 +372,39 @@ void PylonROS2CameraNode::initServices()
   srv_name = srv_prefix + "set_sync_free_run_timer_start_time_high";
   this->set_sync_free_run_timer_start_time_high_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setSyncFreeRunTimerStartTimeHighCallback, this, _1, _2));
   
+  srv_name = srv_prefix + "set_depth_min";
+  this->set_depth_min_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setDepthMinCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_depth_max";
+  this->set_depth_max_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setDepthMaxCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_temporal_filter_strength";
+  this->set_temporal_filter_strength_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setTemporalFilterStrengthCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_outlier_removal_threshold";
+  this->set_outlier_removal_threshold_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setOutlierRemovalThresholdCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_outlier_removal_tolerance";
+  this->set_outlier_removal_tolerance_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setOutlierRemovalToleranceCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_ambiguity_filter_threshold";
+  this->set_ambiguity_filter_threshold_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setAmbiguityFilterThresholdCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_confidence_threshold";
+  this->set_confidence_threshold_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setConfidenceThresholdCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_intensity_calculation";
+  this->set_intensity_calculation_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setIntensityCalculationCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_exposure_time_selector";
+  this->set_exposure_time_selector_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setExposureTimeSelectorCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_operating_mode";
+  this->set_operating_mode_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setOperatingModeCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_multi_camera_channel";
+  this->set_multi_camera_channel_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setMultiCameraChannelCallback, this, _1, _2));
+  
   srv_name = srv_prefix + "set_noise_reduction";
   this->set_noise_reduction_srv_ = this->create_service<SetFloatSrv>(srv_name, std::bind(&PylonROS2CameraNode::setNoiseReductionCallback, this, _1, _2));
   
@@ -385,6 +432,12 @@ void PylonROS2CameraNode::initServices()
   srv_name = srv_prefix + "set_sync_free_run_timer_trigger_rate_abs";
   this->set_sync_free_run_timer_trigger_rate_abs_srv_ = this->create_service<SetFloatSrv>(srv_name, std::bind(&PylonROS2CameraNode::setSyncFreeRunTimerTriggerRateAbsCallback, this, _1, _2));
   
+  srv_name = srv_prefix + "set_acquisition_frame_rate";
+  this->set_acquisition_frame_rate_srv_ = this->create_service<SetFloatSrv>(srv_name, std::bind(&PylonROS2CameraNode::setAcquisitionFrameRateCallback, this, _1, _2));
+ 
+  srv_name = srv_prefix + "set_scan_3d_calibration_offset";
+  this->set_scan_3d_calibration_offset_srv_ = this->create_service<SetFloatSrv>(srv_name, std::bind(&PylonROS2CameraNode::setScan3dCalibrationOffsetCallback, this, _1, _2));
+ 
   srv_name = srv_prefix + "set_image_encoding";
   this->set_image_encoding_srv_ = this->create_service<SetStringSrv>(srv_name, std::bind(&PylonROS2CameraNode::setImageEncodingCallback, this, _1, _2));
   
@@ -427,6 +480,33 @@ void PylonROS2CameraNode::initServices()
   srv_name = srv_prefix + "enable_sync_free_run_timer";
   this->enable_sync_free_run_timer_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableSyncFreeRunTimerCallback, this, _1, _2));
   
+  srv_name = srv_prefix + "enable_spatial_filter";
+  this->enable_spatial_filter_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableSpatialFilterCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_temporal_filter";
+  this->enable_temporal_filter_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableTemporalFilterCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_outlier_removal";
+  this->enable_outlier_removal_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableOutlierRemovalCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_ambiguity_filter";
+  this->enable_ambiguity_filter_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableAmbiguityFilterCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_thermal_drift_correction";
+  this->enable_thermal_drift_correction_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableThermalDriftCorrectionCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_distortion_correction";
+  this->enable_distortion_correction_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableDistortionCorrectionCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_acquisition_frame_rate";
+  this->enable_acquisition_frame_rate_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableAcquisitionFrameRateCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_hdr_mode";
+  this->enable_hdr_mode_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableHDRModeCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_fast_mode";
+  this->enable_fast_mode_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableFastModeCallback, this, _1, _2));
+
   srv_name = srv_prefix + "execute_software_trigger";
   this->execute_software_trigger_srv_ = this->create_service<TriggerSrv>(srv_name, std::bind(&PylonROS2CameraNode::executeSoftwareTriggerCallback, this, _1, _2));
   
@@ -475,7 +555,9 @@ void PylonROS2CameraNode::initDiagnostics()
 bool PylonROS2CameraNode::initAndRegister()
 {
   this->pylon_camera_ = PylonROS2Camera::create(this->pylon_camera_parameter_set_.deviceUserID());
+  RCLCPP_DEBUG_STREAM(LOGGER, "Pylon camera instance created with the following user id: " << this->pylon_camera_parameter_set_.deviceUserID());
 
+  // TODO: to check when there's no connected camera
   if (this->pylon_camera_ == nullptr)
   {
     this->cm_status_.status_id = pylon_ros2_camera_interfaces::msg::ComponentStatus::ERROR;
@@ -498,7 +580,7 @@ bool PylonROS2CameraNode::initAndRegister()
       if (this->pylon_camera_ == nullptr)
       {
         RCLCPP_WARN_STREAM(LOGGER, "Failed to connect camera device with device user id: "<< this->pylon_camera_parameter_set_.deviceUserID() << ". "
-                            << "Trying again in a bit...");
+                                    << "Trying again in a bit...");
       }
 
       if (rclcpp::Node::now() > end)
@@ -578,7 +660,6 @@ bool PylonROS2CameraNode::startGrabbing()
 {
   if (!this->pylon_camera_->startGrabbing(pylon_camera_parameter_set_))
   {
-    RCLCPP_ERROR(LOGGER, "Error while start grabbing");
     return false;
   }
 
@@ -631,40 +712,43 @@ bool PylonROS2CameraNode::startGrabbing()
                              this->pylon_camera_->imageCols(),
                              this->pylon_camera_parameter_set_.downsampling_factor_exposure_search_);
 
-
-  // Initial setting of the CameraInfo-msg, assuming no calibration given
+  // Initial setting of the camera info
   sensor_msgs::msg::CameraInfo initial_cam_info;
   this->setupInitialCameraInfo(initial_cam_info);
   this->camera_info_manager_->setCameraInfo(initial_cam_info);
-  if (this->pylon_camera_parameter_set_.cameraInfoURL().empty() ||
-      !this->camera_info_manager_->validateURL(this->pylon_camera_parameter_set_.cameraInfoURL()))
-  { 
-    RCLCPP_INFO_STREAM(LOGGER, "CameraInfoURL needed for rectification! ROS2-Param: "
-        << "'" << this->get_namespace() << "/camera_info_url' = '"
-        << this->pylon_camera_parameter_set_.cameraInfoURL() << "' is invalid!");
-    RCLCPP_DEBUG_STREAM(LOGGER, "CameraInfoURL should have following style: "
-        << "'file:///full/path/to/local/file.yaml' or "
-        << "'file://${ROS_HOME}/camera_info/${NAME}.yaml'");
-    RCLCPP_WARN(LOGGER, "Will only provide distorted /image_raw images!");
-  }
-  else
-  { 
-    // override initial camera info if the url is valid
-    if (this->camera_info_manager_->loadCameraInfo(this->pylon_camera_parameter_set_.cameraInfoURL()))
-    {
-      this->setupRectification();
-      // set the correct tf frame_id
-      sensor_msgs::msg::CameraInfo cam_info = this->camera_info_manager_->getCameraInfo();
-      cam_info.header.frame_id = this->img_raw_msg_.header.frame_id;
-      this->camera_info_manager_->setCameraInfo(cam_info);
+
+  if (!this->pylon_camera_->isBlaze())
+  {
+    if (this->pylon_camera_parameter_set_.cameraInfoURL().empty() || 
+        !this->camera_info_manager_->validateURL(this->pylon_camera_parameter_set_.cameraInfoURL()))
+    { 
+      RCLCPP_INFO_STREAM(LOGGER, "CameraInfoURL needed for rectification! ROS2-Param: "
+          << "'" << this->get_namespace() << "/camera_info_url' = '"
+          << this->pylon_camera_parameter_set_.cameraInfoURL() << "' is invalid!");
+      RCLCPP_DEBUG_STREAM(LOGGER, "CameraInfoURL should have following style: "
+          << "'file:///full/path/to/local/file.yaml' or "
+          << "'file://${ROS_HOME}/camera_info/${NAME}.yaml'");
+      RCLCPP_WARN(LOGGER, "Will only provide distorted /image_raw images!");
     }
     else
     { 
-      RCLCPP_WARN(LOGGER, "Will only provide distorted /image_raw images!");
+      // override initial camera info if the url is valid
+      if (this->camera_info_manager_->loadCameraInfo(this->pylon_camera_parameter_set_.cameraInfoURL()))
+      {
+        this->setupRectification();
+        // set the correct tf frame_id
+        sensor_msgs::msg::CameraInfo cam_info = this->camera_info_manager_->getCameraInfo();
+        cam_info.header.frame_id = this->img_raw_msg_.header.frame_id;
+        this->camera_info_manager_->setCameraInfo(cam_info);
+      }
+      else
+      { 
+        RCLCPP_WARN(LOGGER, "Will only provide distorted /image_raw images!");
+      }
     }
   }
 
-  if (this->pylon_camera_parameter_set_.binning_x_given_)
+  if (!this->pylon_camera_->isBlaze() && this->pylon_camera_parameter_set_.binning_x_given_)
   {   
     size_t reached_binning_x;
     this->setBinningX(this->pylon_camera_parameter_set_.binning_x_, reached_binning_x);
@@ -674,7 +758,7 @@ bool PylonROS2CameraNode::startGrabbing()
             << "be adapted, so that the binning_x value in this msg remains 1");
   }
 
-  if (this->pylon_camera_parameter_set_.binning_y_given_)
+  if (!this->pylon_camera_->isBlaze() && this->pylon_camera_parameter_set_.binning_y_given_)
   {   
     size_t reached_binning_y;
     this->setBinningY(this->pylon_camera_parameter_set_.binning_y_, reached_binning_y);
@@ -693,7 +777,7 @@ bool PylonROS2CameraNode::startGrabbing()
             << reached_exposure);
   }
   
-  if (this->pylon_camera_parameter_set_.gain_given_)
+  if (!this->pylon_camera_->isBlaze() && this->pylon_camera_parameter_set_.gain_given_)
   {   
     float reached_gain;
     this->setGain(this->pylon_camera_parameter_set_.gain_, reached_gain);
@@ -702,7 +786,7 @@ bool PylonROS2CameraNode::startGrabbing()
             << reached_gain);
   }
 
-  if (pylon_camera_parameter_set_.gamma_given_)
+  if (!this->pylon_camera_->isBlaze() && pylon_camera_parameter_set_.gamma_given_)
   {   
     float reached_gamma;
     this->setGamma(pylon_camera_parameter_set_.gamma_, reached_gamma);
@@ -710,7 +794,7 @@ bool PylonROS2CameraNode::startGrabbing()
             << ", reached: " << reached_gamma);
   }
 
-  if (pylon_camera_parameter_set_.brightness_given_)
+  if (!this->pylon_camera_->isBlaze() && pylon_camera_parameter_set_.brightness_given_)
   {
     int reached_brightness;
     this->setBrightness(this->pylon_camera_parameter_set_.brightness_,
@@ -739,15 +823,24 @@ bool PylonROS2CameraNode::startGrabbing()
     }
   }
 
-  RCLCPP_INFO_STREAM(LOGGER, "Startup settings: "
+  if (!this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_INFO_STREAM(LOGGER, "Startup settings: "
       << "encoding = '" << this->pylon_camera_->currentROSEncoding() << "', "
       << "binning = [" << this->pylon_camera_->currentBinningX() << ", "
-      << this->pylon_camera_->currentBinningY() << "], "
+                       << this->pylon_camera_->currentBinningY() << "], "
       << "exposure = " << this->pylon_camera_->currentExposure() << ", "
       << "gain = " << this->pylon_camera_->currentGain() << ", "
       << "gamma = " <<  this->pylon_camera_->currentGamma() << ", "
       << "shutter mode = " << pylon_camera_parameter_set_.shutterModeString());
-  
+  }
+  else
+  {
+    RCLCPP_INFO_STREAM(LOGGER, "Startup settings: "
+      << "exposure = " << this->pylon_camera_->currentExposure());
+      // TODO: add other parameters ?
+  }
+
   // Framerate Settings
   if (this->pylon_camera_->maxPossibleFramerate() < this->pylon_camera_parameter_set_.frameRate())
   {
@@ -761,7 +854,7 @@ bool PylonROS2CameraNode::startGrabbing()
     this->pylon_camera_parameter_set_.setFrameRate(*this, this->pylon_camera_->maxPossibleFramerate());
     RCLCPP_INFO(LOGGER, "Max possible framerate is %.2f Hz", this->pylon_camera_->maxPossibleFramerate());
   }
-
+  
   return true;
 }
 
@@ -805,41 +898,75 @@ void PylonROS2CameraNode::spin()
     
     return;
   }
-  
-  if (!this->isSleeping() && (this->img_raw_pub_.getNumSubscribers() || this->getNumSubscribersRectImagePub()))
+
+  if (!this->pylon_camera_->isBlaze())
   {
-    if (this->img_raw_pub_.getNumSubscribers() || this->getNumSubscribersRectImagePub())
+    if (!this->isSleeping() && (this->img_raw_pub_.getNumSubscribers() || this->getNumSubscribersRectImagePub()))
     {
+      if (this->img_raw_pub_.getNumSubscribers() || this->getNumSubscribersRectImagePub())
+      {
+        if (!this->grabImage())
+        {
+          return;
+        }
+      }
+
+      if (this->img_raw_pub_.getNumSubscribers() > 0)
+      {
+        // get actual cam_info-object in every frame, because it might have
+        // changed due to a 'set_camera_info'-service call
+        sensor_msgs::msg::CameraInfo cam_info = this->camera_info_manager_->getCameraInfo();
+        cam_info.header.stamp = this->img_raw_msg_.header.stamp;
+        // publish via image_transport
+        this->img_raw_pub_.publish(this->img_raw_msg_, cam_info);
+      }
+
+      // this->getNumSubscribersRectImagePub() involves that this->camera_info_manager_->isCalibrated() == true
+      if (this->getNumSubscribersRectImagePub() > 0)
+      {
+        this->cv_bridge_img_rect_->header.stamp = this->img_raw_msg_.header.stamp;
+        assert(this->pinhole_model_->initialized());
+        cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(this->img_raw_msg_, this->img_raw_msg_.encoding);
+        this->pinhole_model_->fromCameraInfo(this->camera_info_manager_->getCameraInfo());
+        this->pinhole_model_->rectifyImage(cv_img_raw->image, this->cv_bridge_img_rect_->image);
+        this->img_rect_pub_->publish(this->cv_bridge_img_rect_->toImageMsg());
+      }
+    }
+  }
+  else
+  {
+    if (!this->isSleeping() && (this->count_subscribers(this->blaze_cloud_topic_name_) ||
+                                this->count_subscribers(this->blaze_intensity_topic_name_) ||
+                                this->count_subscribers(this->blaze_depth_map_topic_name_) ||
+                                this->count_subscribers(this->blaze_depth_map_color_topic_name_) ||
+                                this->count_subscribers(this->blaze_confidence_topic_name_)))
+    {
+      this->pylon_camera_->getInitialCameraInfo(this->blaze_cam_info_msg_);
+
       if (!this->grabImage())
       {
         return;
       }
-    }
 
-    if (this->img_raw_pub_.getNumSubscribers() > 0)
-    {
-      // get actual cam_info-object in every frame, because it might have
-      // changed due to a 'set_camera_info'-service call
-      sensor_msgs::msg::CameraInfo cam_info = this->camera_info_manager_->getCameraInfo();
-      cam_info.header.stamp = this->img_raw_msg_.header.stamp;
-      // publish via image_transport
-      this->img_raw_pub_.publish(this->img_raw_msg_, cam_info);
-    }
-
-    // this->getNumSubscribersRectImagePub() involves that this->camera_info_manager_->isCalibrated() == true
-    if (this->getNumSubscribersRectImagePub() > 0)
-    {
-      this->cv_bridge_img_rect_->header.stamp = this->img_raw_msg_.header.stamp;
-      assert(this->pinhole_model_->initialized());
-      cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(
-            this->img_raw_msg_,
-            this->img_raw_msg_.encoding);
-      this->pinhole_model_->fromCameraInfo(this->camera_info_manager_->getCameraInfo());
-      this->pinhole_model_->rectifyImage(cv_img_raw->image, this->cv_bridge_img_rect_->image);
-      this->img_rect_pub_->publish(this->cv_bridge_img_rect_->toImageMsg());
+      RCLCPP_DEBUG_STREAM_ONCE(LOGGER, "Camera frame from parameter server: " << this->pylon_camera_parameter_set_.cameraFrame());
+      
+      this->blaze_cloud_msg_.header.frame_id = this->pylon_camera_parameter_set_.cameraFrame();
+      this->intensity_map_msg_.header.frame_id = this->pylon_camera_parameter_set_.cameraFrame();
+      this->depth_map_msg_.header.frame_id = this->pylon_camera_parameter_set_.cameraFrame();
+      this->depth_map_color_msg_.header.frame_id = this->pylon_camera_parameter_set_.cameraFrame();
+      this->confidence_map_msg_.header.frame_id = this->pylon_camera_parameter_set_.cameraFrame();
+      this->blaze_cam_info_msg_.header.frame_id = this->pylon_camera_parameter_set_.cameraFrame();
+      
+      this->blaze_cloud_pub_->publish(this->blaze_cloud_msg_);
+      this->blaze_intensity_pub_->publish(this->intensity_map_msg_);
+      this->blaze_depth_map_pub_->publish(this->depth_map_msg_);
+      this->blaze_depth_map_color_pub_->publish(this->depth_map_color_msg_);
+      this->blaze_confidence_pub_->publish(this->confidence_map_msg_);
+      this->blaze_cam_info_pub_->publish(this->blaze_cam_info_msg_);
     }
   }
 
+  // TODO: is it useful for blaze?
   // Check if the image encoding changed , then save the new image encoding and restart the image grabbing to fix the ros sensor message type issue.
   if (this->pylon_camera_parameter_set_.imageEncoding() != this->pylon_camera_->currentROSEncoding()) 
   {
@@ -847,7 +974,7 @@ void PylonROS2CameraNode::spin()
     this->grabbingStopping();
     this->grabbingStarting();
   }
-
+  
   if (this->pylon_camera_parameter_set_.enable_status_publisher_)
   {
     this->component_status_pub_->publish(this->cm_status_);
@@ -855,7 +982,7 @@ void PylonROS2CameraNode::spin()
 
   if (this->pylon_camera_parameter_set_.enable_current_params_publisher_)
   {
-    this->currentParamPub();
+    this->publishCurrentParams();
   }
 }
 
@@ -864,13 +991,39 @@ bool PylonROS2CameraNode::grabImage()
   using namespace std::chrono_literals;
 
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
-  // Store current time before the image is transmitted for a more accurate grab time estimation
-  auto grab_time = rclcpp::Node::now();
-  if (!this->pylon_camera_->grab(img_raw_msg_.data))
+  
+  if (!this->pylon_camera_->isBlaze())
   {
-    return false;
+    // Store current time before the image is transmitted for a more accurate grab time estimation
+    auto grab_time = rclcpp::Node::now();
+    if (!this->pylon_camera_->grab(this->img_raw_msg_.data))
+    {
+      return false;
+    }
+    this->img_raw_msg_.header.stamp = grab_time;
   }
-  img_raw_msg_.header.stamp = grab_time;
+  else
+  {
+    auto grab_time = rclcpp::Node::now();
+    if (!this->pylon_camera_->grabBlaze(this->blaze_cloud_msg_, 
+                                        this->intensity_map_msg_, 
+                                        this->depth_map_msg_, 
+                                        this->depth_map_color_msg_, 
+                                        this->confidence_map_msg_))
+    {
+     
+      return false;
+    }
+
+    // acquisition time
+    this->blaze_cloud_msg_.header.stamp = grab_time;
+    this->intensity_map_msg_.header.stamp = grab_time;
+    this->depth_map_msg_.header.stamp = grab_time;
+    this->depth_map_color_msg_.header.stamp = grab_time;
+    this->confidence_map_msg_.header.stamp = grab_time;
+    this->blaze_cam_info_msg_.header.stamp = grab_time;
+  }
+  
   return true;
 }
 
@@ -918,13 +1071,20 @@ bool PylonROS2CameraNode::setBrightness(const int& target_brightness,
                                         const bool& exposure_auto,
                                         const bool& gain_auto)
 {
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set brightness: there's no brightness parameter with the blaze camera - returning -9999");
+    reached_brightness = -9999;
+    return false;
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   rclcpp::Time begin = rclcpp::Node::now(); // time measurement for the exposure search
 
   // brightness service can only work, if an image has already been grabbed,
   // because it calculates the mean on the current image. The interface is
   // ready if the grab-result-pointer of the first acquisition contains
-  // valid data
+  // valid dataW
   if (!this->waitForCamera(std::chrono::duration<double>(3)))
   {
     RCLCPP_ERROR(LOGGER, "Setting brightness failed: interface not ready, although waiting for 3 sec!");
@@ -938,13 +1098,11 @@ bool PylonROS2CameraNode::setBrightness(const int& target_brightness,
     float reached_exp;
     if (!this->setExposure(this->brightness_exp_lut_.at(target_brightness_co), reached_exp))
     {
-      RCLCPP_WARN_STREAM(LOGGER, "Tried to speed-up exposure search with initial"
-              << " guess, but setting the exposure failed!");
+      RCLCPP_WARN_STREAM(LOGGER, "Tried to speed-up exposure search with initial guess, but setting the exposure failed!");
     }
     else
     {
-      RCLCPP_DEBUG_STREAM(LOGGER, "Speed-up exposure search with initial exposure"
-              << " guess of " << reached_exp);
+      RCLCPP_DEBUG_STREAM(LOGGER, "Speed-up exposure search with initial exposure guess of " << reached_exp);
     }
   }
 
@@ -967,13 +1125,13 @@ bool PylonROS2CameraNode::setBrightness(const int& target_brightness,
   {
     reached_brightness = static_cast<int>(current_brightness);
     rclcpp::Time end = rclcpp::Node::now();
-    RCLCPP_DEBUG_STREAM(LOGGER, "Brightness reached without exposure search, duration: "
-            << ((end-begin).nanoseconds()/ 1e9));
+    RCLCPP_DEBUG_STREAM(LOGGER, "Brightness reached without exposure search, duration: " << ((end-begin).nanoseconds()/ 1e9));
     return true;  // target brightness already reached
   }
 
-  // initially cancel all running exposure search by deactivating
-  // ExposureAuto & AutoGain
+  RCLCPP_DEBUG_STREAM(LOGGER, "Type: " << this->pylon_camera_->typeName());
+
+  // initially cancel all running exposure search by deactivating ExposureAuto & AutoGain
   this->pylon_camera_->disableAllRunningAutoBrightessFunctions();
 
   if (target_brightness_co <= 50)
@@ -985,13 +1143,11 @@ bool PylonROS2CameraNode::setBrightness(const int& target_brightness,
       float reached_exp;
       if (!this->setExposure(brightness_exp_lut_.at(50), reached_exp))
       {
-        RCLCPP_WARN_STREAM(LOGGER, "Tried to speed-up exposure search with initial"
-            << " guess, but setting the exposure failed!");
+        RCLCPP_WARN_STREAM(LOGGER, "Tried to speed-up exposure search with initial guess, but setting the exposure failed!");
       }
       else
       {
-        RCLCPP_DEBUG_STREAM(LOGGER, "Speed-up exposure search with initial exposure"
-            << " guess of " << reached_exp);
+        RCLCPP_DEBUG_STREAM(LOGGER, "Speed-up exposure search with initial exposure guess of " << reached_exp);
       }
     }
   }
@@ -1137,6 +1293,13 @@ bool PylonROS2CameraNode::setBrightness(const int& target_brightness,
 
 bool PylonROS2CameraNode::setGain(const float& target_gain, float& reached_gain)
 {
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set gain: there's no gain parameter with the blaze camera - returning -9999.0");
+    reached_gain = -9999.0;
+    return false;
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1166,14 +1329,21 @@ bool PylonROS2CameraNode::setGain(const float& target_gain, float& reached_gain)
       }
       r.sleep();
     }
-    RCLCPP_ERROR_STREAM(LOGGER, "Error in setGain(): Unable to set target "
-        << "gain before timeout");
+
+    RCLCPP_ERROR_STREAM(LOGGER, "Error in setGain(): Unable to set target gain before timeout");
     return false;
   }
 }
 
 bool PylonROS2CameraNode::setGamma(const float& target_gamma, float& reached_gamma)
 {
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set gamma: there's no gamma parameter with the blaze camera - returning -9999.0");
+    reached_gamma = -9999.0;
+    return false;
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1203,8 +1373,8 @@ bool PylonROS2CameraNode::setGamma(const float& target_gamma, float& reached_gam
       }
       r.sleep();
     }
-    RCLCPP_ERROR_STREAM(LOGGER, "Error in setGamma(): Unable to set target "
-        << "gamma before timeout");
+
+    RCLCPP_ERROR_STREAM(LOGGER, "Error in setGamma(): Unable to set target gamma before timeout");
     return false;
   }
 }
@@ -1212,6 +1382,13 @@ bool PylonROS2CameraNode::setGamma(const float& target_gamma, float& reached_gam
 bool PylonROS2CameraNode::setROI(const sensor_msgs::msg::RegionOfInterest target_roi,
                                  sensor_msgs::msg::RegionOfInterest& reached_roi)
 {
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set roi: there's no roi parameter with the blaze camera - returning full image size roi");
+    reached_roi = this->pylon_camera_->currentROI();    
+    return false;
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->setROI(target_roi, reached_roi) )
   {
@@ -1226,8 +1403,7 @@ bool PylonROS2CameraNode::setROI(const sensor_msgs::msg::RegionOfInterest target
       }
       if (rclcpp::Node::now() > timeout)
       {
-        RCLCPP_ERROR_STREAM(LOGGER, "Error in setROI(): Unable to set target "
-                << "roi before timeout");
+        RCLCPP_ERROR_STREAM(LOGGER, "Error in setROI(): Unable to set target roi before timeout");
         sensor_msgs::msg::CameraInfo cam_info = this->camera_info_manager_->getCameraInfo();
         cam_info.roi = this->pylon_camera_->currentROI();
         this->camera_info_manager_->setCameraInfo(cam_info);
@@ -1352,6 +1528,12 @@ bool PylonROS2CameraNode::setBinningY(const size_t& target_binning_y,
 
 std::string PylonROS2CameraNode::setOffsetXY(const int& offsetValue, bool xAxis)
 {
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set x/y offset: there's no x/y offset parameter with the blaze camera");
+    return "No x/y offset parameter with the blaze";
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1363,6 +1545,12 @@ std::string PylonROS2CameraNode::setOffsetXY(const int& offsetValue, bool xAxis)
 
 std::string PylonROS2CameraNode::reverseXY(const bool& data, bool around_x)
 {
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to reverse x/y: there's no reverse x/y parameter with the blaze camera");
+    return "No reverse x/y parameter with the blaze";
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1375,6 +1563,12 @@ std::string PylonROS2CameraNode::reverseXY(const bool& data, bool around_x)
 
 std::string PylonROS2CameraNode::setBlackLevel(const int& value)
 {
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set black level: there's no black level parameter with the blaze camera");
+    return "No black level parameter with the blaze";
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1386,7 +1580,13 @@ std::string PylonROS2CameraNode::setBlackLevel(const int& value)
 }
 
 std::string PylonROS2CameraNode::setPGIMode(const bool& on)
-{   
+{
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set PGI mode: there's no PGI mode parameter with the blaze camera");
+    return "No PGI mode parameter with the blaze";
+  }
+
   // mode 0 = Simple
   // mode 1 = Basler PGI
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
@@ -1400,7 +1600,13 @@ std::string PylonROS2CameraNode::setPGIMode(const bool& on)
 }
 
 std::string PylonROS2CameraNode::setDemosaicingMode(const int& mode)
-{   
+{
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set demosaicing mode: there's no demosaicing mode parameter with the blaze camera");
+    return "No demosaicing mode parameter with the blaze";
+  }
+
   // mode 0 = Simple
   // mode 1 = Basler PGI
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
@@ -1415,6 +1621,12 @@ std::string PylonROS2CameraNode::setDemosaicingMode(const int& mode)
 
 std::string PylonROS2CameraNode::setNoiseReduction(const float& value)
 {
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set noise reduction: there's no noise reduction parameter with the blaze camera");
+    return "No noise reduction parameter with the blaze";
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1427,6 +1639,12 @@ std::string PylonROS2CameraNode::setNoiseReduction(const float& value)
 
 std::string PylonROS2CameraNode::setSharpnessEnhancement(const float& value)
 {
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set sharpness enhancement: there's no sharpness enhancement parameter with the blaze camera");
+    return "No sharpness enhancement parameter with the blaze";
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1439,6 +1657,12 @@ std::string PylonROS2CameraNode::setSharpnessEnhancement(const float& value)
 
 std::string PylonROS2CameraNode::setLightSourcePreset(const int& mode)
 {
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set light source preset: there's no light source preset parameter with the blaze camera");
+    return "No light source preset parameter with the blaze";
+  }
+
   // mode 0 = Off
   // mode 1 = Daylight5000K
   // mode 2 = Daylight6500K
@@ -1454,7 +1678,13 @@ std::string PylonROS2CameraNode::setLightSourcePreset(const int& mode)
 }
 
 std::string PylonROS2CameraNode::setWhiteBalanceAuto(const int& mode)
-{  
+{
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set white balance auto: there's no white balance auto with the blaze camera");
+    return "No white balance auto with the blaze";
+  }
+
   // mode 0 = Off
   // mode 1 = Once
   // mode 2 = Continuous
@@ -1469,7 +1699,13 @@ std::string PylonROS2CameraNode::setWhiteBalanceAuto(const int& mode)
 }
 
 std::string PylonROS2CameraNode::setSensorReadoutMode(const int& mode)
-{   
+{
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set sensor readout mode: there's no sensor readout mode parameter with the blaze camera");
+    return "No sensor readout mode parameter with the blaze";
+  }
+
   // mode = 0 : normal readout mode
   // mode = 1 : fast readout mode
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
@@ -1483,7 +1719,13 @@ std::string PylonROS2CameraNode::setSensorReadoutMode(const int& mode)
 }
 
 std::string PylonROS2CameraNode::setAcquisitionFrameCount(const int& frameCount)
-{   
+{
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set acquisition frame count: there's no acquisition frame count parameter with the blaze camera");
+    return "No acquisition frame count parameter with the blaze";
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1550,7 +1792,13 @@ std::string PylonROS2CameraNode::setTriggerSource(const int& source)
 }
 
 std::string PylonROS2CameraNode::setTriggerActivation(const int& value)
-{   
+{
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set trigger activation: there's no trigger activation parameter with the blaze camera");
+    return "No trigger activation parameter with the blaze";
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1562,7 +1810,13 @@ std::string PylonROS2CameraNode::setTriggerActivation(const int& value)
 }
 
 std::string PylonROS2CameraNode::setTriggerDelay(const float& value)
-{   
+{
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set trigger delay: there's no trigger delay parameter with the blaze camera");
+    return "No trigger delay parameter with the blaze";
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1616,7 +1870,13 @@ std::string PylonROS2CameraNode::setLineSource(const int& value)
 }
 
 std::string PylonROS2CameraNode::setLineInverter(const bool& value)
-{   
+{
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set line inverter: there's no line inverter parameter with the blaze camera");
+    return "No line inverter parameter with the blaze";
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1628,7 +1888,13 @@ std::string PylonROS2CameraNode::setLineInverter(const bool& value)
 }
 
 std::string PylonROS2CameraNode::setLineDebouncerTime(const float& value)
-{   
+{
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set line debouncer time: there's no line debouncer time parameter with the blaze camera");
+    return "No line debouncer time parameter with the blaze";
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1646,7 +1912,13 @@ std::string PylonROS2CameraNode::setLineDebouncerTime(const float& value)
 }
 
 std::string PylonROS2CameraNode::setUserSetSelector(const int& set)
-{   
+{
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set user set selector: there's no user set selector parameter with the blaze camera");
+    return "No user set selector parameter with the blaze";
+  }
+
   // set 0 = Default
   // set 1 = UserSet1
   // set 2 = UserSet2
@@ -1665,7 +1937,13 @@ std::string PylonROS2CameraNode::setUserSetSelector(const int& set)
 }
 
 std::string PylonROS2CameraNode::saveUserSet()
-{  
+{
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to save user set: this is not possible with the blaze camera");
+    return "Not possible to save user set with the blaze";
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1677,7 +1955,13 @@ std::string PylonROS2CameraNode::saveUserSet()
 }
 
 std::string PylonROS2CameraNode::loadUserSet()
-{  
+{
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to load user set: this is not possible with the blaze camera");
+    return "Not possible to load user set with the blaze";
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1689,7 +1973,13 @@ std::string PylonROS2CameraNode::loadUserSet()
 }
 
 std::string PylonROS2CameraNode::setUserSetDefaultSelector(const int& set)
-{   
+{
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set user set default selector: there's no user set default selector parameter with the blaze camera");
+    return "No user set default selector parameter with the blaze";
+  }
+
   // set 0 = Default
   // set 1 = UserSet1
   // set 2 = UserSet2
@@ -1768,7 +2058,13 @@ std::string PylonROS2CameraNode::setMaxTransferSize(const int& maxTransferSize)
 }
 
 std::string PylonROS2CameraNode::setGammaSelector(const int& gammaSelector)
-{  
+{
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set gamma selector: there's no gamma selector parameter with the blaze camera");
+    return "No gamma selector parameter with the blaze";
+  }
+
   // gammaSelector 0 = User
   // gammaSelector 1 = sRGB
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
@@ -1782,7 +2078,7 @@ std::string PylonROS2CameraNode::setGammaSelector(const int& gammaSelector)
 }
 
 std::string PylonROS2CameraNode::gammaEnable(const int& enable)
-{  
+{
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -2185,19 +2481,26 @@ void PylonROS2CameraNode::setBrightnessCallback(const std::shared_ptr<SetBrightn
                                           response->reached_brightness,
                                           request->exposure_auto,
                                           request->gain_auto);
-    if (request->brightness_continuous)
+  if (request->brightness_continuous)
+  {
+    if (request->exposure_auto)
     {
-      if (request->exposure_auto)
-      {
-        this->pylon_camera_->enableContinuousAutoExposure();
-      }
-      if (request->gain_auto)
-      {
-        this->pylon_camera_->enableContinuousAutoGain();
-      }
+      this->pylon_camera_->enableContinuousAutoExposure();
     }
-    response->reached_exposure_time = this->pylon_camera_->currentExposure();
+    if (request->gain_auto)
+    {
+      this->pylon_camera_->enableContinuousAutoGain();
+    }
+  }
+
+  response->reached_exposure_time = this->pylon_camera_->currentExposure();
+  if (!this->pylon_camera_->isBlaze())
     response->reached_gain_value = this->pylon_camera_->currentGain();
+  else
+  {
+    RCLCPP_WARN(LOGGER, "Trying to get gain: there's no gain parameter with the blaze camera - returning -9999.0");
+    response->reached_gain_value = -9999.0;
+  }
 }
 
 void PylonROS2CameraNode::setExposureCallback(const std::shared_ptr<SetExposureSrv::Request> request,
@@ -2231,7 +2534,7 @@ void PylonROS2CameraNode::setSleepingCallback(const std::shared_ptr<SetSleepingS
 
   if (is_sleeping_)
   {
-    RCLCPP_INFO(LOGGER, "Seting Pylon Camera Node to sleep...");
+    RCLCPP_INFO(LOGGER, "Setting Pylon Camera Node to sleep...");
   }
   else
   {
@@ -2704,7 +3007,8 @@ void PylonROS2CameraNode::setTriggerTimeoutCallback(const std::shared_ptr<SetInt
   {
     this->pylon_camera_parameter_set_.trigger_timeout_ = request->value;
     response->success = true;
-  } catch (...)
+  } 
+  catch (...)
   {
     response->success = false;
   }
@@ -2910,6 +3214,149 @@ void PylonROS2CameraNode::setSyncFreeRunTimerStartTimeHighCallback(const std::sh
   }
 }
 
+void PylonROS2CameraNode::setDepthMinCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setDepthMin(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setDepthMaxCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setDepthMax(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setTemporalFilterStrengthCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setTemporalFilterStrength(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setOutlierRemovalThresholdCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setOutlierRemovalThreshold(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setOutlierRemovalToleranceCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setOutlierRemovalTolerance(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setAmbiguityFilterThresholdCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setAmbiguityFilterThreshold(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setConfidenceThresholdCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setConfidenceThreshold(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setIntensityCalculationCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setIntensityCalculation(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setExposureTimeSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setExposureTimeSelector(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setOperatingModeCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setOperatingMode(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setMultiCameraChannelCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setMultiCameraChannel(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
 void PylonROS2CameraNode::setNoiseReductionCallback(const std::shared_ptr<SetFloatSrv::Request> request,
                                                     std::shared_ptr<SetFloatSrv::Response> response)
 {
@@ -3045,7 +3492,32 @@ void PylonROS2CameraNode::setSyncFreeRunTimerTriggerRateAbsCallback(const std::s
                                                                     std::shared_ptr<SetFloatSrv::Response> response)
 {
   response->message = this->pylon_camera_->setSyncFreeRunTimerTriggerRateAbs(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
 
+void PylonROS2CameraNode::setAcquisitionFrameRateCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setAcquisitionFrameRate(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setScan3dCalibrationOffsetCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setScan3dCalibrationOffset(request->value);
   if ((response->message.find("done") != std::string::npos) != 0)
   {
     response->success = true;
@@ -3317,6 +3789,123 @@ void PylonROS2CameraNode::enableSyncFreeRunTimerCallback(const std::shared_ptr<S
   }
 }
 
+void PylonROS2CameraNode::enableSpatialFilterCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enableSpatialFilter(request->data);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::enableTemporalFilterCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enableTemporalFilter(request->data);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::enableOutlierRemovalCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enableOutlierRemoval(request->data);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::enableAmbiguityFilterCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enableAmbiguityFilter(request->data);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::enableThermalDriftCorrectionCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enableThermalDriftCorrection(request->data);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::enableDistortionCorrectionCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enableDistortionCorrection(request->data);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::enableAcquisitionFrameRateCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enableAcquisitionFrameRate(request->data);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::enableHDRModeCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enableHDRMode(request->data);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::enableFastModeCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enableFastMode(request->data);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
 void PylonROS2CameraNode::executeSoftwareTriggerCallback(const std::shared_ptr<TriggerSrv::Request> request,
                                                          std::shared_ptr<TriggerSrv::Response> response)
 {
@@ -3493,6 +4082,16 @@ void PylonROS2CameraNode::executeGrabRectImagesAction(const std::shared_ptr<Grab
   const auto goal = goal_handle->get_goal();
   auto result = std::make_shared<GrabImagesAction::Result>();
   auto feedback = std::make_shared<GrabImagesAction::Feedback>();
+
+  // stop it here if the connected cam is a blaze
+  // should not happen as the action server is setup if the connected cam is not a blaze
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "This action is not implemented for the blaze. Trigger the one dedicated to it instead.");
+    result->success = false;
+    goal_handle->succeed(result);
+    return;
+  }
 
   if (!this->camera_info_manager_->isCalibrated())
   {
@@ -3676,80 +4275,12 @@ void PylonROS2CameraNode::setupInitialCameraInfo(sensor_msgs::msg::CameraInfo& c
   header.frame_id = this->pylon_camera_parameter_set_.cameraFrame();
   header.stamp = rclcpp::Node::now();
 
-  // https://github.com/ros2/common_interfaces/blob/master/sensor_msgs/msg/CameraInfo.msg
+  this->pylon_camera_->getInitialCameraInfo(cam_info_msg);
 
   // If the camera is uncalibrated, the matrices D, K, R, P should be left
   // zeroed out. In particular, clients may assume that K[0] == 0.0
   // indicates an uncalibrated camera.
   cam_info_msg.header = header;
-
-  // The image dimensions with which the camera was calibrated. Normally
-  // this will be the full camera resolution in pixels.
-  cam_info_msg.height = this->pylon_camera_->imageRows();
-  cam_info_msg.width = this->pylon_camera_->imageCols();
-
-  // The distortion model used. Supported models are listed in
-  // sensor_msgs/distortion_models.h. For most cameras, "plumb_bob" - a
-  // simple model of radial and tangential distortion - is sufficient.
-  cam_info_msg.distortion_model = "";
-
-  // The distortion parameters, size depending on the distortion model.
-  // For "plumb_bob", the 5 parameters are: (k1, k2, t1, t2, k3) -> float64[] d.
-  cam_info_msg.d = std::vector<double>(5, 0.);
-
-  // Intrinsic camera matrix for the raw (distorted) images.
-  //     [fx  0 cx]
-  // K = [ 0 fy cy]  --> 3x3 row-major matrix
-  //     [ 0  0  1]
-  // Projects 3D points in the camera coordinate frame to 2D pixel coordinates
-  // using the focal lengths (fx, fy) and principal point (cx, cy) -> float64[9] k.
-  cam_info_msg.k.fill(0.0);
-
-  // Rectification matrix (stereo cameras only)
-  // A rotation matrix aligning the camera coordinate system to the ideal
-  // stereo image plane so that epipolar lines in both stereo images are parallel -> float64[9] r, 3x3 row-major matrix.
-  cam_info_msg.r.fill(0.0);
-
-  // Projection/camera matrix
-  //     [fx'  0  cx' Tx]
-  // P = [ 0  fy' cy' Ty]  --> # 3x4 row-major matrix
-  //     [ 0   0   1   0]
-  // By convention, this matrix specifies the intrinsic (camera) matrix of the
-  // processed (rectified) image. That is, the left 3x3 portion is the normal
-  // camera intrinsic matrix for the rectified image. It projects 3D points
-  // in the camera coordinate frame to 2D pixel coordinates using the focal
-  // lengths (fx', fy') and principal point (cx', cy') - these may differ from
-  // the values in K. For monocular cameras, Tx = Ty = 0. Normally, monocular
-  // cameras will also have R = the identity and P[1:3,1:3] = K.
-  // For a stereo pair, the fourth column [Tx Ty 0]' is related to the
-  // position of the optical center of the second camera in the first
-  // camera's frame. We assume Tz = 0 so both cameras are in the same
-  // stereo image plane. The first camera always has Tx = Ty = 0.
-  // For the right (second) camera of a horizontal stereo pair,
-  // Ty = 0 and Tx = -fx' * B, where B is the baseline between the cameras.
-  // Given a 3D point [X Y Z]', the projection (x, y) of the point onto the
-  // rectified image is given by:
-  // [u v w]' = P * [X Y Z 1]'
-  //        x = u / w
-  //        y = v / w
-  //  This holds for both images of a stereo pair -> float64[12]
-  cam_info_msg.p.fill(0.0);
-
-  // Binning refers here to any camera setting which combines rectangular
-  // neighborhoods of pixels into larger "super-pixels." It reduces the
-  // resolution of the output image to (width / binning_x) x (height / binning_y).
-  // The default values binning_x = binning_y = 0 is considered the same as
-  // binning_x = binning_y = 1 (no subsampling).
-  cam_info_msg.binning_x = this->pylon_camera_->currentBinningX();
-  cam_info_msg.binning_y = this->pylon_camera_->currentBinningY();
-
-  // Region of interest (subwindow of full camera resolution), given in full
-  // resolution (unbinned) image coordinates. A particular ROI always denotes
-  // the same window of pixels on the camera sensor, regardless of binning
-  // settings. The default setting of roi (all values 0) is considered the same
-  // as full resolution (roi.width = width, roi.height = height).
-  cam_info_msg.roi.x_offset = cam_info_msg.roi.y_offset = 0;
-  cam_info_msg.roi.height = cam_info_msg.roi.width = 0;
 }
 
 void PylonROS2CameraNode::setupRectification()
@@ -3790,6 +4321,14 @@ std::shared_ptr<GrabImagesAction::Result> PylonROS2CameraNode::grabRawImages(con
   const auto goal = goal_handle->get_goal();
   auto result = std::make_shared<GrabImagesAction::Result>();
   auto feedback = std::make_shared<GrabImagesAction::Feedback>();
+
+  // stop it here if the connected cam is a blaze
+  if (this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "This action is not implemented for the blaze. Trigger the one dedicated to it instead.");
+    result->success = false;
+    return result;
+  }
   
   if (goal->exposure_given && goal->exposure_times.empty())
   {
@@ -3923,20 +4462,17 @@ std::shared_ptr<GrabImagesAction::Result> PylonROS2CameraNode::grabRawImages(con
 
     if (goal->exposure_given)
     {
-      result->success = this->setExposure(goal->exposure_times[i],
-                                          result->reached_exposure_times[i]);
+      result->success = this->setExposure(goal->exposure_times[i], result->reached_exposure_times[i]);
     }
 
     if (goal->gain_given)
     {
-      result->success = this->setGain(goal->gain_values[i],
-                                      result->reached_gain_values[i]);
+      result->success = this->setGain(goal->gain_values[i], result->reached_gain_values[i]);
     }
     
     if (goal->gamma_given)
     {
-      result->success = this->setGamma(goal->gamma_values[i],
-                                       result->reached_gamma_values[i]);
+      result->success = this->setGamma(goal->gamma_values[i], result->reached_gamma_values[i]);
     }
 
     if (goal->brightness_given)
@@ -4069,12 +4605,12 @@ bool PylonROS2CameraNode::waitForCamera(const std::chrono::duration<double>& tim
   return result;
 }
 
-void PylonROS2CameraNode::currentParamPub()
+void PylonROS2CameraNode::publishCurrentParams()
 {
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
-    RCLCPP_WARN(LOGGER, "Error in triggerDeviceReset(): pylon_camera_ is not ready!");
+    RCLCPP_WARN(LOGGER, "Error in publishCurrentParams(): pylon_camera_ is not ready!");
     this->current_params_.message = "pylon camera is not ready!";
     this->current_params_.success = false;
   }
@@ -4103,10 +4639,19 @@ void PylonROS2CameraNode::currentParamPub()
       this->current_params_.user_set_selector = this->pylon_camera_->getUserSetSelector();
       this->current_params_.user_set_default_selector = this->pylon_camera_->getUserSetDefaultSelector();
       this->current_params_.is_sleeping = this->isSleeping();
-      this->current_params_.brightness = this->calcCurrentBrightness();
+      if (!this->pylon_camera_->isBlaze())
+        this->current_params_.brightness = this->calcCurrentBrightness();
+      else
+        this->current_params_.brightness = -9999;
       this->current_params_.exposure = this->pylon_camera_->currentExposure();
-      this->current_params_.gain = this->pylon_camera_->currentGain();
-      this->current_params_.gamma = this->pylon_camera_->currentGamma();
+      if (!this->pylon_camera_->isBlaze())
+        this->current_params_.gain = this->pylon_camera_->currentGain();
+      else
+        this->current_params_.gain = -9999.0;
+      if (!this->pylon_camera_->isBlaze())
+        this->current_params_.gamma = this->pylon_camera_->currentGamma();
+      else
+        this->current_params_.gamma = -9999.0;
       this->current_params_.binning_x = static_cast<uint32_t>(this->pylon_camera_->currentBinningX());
       this->current_params_.binning_y = static_cast<uint32_t>(this->pylon_camera_->currentBinningY());
       this->current_params_.roi = this->pylon_camera_->currentROI();
@@ -4125,6 +4670,7 @@ void PylonROS2CameraNode::currentParamPub()
       this->current_params_.message = "An exception while getting the camera current parameters occurred";
     }
   }
+
   this->current_params_pub_->publish(this->current_params_);
 }
 
