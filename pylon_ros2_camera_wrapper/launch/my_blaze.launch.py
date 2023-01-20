@@ -34,13 +34,13 @@ def generate_launch_description():
     # launch arguments
     declare_node_name_cmd = DeclareLaunchArgument(
         'node_name',
-        default_value='my_blaze_node',
+        default_value='pylon_ros2_camera_node',
         description='Name of the wrapper node.'
     )
 
     declare_camera_id_cmd = DeclareLaunchArgument(
         'camera_id',
-        default_value='my_camera',
+        default_value='my_blaze',
         description='Id of the camera. Used as node namespace.'
     )
 

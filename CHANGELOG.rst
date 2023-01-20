@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.2.0 (2023-01-20)
+-------------------
+* Official galactic version integrating the blaze.
+
 1.2.0.beta (2022-12-20)
 -------------------
 * Beta version of the galactic version integrating the blaze.

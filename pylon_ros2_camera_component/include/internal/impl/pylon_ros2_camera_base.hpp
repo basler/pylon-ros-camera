@@ -1035,7 +1035,6 @@ bool PylonROS2CameraImpl<CameraTraitT>::setExposure(const float& target_exposure
 {
     try
     {
-        RCLCPP_WARN(LOGGER_BASE, "Set exposure : Dans PylonROS2CameraImpl<CameraTraitT>");
         cam_->ExposureAuto.TrySetValue(ExposureAutoEnums::ExposureAuto_Off);
 
         float exposure_to_set = target_exposure;

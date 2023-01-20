@@ -66,6 +66,7 @@
 
 // actions
 #include "pylon_ros2_camera_interfaces/action/grab_images.hpp"
+#include "pylon_ros2_camera_interfaces/action/grab_blaze_data.hpp"
 
 // camera
 #include "pylon_ros2_camera.hpp"
@@ -109,6 +110,8 @@ using TriggerSrv                    = std_srvs::srv::Trigger;
 
 using GrabImagesAction              = pylon_ros2_camera_interfaces::action::GrabImages;
 using GrabImagesGoalHandle          = rclcpp_action::ServerGoalHandle<GrabImagesAction>;
+using GrabBlazeDataAction           = pylon_ros2_camera_interfaces::action::GrabBlazeData;
+using GrabBlazeDataGoalHandle       = rclcpp_action::ServerGoalHandle<GrabBlazeDataAction>;
 
 
 class PylonROS2CameraNode : public rclcpp::Node
@@ -1445,6 +1448,40 @@ protected:
    */
   void executeGrabRectImagesAction(const std::shared_ptr<GrabImagesGoalHandle> goal_handle);
 
+
+
+
+  /**
+   * @brief Handle action goal relatively to blaze data grabbing
+   * @return goal response
+   */
+  rclcpp_action::GoalResponse handleGrabBlazeDataActionGoal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const GrabBlazeDataAction::Goal> goal);
+
+  /**
+   * @brief Handle action cancellation relatively to blaze data grabbing
+   * @param goal_handle Goal handle
+   * @return Response of the action is cancelled 
+   */
+  rclcpp_action::CancelResponse handleGrabBlazeDataActionGoalCancel(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
+
+  /**
+   * @brief Handle action if goal is accepted relatively to blaze data grabbing
+   * @param goal_handle handle 
+   */
+  void handleGrabBlazeDataActionGoalAccepted(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
+
+  /**
+   * @brief Grab blaze data through action
+   * @param goal_handle 
+   */
+  void executeGrabBlazeDataAction(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
+
+
+
+
+
+
+
   /**
    * @brief Create diagnostics
    * @param stat Diagnostic status wrapper
@@ -1713,6 +1750,8 @@ protected:
   // actions
   rclcpp_action::Server<GrabImagesAction>::SharedPtr grab_imgs_raw_as_;
   rclcpp_action::Server<GrabImagesAction>::SharedPtr grab_imgs_rect_as_;
+  // blaze related action
+  rclcpp_action::Server<GrabBlazeDataAction>::SharedPtr grab_blaze_data_as_;
 
   // spinning thread
   rclcpp::TimerBase::SharedPtr timer_;

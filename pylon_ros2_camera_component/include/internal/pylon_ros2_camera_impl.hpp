@@ -358,7 +358,7 @@ public:
                            sensor_msgs::msg::Image& depth_map_msg, 
                            sensor_msgs::msg::Image& depth_map_color_msg, 
                            sensor_msgs::msg::Image& confidence_map_msg);
-
+    
     virtual std::string setDepthMin(const int& depth_min);
 
     virtual std::string setDepthMax(const int& depth_max);

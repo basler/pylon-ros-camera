@@ -557,7 +557,6 @@ bool PylonROS2CameraNode::initAndRegister()
   this->pylon_camera_ = PylonROS2Camera::create(this->pylon_camera_parameter_set_.deviceUserID());
   RCLCPP_DEBUG_STREAM(LOGGER, "Pylon camera instance created with the following user id: " << this->pylon_camera_parameter_set_.deviceUserID());
 
-  // TODO: to check when there's no connected camera
   if (this->pylon_camera_ == nullptr)
   {
     this->cm_status_.status_id = pylon_ros2_camera_interfaces::msg::ComponentStatus::ERROR;
@@ -747,6 +746,17 @@ bool PylonROS2CameraNode::startGrabbing()
       }
     }
   }
+  else
+  {
+    using namespace std::placeholders;
+
+    this->grab_blaze_data_as_ = rclcpp_action::create_server<GrabBlazeDataAction>(
+        this,
+        "~/grab_blaze_data",
+        std::bind(&PylonROS2CameraNode::handleGrabBlazeDataActionGoal, this, _1, _2),
+        std::bind(&PylonROS2CameraNode::handleGrabBlazeDataActionGoalCancel, this, _1),
+        std::bind(&PylonROS2CameraNode::handleGrabBlazeDataActionGoalAccepted, this, _1));
+  }
 
   if (!this->pylon_camera_->isBlaze() && this->pylon_camera_parameter_set_.binning_x_given_)
   {   
@@ -838,7 +848,6 @@ bool PylonROS2CameraNode::startGrabbing()
   {
     RCLCPP_INFO_STREAM(LOGGER, "Startup settings: "
       << "exposure = " << this->pylon_camera_->currentExposure());
-      // TODO: add other parameters ?
   }
 
   // Framerate Settings
@@ -950,12 +959,12 @@ void PylonROS2CameraNode::spin()
 
       RCLCPP_DEBUG_STREAM_ONCE(LOGGER, "Camera frame from parameter server: " << this->pylon_camera_parameter_set_.cameraFrame());
       
-      this->blaze_cloud_msg_.header.frame_id = this->pylon_camera_parameter_set_.cameraFrame();
-      this->intensity_map_msg_.header.frame_id = this->pylon_camera_parameter_set_.cameraFrame();
-      this->depth_map_msg_.header.frame_id = this->pylon_camera_parameter_set_.cameraFrame();
-      this->depth_map_color_msg_.header.frame_id = this->pylon_camera_parameter_set_.cameraFrame();
-      this->confidence_map_msg_.header.frame_id = this->pylon_camera_parameter_set_.cameraFrame();
-      this->blaze_cam_info_msg_.header.frame_id = this->pylon_camera_parameter_set_.cameraFrame();
+      this->blaze_cloud_msg_.header.frame_id = cameraFrame();
+      this->intensity_map_msg_.header.frame_id = cameraFrame();
+      this->depth_map_msg_.header.frame_id = cameraFrame();
+      this->depth_map_color_msg_.header.frame_id = cameraFrame();
+      this->confidence_map_msg_.header.frame_id = cameraFrame();
+      this->blaze_cam_info_msg_.header.frame_id = cameraFrame();
       
       this->blaze_cloud_pub_->publish(this->blaze_cloud_msg_);
       this->blaze_intensity_pub_->publish(this->intensity_map_msg_);
@@ -966,7 +975,6 @@ void PylonROS2CameraNode::spin()
     }
   }
 
-  // TODO: is it useful for blaze?
   // Check if the image encoding changed , then save the new image encoding and restart the image grabbing to fix the ros sensor message type issue.
   if (this->pylon_camera_parameter_set_.imageEncoding() != this->pylon_camera_->currentROSEncoding()) 
   {
@@ -1021,6 +1029,7 @@ bool PylonROS2CameraNode::grabImage()
     this->depth_map_msg_.header.stamp = grab_time;
     this->depth_map_color_msg_.header.stamp = grab_time;
     this->confidence_map_msg_.header.stamp = grab_time;
+
     this->blaze_cam_info_msg_.header.stamp = grab_time;
   }
   
@@ -1401,6 +1410,7 @@ bool PylonROS2CameraNode::setROI(const sensor_msgs::msg::RegionOfInterest target
       {
         break;
       }
+
       if (rclcpp::Node::now() > timeout)
       {
         RCLCPP_ERROR_STREAM(LOGGER, "Error in setROI(): Unable to set target roi before timeout");
@@ -4123,6 +4133,153 @@ void PylonROS2CameraNode::executeGrabRectImagesAction(const std::shared_ptr<Grab
   }
 }
 
+rclcpp_action::GoalResponse PylonROS2CameraNode::handleGrabBlazeDataActionGoal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const GrabBlazeDataAction::Goal> goal)
+{
+  RCLCPP_DEBUG(LOGGER, "PylonROS2CameraNode::handleGrabBlazeDataActionGoal -> Received goal request");
+  (void)uuid;
+  (void)goal;
+  return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+}
+
+rclcpp_action::CancelResponse PylonROS2CameraNode::handleGrabBlazeDataActionGoalCancel(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle)
+{
+  RCLCPP_DEBUG(this->get_logger(), "PylonROS2CameraNode::handleGrabBlazeDataActionGoalCancel -> Received request to cancel goal");
+  (void)goal_handle;
+  return rclcpp_action::CancelResponse::ACCEPT;
+}
+
+void PylonROS2CameraNode::handleGrabBlazeDataActionGoalAccepted(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle)
+{
+  RCLCPP_DEBUG(this->get_logger(), "PylonROS2CameraNode::handleGrabBlazeDataActionGoalAccepted -> Goal has been accepted, starting the thread");
+
+  using namespace std::placeholders;
+  // this needs to return quickly to avoid blocking the executor, so spin up a new thread
+  std::thread{std::bind(&PylonROS2CameraNode::executeGrabBlazeDataAction, this, _1), goal_handle}.detach();
+}
+
+void PylonROS2CameraNode::executeGrabBlazeDataAction(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle)
+{
+  const auto goal = goal_handle->get_goal();
+  auto result = std::make_shared<GrabBlazeDataAction::Result>();
+  auto feedback = std::make_shared<GrabBlazeDataAction::Feedback>();
+
+  // stop it here if the connected cam is not a blaze
+  // should not happen as the action server is setup if the connected cam is a blaze
+  if (!this->pylon_camera_->isBlaze())
+  {
+    RCLCPP_WARN(LOGGER, "This action is not implemented for other camera models than the blaze.");
+    result->success = false;
+    goal_handle->succeed(result);
+    return;
+  }
+
+  if (goal->exposure_given && goal->exposure_times.empty())
+  {
+    RCLCPP_ERROR_STREAM(LOGGER, "GrabBlazeData action server received request and "
+        << "'exposure_given' is true, but the 'exposure_times' vector is "
+        << "empty! Not enough information to execute acquisition!");
+    goal_handle->succeed(result);
+    return;
+  }
+
+  std::vector<size_t> candidates;
+  candidates.resize(1);
+  candidates.at(0) = goal->exposure_given ? goal->exposure_times.size() : 0;
+
+  size_t n_data = *std::max_element(candidates.begin(), candidates.end());
+  // if new parameters are added, needs to be checked. See PylonROS2CameraNode::grabRawImages.
+
+  result->point_clouds.resize(n_data);
+  result->intensity_maps.resize(n_data);
+  result->depth_maps.resize(n_data);
+  result->depth_color_maps.resize(n_data);
+  result->confidence_maps.resize(n_data);
+
+  result->reached_exposure_times.resize(n_data);
+  
+  result->success = true;
+
+  std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
+
+  float previous_exp;
+  if (goal->exposure_given)
+  {
+    previous_exp = this->pylon_camera_->currentExposure();
+  }
+
+  RCLCPP_DEBUG_STREAM(LOGGER, "Number of grabbed data set: " << n_data);
+  for (std::size_t i = 0; i < n_data; ++i)
+  {
+    // user cancel request
+    if (goal_handle->is_canceling())
+    {
+      goal_handle->canceled(result);
+      RCLCPP_INFO_STREAM(LOGGER, "Acquisition is stopped (action is cancelled).");
+      return;
+    }
+
+    if (goal->exposure_given)
+    {
+      result->success = this->setExposure(goal->exposure_times[i], result->reached_exposure_times[i]);
+    }
+
+    if (!result->success)
+    {
+      RCLCPP_ERROR_STREAM(LOGGER, "Error while setting one of the desired blaze features during acquisition (action). Aborting!");
+      break;
+    }
+
+    sensor_msgs::msg::PointCloud2& point_cloud = result->point_clouds[i];
+    sensor_msgs::msg::Image& intensity_map = result->intensity_maps[i];
+    sensor_msgs::msg::Image& depth_map = result->depth_maps[i];
+    sensor_msgs::msg::Image& depth_color_map = result->depth_color_maps[i];
+    sensor_msgs::msg::Image& confidence_map = result->confidence_maps[i];
+
+    auto grab_time = rclcpp::Node::now();
+    if (!this->pylon_camera_->grabBlaze(point_cloud, 
+                                        intensity_map, 
+                                        depth_map, 
+                                        depth_color_map, 
+                                        confidence_map))
+    {
+      result->success = false;
+      break;
+    }
+
+    // acquisition time
+    point_cloud.header.stamp = grab_time;
+    intensity_map.header.stamp = grab_time;
+    depth_map.header.stamp = grab_time;
+    depth_color_map.header.stamp = grab_time;
+    confidence_map.header.stamp = grab_time;
+
+    // frame id
+    point_cloud.header.frame_id = cameraFrame();
+    intensity_map.header.frame_id = cameraFrame();
+    depth_map.header.frame_id = cameraFrame();
+    depth_color_map.header.frame_id = cameraFrame();
+    confidence_map.header.frame_id = cameraFrame();
+
+    feedback->curr_nr_data_acquired = i + 1;
+    //RCLCPP_DEBUG_STREAM(LOGGER, "Publishing feedback...");
+    goal_handle->publish_feedback(feedback);
+    //RCLCPP_DEBUG_STREAM(LOGGER, "Feedback is published!");
+  }
+
+  if (this->camera_info_manager_)
+  {
+    result->cam_info = this->camera_info_manager_->getCameraInfo();
+  }
+
+  float reached_val;
+  if (goal->exposure_given)
+  {
+    this->setExposure(previous_exp, reached_val);
+  }
+
+  goal_handle->succeed(result);
+}
+
 void PylonROS2CameraNode::createDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
 {
   if (this->pylon_camera_parameter_set_.deviceUserID().empty())
@@ -4378,7 +4535,7 @@ std::shared_ptr<GrabImagesAction::Result> PylonROS2CameraNode::grabRawImages(con
   if (goal->exposure_given && goal->exposure_times.size() != n_images)
   {
     RCLCPP_ERROR_STREAM(LOGGER, "Size of requested exposure times does not match to "
-        << "the size of the requested vaules of brightness, gain or "
+        << "the size of the requested values of brightness, gain or "
         << "gamma! Can't grab!");
     result->success = false;
     return result;
@@ -4387,7 +4544,7 @@ std::shared_ptr<GrabImagesAction::Result> PylonROS2CameraNode::grabRawImages(con
   if (goal->gain_given && goal->gain_values.size() != n_images)
   {
     RCLCPP_ERROR_STREAM(LOGGER, "Size of requested gain values does not match to "
-        << "the size of the requested exposure times or the vaules of "
+        << "the size of the requested exposure times or the values of "
         << "brightness or gamma! Can't grab!");
     result->success = false;
     return result;
@@ -4396,7 +4553,7 @@ std::shared_ptr<GrabImagesAction::Result> PylonROS2CameraNode::grabRawImages(con
   if (goal->gamma_given && goal->gamma_values.size() != n_images)
   {
     RCLCPP_ERROR_STREAM(LOGGER, "Size of requested gamma values does not match to "
-        << "the size of the requested exposure times or the vaules of "
+        << "the size of the requested exposure times or the values of "
         << "brightness or gain! Can't grab!");
     result->success = false;
     return result;
@@ -4405,7 +4562,7 @@ std::shared_ptr<GrabImagesAction::Result> PylonROS2CameraNode::grabRawImages(con
   if (goal->brightness_given && goal->brightness_values.size() != n_images)
   {
     RCLCPP_ERROR_STREAM(LOGGER, "Size of requested brightness values does not match to "
-        << "the size of the requested exposure times or the vaules of gain or "
+        << "the size of the requested exposure times or the values of gain or "
         << "gamma! Can't grab!");
     result->success = false;
     return result;

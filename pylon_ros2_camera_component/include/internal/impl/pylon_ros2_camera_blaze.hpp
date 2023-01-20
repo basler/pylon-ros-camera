@@ -92,6 +92,7 @@ public:
     virtual bool startGrabbing(const PylonROS2CameraParameter& parameters);
     virtual std::string grabbingStarting();
     virtual std::string grabbingStopping();
+    virtual bool isCamRemoved();
 
     virtual bool grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
                            sensor_msgs::msg::Image& intensity_map_msg, 
@@ -338,11 +339,6 @@ bool PylonROS2BlazeCamera::startGrabbing(const PylonROS2CameraParameter& paramet
 {
     try
     {
-        // TODO: selected component dependent
-        // in the current setup gives: The camera device supports the following [GenAPI|ROS] image encodings: ['Mono16'|'mono16'] ['Confidence16'|'mono16']
-        //std::vector<std::string> test = detectAvailableImageEncodings(true);
-        // set image encoding: relevant for blaze?
-
         this->grabbingStarting();
 
         device_user_id_ = blaze_cam_->DeviceUserID.GetValue();
@@ -405,6 +401,11 @@ std::string PylonROS2BlazeCamera::grabbingStopping()
     }
 
     return "done";
+}
+
+bool PylonROS2BlazeCamera::isCamRemoved()
+{
+    return cam_->IsCameraDeviceRemoved();
 }
 
 bool PylonROS2BlazeCamera::grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
@@ -809,12 +810,6 @@ float PylonROS2BlazeCamera::maxPossibleFramerate()
     return blaze_cam_->AcquisitionFrameRate.GetMax();
 }
 
-// TODO: check with Alexander
-// bool PylonROS2BlazeCamera::setExposure(const float& target_exposure, float& reached_exposure)
-// {
-//     blaze_cam_->ExposureTime.SetValue(target_exposure);
-// }
-
 std::string PylonROS2BlazeCamera::gammaEnable(const bool& enable)
 {
     try
@@ -931,7 +926,6 @@ std::string PylonROS2BlazeCamera::setLineSelector(const int& value)
     return "done";
 }
 
-// TODO: why is it not compiling with the blaze_cam_? When using cam_, it is compiling but the feature is not available
 std::string PylonROS2BlazeCamera::setDeviceLinkThroughputLimitMode(const bool& turnOn)
 {
     try
@@ -963,7 +957,6 @@ std::string PylonROS2BlazeCamera::setDeviceLinkThroughputLimitMode(const bool& t
     return "done";
 }
 
-// TODO: why is it not compiling with the blaze_cam_? When using cam_, it is compiling but the feature is not available
 std::string PylonROS2BlazeCamera::setDeviceLinkThroughputLimit(const int& limit)
 {
     try
@@ -1051,7 +1044,6 @@ std::string PylonROS2BlazeCamera::setOutlierRemovalThreshold(const int& threshol
     return "done";
 }
 
-// TODO: does not compile if uncommented
 std::string PylonROS2BlazeCamera::setOutlierRemovalTolerance(const int& tolerance)
 {
     try
