@@ -1048,9 +1048,8 @@ std::string PylonROS2BlazeCamera::setOutlierRemovalTolerance(const int& toleranc
 {
     try
     {
-        RCLCPP_WARN(LOGGER_BLAZE, "OutlierRemovalTolerance is not implemented yet - does not compile");
-        //blaze_cam_->OutlierRemovalTolerance.SetValue(tolerance);
-        //RCLCPP_DEBUG_STREAM(LOGGER_BLAZE, "Outlier removal tolerance set to " << tolerance);
+        blaze_cam_->OutlierRemovalTolerance.SetValue(tolerance);
+        RCLCPP_DEBUG_STREAM(LOGGER_BLAZE, "Outlier removal tolerance set to " << tolerance);
     }
     catch (const GenICam::GenericException &e)
     {
