@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import math
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -13,6 +14,8 @@ from launch_ros.actions import Node
 def generate_launch_description():
     
     # adapt if needed
+    frame_id = 'pylon_camera'
+    publish_tf2 = True
     debug = False
     respawn = False
 
@@ -72,6 +75,17 @@ def generate_launch_description():
         launch_prefix = ''
 
     # node
+    if (publish_tf2 == True):
+        static_transform_node_args = ['0', '0', '0', '0', str(math.pi), str(math.pi / 2), 'map', frame_id]
+    else:
+        static_transform_node_args = ['0', '0', '0', '0', '0', '0', 'map', frame_id]
+
+    static_transform_node = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments = static_transform_node_args
+    )
+
     pylon_ros2_camera_node = Node(
         package='pylon_ros2_camera_wrapper',        
         namespace=camera_id,
@@ -100,6 +114,7 @@ def generate_launch_description():
     ld.add_action(declare_enable_status_publisher_cmd)
     ld.add_action(declare_enable_current_params_publisher_cmd)
 
+    ld.add_action(static_transform_node)
     ld.add_action(pylon_ros2_camera_node)
 
     return ld

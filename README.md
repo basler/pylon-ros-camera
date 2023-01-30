@@ -63,7 +63,7 @@ The camera and the node names can be set thanks respectively to the `camera_name
 
 Acquisition images are published through the `[Camera name]/[Node name]/[image_raw]` topic, only if a subscriber to this topic has been registered.  
 To visualize the images, [rqt](https://docs.ros.org/en/galactic/Tutorials/Turtlesim/Introducing-Turtlesim.html#install-rqt) can be used. Add an image viewer plugin through thanks to the contextual menu (Plugin -> Visualization -> Image View) and select the `[Camera name]/[Node name]/[image_raw]` topic to display the acquired and published images.  
-The 3d point clouds acquired by the blaze can be visualized thanks to [rviz2](https://index.ros.org/p/rviz2/) (the ``Fixed Frame`` parameter should be set to the ``camera_frame`` id set either in the launch or the configuration file. It is set to ``pylon_camera`` by default).  
+The 3d point clouds acquired by the blaze can be visualized thanks to [rviz2](https://index.ros.org/p/rviz2/).  
 
 For camera models other than the blaze, specific user set can be specified thanks to the `startup_user_set` parameter.  
 ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=Default``  or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet1`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet2`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet3``  
