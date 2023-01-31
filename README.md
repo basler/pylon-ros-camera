@@ -15,19 +15,24 @@ You are welcome to post any questions or issues on [GitHub](https://github.com/b
 
 - From [Ubuntu 20.04 Focal Fossa](https://releases.ubuntu.com/focal/)
 - From [ROS2 Galactic Geochelone](https://docs.ros.org/en/galactic/Installation/Ubuntu-Install-Debians.html). Your ROS2 environment must be [configured](https://docs.ros.org/en/galactic/Tutorials/Configuring-ROS2-Environment.html), your workspace [created](https://docs.ros.org/en/galactic/Tutorials/Workspace/Creating-A-Workspace.html), and colcon, used to build the packages, [installed](https://docs.ros.org/en/galactic/Tutorials/Colcon-Tutorial.html).
+- [rosdep](https://docs.ros.org/en/galactic/Tutorials/Intermediate/Rosdep.html). rosdep must be installed as a debian package (`sudo apt update && sudo apt install python3-rosdep2 && sudo rosdep init && rosdep update`).
 - From [pylon Camera Software Suite](https://www.baslerweb.com/de/support/downloads/downloads-software/) version 6.2 or newer. The latest APi libraries must be installed manually. Download and install the latest pylon Camera Software Suite Linux Debian Installer Package for your architecture.
 - From [pylon Supplementary Package for blaze](https://www.baslerweb.com/de/support/downloads/downloads-software/) version 1.3 or newer (compatibility with the installed pylon Camera Software Suite needs to be ensured, please refer to the documentation). The latest APi libraries must be installed manually. Download and install the latest pylon Supplementary Package for blaze Linux Debian Installer Package for your architecture.
+- [Git](https://git-scm.com/). Git must be installed as a debian package (`sudo apt update && sudo apt install git`).
 - [xterm](https://invisible-island.net/xterm/). The xterm terminal emulator must be installed (refer to the *Know Issues* section below) as a debian package (`sudo apt update && sudo apt install xterm`).
 
 ### Install and build the packages
 
-This repository including the pylon ROS2 packages must be cloned in your workspace (e.g., `dev_ws`):  
-**For ROS2 Galactic Geochelone:** ``cd ~/dev_ws/src && git clone -b galactic_incl_blaze_beta https://github.com/basler/pylon-ros-camera pylon_ros2_camera``  
+This repository including the pylon ROS2 packages must be cloned in your workspace (e.g., `dev_ws` for instance):  
+``cd ~/dev_ws/src && git clone -b galactic_incl_blaze https://github.com/basler/pylon-ros-camera pylon_ros2_camera``  
 Due to a known issue with ROS2 (see the dedicated section below), the latest version of the `image_common` package must be installed from sources:  
-**For ROS2 Galactic Geochelone:** ``cd ~/dev_ws/src/pylon_ros2_camera && git clone https://github.com/ros-perception/image_common.git -b galactic``  
+``cd ~/dev_ws/src/pylon_ros2_camera && git clone https://github.com/ros-perception/image_common.git -b galactic``  
 
 Install the ROS2 dependencies required by the pylon ROS2 packages:  
 ``cd ~/dev_ws && rosdep install --from-paths src --ignore-src -r -y``  
+You may experience some problems with the `diagnostic_updater` and `pcl_ros` dependencies. In this case, install them by executing the following commands:  
+``sudo apt install ros-galactic-diagnostic-updater``  
+``sudo apt install ros-galactic-pcl-ros``  
 
 Compile the workspace using `colcon`:  
 ``cd ~/dev_ws && colcon build``  

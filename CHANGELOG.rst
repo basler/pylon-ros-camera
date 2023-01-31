@@ -5,6 +5,7 @@ Changelog for package pylon_ros2_camera
 1.2.1 (2023-01-30)
 -------------------
 * Using tf2 for better point cloud visualization.
+* Minor changes in documentation, especially about the installation procedure.
 
 1.2.0 (2023-01-20)
 -------------------
