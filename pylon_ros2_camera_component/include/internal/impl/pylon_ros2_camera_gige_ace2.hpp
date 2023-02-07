@@ -207,16 +207,14 @@ bool PylonROS2GigEAce2Camera::applyCamSpecificStartupSettings(const PylonROS2Cam
             cam_->UserSetLoad.Execute();
             cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
             RCLCPP_WARN(LOGGER_GIGE_ACE2, "User Set 1 Loaded");
-        } 
-
+        }
         else if (parameters.startup_user_set_ == "UserSet2")
         {
             cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet2);
             cam_->UserSetLoad.Execute();
             cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
             RCLCPP_WARN(LOGGER_GIGE_ACE2, "User Set 2 Loaded");
-        } 
-
+        }
         else if (parameters.startup_user_set_ == "UserSet3")
         {
             cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet3);

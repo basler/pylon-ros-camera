@@ -183,6 +183,7 @@ bool PylonROS2GigECamera::applyCamSpecificStartupSettings(const PylonROS2CameraP
                     << cam_->ExposureTimeAbs.GetMin()
                     << " - " << upper_lim << " (max possible value from cam is " << cam_->ExposureTimeAbs.GetMax() << ")"
                     << "].");
+
             //cam_->AutoGainRawLowerLimit.SetValue(cam_->GainRaw.GetMin());
             //cam_->AutoGainRawUpperLimit.SetValue(cam_->GainRaw.GetMax());
 
@@ -350,12 +351,10 @@ GenApi::IFloat& PylonROS2GigECamera::exposureTime()
 {
     if (GenApi::IsAvailable(cam_->ExposureTimeAbs))
     {
-        RCLCPP_DEBUG(LOGGER_GIGE, "cam_->ExposureTimeAbs");
         return cam_->ExposureTimeAbs; // GigE ace 1
     } 
     else if (GenApi::IsAvailable(cam_->ExposureTime)) 
     {
-        RCLCPP_DEBUG(LOGGER_GIGE, "cam_->ExposureTime");
         return cam_->ExposureTime; // GigE ace 2 (pylon 6)
     }
     else
@@ -369,8 +368,12 @@ GigECameraTrait::GainType& PylonROS2GigECamera::gain()
 {
     if ( GenApi::IsAvailable(cam_->GainRaw) )
     {
-        return cam_->GainRaw;
+        return cam_->GainRaw; // GigE ace 1
     }
+    /*else if ( GenApi::IsAvailable(cam_->Gain) )
+    {
+        return cam_->Gain; // GigE ace 2 (pylon 6)
+    }*/
     else
     {
         throw std::runtime_error("Error while accessing GainRaw in PylonROS2GigECamera");

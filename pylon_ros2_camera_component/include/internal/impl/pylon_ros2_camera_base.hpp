@@ -57,7 +57,7 @@ PylonROS2CameraImpl<CameraTraitT>::PylonROS2CameraImpl(Pylon::IPylonDevice* devi
     cam_(new CBaslerInstantCameraT(device))
 {
   // information logging severity mode
-  rcutils_ret_t __attribute__((unused)) res = rcutils_logging_set_logger_level(LOGGER_BASE.get_name(), RCUTILS_LOG_SEVERITY_DEBUG);
+  //rcutils_ret_t __attribute__((unused)) res = rcutils_logging_set_logger_level(LOGGER_BASE.get_name(), RCUTILS_LOG_SEVERITY_DEBUG);
   //RCUTILS_LOG_SEVERITY_DEBUG
   //RCUTILS_LOG_SEVERITY_INFO
   //RCUTILS_LOG_SEVERITY_WARN

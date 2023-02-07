@@ -1448,9 +1448,6 @@ protected:
    */
   void executeGrabRectImagesAction(const std::shared_ptr<GrabImagesGoalHandle> goal_handle);
 
-
-
-
   /**
    * @brief Handle action goal relatively to blaze data grabbing
    * @return goal response
@@ -1475,12 +1472,6 @@ protected:
    * @param goal_handle 
    */
   void executeGrabBlazeDataAction(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
-
-
-
-
-
-
 
   /**
    * @brief Create diagnostics
