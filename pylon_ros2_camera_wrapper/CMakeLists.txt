@@ -59,19 +59,19 @@ ament_target_dependencies(${PROJECT_NAME}
 
 ### test
 
-add_library(action_client SHARED
-	${CMAKE_CURRENT_SOURCE_DIR}/test/test_grab_image_action_client.cpp
+add_library(action_client_test_grab_images SHARED
+	${CMAKE_CURRENT_SOURCE_DIR}/test/test_grab_images_action_client.cpp
 )
 
-target_compile_definitions(action_client
-  PRIVATE "TEST_GRAB_IMAGE_ACTION_CLIENT_BUILDING_DLL")
+target_compile_definitions(action_client_test_grab_images
+  PRIVATE "TEST_GRAB_IMAGES_ACTION_CLIENT_BUILDING_DLL")
 
-ament_target_dependencies(action_client
+ament_target_dependencies(action_client_test_grab_images
   ${CAMERA_WRAPPER_DEPENDENCIES}
 )
 
-rclcpp_components_register_node(action_client
-	PLUGIN "pylon_ros2_camera::TestGrabImageActionClient" 
+rclcpp_components_register_node(action_client_test_grab_images
+	PLUGIN "pylon_ros2_camera::TestGrabImagesActionClient" 
 	EXECUTABLE test_grab_image_action_client
 )
 
@@ -79,7 +79,7 @@ rclcpp_components_register_node(action_client
 
 install(TARGETS
 			${PROJECT_NAME}
-			action_client
+			action_client_test_grab_images
 	ARCHIVE DESTINATION lib
 	LIBRARY DESTINATION lib
 	RUNTIME DESTINATION lib/${PROJECT_NAME}
