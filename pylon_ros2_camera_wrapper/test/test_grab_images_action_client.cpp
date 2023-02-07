@@ -36,18 +36,18 @@
 
 namespace pylon_ros2_camera
 {
-  class TestGrabImageActionClient : public rclcpp::Node
+  class TestGrabImagesActionClient : public rclcpp::Node
   {
     public:
       using GrabImagesAction              = pylon_ros2_camera_interfaces::action::GrabImages;
       using GrabImagesGoalHandle          = rclcpp_action::ClientGoalHandle<GrabImagesAction>;
 
-      explicit TestGrabImageActionClient(const rclcpp::NodeOptions & options) : Node("test_grab_image_action_client", options)
+      explicit TestGrabImagesActionClient(const rclcpp::NodeOptions & options) : Node("test_grab_images_action_client", options)
       {
         // to be adapted if needed
         this->client_ptr_ = rclcpp_action::create_client<GrabImagesAction>(this, "/my_camera/pylon_ros2_camera_node/grab_images_raw");
 
-        this->timer_ = this->create_wall_timer(std::chrono::milliseconds(500), std::bind(&TestGrabImageActionClient::send_goal, this));
+        this->timer_ = this->create_wall_timer(std::chrono::milliseconds(500), std::bind(&TestGrabImagesActionClient::send_goal, this));
       }
 
       void send_goal()
@@ -74,9 +74,9 @@ namespace pylon_ros2_camera
         RCLCPP_INFO(this->get_logger(), "Sending goal...");
 
         auto send_goal_options = rclcpp_action::Client<GrabImagesAction>::SendGoalOptions();
-        send_goal_options.goal_response_callback = std::bind(&TestGrabImageActionClient::goal_response_callback, this, _1);
-        send_goal_options.feedback_callback = std::bind(&TestGrabImageActionClient::feedback_callback, this, _1, _2);
-        send_goal_options.result_callback = std::bind(&TestGrabImageActionClient::result_callback, this, _1);
+        send_goal_options.goal_response_callback = std::bind(&TestGrabImagesActionClient::goal_response_callback, this, _1);
+        send_goal_options.feedback_callback = std::bind(&TestGrabImagesActionClient::feedback_callback, this, _1, _2);
+        send_goal_options.result_callback = std::bind(&TestGrabImagesActionClient::result_callback, this, _1);
         this->client_ptr_->async_send_goal(goal_msg, send_goal_options);
 
         RCLCPP_INFO(this->get_logger(), "Goal sendt!");
@@ -154,8 +154,8 @@ namespace pylon_ros2_camera
         rclcpp::shutdown();
       }
   
-  }; // class TestGrabImageActionClient
+  }; // class TestGrabImagesActionClient
 
 } // namespace pylon_ros2_camera
 
-RCLCPP_COMPONENTS_REGISTER_NODE(pylon_ros2_camera::TestGrabImageActionClient)
+RCLCPP_COMPONENTS_REGISTER_NODE(pylon_ros2_camera::TestGrabImagesActionClient)

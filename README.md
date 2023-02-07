@@ -339,7 +339,7 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/set_grabbing_strategy  | -
 /my_camera/pylon_ros2_camera_node/set_image_encoding  | value = mono8, mono16, bgr8, rgb8, bayer_bggr8, bayer_gbrg8, bayer_rggb8, bayer_grbg8, bayer_rggb16, bayer_bggr16, bayer_gbrg16, bayer_grbg16
 /my_camera/pylon_ros2_camera_node/set_light_source_preset  | value : 0 = Off, 1 = Daylight5000K, 2 = Daylight6500K, 3 = Tungsten2800K
-/my_camera/pylon_ros2_camera_node/set_line_debouncer_time  | value = delay in micro sec.
+/my_camera/pylon_ros2_camera_node/set_line_debouncer_time  | value = delay in micro sec
 /my_camera/pylon_ros2_camera_node/set_line_inverter  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/set_line_mode  | value : 0 = Input, 1 = Output
 /my_camera/pylon_ros2_camera_node/set_line_selector  | value : 0 = Line1, 1 = Line2, 2 = Line3, 3 = Line4

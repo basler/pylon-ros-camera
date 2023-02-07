@@ -42,9 +42,9 @@ namespace
 enum PYLON_CAM_TYPE
 {
     GIGE = 1,
-    GIGE2 = 4,
     USB = 2,
     DART = 3,
+    GIGE2 = 4,
     UNKNOWN = -1,
 };
 
@@ -91,7 +91,6 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
                     return UNKNOWN;
                 }
             }
-            
         }
         else if (device_class == "BaslerUsb")
         {
@@ -149,7 +148,7 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
 
 PylonROS2Camera* createFromDevice(PYLON_CAM_TYPE cam_type, Pylon::IPylonDevice* device)
 {
-    switch ( cam_type )
+    switch (cam_type)
     {
         case GIGE:
             return new PylonROS2GigECamera(device);
@@ -171,8 +170,8 @@ PylonROS2Camera* PylonROS2Camera::create(const std::string& device_user_id_to_op
     {
         // Before using any pylon methods, the pylon runtime must be initialized.
         Pylon::PylonInitialize();
-
         Pylon::CTlFactory& tl_factory = Pylon::CTlFactory::GetInstance();
+
         Pylon::DeviceInfoList_t device_list;
         
         // EnumerateDevices() returns the number of devices found
@@ -196,6 +195,7 @@ PylonROS2Camera* PylonROS2Camera::create(const std::string& device_user_id_to_op
                     PYLON_CAM_TYPE cam_type = detectPylonCamType(*it);
                     if (cam_type != UNKNOWN)
                     {
+                        //RCLCPP_ERROR_STREAM(LOGGER, "CAM TYPE: " << cam_type);
                         PylonROS2Camera* new_cam_ptr = createFromDevice(cam_type, tl_factory.CreateDevice(*it));
                         new_cam_ptr->device_user_id_ = it->GetUserDefinedName();
                         
@@ -305,7 +305,7 @@ PylonROS2Camera::~PylonROS2Camera()
 {
     // Releases all Pylon resources.
     Pylon::PylonTerminate();
-    if ( binary_exp_search_ )
+    if (binary_exp_search_)
     {
         delete binary_exp_search_;
         binary_exp_search_ = nullptr;

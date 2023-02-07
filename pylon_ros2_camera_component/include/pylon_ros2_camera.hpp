@@ -32,7 +32,9 @@
 #include <vector>
 #include <map>
 
+#include "sensor_msgs/msg/camera_info.hpp"
 #include "sensor_msgs/msg/region_of_interest.hpp"
+#include "sensor_msgs/msg/image.hpp"
 
 #include "pylon_ros2_camera_parameter.hpp"
 #include "binary_exposure_search.hpp"
@@ -99,6 +101,12 @@ public:
      * @return true if all parameters could be sent to the camera.
      */
     virtual bool applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters) = 0;
+
+    /**
+     * Get initial camera info 
+     * @return initial camera info.
+     */
+    virtual void getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg) = 0;
 
     /**
      * Initializes the internal parameters of the PylonROS2Camera instance.

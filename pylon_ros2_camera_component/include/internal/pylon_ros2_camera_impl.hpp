@@ -64,6 +64,8 @@ public:
 
     virtual bool applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters);
 
+    virtual void getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg);
+
     virtual bool startGrabbing(const PylonROS2CameraParameter& parameters);
 
     virtual bool grab(std::vector<uint8_t>& image);

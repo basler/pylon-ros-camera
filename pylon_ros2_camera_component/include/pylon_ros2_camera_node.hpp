@@ -1382,7 +1382,7 @@ protected:
   /**
    * @brief Method to collect and publish the current camera parameters
    */
-  void currentParamPub();
+  void publishCurrentParams();
 
   /**
    * @brief Returns true if the camera was put into sleep mode
