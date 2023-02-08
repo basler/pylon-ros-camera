@@ -1,6 +1,6 @@
 # ROS2-Driver for Basler Cameras
 
-The official pylon ROS2 driver for [Basler](http://www.baslerweb.com/) 2D GigE Vision and USB3 Vision cameras
+The official pylon ROS2 driver for [Basler](http://www.baslerweb.com/) GigE Vision, Basler USB3 Vision and Basler blaze 3D cameras (branch: `humble_incl_blaze`)
 
 This driver provides many functionalities available through the Basler [pylon Camera Software Suite](https://www.baslerweb.com/en/products/software/basler-pylon-camera-software-suite/) C++ API.
 
@@ -15,7 +15,7 @@ You are welcome to post any questions or issues on [GitHub](https://github.com/b
 
 - From [Ubuntu 22.04 Jammy Jellyfish](https://releases.ubuntu.com/jammy/)
 - From [Humble Hawksbill](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html). Your ROS2 environment must be [configured](https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools/Configuring-ROS2-Environment.html), your workspace [created](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace.html), and colcon, used to build the packages, [installed](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html).
-- [rosdep](https://docs.ros.org/en/galactic/Tutorials/Intermediate/Rosdep.html). rosdep must be installed as a debian package (`sudo apt update && sudo apt install python3-rosdep2 && sudo rosdep init && rosdep update`).
+- [rosdep](https://docs.ros.org/en/humble/Tutorials/Intermediate/Rosdep.html). rosdep must be installed as a debian package (`sudo apt update && sudo apt install python3-rosdep2 && sudo rosdep init && rosdep update`).
 - From [pylon Camera Software Suite](https://www.baslerweb.com/de/support/downloads/downloads-software/) version 7.2 or newer. The latest APi libraries must be installed manually. Download and install the latest pylon Camera Software Suite Linux Debian Installer Package for your architecture. You may be experiencing some problems with the codemeter debian package installation. Just drop it for now and install only the pylon debian package in this case.
 - [Git](https://git-scm.com/). Git must be installed as a debian package (`sudo apt update && sudo apt install git`).
 - [xterm](https://invisible-island.net/xterm/). The xterm terminal emulator must be installed (refer to the *Know Issues* section below) as a debian package (`sudo apt update && sudo apt install xterm`).
@@ -30,7 +30,7 @@ Due to a known issue with ROS2 (see the dedicated section below), the latest ver
 Install the ROS2 dependencies required by the pylon ROS2 packages:  
 ``cd ~/dev_ws && rosdep install --from-paths src --ignore-src -r -y``  
 You may experience some problems with the `diagnostic_updater` dependencies. In this case, install them by executing the following commands:  
-``sudo apt install ros-galactic-diagnostic-updater``  
+``sudo apt install ros-humble-diagnostic-updater``  
 
 Compile the workspace using `colcon`:  
 ``cd ~/dev_ws && colcon build``  
