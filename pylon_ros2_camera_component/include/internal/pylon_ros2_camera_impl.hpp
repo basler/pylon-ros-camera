@@ -64,6 +64,8 @@ public:
 
     virtual bool applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters);
 
+    virtual void getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg);
+
     virtual bool startGrabbing(const PylonROS2CameraParameter& parameters);
 
     virtual bool grab(std::vector<uint8_t>& image);
@@ -346,6 +348,62 @@ public:
     virtual std::string issueScheduledActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const int64_t& action_time_ns_from_current_timestamp, const std::string& broadcast_address);
 
 
+
+    // blaze related functions
+
+    virtual bool isBlaze();
+
+    virtual bool grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
+                           sensor_msgs::msg::Image& intensity_map_msg, 
+                           sensor_msgs::msg::Image& depth_map_msg, 
+                           sensor_msgs::msg::Image& depth_map_color_msg, 
+                           sensor_msgs::msg::Image& confidence_map_msg);
+    
+    virtual std::string setDepthMin(const int& depth_min);
+
+    virtual std::string setDepthMax(const int& depth_max);
+
+    virtual std::string setTemporalFilterStrength(const int& strength);
+
+    virtual std::string setOutlierRemovalThreshold(const int& threshold);
+
+    virtual std::string setOutlierRemovalTolerance(const int& tolerance);
+
+    virtual std::string setAmbiguityFilterThreshold(const int& threshold);
+
+    virtual std::string setConfidenceThreshold(const int& threshold);
+
+    virtual std::string setIntensityCalculation(const int& calculation);
+
+    virtual std::string setExposureTimeSelector(const int& selector);
+
+    virtual std::string setOperatingMode(const int& mode);
+
+    virtual std::string setMultiCameraChannel(const int& channel);
+
+    virtual std::string setAcquisitionFrameRate(const float& framerate);
+
+    virtual std::string setScan3dCalibrationOffset(const float& offset);
+
+    virtual std::string enableSpatialFilter(const bool& enable);
+
+    virtual std::string enableTemporalFilter(const bool& enable);
+
+    virtual std::string enableOutlierRemoval(const bool& enable);
+
+    virtual std::string enableAmbiguityFilter(const bool& enable);
+
+    virtual std::string enableThermalDriftCorrection(const bool& enable);
+
+    virtual std::string enableDistortionCorrection(const bool& enable);
+
+    virtual std::string enableAcquisitionFrameRate(const bool& enable);
+
+    virtual std::string enableHDRMode(const bool& enable);
+
+    virtual std::string enableFastMode(const bool& enable);
+
+
 protected:
 
     typedef typename CameraTraitT::CBaslerInstantCameraT CBaslerInstantCameraT;
@@ -409,3 +467,4 @@ protected:
 #include "internal/impl/pylon_ros2_camera_dart.hpp"
 #include "internal/impl/pylon_ros2_camera_gige.hpp"
 #include "internal/impl/pylon_ros2_camera_gige_ace2.hpp"
+#include "internal/impl/pylon_ros2_camera_blaze.hpp"

@@ -49,7 +49,7 @@ namespace
     static const rclcpp::Logger LOGGER_BASE = rclcpp::get_logger("basler.pylon.ros2.pylon_ros2_camera_base");
 }
 
-    int trigger_timeout;
+int trigger_timeout;
 
 template <typename CameraTraitT>
 PylonROS2CameraImpl<CameraTraitT>::PylonROS2CameraImpl(Pylon::IPylonDevice* device) :
@@ -71,7 +71,7 @@ PylonROS2CameraImpl<CameraTraitT>::~PylonROS2CameraImpl()
     delete cam_;
     cam_ = nullptr;
 
-    if ( binary_exp_search_ )
+    if (binary_exp_search_)
     {
         delete binary_exp_search_;
         binary_exp_search_ = nullptr;
@@ -88,7 +88,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::registerCameraConfiguration()
                                         Pylon::Cleanup_Delete);
         return true;
     }
-    catch ( const GenICam::GenericException &e )
+    catch (const GenICam::GenericException &e)
     {
         RCLCPP_ERROR_STREAM(LOGGER_BASE, e.GetDescription());
         return false;
@@ -103,7 +103,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::openCamera()
         cam_->Open();
         return true;
     }
-    catch ( const GenICam::GenericException &e )
+    catch (const GenICam::GenericException &e)
     {
         RCLCPP_ERROR_STREAM(LOGGER_BASE, e.GetDescription());
         return false;
@@ -184,7 +184,8 @@ std::string PylonROS2CameraImpl<CameraTraitT>::currentROSEncoding() const
 {
     std::string gen_api_encoding(cam_->PixelFormat.ToString().c_str());
     std::string ros_encoding("");
-    if ( !encodingconversions::genAPI2Ros(gen_api_encoding, ros_encoding) )
+    
+    if (!encodingconversions::genAPI2Ros(gen_api_encoding, ros_encoding))
     {
         //std::stringstream ss;
         //ss << "No ROS equivalent to GenApi encoding '" << gen_api_encoding << "' found! This is bad because this case should never occur!";
@@ -196,6 +197,7 @@ std::string PylonROS2CameraImpl<CameraTraitT>::currentROSEncoding() const
         grabbingStarting();
         //return "NO_ENCODING";
     }
+
     return ros_encoding;
 }
 
@@ -205,7 +207,6 @@ std::string PylonROS2CameraImpl<CameraTraitT>::currentBaslerEncoding() const
 
     return (cam_->PixelFormat.ToString().c_str());
 }
-
 
 template <typename CameraTraitT>
 float PylonROS2CameraImpl<CameraTraitT>::currentExposure()
@@ -218,13 +219,14 @@ float PylonROS2CameraImpl<CameraTraitT>::currentGain()
 {
     float curr_gain = (static_cast<float>(gain().GetValue()) - static_cast<float>(gain().GetMin())) /
         (static_cast<float>(gain().GetMax() - static_cast<float>(gain().GetMin())));
+        
     return curr_gain;
 }
 
 template <typename CameraTraitT>
 GenApi::IFloat& PylonROS2CameraImpl<CameraTraitT>::gamma()
 {
-    if ( GenApi::IsAvailable(cam_->Gamma) )
+    if (GenApi::IsAvailable(cam_->Gamma))
     {
         return cam_->Gamma;
     }
@@ -267,8 +269,7 @@ float PylonROS2CameraImpl<CameraTraitT>::currentAutoGainUpperLimit()
 template <typename CameraTraitT>
 bool PylonROS2CameraImpl<CameraTraitT>::isPylonAutoBrightnessFunctionRunning()
 {
-    return cam_->ExposureAuto.GetValue() != ExposureAutoEnums::ExposureAuto_Off ||
-           cam_->GainAuto.GetValue() != GainAutoEnums::GainAuto_Off;
+    return cam_->ExposureAuto.GetValue() != ExposureAutoEnums::ExposureAuto_Off || cam_->GainAuto.GetValue() != GainAutoEnums::GainAuto_Off;
 }
 
 template <typename CameraTraitT>
@@ -280,9 +281,9 @@ bool PylonROS2CameraImpl<CameraTraitT>::isBrightnessSearchRunning()
 template <typename CameraTraitT>
 void PylonROS2CameraImpl<CameraTraitT>::enableContinuousAutoExposure()
 {
-    if ( GenApi::IsAvailable(cam_->ExposureAuto) )
+    if (GenApi::IsAvailable(cam_->ExposureAuto))
     {
-        cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Continuous);
+        cam_->ExposureAuto.TrySetValue(ExposureAutoEnums::ExposureAuto_Continuous);
     }
     else
     {
@@ -296,12 +297,11 @@ void PylonROS2CameraImpl<CameraTraitT>::enableContinuousAutoGain()
 {
     if ( GenApi::IsAvailable(cam_->GainAuto) )
     {
-        cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Continuous);
+        cam_->GainAuto.TrySetValue(GainAutoEnums::GainAuto_Continuous);
     }
     else
     {
-        RCLCPP_ERROR_STREAM(LOGGER_BASE, "Trying to enable GainAuto_Continuous mode, but "
-            << "the camera has no Auto Gain");
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "Trying to enable GainAuto_Continuous mode, but the camera has no Auto Gain");
     }
 }
 
@@ -309,9 +309,10 @@ template <typename CameraTraitT>
 void PylonROS2CameraImpl<CameraTraitT>::disableAllRunningAutoBrightessFunctions()
 {
     is_binary_exposure_search_running_ = false;
-    cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
-    cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Off);
-    if ( binary_exp_search_ )
+    cam_->ExposureAuto.TrySetValue(ExposureAutoEnums::ExposureAuto_Off);
+    cam_->GainAuto.TrySetValue(GainAutoEnums::GainAuto_Off);
+    
+    if (binary_exp_search_)
     {
         delete binary_exp_search_;
         binary_exp_search_ = nullptr;
@@ -349,7 +350,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
 {
     try
     {
-        if ( GenApi::IsAvailable(cam_->ShutterMode) )
+        if (GenApi::IsAvailable(cam_->ShutterMode))
         {
             setShutterMode(parameters.shutter_mode_);
         }
@@ -362,17 +363,24 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
             bool error = true;
             // The desired encoding cannot be used. We will try to use one of the available
             // This avoid the Error while start grabbing program termination
-            for (std::string x : available_image_encodings_){
+            for (std::string x : available_image_encodings_)
+            {
                 std::string ros_encoding;
                 encodingconversions::genAPI2Ros(x, ros_encoding);
-                if ( (setImageEncoding(ros_encoding).find("done") != std::string::npos) ){
+                if ((setImageEncoding(ros_encoding).find("done") != std::string::npos))
+                {
                     // Achieved one of the encodings
                     error = false;
                     break;
                 }
             }
-            if (error) return false;
+            
+            if (error)
+            {
+                return false;
+            }
         }
+        
         grab_strategy = parameters.grab_strategy_;
         //cam_->StartGrabbing();
         grabbingStarting();
@@ -385,6 +393,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
         //grab_timeout_ = exposureTime().GetMax() * 1.05;
         grab_timeout_ = parameters.grab_timeout_; // grab timeout = 500 ms
         trigger_timeout = parameters.trigger_timeout_;
+        
         // grab one image to be sure, that the communication is successful
         Pylon::CGrabResultPtr grab_result;
         grab(grab_result);
@@ -399,9 +408,9 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
     }
     catch ( const GenICam::GenericException &e )
     {
-        RCLCPP_ERROR_STREAM(LOGGER_BASE, "startGrabbing: " << e.GetDescription());
         return false;
     }
+    
     return true;
 }
 
@@ -478,39 +487,50 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(uint8_t* image)
     return true;
 }
 
+template <typename CameraTrait>
+bool PylonROS2CameraImpl<CameraTrait>::grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
+                                                 sensor_msgs::msg::Image& intensity_map_msg, 
+                                                 sensor_msgs::msg::Image& depth_map_msg, 
+                                                 sensor_msgs::msg::Image& depth_map_color_msg, 
+                                                 sensor_msgs::msg::Image& confidence_map_msg)
+{
+    RCLCPP_WARN(LOGGER_BASE, "The connected camera is not a blaze, nothing is going to be grabbed!");
+    return true;
+}
+
 // Lowest level grab function called by the other grab functions
 template <typename CameraTrait>
 bool PylonROS2CameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
-{   
-
-     // If camera is not grabbing, don't grab
-    if (!cam_->IsGrabbing()){
+{
+    // If camera is not grabbing, don't grab
+    if (!cam_->IsGrabbing())
+    {
         return false;
     }
 
     try
     {
-        //int timeout = 5000;  // ms
         // WaitForFrameTriggerReady to prevent trigger signal to get lost
         // this could happen, if 2xExecuteSoftwareTrigger() is only followed by 1xgrabResult()
         // -> 2nd trigger might get lost
         if ((cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On))
         {
-        if ( cam_->WaitForFrameTriggerReady(trigger_timeout, Pylon::TimeoutHandling_ThrowException) )
-        {   
-            cam_->ExecuteSoftwareTrigger(); 
+            if (cam_->WaitForFrameTriggerReady(trigger_timeout, Pylon::TimeoutHandling_ThrowException))
+            {   
+                cam_->ExecuteSoftwareTrigger(); 
+            }
+            else
+            {   
+                RCLCPP_ERROR(LOGGER_BASE, "Error WaitForFrameTriggerReady() timed out, impossible to ExecuteSoftwareTrigger()");
+                return false;
+            }
         }
-        else
-        {   
-            RCLCPP_ERROR(LOGGER_BASE, "Error WaitForFrameTriggerReady() timed out, impossible to ExecuteSoftwareTrigger()");
-            return false;
-        }   
+
+        cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException);
     }
-        cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException); 
-    }
-    catch ( const GenICam::GenericException &e )
+    catch (const GenICam::GenericException &e)
     {   
-        if ( cam_->IsCameraDeviceRemoved() )
+        if (cam_->IsCameraDeviceRemoved())
         {   
             RCLCPP_ERROR(LOGGER_BASE, "Lost connection to the camera . . .");
         }
@@ -522,10 +542,10 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
             }
             else 
             {
-            RCLCPP_ERROR_STREAM(LOGGER_BASE, "An image grabbing exception in pylon camera occurred: "
-                    << e.GetDescription());
+                RCLCPP_ERROR_STREAM(LOGGER_BASE, "An image grabbing exception in pylon camera occurred: " << e.GetDescription());
             }
         }
+
         return false;
     }
     catch (...)
@@ -533,13 +553,94 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
         RCLCPP_ERROR(LOGGER_BASE, "An unspecified image grabbing exception in pylon camera occurred");
         return false;
     }
-    if ( !grab_result->GrabSucceeded() )
+
+    if (!grab_result->GrabSucceeded())
     {   
-        RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error: " << grab_result->GetErrorCode() << " "
-                << grab_result->GetErrorDescription());
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error: " << grab_result->GetErrorCode() << " " << grab_result->GetErrorDescription());
         return false;
     }
+
     return true;
+}
+
+template <typename CameraTraitT>
+bool PylonROS2CameraImpl<CameraTraitT>::isBlaze()
+{
+    return false;
+}
+
+template <typename CameraTraitT>
+void PylonROS2CameraImpl<CameraTraitT>::getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg)
+{
+    // https://github.com/ros2/common_interfaces/blob/master/sensor_msgs/msg/CameraInfo.msg
+
+    // The image dimensions with which the camera was calibrated. Normally
+    // this will be the full camera resolution in pixels.
+    cam_info_msg.height = this->imageRows();
+    cam_info_msg.width = this->imageCols();
+
+    // The distortion model used. Supported models are listed in
+    // sensor_msgs/distortion_models.h. For most cameras, "plumb_bob" - a
+    // simple model of radial and tangential distortion - is sufficient.
+    cam_info_msg.distortion_model = "";
+
+    // The distortion parameters, size depending on the distortion model.
+    // For "plumb_bob", the 5 parameters are: (k1, k2, t1, t2, k3) -> float64[] d.
+    cam_info_msg.d = std::vector<double>(5, 0.);
+
+    // Intrinsic camera matrix for the raw (distorted) images.
+    //     [fx  0 cx]
+    // K = [ 0 fy cy]  --> 3x3 row-major matrix
+    //     [ 0  0  1]
+    // Projects 3D points in the camera coordinate frame to 2D pixel coordinates
+    // using the focal lengths (fx, fy) and principal point (cx, cy) -> float64[9] k.
+    cam_info_msg.k.fill(0.0);
+
+    // Rectification matrix (stereo cameras only)
+    // A rotation matrix aligning the camera coordinate system to the ideal
+    // stereo image plane so that epipolar lines in both stereo images are parallel -> float64[9] r, 3x3 row-major matrix.
+    cam_info_msg.r.fill(0.0);
+
+    // Projection/camera matrix
+    //     [fx'  0  cx' Tx]
+    // P = [ 0  fy' cy' Ty]  --> # 3x4 row-major matrix
+    //     [ 0   0   1   0]
+    // By convention, this matrix specifies the intrinsic (camera) matrix of the
+    // processed (rectified) image. That is, the left 3x3 portion is the normal
+    // camera intrinsic matrix for the rectified image. It projects 3D points
+    // in the camera coordinate frame to 2D pixel coordinates using the focal
+    // lengths (fx', fy') and principal point (cx', cy') - these may differ from
+    // the values in K. For monocular cameras, Tx = Ty = 0. Normally, monocular
+    // cameras will also have R = the identity and P[1:3,1:3] = K.
+    // For a stereo pair, the fourth column [Tx Ty 0]' is related to the
+    // position of the optical center of the second camera in the first
+    // camera's frame. We assume Tz = 0 so both cameras are in the same
+    // stereo image plane. The first camera always has Tx = Ty = 0.
+    // For the right (second) camera of a horizontal stereo pair,
+    // Ty = 0 and Tx = -fx' * B, where B is the baseline between the cameras.
+    // Given a 3D point [X Y Z]', the projection (x, y) of the point onto the
+    // rectified image is given by:
+    // [u v w]' = P * [X Y Z 1]'
+    //        x = u / w
+    //        y = v / w
+    //  This holds for both images of a stereo pair -> float64[12]
+    cam_info_msg.p.fill(0.0);
+
+    // Binning refers here to any camera setting which combines rectangular
+    // neighborhoods of pixels into larger "super-pixels." It reduces the
+    // resolution of the output image to (width / binning_x) x (height / binning_y).
+    // The default values binning_x = binning_y = 0 is considered the same as
+    // binning_x = binning_y = 1 (no subsampling).
+    cam_info_msg.binning_x = this->currentBinningX();
+    cam_info_msg.binning_y = this->currentBinningY();
+
+    // Region of interest (subwindow of full camera resolution), given in full
+    // resolution (unbinned) image coordinates. A particular ROI always denotes
+    // the same window of pixels on the camera sensor, regardless of binning
+    // settings. The default setting of roi (all values 0) is considered the same
+    // as full resolution (roi.width = width, roi.height = height).
+    cam_info_msg.roi.x_offset = cam_info_msg.roi.y_offset = 0;
+    cam_info_msg.roi.height = cam_info_msg.roi.width = 0;
 }
 
 template <typename CameraTraitT>
@@ -547,15 +648,13 @@ std::vector<std::string> PylonROS2CameraImpl<CameraTraitT>::detectAvailableImage
 {
     std::vector<std::string> available_encodings;
     GenApi::INodeMap& node_map = cam_->GetNodeMap();
-    GenApi::CEnumerationPtr img_encoding_enumeration_ptr(
-                                        node_map.GetNode("PixelFormat"));
+    GenApi::CEnumerationPtr img_encoding_enumeration_ptr(node_map.GetNode("PixelFormat"));
     GenApi::NodeList_t feature_list;
     img_encoding_enumeration_ptr->GetEntries(feature_list);
     std::stringstream ss;
     ss << "The camera device supports the following [GenAPI|ROS] image encodings: ";
-    for (GenApi::NodeList_t::iterator it = feature_list.begin();
-         it != feature_list.end();
-         ++it)
+    
+    for (GenApi::NodeList_t::iterator it = feature_list.begin(); it != feature_list.end(); ++it)
     {
         if ( GenApi::IsAvailable(*it) )
         {
@@ -700,12 +799,13 @@ int PylonROS2CameraImpl<CameraTraitT>::imagePixelDepth() const
 
 template <typename CameraTraitT>
 bool PylonROS2CameraImpl<CameraTraitT>::setROI(const sensor_msgs::msg::RegionOfInterest target_roi,
-                                           sensor_msgs::msg::RegionOfInterest& reached_roi)
+                                               sensor_msgs::msg::RegionOfInterest& reached_roi)
 {
     size_t width_to_set = target_roi.width;
     size_t height_to_set = target_roi.height;
     size_t offset_x_to_set = target_roi.x_offset;
     size_t offset_y_to_set = target_roi.y_offset;
+
     try
     {
         if ( GenApi::IsAvailable(cam_->Width) && GenApi::IsAvailable(cam_->Height) && GenApi::IsAvailable(cam_->OffsetX) && GenApi::IsAvailable(cam_->OffsetY))
@@ -831,6 +931,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::setROI(const sensor_msgs::msg::RegionOfI
                 << e.GetDescription());
         return false;
     }
+
     return true;
 }
 
@@ -867,8 +968,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::setBinningX(const size_t& target_binning
         }
         else
         {
-            RCLCPP_WARN_STREAM(LOGGER_BASE, "Camera does not support binning. Will keep the "
-                    << "current settings");
+            RCLCPP_WARN_STREAM(LOGGER_BASE, "Camera does not support binning (X). Will keep the current settings.");
             reached_binning_x = currentBinningX();
         }
     }
@@ -915,8 +1015,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::setBinningY(const size_t& target_binning
         }
         else
         {
-            RCLCPP_WARN_STREAM(LOGGER_BASE, "Camera does not support binning. Will keep the "
-                    << "current settings");
+            RCLCPP_WARN_STREAM(LOGGER_BASE, "Camera does not support binning (Y). Will keep the current settings.");
             reached_binning_y = currentBinningY();
         }
     }
@@ -932,11 +1031,11 @@ bool PylonROS2CameraImpl<CameraTraitT>::setBinningY(const size_t& target_binning
 
 template <typename CameraTraitT>
 bool PylonROS2CameraImpl<CameraTraitT>::setExposure(const float& target_exposure,
-                                                float& reached_exposure)
+                                                    float& reached_exposure)
 {
     try
     {
-        cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Off);
+        cam_->ExposureAuto.TrySetValue(ExposureAutoEnums::ExposureAuto_Off);
 
         float exposure_to_set = target_exposure;
         if ( exposure_to_set < exposureTime().GetMin() )
@@ -984,11 +1083,11 @@ bool PylonROS2CameraImpl<CameraTraitT>::setAutoflash(
 
 template <typename CameraTraitT>
 bool PylonROS2CameraImpl<CameraTraitT>::setGain(const float& target_gain,
-                                            float& reached_gain)
+                                                float& reached_gain)
 {
     try
     {
-        cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Off);
+        cam_->GainAuto.TrySetValue(GainAutoEnums::GainAuto_Off);
         float truncated_gain = target_gain;
         if ( truncated_gain < 0.0 )
         {
@@ -1085,11 +1184,11 @@ bool PylonROS2CameraImpl<CameraTraitT>::setBrightness(const int& target_brightne
             }
             if ( exposure_auto )
             {
-                cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
+                cam_->ExposureAuto.TrySetValue(ExposureAutoEnums::ExposureAuto_Once);
             }
             if ( gain_auto )
             {
-                cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Once);
+                cam_->GainAuto.TrySetValue(GainAutoEnums::GainAuto_Once);
             }
         }
         else
@@ -1126,11 +1225,11 @@ bool PylonROS2CameraImpl<CameraTraitT>::setBrightness(const int& target_brightne
                     }
                     if ( exposure_auto )
                     {
-                        cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
+                        cam_->ExposureAuto.TrySetValue(ExposureAutoEnums::ExposureAuto_Once);
                     }
                     if ( gain_auto )
                     {
-                        cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Once);
+                        cam_->GainAuto.TrySetValue(GainAutoEnums::GainAuto_Once);
                     }
                 }
                 else  // target > 205 -> pre control to 205
@@ -1144,11 +1243,11 @@ bool PylonROS2CameraImpl<CameraTraitT>::setBrightness(const int& target_brightne
                     }
                     if ( exposure_auto )
                     {
-                        cam_->ExposureAuto.SetValue(ExposureAutoEnums::ExposureAuto_Once);
+                        cam_->ExposureAuto.TrySetValue(ExposureAutoEnums::ExposureAuto_Once);
                     }
                     if ( gain_auto )
                     {
-                        cam_->GainAuto.SetValue(GainAutoEnums::GainAuto_Once);
+                        cam_->GainAuto.TrySetValue(GainAutoEnums::GainAuto_Once);
                     }
                 }
                 is_binary_exposure_search_running_ = true;
@@ -1353,7 +1452,6 @@ std::string PylonROS2CameraImpl<CameraTraitT>::setOffsetXY(const int& offset_val
         if (xAxis)
         {
             cam_->OffsetX.SetValue(offset_value);
-
         }
         else
         {
@@ -1366,6 +1464,7 @@ std::string PylonROS2CameraImpl<CameraTraitT>::setOffsetXY(const int& offset_val
         RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while trying to set the offset in x-axis/y-axis occurred:" << e.GetDescription());
         return e.GetDescription();
     }
+    
     return "done";
 }
 
@@ -4191,6 +4290,160 @@ std::string PylonROS2CameraImpl<CameraTraitT>::issueScheduledActionCommand(const
 {
     RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to issue scheduled action command. The connected camera does not support this feature.");
     return "The connected camera does not support this feature";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMin(const int& depth_min)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMax(const int& depth_max)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setTemporalFilterStrength(const int& strength)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setOutlierRemovalThreshold(const int& threshold)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setOutlierRemovalTolerance(const int& tolerance)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setAmbiguityFilterThreshold(const int& threshold)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setConfidenceThreshold(const int& threshold)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setIntensityCalculation(const int& calculation)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setExposureTimeSelector(const int& selector)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setOperatingMode(const int& mode)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setMultiCameraChannel(const int& channel)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setAcquisitionFrameRate(const float& framerate)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setScan3dCalibrationOffset(const float& offset)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableSpatialFilter(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableTemporalFilter(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableOutlierRemoval(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableAmbiguityFilter(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableThermalDriftCorrection(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableDistortionCorrection(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableAcquisitionFrameRate(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableHDRMode(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableFastMode(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
 }
 
 }  // namespace pylon_ros2_camera

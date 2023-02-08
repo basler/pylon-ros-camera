@@ -349,7 +349,7 @@ bool PylonROS2GigECamera::setupSequencer(const std::vector<float>& exposure_time
 template <>
 GenApi::IFloat& PylonROS2GigECamera::exposureTime()
 {
-    if ( GenApi::IsAvailable(cam_->ExposureTimeAbs) )
+    if (GenApi::IsAvailable(cam_->ExposureTimeAbs))
     {
         return cam_->ExposureTimeAbs; // GigE ace 1
     } 
@@ -390,7 +390,7 @@ GigECameraTrait::GainType& PylonROS2GigECamera::gain()
 template <>
 float PylonROS2GigECamera::currentGamma()
 {
-    if ( !GenApi::IsAvailable(cam_->Gamma) )
+    if (!GenApi::IsAvailable(cam_->Gamma))
     {
         //RCLCPP_WARN_STREAM(LOGGER_GIGE, "Error while trying to access gamma: cam.Gamma NodeMap"<< " is not available!");
         // return -1 in case of Gamma selector set to SRGB
@@ -406,19 +406,18 @@ template <>
 bool PylonROS2GigECamera::setGamma(const float& target_gamma, float& reached_gamma)
 {
     // for GigE cameras you have to enable gamma first
-    if ( GenApi::IsAvailable(cam_->GammaEnable) )
+    if (GenApi::IsAvailable(cam_->GammaEnable))
     {
         cam_->GammaEnable.SetValue(true);
     }
 
-    if ( !GenApi::IsAvailable(cam_->Gamma) )
+    if (!GenApi::IsAvailable(cam_->Gamma))
     {
-        RCLCPP_WARN_STREAM(LOGGER_GIGE, "Error while trying to set gamma: cam.Gamma NodeMap is"
-                << " not available!");
+        RCLCPP_WARN_STREAM(LOGGER_GIGE, "Error while trying to set gamma: cam.Gamma NodeMap is not available!");
         return true;
     }
 
-    if ( GenApi::IsAvailable(cam_->GammaSelector) )
+    if (GenApi::IsAvailable(cam_->GammaSelector))
     {
         // set gamma selector to USER, so that the gamma value has an influence
         try
@@ -457,6 +456,7 @@ bool PylonROS2GigECamera::setGamma(const float& target_gamma, float& reached_gam
                 << target_gamma << " occurred: " << e.GetDescription());
         return false;
     }
+
     return true;
 }
 
@@ -515,17 +515,17 @@ GenApi::IInteger& PylonROS2GigECamera::autoGainUpperLimit()
 template <>
 GenApi::IFloat& PylonROS2GigECamera::resultingFrameRate()
 {
-    if ( GenApi::IsAvailable(cam_->ResultingFrameRate) )
+    if (GenApi::IsAvailable(cam_->ResultingFrameRate))
     {
         return cam_->ResultingFrameRate;
     }
-    else if ( GenApi::IsAvailable(cam_->ResultingFrameRateAbs) )
+    else if (GenApi::IsAvailable(cam_->ResultingFrameRateAbs))
     {
         return cam_->ResultingFrameRateAbs;
     }
     else
     {
-        throw std::runtime_error("Error while accessing ResultingFrameRateAbs in PylonROS2GigECamera");
+        throw std::runtime_error("Error while accessing ResultingFrameRate or ResultingFrameRateAbs in PylonROS2GigECamera");
     }
 }
 
