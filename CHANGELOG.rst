@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.3.0 (2023-02-07)
+-------------------
+* Official humble version integrating the blaze.
+
 1.2.1 (2023-01-30)
 -------------------
 * Using tf2 for better point cloud visualization.

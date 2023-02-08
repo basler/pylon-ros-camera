@@ -555,10 +555,7 @@ void PylonROS2CameraNode::initDiagnostics()
 bool PylonROS2CameraNode::initAndRegister()
 {
   this->pylon_camera_ = PylonROS2Camera::create(this->pylon_camera_parameter_set_.deviceUserID());
-  if (this->pylon_camera_parameter_set_.deviceUserID() != "")
-    RCLCPP_DEBUG_STREAM(LOGGER, "Pylon camera instance created with the following user id: " << this->pylon_camera_parameter_set_.deviceUserID());
-  else
-    RCLCPP_DEBUG(LOGGER, "No user id for the camera has been set");
+  RCLCPP_DEBUG_STREAM(LOGGER, "Pylon camera instance created with the following user id: " << this->pylon_camera_parameter_set_.deviceUserID());
 
   if (this->pylon_camera_ == nullptr)
   {
@@ -1096,7 +1093,7 @@ bool PylonROS2CameraNode::setBrightness(const int& target_brightness,
   // brightness service can only work, if an image has already been grabbed,
   // because it calculates the mean on the current image. The interface is
   // ready if the grab-result-pointer of the first acquisition contains
-  // valid data
+  // valid dataW
   if (!this->waitForCamera(std::chrono::duration<double>(3)))
   {
     RCLCPP_ERROR(LOGGER, "Setting brightness failed: interface not ready, although waiting for 3 sec!");
@@ -1141,7 +1138,7 @@ bool PylonROS2CameraNode::setBrightness(const int& target_brightness,
     return true;  // target brightness already reached
   }
 
-  //RCLCPP_DEBUG_STREAM(LOGGER, "Type: " << this->pylon_camera_->typeName());
+  RCLCPP_DEBUG_STREAM(LOGGER, "Type: " << this->pylon_camera_->typeName());
 
   // initially cancel all running exposure search by deactivating ExposureAuto & AutoGain
   this->pylon_camera_->disableAllRunningAutoBrightessFunctions();
@@ -1387,7 +1384,6 @@ bool PylonROS2CameraNode::setGamma(const float& target_gamma, float& reached_gam
     }
 
     RCLCPP_ERROR_STREAM(LOGGER, "Error in setGamma(): Unable to set target gamma before timeout");
-    
     return false;
   }
 }
