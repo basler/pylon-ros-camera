@@ -1255,6 +1255,10 @@ bool PylonCameraNode::setROI(const sensor_msgs::RegionOfInterest target_roi,
     // step = full row length in bytes, img_size = (step * rows), imagePixelDepth
     // already contains the number of channels
     img_raw_msg_.step = img_raw_msg_.width * pylon_camera_->imagePixelDepth();
+    setupSamplingIndices(sampling_indices_,
+                        pylon_camera_->imageRows(),
+                        pylon_camera_->imageCols(),
+                        pylon_camera_parameter_set_.downsampling_factor_exp_search_);
     return true;
 }
 
@@ -1818,6 +1822,12 @@ float PylonCameraNode::calcCurrentBrightness()
     float sum = 0.0;
     if ( sensor_msgs::image_encodings::isMono(img_raw_msg_.encoding) )
     {
+        // Check if image is expected size so indices don't fall out of bounds
+        if ( img_raw_msg_.data.size() != img_raw_msg_.height * img_raw_msg_.width )
+        {
+        return 0.0;
+        }
+        
         // The mean brightness is calculated using a subset of all pixels
         for ( const std::size_t& idx : sampling_indices_ )
         {
