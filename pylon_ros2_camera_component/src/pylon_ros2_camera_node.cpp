@@ -706,7 +706,7 @@ bool PylonROS2CameraNode::startGrabbing()
     RCLCPP_WARN_STREAM(LOGGER, "[" << this->pylon_camera_->deviceUserID() << "] name not valid for camera_info_manager");
   }
 
-  this->setupSamplingIndices(sampling_indices_,
+  this->setupSamplingIndices(this->sampling_indices_,
                              this->pylon_camera_->imageRows(),
                              this->pylon_camera_->imageCols(),
                              this->pylon_camera_parameter_set_.downsampling_factor_exposure_search_);
@@ -1436,6 +1436,10 @@ bool PylonROS2CameraNode::setROI(const sensor_msgs::msg::RegionOfInterest target
   // step = full row length in bytes, img_size = (step * rows), imagePixelDepth
   // already contains the number of channels
   this->img_raw_msg_.step = this->img_raw_msg_.width * this->pylon_camera_->imagePixelDepth();
+  this->setupSamplingIndices(this->sampling_indices_,
+                             this->pylon_camera_->imageRows(),
+                             this->pylon_camera_->imageCols(),
+                             this->pylon_camera_parameter_set_.downsampling_factor_exposure_search_);
 
   return true;
 }
@@ -4400,18 +4404,25 @@ float PylonROS2CameraNode::calcCurrentBrightness()
   {
     return 0.0;
   }
+
   float sum = 0.0;
   if (sensor_msgs::image_encodings::isMono(this->img_raw_msg_.encoding))
   {
-      // The mean brightness is calculated using a subset of all pixels
-      for (const std::size_t& idx : this->sampling_indices_)
-      {
-        sum += this->img_raw_msg_.data.at(idx);
-      }
-      if (sum > 0.0)
-      {
-        sum /= static_cast<float>(this->sampling_indices_.size());
-      }
+    // Check if image is expected size so indices don't fall out of bounds
+    if (this->img_raw_msg_.data.size() != this->img_raw_msg_.height * this->img_raw_msg_.width)
+    {
+      return 0.0;
+    }
+
+    // The mean brightness is calculated using a subset of all pixels
+    for (const std::size_t& idx : this->sampling_indices_)
+    {
+      sum += this->img_raw_msg_.data.at(idx);
+    }
+    if (sum > 0.0)
+    {
+      sum /= static_cast<float>(this->sampling_indices_.size());
+    }
   }
   else
   {
