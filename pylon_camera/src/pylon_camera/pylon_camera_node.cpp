@@ -580,7 +580,7 @@ bool PylonCameraNode::startGrabbing()
     }
     if ( pylon_camera_parameter_set_.brightness_given_ )
     {   
-        int reached_brightness;
+        float reached_brightness;
         setBrightness(pylon_camera_parameter_set_.brightness_,
                       reached_brightness,
                       pylon_camera_parameter_set_.exposure_auto_,
@@ -991,7 +991,7 @@ camera_control_msgs::GrabImagesResult PylonCameraNode::grabImagesRaw(
         }
         if ( goal->brightness_given )
         {
-            int reached_brightness;
+            float reached_brightness;
             result.success = setBrightness(goal->brightness_values[i],
                                            reached_brightness,
                                            goal->exposure_auto,
@@ -1510,8 +1510,8 @@ bool PylonCameraNode::setGammaCallback(camera_control_msgs::SetGamma::Request &r
     return true;
 }
 
-bool PylonCameraNode::setBrightness(const int& target_brightness,
-                                    int& reached_brightness,
+bool PylonCameraNode::setBrightness(const float& target_brightness,
+                                    float& reached_brightness,
                                     const bool& exposure_auto,
                                     const bool& gain_auto)
 {
@@ -1528,7 +1528,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
         return false;
     }
 
-    int target_brightness_co = std::min(255, target_brightness);
+    float target_brightness_co = std::min(255.0f, target_brightness);
     // smart brightness search initially sets the last rememberd exposure time
     if ( brightness_exp_lut_.at(target_brightness_co) != 0.0 )
     {
@@ -1563,7 +1563,7 @@ bool PylonCameraNode::setBrightness(const int& target_brightness,
 
     if ( std::fabs(current_brightness - static_cast<float>(target_brightness_co)) <= 1.0 )
     {
-        reached_brightness = static_cast<int>(current_brightness);
+        reached_brightness = static_cast<float>(current_brightness);
         ros::Time end = ros::Time::now();
         ROS_DEBUG_STREAM("Brightness reached without exposure search, duration: "
                 << (end-begin).toSec());

@@ -1011,7 +1011,7 @@ bool PylonCameraImpl<CameraTraitT>::setGain(const float& target_gain,
 
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
+bool PylonCameraImpl<CameraTraitT>::setBrightness(const float& target_brightness,
                                                   const float& current_brightness,
                                                   const bool& exposure_auto,
                                                   const bool& gain_auto)
@@ -1022,7 +1022,7 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
         // the brightness_to_set is a float value, regardless of the current
         // pixel data output format, i.e., 0.0 -> black, 1.0 -> white.
         typename CameraTraitT::AutoTargetBrightnessValueType brightness_to_set =
-            CameraTraitT::convertBrightness(std::min(255, target_brightness));
+            CameraTraitT::convertBrightness(std::min(255.0f, target_brightness));
 /**
 #if DEBUG
         std::cout << "br = " << current_brightness << ", gain = "
@@ -1089,7 +1089,7 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
             {
                 // pre-control using the possible limits of the pylon auto function range
                 // if they were reached, we continue with the extended brightness search
-                if ( !setExtendedBrightness(std::min(255, target_brightness), current_brightness) )
+                if ( !setExtendedBrightness(std::min(255.0f, target_brightness), current_brightness) )
                 {
                     return false;
                 }
@@ -1150,7 +1150,7 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
     {
         ROS_ERROR_STREAM("An generic exception while setting target brightness to "
                 << target_brightness << " (= "
-                << CameraTraitT::convertBrightness(std::min(255, target_brightness))
+                << CameraTraitT::convertBrightness(std::min(255.0f, target_brightness))
                 <<  ") occurred: " << e.GetDescription());
         return false;
     }
@@ -1158,7 +1158,7 @@ bool PylonCameraImpl<CameraTraitT>::setBrightness(const int& target_brightness,
 }
 
 template <typename CameraTraitT>
-bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brightness,
+bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const float& target_brightness,
                                                           const float& current_brightness)
 {
     float autoTargetBrightnessMin = 0.0;
@@ -1172,7 +1172,7 @@ bool PylonCameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_brig
         autoTargetBrightnessMin = cam_->AutoTargetBrightness.GetMin();
         autoTargetBrightnessMax = cam_->AutoTargetBrightness.GetMax();
     }
-    if (target_brightness > 0 && target_brightness <= 255)
+    if (target_brightness > 0.0f && target_brightness <= 255.0f)
     {
         ROS_ERROR_STREAM("Error: Brightness value should be greater than 0 and equal to or smaller than 255");
         return false;

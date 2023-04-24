@@ -230,8 +230,8 @@ protected:
      *                      reached adapting the gain.
      * @return true if the brightness could be reached or false otherwise.
      */
-    bool setBrightness(const int& target_brightness,
-                       int& reached_brightness,
+    bool setBrightness(const float& target_brightness,
+                       float& reached_brightness,
                        const bool& exposure_auto,
                        const bool& gain_auto);
 

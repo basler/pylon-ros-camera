@@ -222,7 +222,7 @@ public:
      *                      reached adapting the gain.
      * @return true if the brightness could be reached or false otherwise.
      */
-    virtual bool setBrightness(const int& target_brightness,
+    virtual bool setBrightness(const float& target_brightness,
                                const float& current_brightness,
                                const bool& exposure_auto,
                                const bool& gain_auto) = 0;
@@ -964,7 +964,7 @@ protected:
      * @param brightness target brightness
      * @return true after reaching the target brightness.
      */
-    virtual bool setExtendedBrightness(const int& target_brightness,
+    virtual bool setExtendedBrightness(const float& target_brightness,
                                        const float& current_brightness) = 0;
 
     /**

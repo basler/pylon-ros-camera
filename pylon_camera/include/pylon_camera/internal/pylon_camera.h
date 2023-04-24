@@ -92,7 +92,7 @@ public:
 
     virtual bool setGamma(const float& target_gamma, float& reached_gamma);
 
-    virtual bool setBrightness(const int& target_brightness,
+    virtual bool setBrightness(const float& target_brightness,
                                const float& current_brightness,
                                const bool& exposure_auto,
                                const bool& gain_auto);
@@ -349,7 +349,7 @@ protected:
     GenApi::IFloat& resultingFrameRate();
     AutoTargetBrightnessType& autoTargetBrightness();
 
-    virtual bool setExtendedBrightness(const int& target_brightness,
+    virtual bool setExtendedBrightness(const float& target_brightness,
                                        const float& current_brightness);
 
     virtual bool grab(Pylon::CGrabResultPtr& grab_result);

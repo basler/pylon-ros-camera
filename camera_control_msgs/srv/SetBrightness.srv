@@ -1,6 +1,6 @@
 # The target brightness, which is average intensity values of the images.
 # It depends the exposure time as well as the gain setting.
-int32 target_brightness
+float32 target_brightness
 
 # The brightness_continuous flag controls the auto brightness function.
 # If it is set to false, the given brightness will only be reached once.
@@ -23,7 +23,7 @@ bool gain_auto
 ---
 
 # Exact match can not always be reached
-int32 reached_brightness
+float32 reached_brightness
 float32 reached_exposure_time
 float32 reached_gain_value
 

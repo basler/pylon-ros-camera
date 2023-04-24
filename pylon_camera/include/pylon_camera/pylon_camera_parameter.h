@@ -201,7 +201,7 @@ public:
      * given, it is not possible to reach the brightness, because both are
      * assumed to be fix.
      */
-    int brightness_;
+    float brightness_;
 
     /**
      * Flag which indicates if the average brightness is provided and hence
