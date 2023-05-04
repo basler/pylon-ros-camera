@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
             }
 
             size_t i = 0;
-            for (i; i < devices.size(); i++) 
+            for (i = 0; i < devices.size(); i++)
             {
                 Pylon::CDeviceInfo &dev_info = devices[i];
                 std::string serial_number(dev_info.GetSerialNumber().c_str());
