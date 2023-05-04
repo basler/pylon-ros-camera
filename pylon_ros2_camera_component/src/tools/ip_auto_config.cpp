@@ -62,7 +62,10 @@ int main(int argc, char** argv)
 {
     // The exit code of the sample application.
     int exitCode = 0;
-    
+
+    // Fix unused parameter warning
+    (void)argc, (void)argv;
+
     // Automagically call PylonInitialize and PylonTerminate to ensure the pylon runtime system
     // is initialized during the lifetime of this object.
     Pylon::PylonInitialize();
@@ -72,7 +75,6 @@ int main(int argc, char** argv)
     try
     {
         PylonInitialize();
-        int exitCode = 0;
         int selection = -1;
         DeviceInfoList_t listDevices;
         DeviceInfoList_t listReachableDevices;
@@ -96,8 +98,8 @@ int main(int argc, char** argv)
             if(listDevices.size() != listReachableDevices.size() )
             {
                 // there are some cameras with not matching IP addres.
-                
-                for(int x = 0 ; x < listDevices.size() ; ++x)
+
+                for(size_t x = 0 ; x < listDevices.size() ; ++x)
                 {
                     std::cout << x;
                     std::string InterfaceAdd = "";
