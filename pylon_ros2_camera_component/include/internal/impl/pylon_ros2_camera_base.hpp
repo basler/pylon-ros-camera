@@ -467,7 +467,7 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(uint8_t* image)
 
     if (encodingconversions::is_12_bit_ros_enc(ros_enc)){
         const uint16_t *convert_bits = reinterpret_cast<uint16_t*>(ptr_grab_result->GetBuffer());
-        for (int i = 0; i < img_size_byte_ / 2; i++){
+        for (size_t i = 0; i < img_size_byte_ / 2; i++){
             shift_array[i] = convert_bits[i] << 4;
         }
         memcpy(image, (uint8_t *) shift_array, img_size_byte_);
