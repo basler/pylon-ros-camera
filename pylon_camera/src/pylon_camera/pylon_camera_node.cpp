@@ -697,6 +697,10 @@ uint32_t PylonCameraNode::getNumSubscribersRect() const
     return camera_info_manager_->isCalibrated() ? img_rect_pub_->getNumSubscribers() : 0;
 }
 
+uint32_t  PylonCameraNode::getNumSubscribersInfo() const
+{
+    return ((CameraPublisherLocal*)(&img_raw_pub_))->impl_->info_pub_.getNumSubscribers();
+}
 
 void PylonCameraNode::spin()
 {   
@@ -731,32 +735,44 @@ void PylonCameraNode::spin()
     }
     // images were published if subscribers are available or if someone calls
     // the GrabImages Action
-    if (!isSleeping() && (getNumSubscribersRaw() || getNumSubscribersRect()))
+    uint32_t num_subscribers_raw = getNumSubscribersRaw();
+    uint32_t num_subscribers_rect = getNumSubscribersRect();
+    uint32_t num_subscribers_info = getNumSubscribersInfo();
+    if (!isSleeping() && (num_subscribers_raw || num_subscribers_rect || num_subscribers_info))
     {
-        if (getNumSubscribersRaw() || getNumSubscribersRect())
-        { 
+        // get actual cam_info-object in every frame, because it might have
+        // changed due to a 'set_camera_info'-service call
+        sensor_msgs::CameraInfoPtr cam_info(
+                    new sensor_msgs::CameraInfo(
+                                    camera_info_manager_->getCameraInfo()));
+
+        if (num_subscribers_raw || num_subscribers_rect)
+        {
             if (!grabImage())
             { 
                 return;
             }
+            cam_info->header.stamp = img_raw_msg_.header.stamp;
+        }
+        else // No subscribers for images, only for camera_info
+        {
+            cam_info->header.stamp = ros::Time::now();
         }
 
-        if (getNumSubscribersRaw() > 0)
+        if (num_subscribers_raw > 0)
         { 
-            // get actual cam_info-object in every frame, because it might have
-            // changed due to a 'set_camera_info'-service call
-            sensor_msgs::CameraInfoPtr cam_info(
-                        new sensor_msgs::CameraInfo(
-                                        camera_info_manager_->getCameraInfo()));
-            cam_info->header.stamp = img_raw_msg_.header.stamp;
-
             // Publish via image_transport
             img_raw_pub_.publish(img_raw_msg_, *cam_info);
         }
+        else if (num_subscribers_info > 0)
+        {
+            // Publish camera_info separately if there is no raw image subscriber
+            ((CameraPublisherLocal*)(&img_raw_pub_))->impl_->info_pub_.publish(cam_info);
+        }
 
         // this->getNumSubscribersRectImagePub() involves that this->camera_info_manager_->isCalibrated() == true
-        if (getNumSubscribersRect() > 0)
-        { 
+        if (num_subscribers_rect > 0)
+        {
             cv_bridge_img_rect_->header.stamp = img_raw_msg_.header.stamp;
             assert(pinhole_model_->initialized());
             cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(

@@ -142,6 +142,11 @@ protected:
     uint32_t getNumSubscribersRect() const;
 
     /**
+     * Returns the number of subscribers for the camera info topic
+     */
+    uint32_t getNumSubscribersInfo() const;
+
+    /**
      * Grabs an image and stores the image in img_raw_msg_
      * @return false if an error occurred.
      */
