@@ -1226,7 +1226,8 @@ protected:
     PylonCamera* pylon_camera_;
 
     image_transport::ImageTransport* it_;
-    image_transport::CameraPublisher img_raw_pub_;
+    image_transport::Publisher img_raw_pub_;
+    ros::Publisher camera_info_pub_;
 
     image_transport::Publisher* img_rect_pub_;
     image_geometry::PinholeCameraModel* pinhole_model_;
