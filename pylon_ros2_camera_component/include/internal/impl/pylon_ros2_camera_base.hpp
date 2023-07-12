@@ -2187,7 +2187,9 @@ template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setLineMode(const int& value)
 {
     try
-    {   if ( (cam_->LineFormat.GetValue() == LineFormatEnums::LineFormat_TTL) || (cam_->LineFormat.GetValue() == LineFormatEnums::LineFormat_LVTTL) )
+    {   if ( (cam_->LineFormat.GetValue() == LineFormatEnums::LineFormat_TTL) ||
+             (cam_->LineFormat.GetValue() == LineFormatEnums::LineFormat_LVTTL) ||
+             (cam_->LineFormat.GetValue() == LineFormatEnums::LineFormat_OpenDrain) )
         {
             if (value == 0)
             {
