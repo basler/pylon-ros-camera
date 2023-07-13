@@ -3397,7 +3397,7 @@ void PylonROS2CameraNode::loadPfsCallback(const std::shared_ptr<SetStringSrv::Re
                                               std::shared_ptr<SetStringSrv::Response> response)
 {
   (void)request;
-  response->message = this->loadPfs(reqest->value);
+  response->message = this->loadPfs(request->value);
   if ((response->message.find("done") != std::string::npos) != 0)
   {
     response->success = true;
