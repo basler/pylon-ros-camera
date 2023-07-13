@@ -1520,7 +1520,7 @@ protected:
   
   rclcpp::Service<TriggerSrv>::SharedPtr execute_software_trigger_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr save_user_set_srv_;
-  rclcpp::Service<TriggerSrv>::SharedPtr load_user_set_srv_;
+  rclcpp::Service<SetStringSrv>::SharedPtr load_user_set_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr load_pfs_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr reset_device_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr start_grabbing_srv_;
