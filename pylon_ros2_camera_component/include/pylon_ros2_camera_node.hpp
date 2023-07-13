@@ -432,6 +432,12 @@ protected:
   std::string loadUserSet();
 
   /**
+   * @brief Method to load a pfs file
+   * @return error message if an error occurred or done message otherwise.
+   */
+  std::string loadPfs(const std::string& fileName);
+
+  /**
    * @brief Method to set camera user set default selector
    * @param set : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw
    * @return error message if an error occurred or done message otherwise.
@@ -1207,6 +1213,14 @@ protected:
    */
   void loadUserSetCallback(const std::shared_ptr<TriggerSrv::Request> request,
                            std::shared_ptr<TriggerSrv::Response> response);
+
+  /**
+   * @brief Service callback for loading a pfs file
+   * @param req request
+   * @param res response
+   */
+  void loadPfsCallback(const std::shared_ptr<SetStringSrv::Request> request,
+                           std::shared_ptr<SetStringSrv::Response> response);
 
   /**
    * @brief Service callback for reseting the camera device

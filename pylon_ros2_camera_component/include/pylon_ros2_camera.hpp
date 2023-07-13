@@ -721,6 +721,12 @@ public:
     virtual std::string loadUserSet() = 0;
 
     /**
+     * load pfs file
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string loadPfs(const std::string& fileName) = 0;
+
+    /**
      * set camera user set default selector
      * @param set : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw
      * @return error message if an error occurred or done message otherwise.

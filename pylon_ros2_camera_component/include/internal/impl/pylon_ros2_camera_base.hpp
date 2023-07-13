@@ -2749,6 +2749,25 @@ std::string PylonROS2CameraImpl<CameraTraitT>::loadUserSet()
 }
 
 template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::loadPfs(const std::string& fileName)
+{
+    try
+    {
+        grabbingStopping();
+        Pylon::String_t fileNameCStr = fileName.c_str();
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "Loading the pfs file: " << fileNameCStr );
+        Pylon::CFeaturePersistence::Load(fileNameCStr, &cam_->GetNodeMap(), true);
+        grabbingStarting();
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while loading the pfs file:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setUserSetDefaultSelector(const int& set)
 {
     try
