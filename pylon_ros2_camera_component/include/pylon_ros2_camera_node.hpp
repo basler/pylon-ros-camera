@@ -432,6 +432,12 @@ protected:
   std::string loadUserSet();
 
   /**
+   * @brief Method to save a pfs file
+   * @return error message if an error occurred or done message otherwise.
+   */
+  std::string savePfs(const std::string& fileName);
+
+  /**
    * @brief Method to load a pfs file
    * @return error message if an error occurred or done message otherwise.
    */
@@ -1215,6 +1221,14 @@ protected:
                            std::shared_ptr<TriggerSrv::Response> response);
 
   /**
+   * @brief Service callback for saving a pfs file
+   * @param req request
+   * @param res response
+   */
+  void savePfsCallback(const std::shared_ptr<SetStringSrv::Request> request,
+                           std::shared_ptr<SetStringSrv::Response> response);
+
+  /**
    * @brief Service callback for loading a pfs file
    * @param req request
    * @param res response
@@ -1503,7 +1517,9 @@ protected:
   rclcpp::Service<SetFloatSrv>::SharedPtr set_sync_free_run_timer_trigger_rate_abs_srv_;
 
   rclcpp::Service<SetStringSrv>::SharedPtr set_image_encoding_srv_;
-  
+  rclcpp::Service<SetStringSrv>::SharedPtr save_pfs_srv_;
+  rclcpp::Service<SetStringSrv>::SharedPtr load_pfs_srv_;
+
   rclcpp::Service<SetBoolSrv>::SharedPtr set_reverse_x_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr set_reverse_y_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr set_PGI_mode_srv_;
@@ -1521,7 +1537,6 @@ protected:
   rclcpp::Service<TriggerSrv>::SharedPtr execute_software_trigger_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr save_user_set_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr load_user_set_srv_;
-  rclcpp::Service<SetStringSrv>::SharedPtr load_pfs_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr reset_device_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr start_grabbing_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr stop_grabbing_srv_;

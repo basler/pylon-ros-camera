@@ -436,6 +436,9 @@ void PylonROS2CameraNode::initServices()
   srv_name = srv_prefix + "load_user_set";
   this->load_user_set_srv_ = this->create_service<TriggerSrv>(srv_name, std::bind(&PylonROS2CameraNode::loadUserSetCallback, this, _1, _2));
 
+  srv_name = srv_prefix + "save_pfs";
+  this->save_pfs_srv_ = this->create_service<SetStringSrv>(srv_name, std::bind(&PylonROS2CameraNode::savePfsCallback, this, _1, _2));
+
   srv_name = srv_prefix + "load_pfs";
   this->load_pfs_srv_ = this->create_service<SetStringSrv>(srv_name, std::bind(&PylonROS2CameraNode::loadPfsCallback, this, _1, _2));
   
@@ -1693,6 +1696,18 @@ std::string PylonROS2CameraNode::loadUserSet()
   }
 
   return this->pylon_camera_->loadUserSet();
+}
+
+std::string PylonROS2CameraNode::savePfs(const std::string& fileName)
+{  
+  std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
+  if (!this->pylon_camera_->isReady())
+  {
+    RCLCPP_WARN(LOGGER, "Error in savePfs(): pylon_camera_ is not ready!");
+    return "pylon camera is not ready!";
+  }
+
+  return this->pylon_camera_->savePfs(fileName);
 }
 
 std::string PylonROS2CameraNode::loadPfs(const std::string& fileName)
@@ -3379,6 +3394,25 @@ void PylonROS2CameraNode::loadUserSetCallback(const std::shared_ptr<TriggerSrv::
 {
   (void)request;
   response->message = this->loadUserSet();
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else 
+  {
+    response->success = false;
+    if (response->message == "Node is not writable.")
+    {
+      response->message = "Using this feature requires stopping image grabbing";
+    }
+  }
+}
+
+void PylonROS2CameraNode::savePfsCallback(const std::shared_ptr<SetStringSrv::Request> request,
+                                              std::shared_ptr<SetStringSrv::Response> response)
+{
+  (void)request;
+  response->message = this->savePfs(request->value);
   if ((response->message.find("done") != std::string::npos) != 0)
   {
     response->success = true;

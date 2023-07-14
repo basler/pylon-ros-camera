@@ -721,6 +721,12 @@ public:
     virtual std::string loadUserSet() = 0;
 
     /**
+     * save pfs file
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string savePfs(const std::string& fileName) = 0;
+
+    /**
      * load pfs file
      * @return error message if an error occurred or done message otherwise.
      */

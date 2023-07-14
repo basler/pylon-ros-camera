@@ -230,6 +230,8 @@ public:
 
     virtual std::string loadUserSet();
 
+    virtual std::string savePfs(const std::string& fileName);
+
     virtual std::string loadPfs(const std::string& fileName);
 
     virtual std::string setUserSetDefaultSelector(const int& set);
