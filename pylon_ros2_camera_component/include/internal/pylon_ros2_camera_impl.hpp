@@ -230,6 +230,8 @@ public:
 
     virtual std::string loadUserSet();
 
+    virtual std::pair<std::string, std::string> getPfs();
+
     virtual std::string savePfs(const std::string& fileName);
 
     virtual std::string loadPfs(const std::string& fileName);

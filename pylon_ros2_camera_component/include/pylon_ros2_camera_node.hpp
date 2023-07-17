@@ -44,6 +44,7 @@
 // services
 #include "pylon_ros2_camera_interfaces/srv/get_integer_value.hpp"
 #include "pylon_ros2_camera_interfaces/srv/get_float_value.hpp"
+#include "pylon_ros2_camera_interfaces/srv/get_string_value.hpp"
 #include "pylon_ros2_camera_interfaces/srv/set_binning.hpp"
 #include "pylon_ros2_camera_interfaces/srv/set_brightness.hpp"
 #include "pylon_ros2_camera_interfaces/srv/set_exposure.hpp"
@@ -87,6 +88,7 @@ namespace pylon_ros2_camera
 
 using GetIntegerSrv                 = pylon_ros2_camera_interfaces::srv::GetIntegerValue;
 using GetFloatSrv                   = pylon_ros2_camera_interfaces::srv::GetFloatValue;
+using GetStringSrv                  = pylon_ros2_camera_interfaces::srv::GetStringValue;
 
 using SetBinningSrv                 = pylon_ros2_camera_interfaces::srv::SetBinning;
 using SetBrightnessSrv              = pylon_ros2_camera_interfaces::srv::SetBrightness;
@@ -430,6 +432,12 @@ protected:
    * @return error message if an error occurred or done message otherwise.
    */
   std::string loadUserSet();
+
+  /**
+   * @brief Method to get camera configuration as pfs
+   * @return error message if an error occurred or done message otherwise.
+   */
+  std::pair<std::string, std::string> getPfs();
 
   /**
    * @brief Method to save a pfs file
@@ -1221,6 +1229,14 @@ protected:
                            std::shared_ptr<TriggerSrv::Response> response);
 
   /**
+   * @brief Service callback for getting camera configuration in pfs format
+   * @param req request
+   * @param res response
+   */
+  void getPfsCallback(const std::shared_ptr<GetStringSrv::Request> request,
+                           std::shared_ptr<GetStringSrv::Response> response);
+
+  /**
    * @brief Service callback for saving a pfs file
    * @param req request
    * @param res response
@@ -1458,6 +1474,8 @@ protected:
   rclcpp::Service<GetIntegerSrv>::SharedPtr get_chunk_counter_value_srv_;
   
   rclcpp::Service<GetFloatSrv>::SharedPtr get_chunk_exposure_time_srv_;
+
+  rclcpp::Service<GetStringSrv>::SharedPtr get_pfs_srv_;
   
   rclcpp::Service<SetBinningSrv>::SharedPtr set_binning_srv_;
   rclcpp::Service<SetBrightnessSrv>::SharedPtr set_brightness_srv_;

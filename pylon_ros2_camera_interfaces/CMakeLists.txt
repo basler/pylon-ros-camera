@@ -24,6 +24,7 @@ set(MSG_FILES
 set(SRV_FILES
   "srv/GetIntegerValue.srv"
   "srv/GetFloatValue.srv"
+  "srv/GetStringValue.srv"
   "srv/SetBinning.srv"
   "srv/SetBrightness.srv"
   "srv/SetExposure.srv"

@@ -721,6 +721,12 @@ public:
     virtual std::string loadUserSet() = 0;
 
     /**
+     * get camera configuration as pfs
+     * @return camera configuration as pfs .
+     */
+    virtual std::pair<std::string, std::string> getPfs() = 0;
+
+    /**
      * save pfs file
      * @return error message if an error occurred or done message otherwise.
      */
