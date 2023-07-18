@@ -441,12 +441,14 @@ protected:
 
   /**
    * @brief Method to save a pfs file
+   * @param fileName : Path to the pfs file to be saved
    * @return error message if an error occurred or done message otherwise.
    */
   std::string savePfs(const std::string& fileName);
 
   /**
    * @brief Method to load a pfs file
+   * @param fileName : Path to the pfs file to be loaded
    * @return error message if an error occurred or done message otherwise.
    */
   std::string loadPfs(const std::string& fileName);

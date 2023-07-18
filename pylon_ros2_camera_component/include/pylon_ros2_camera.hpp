@@ -728,12 +728,14 @@ public:
 
     /**
      * save pfs file
+     * @param fileName : Path to the pfs file to be saved
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string savePfs(const std::string& fileName) = 0;
 
     /**
      * load pfs file
+     * @param fileName : Path to the pfs file to be loaded
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string loadPfs(const std::string& fileName) = 0;
