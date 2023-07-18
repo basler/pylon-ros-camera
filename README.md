@@ -97,13 +97,13 @@ The pylon ROS2 driver support currently the following ROS2 image pixel formats :
 
 ### Intrinsic calibration and rectified images
 
-ROS2 includes a standardised camera intrinsic calibration process through the *camera_calibration* package. This calibration process generates a file, which can be processed by the pylon ROS2 driver by setting the `camera_info_url` parameter in the `pylon_ros2_camera_component/config/default.yaml` file (it is the user parameter file loaded by default through the driver main launch file) to the correct URI (e.g., file:///home/user/data/calibrations/my_calibration.yaml).
+ROS2 includes a standardised camera intrinsic calibration process through the *camera_calibration* package. This calibration process generates a file, which can be processed by the pylon ROS2 driver by setting the `camera_info_url` parameter in the `pylon_ros2_camera_wrapper/config/default.yaml` file (it is the user parameter file loaded by default through the driver main launch file) to the correct URI (e.g., file:///home/user/data/calibrations/my_calibration.yaml).
 
 If the calibration is valid, the rectified images are published through the `[Camera name]/[Node name]/[image_rect]` topic, only if a subscriber to this topic has been registered.
 
 ### Setting device user id
 
-It is easily possible to connect to a specific camera through its user id. This user id can be set through the parameter `device_user_id` listed in the .yaml user parameter file loaded at launch time (by default `pylon_ros2_camera_component/config/default.yaml`). It is up to the user to create specific launch files, loading specific .yaml user parameter files, which would specify the user ids of the cameras that need to be connected. If no specific camera is specified, either because the `device_user_id` parameter is not set or no .yaml user parameter file is loaded, the first available camera is connected automatically.  
+It is easily possible to connect to a specific camera through its user id. This user id can be set through the parameter `device_user_id` listed in the .yaml user parameter file loaded at launch time (by default `pylon_ros2_camera_wrapper/config/default.yaml`). It is up to the user to create specific launch files, loading specific .yaml user parameter files, which would specify the user ids of the cameras that need to be connected. If no specific camera is specified, either because the `device_user_id` parameter is not set or no .yaml user parameter file is loaded, the first available camera is connected automatically.  
 
 In addition to being able to do so through the pylon Viewer provided by Basler, it is possible to set the device user id with the command: `ros2 run pylon_ros2_camera_component set_device_user_id [-sn SERIAL_NB] your_device_user_id`. If no serial number is specified thanks to the option `-sn`, the specified device user id `your_device_user_id` will be assigned to the first available camera.
 USB cameras must be disconnected and then reconnected after setting a new device user id. USB cameras keep their old user id otherwise.
