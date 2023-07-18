@@ -2777,7 +2777,7 @@ std::string PylonROS2CameraImpl<CameraTraitT>::savePfs(const std::string& fileNa
     {
         grabbingStopping();
         Pylon::String_t fileNameCStr = fileName.c_str();
-        RCLCPP_ERROR_STREAM(LOGGER_BASE, "Saving the pfs file: " << fileNameCStr );
+        RCLCPP_INFO_STREAM(LOGGER_BASE, "Saving the pfs file: " << fileNameCStr );
         Pylon::CFeaturePersistence::Save(fileNameCStr, &cam_->GetNodeMap());
         grabbingStarting();
     }
@@ -2796,7 +2796,7 @@ std::string PylonROS2CameraImpl<CameraTraitT>::loadPfs(const std::string& fileNa
     {
         grabbingStopping();
         Pylon::String_t fileNameCStr = fileName.c_str();
-        RCLCPP_ERROR_STREAM(LOGGER_BASE, "Loading the pfs file: " << fileNameCStr );
+        RCLCPP_INFO_STREAM(LOGGER_BASE, "Loading the pfs file: " << fileNameCStr );
         Pylon::CFeaturePersistence::Load(fileNameCStr, &cam_->GetNodeMap(), true);
         grabbingStarting();
     }
