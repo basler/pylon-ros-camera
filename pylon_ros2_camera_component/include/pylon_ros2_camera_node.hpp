@@ -435,7 +435,7 @@ protected:
 
   /**
    * @brief Method to get camera configuration as pfs
-   * @return error message if an error occurred or done message otherwise.
+   * @return A pair of strings. First string: error message if an error occurred or done message otherwise. Second string: camera configuration as pfs (if first is done).
    */
   std::pair<std::string, std::string> getPfs();
 

@@ -722,7 +722,7 @@ public:
 
     /**
      * get camera configuration as pfs
-     * @return camera configuration as pfs .
+     * @return  A pair of strings. First string: error message if an error occurred or done message otherwise. Second string: camera configuration as pfs (if first is done).
      */
     virtual std::pair<std::string, std::string> getPfs() = 0;
 
