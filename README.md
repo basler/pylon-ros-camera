@@ -315,6 +315,9 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/issue_scheduled_action_command  | -
 /my_camera/pylon_ros2_camera_node/list_parameters  | -
 /my_camera/pylon_ros2_camera_node/load_user_set  | -
+/my_camera/pylon_ros2_camera_node/get_pfs  | -
+/my_camera/pylon_ros2_camera_node/save_pfs  | value : '/path/to/your/output.pfs'
+/my_camera/pylon_ros2_camera_node/load_pfs  | value : '/path/to/your/input.pfs'
 /my_camera/pylon_ros2_camera_node/reset_device  | -
 /my_camera/pylon_ros2_camera_node/save_user_set  | -
 /my_camera/pylon_ros2_camera_node/set_PGI_mode  | data : false = deactivate, true = activate
