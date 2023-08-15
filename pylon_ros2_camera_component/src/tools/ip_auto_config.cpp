@@ -97,7 +97,7 @@ int main(int argc, char** argv)
             {
                 // there are some cameras with not matching IP addres.
                 
-                for(int x = 0 ; x < listDevices.size() ; ++x)
+                for(size_t x = 0 ; x < listDevices.size() ; ++x)
                 {
                     std::cout << x;
                     std::string InterfaceAdd = "";
