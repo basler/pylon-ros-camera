@@ -35,7 +35,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 endif()
 
 find_package(Pylon QUIET)
-if (NOT ${Pylon_FOUND})
+if (NOT ${Pylon_FOUND} OR "$ENV{Pylon_INCLUDE_DIRS}" STREQUAL "")
     include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindPylon.cmake")
 endif()
 # message("->    Pylon include directories: ${Pylon_INCLUDE_DIRS}")
