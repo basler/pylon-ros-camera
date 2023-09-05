@@ -426,7 +426,7 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image)
     std::string gen_api_encoding(cam_->PixelFormat.ToString().c_str());
     if (encodingconversions::is_12_bit_ros_enc(ros_enc) && (gen_api_encoding == "BayerRG12" || gen_api_encoding == "BayerBG12" || gen_api_encoding == "BayerGB12" || gen_api_encoding == "BayerGR12" || gen_api_encoding == "Mono12") ){
         const uint16_t *convert_bits = reinterpret_cast<uint16_t*>(ptr_grab_result->GetBuffer());
-        for (int i = 0; i < img_size_byte_ / 2; i++){
+        for (size_t i = 0; i < img_size_byte_ / 2; i++){
             shift_array[i] = convert_bits[i] << 4;
         }
         image.assign((uint8_t *) shift_array, (uint8_t *) shift_array + img_size_byte_);
@@ -467,7 +467,7 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(uint8_t* image)
 
     if (encodingconversions::is_12_bit_ros_enc(ros_enc)){
         const uint16_t *convert_bits = reinterpret_cast<uint16_t*>(ptr_grab_result->GetBuffer());
-        for (int i = 0; i < img_size_byte_ / 2; i++){
+        for (size_t i = 0; i < img_size_byte_ / 2; i++){
             shift_array[i] = convert_bits[i] << 4;
         }
         memcpy(image, (uint8_t *) shift_array, img_size_byte_);
@@ -702,10 +702,11 @@ template <typename CameraTraitT>
 bool PylonROS2CameraImpl<CameraTraitT>::setROI(const sensor_msgs::msg::RegionOfInterest target_roi,
                                            sensor_msgs::msg::RegionOfInterest& reached_roi)
 {
-    size_t width_to_set = target_roi.width;
-    size_t height_to_set = target_roi.height;
-    size_t offset_x_to_set = target_roi.x_offset;
-    size_t offset_y_to_set = target_roi.y_offset;
+    int64_t width_to_set = target_roi.width;
+    int64_t height_to_set = target_roi.height;
+    int64_t offset_x_to_set = target_roi.x_offset;
+    int64_t offset_y_to_set = target_roi.y_offset;
+
     try
     {
         if ( GenApi::IsAvailable(cam_->Width) && GenApi::IsAvailable(cam_->Height) && GenApi::IsAvailable(cam_->OffsetX) && GenApi::IsAvailable(cam_->OffsetY))
@@ -843,7 +844,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::setBinningX(const size_t& target_binning
         if ( GenApi::IsAvailable(cam_->BinningHorizontal) )
         {
             cam_->StopGrabbing();
-            size_t binning_x_to_set = target_binning_x;
+            int64_t binning_x_to_set = target_binning_x;
             if ( binning_x_to_set < cam_->BinningHorizontal.GetMin() )
             {
                 RCLCPP_WARN_STREAM(LOGGER_BASE, "Desired horizontal binning_x factor("
@@ -891,7 +892,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::setBinningY(const size_t& target_binning
         if ( GenApi::IsAvailable(cam_->BinningVertical) )
         {
             cam_->StopGrabbing();
-            size_t binning_y_to_set = target_binning_y;
+            int64_t binning_y_to_set = target_binning_y;
             if ( binning_y_to_set < cam_->BinningVertical.GetMin() )
             {
                 RCLCPP_WARN_STREAM(LOGGER_BASE, "Desired vertical binning_y factor("
@@ -4175,6 +4176,7 @@ template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setActionTriggerConfiguration(const int& action_device_key, const int& action_group_key, const unsigned int& action_group_mask,
                                                                              const int& registration_mode, const int& cleanup)
 {
+    (void)action_device_key, (void)action_group_key, (void)action_group_mask, (void)registration_mode, (void)cleanup;
     RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to set action trigger configuration. The connected camera does not support this feature.");
     return "The connected camera does not support this feature";
 }
@@ -4182,6 +4184,7 @@ std::string PylonROS2CameraImpl<CameraTraitT>::setActionTriggerConfiguration(con
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::issueActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const std::string& broadcast_address)
 {
+    (void)device_key, (void)group_key, (void)group_mask, (void)broadcast_address;
     RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to issue action command. The connected camera does not support this feature.");
     return "The connected camera does not support this feature";
 }
@@ -4189,6 +4192,7 @@ std::string PylonROS2CameraImpl<CameraTraitT>::issueActionCommand(const int& dev
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::issueScheduledActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const int64_t& action_time_ns_from_current_timestamp, const std::string& broadcast_address)
 {
+    (void)device_key, (void)group_key, (void)group_mask, (void)action_time_ns_from_current_timestamp, (void)broadcast_address;
     RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to issue scheduled action command. The connected camera does not support this feature.");
     return "The connected camera does not support this feature";
 }
