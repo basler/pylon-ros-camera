@@ -2713,6 +2713,7 @@ std::string PylonROS2CameraImpl<CameraTraitT>::setUserSetSelector(const int& set
 {
     try
     {
+        grabbingStopping();
         if ( GenApi::IsAvailable(cam_->UserSetSelector))
         {  
             if (set == 0)
@@ -2745,18 +2746,22 @@ std::string PylonROS2CameraImpl<CameraTraitT>::setUserSetSelector(const int& set
             } 
             else 
             {
+                grabbingStarting();
                 return "Error: unknown value";
             }
+            grabbingStarting();
         }
         else 
         {
              RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to select the user set. The connected Camera not supporting this feature");
+             grabbingStarting();
              return "The connected Camera not supporting this feature";
         }
     }
     catch ( const GenICam::GenericException &e )
     {
         RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while selecting the user set occurred:" << e.GetDescription());
+        grabbingStarting();
         return e.GetDescription();
     }
     return "done";
