@@ -435,6 +435,15 @@ void PylonROS2CameraNode::initServices()
   
   srv_name = srv_prefix + "load_user_set";
   this->load_user_set_srv_ = this->create_service<TriggerSrv>(srv_name, std::bind(&PylonROS2CameraNode::loadUserSetCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "get_pfs";
+  this->get_pfs_srv_ = this->create_service<GetStringSrv>(srv_name, std::bind(&PylonROS2CameraNode::getPfsCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "save_pfs";
+  this->save_pfs_srv_ = this->create_service<SetStringSrv>(srv_name, std::bind(&PylonROS2CameraNode::savePfsCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "load_pfs";
+  this->load_pfs_srv_ = this->create_service<SetStringSrv>(srv_name, std::bind(&PylonROS2CameraNode::loadPfsCallback, this, _1, _2));
   
   srv_name = srv_prefix + "reset_device";
   this->reset_device_srv_ = this->create_service<TriggerSrv>(srv_name, std::bind(&PylonROS2CameraNode::triggerDeviceResetCallback, this, _1, _2));
@@ -1690,6 +1699,44 @@ std::string PylonROS2CameraNode::loadUserSet()
   }
 
   return this->pylon_camera_->loadUserSet();
+}
+
+std::pair<std::string, std::string> PylonROS2CameraNode::getPfs()
+{  
+  std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
+  if (!this->pylon_camera_->isReady())
+  {
+    RCLCPP_WARN(LOGGER, "Error in getPfs(): pylon_camera_ is not ready!");
+    std::pair<std::string, std::string> stringResults;
+    stringResults.first = "pylon camera is not ready!";
+    return stringResults;
+  }
+
+  return this->pylon_camera_->getPfs();
+}
+
+std::string PylonROS2CameraNode::savePfs(const std::string& fileName)
+{  
+  std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
+  if (!this->pylon_camera_->isReady())
+  {
+    RCLCPP_WARN(LOGGER, "Error in savePfs(): pylon_camera_ is not ready!");
+    return "pylon camera is not ready!";
+  }
+
+  return this->pylon_camera_->savePfs(fileName);
+}
+
+std::string PylonROS2CameraNode::loadPfs(const std::string& fileName)
+{  
+  std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
+  if (!this->pylon_camera_->isReady())
+  {
+    RCLCPP_WARN(LOGGER, "Error in loadPfs(): pylon_camera_ is not ready!");
+    return "pylon camera is not ready!";
+  }
+
+  return this->pylon_camera_->loadPfs(fileName);
 }
 
 std::string PylonROS2CameraNode::setUserSetDefaultSelector(const int& set)
@@ -3364,6 +3411,63 @@ void PylonROS2CameraNode::loadUserSetCallback(const std::shared_ptr<TriggerSrv::
 {
   (void)request;
   response->message = this->loadUserSet();
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else 
+  {
+    response->success = false;
+    if (response->message == "Node is not writable.")
+    {
+      response->message = "Using this feature requires stopping image grabbing";
+    }
+  }
+}
+
+void PylonROS2CameraNode::getPfsCallback(const std::shared_ptr<GetStringSrv::Request> request,
+                                              std::shared_ptr<GetStringSrv::Response> response)
+{
+  (void)request;
+  std::tie(response->message, response->value) = this->getPfs();
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else 
+  {
+    response->success = false;
+    if (response->message == "Node is not writable.")
+    {
+      response->message = "Using this feature requires stopping image grabbing";
+    }
+  }
+}
+
+void PylonROS2CameraNode::savePfsCallback(const std::shared_ptr<SetStringSrv::Request> request,
+                                              std::shared_ptr<SetStringSrv::Response> response)
+{
+  (void)request;
+  response->message = this->savePfs(request->value);
+  if ((response->message.find("done") != std::string::npos) != 0)
+  {
+    response->success = true;
+  }
+  else 
+  {
+    response->success = false;
+    if (response->message == "Node is not writable.")
+    {
+      response->message = "Using this feature requires stopping image grabbing";
+    }
+  }
+}
+
+void PylonROS2CameraNode::loadPfsCallback(const std::shared_ptr<SetStringSrv::Request> request,
+                                              std::shared_ptr<SetStringSrv::Response> response)
+{
+  (void)request;
+  response->message = this->loadPfs(request->value);
   if ((response->message.find("done") != std::string::npos) != 0)
   {
     response->success = true;

@@ -721,6 +721,26 @@ public:
     virtual std::string loadUserSet() = 0;
 
     /**
+     * get camera configuration as pfs
+     * @return  A pair of strings. First string: error message if an error occurred or done message otherwise. Second string: camera configuration as pfs (if first is done).
+     */
+    virtual std::pair<std::string, std::string> getPfs() = 0;
+
+    /**
+     * save pfs file
+     * @param fileName : Path to the pfs file to be saved
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string savePfs(const std::string& fileName) = 0;
+
+    /**
+     * load pfs file
+     * @param fileName : Path to the pfs file to be loaded
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string loadPfs(const std::string& fileName) = 0;
+
+    /**
      * set camera user set default selector
      * @param set : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw
      * @return error message if an error occurred or done message otherwise.
