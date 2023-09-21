@@ -126,7 +126,7 @@ bool PylonROS2GigEAce2Camera::applyCamSpecificStartupSettings(const PylonROS2Cam
                     << cam_->ExposureTimeAbs.GetMin()
                     << " - " << upper_lim << " (max possible value from cam is " << cam_->ExposureTimeAbs.GetMax() << ")"
                     << "].");
-
+            
             // The gain auto function and the exposure auto function can be used at the
             // same time. In this case, however, you must also set the
             // Auto Function Profile feature.

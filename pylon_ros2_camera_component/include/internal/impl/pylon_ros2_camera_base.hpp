@@ -2836,6 +2836,66 @@ std::string PylonROS2CameraImpl<CameraTraitT>::loadUserSet()
 }
 
 template <typename CameraTraitT>
+std::pair<std::string, std::string> PylonROS2CameraImpl<CameraTraitT>::getPfs()
+{
+    std::pair<std::string, std::string> stringResults;
+    try
+    {
+        grabbingStopping();
+        Pylon::String_t cameraPfsString;
+        Pylon::CFeaturePersistence::SaveToString(cameraPfsString, &cam_->GetNodeMap());
+        stringResults.second = cameraPfsString; 
+        grabbingStarting();
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting camera configuration as pfs:" << e.GetDescription());
+        stringResults.first = e.GetDescription();
+        return stringResults;
+    }
+    stringResults.first = "done";
+    return stringResults;
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::savePfs(const std::string& fileName)
+{
+    try
+    {
+        grabbingStopping();
+        Pylon::String_t fileNameCStr = fileName.c_str();
+        RCLCPP_INFO_STREAM(LOGGER_BASE, "Saving the pfs file: " << fileNameCStr );
+        Pylon::CFeaturePersistence::Save(fileNameCStr, &cam_->GetNodeMap());
+        grabbingStarting();
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while saving the pfs file:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::loadPfs(const std::string& fileName)
+{
+    try
+    {
+        grabbingStopping();
+        Pylon::String_t fileNameCStr = fileName.c_str();
+        RCLCPP_INFO_STREAM(LOGGER_BASE, "Loading the pfs file: " << fileNameCStr );
+        Pylon::CFeaturePersistence::Load(fileNameCStr, &cam_->GetNodeMap(), true);
+        grabbingStarting();
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while loading the pfs file:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setUserSetDefaultSelector(const int& set)
 {
     try
