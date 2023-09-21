@@ -37,7 +37,7 @@ You may experience some problems with the `diagnostic_updater` and `pcl_ros` dep
 Compile the workspace using `colcon`:  
 ``cd ~/dev_ws && colcon build``  
 
-**Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g., Python files or other not compiled resourced) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/galactic/Tutorials/Colcon-Tutorial.html?highlight=colcon)).
+**Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g., Python files or other not compiled resourced) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html)).
 
 **Note**: The packages are built in Release by default. The build type can be modfied by using the `--cmake-args` flag (for instance `colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Debug`).
 
@@ -127,7 +127,7 @@ USB cameras must be disconnected and then reconnected after setting a new device
 
 - **camera_frame**  
   The tf2 frame under which the images were published.  
-  ROS2 provides a library called [tf2](https://docs.ros.org/en/galactic/Concepts/About-Tf2.html) (*TransForm* version 2) to manage the coordinate transformations between the different frames (coordinate systems) defined by the user and assigned to the components of a robotics system.
+  ROS2 provides a library called [tf2](https://docs.ros.org/en/humble/Concepts/About-Tf2.html) (*TransForm* version 2) to manage the coordinate transformations between the different frames (coordinate systems) defined by the user and assigned to the components of a robotics system.
 
 - **device_user_id**  
   The DeviceUserID of the camera. If empty, the first camera found in the device list will be used.
@@ -335,6 +335,9 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/issue_scheduled_action_command  | -
 /my_camera/pylon_ros2_camera_node/list_parameters  | -
 /my_camera/pylon_ros2_camera_node/load_user_set  | -
+/my_camera/pylon_ros2_camera_node/get_pfs  | -
+/my_camera/pylon_ros2_camera_node/save_pfs  | value : '/path/to/your/output.pfs'
+/my_camera/pylon_ros2_camera_node/load_pfs  | value : '/path/to/your/input.pfs'
 /my_camera/pylon_ros2_camera_node/reset_device  | -
 /my_camera/pylon_ros2_camera_node/save_user_set  | -
 /my_camera/pylon_ros2_camera_node/set_PGI_mode  | data : false = deactivate, true = activate
@@ -440,7 +443,7 @@ The folder `pylon_ros2_camera_wrapper/test` includes test programs implementing 
 ## Known issues
 
 ### Getting the number of subscribers from camera publisher
-It is not possible to count correctly the number of subscribers to the `image_raw` and `image_rect` topics because of a known issue with the function `CameraPublisher::getNumSubscribers`. That is why [this image_common package](https://github.com/ros-perception/image_common/tree/galactic), fixing this issue, needs to be cloned and compiled together with the `pylon_ros2_camera_node`. 
+It is not possible to count correctly the number of subscribers to the `image_raw` and `image_rect` topics because of a known issue with the function `CameraPublisher::getNumSubscribers`. That is why [this image_common package](https://github.com/ros-perception/image_common/tree/humble), fixing this issue, needs to be cloned and compiled together with the `pylon_ros2_camera_node`. 
 
 ### User input in terminal when starting node through launch files
 The ros2 launch mechanism doesn't allow to access stdin through a terminal (see [here](https://github.com/ros2/launch_ros/issues/165) and [here](https://answers.ros.org/question/343326/ros2-prefix-in-launch-file/)). This is solved in this implementation by installing and using `xterm` to emulate a terminal with possible user interaction.

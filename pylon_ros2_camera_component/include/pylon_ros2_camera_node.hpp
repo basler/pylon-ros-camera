@@ -45,6 +45,7 @@
 // services
 #include "pylon_ros2_camera_interfaces/srv/get_integer_value.hpp"
 #include "pylon_ros2_camera_interfaces/srv/get_float_value.hpp"
+#include "pylon_ros2_camera_interfaces/srv/get_string_value.hpp"
 #include "pylon_ros2_camera_interfaces/srv/set_binning.hpp"
 #include "pylon_ros2_camera_interfaces/srv/set_brightness.hpp"
 #include "pylon_ros2_camera_interfaces/srv/set_exposure.hpp"
@@ -89,6 +90,7 @@ namespace pylon_ros2_camera
 
 using GetIntegerSrv                 = pylon_ros2_camera_interfaces::srv::GetIntegerValue;
 using GetFloatSrv                   = pylon_ros2_camera_interfaces::srv::GetFloatValue;
+using GetStringSrv                  = pylon_ros2_camera_interfaces::srv::GetStringValue;
 
 using SetBinningSrv                 = pylon_ros2_camera_interfaces::srv::SetBinning;
 using SetBrightnessSrv              = pylon_ros2_camera_interfaces::srv::SetBrightness;
@@ -434,6 +436,26 @@ protected:
    * @return error message if an error occurred or done message otherwise.
    */
   std::string loadUserSet();
+
+  /**
+   * @brief Method to get camera configuration as pfs
+   * @return A pair of strings. First string: error message if an error occurred or done message otherwise. Second string: camera configuration as pfs (if first is done).
+   */
+  std::pair<std::string, std::string> getPfs();
+
+  /**
+   * @brief Method to save a pfs file
+   * @param fileName : Path to the pfs file to be saved
+   * @return error message if an error occurred or done message otherwise.
+   */
+  std::string savePfs(const std::string& fileName);
+
+  /**
+   * @brief Method to load a pfs file
+   * @param fileName : Path to the pfs file to be loaded
+   * @return error message if an error occurred or done message otherwise.
+   */
+  std::string loadPfs(const std::string& fileName);
 
   /**
    * @brief Method to set camera user set default selector
@@ -1367,6 +1389,30 @@ protected:
                            std::shared_ptr<TriggerSrv::Response> response);
 
   /**
+   * @brief Service callback for getting camera configuration in pfs format
+   * @param req request
+   * @param res response
+   */
+  void getPfsCallback(const std::shared_ptr<GetStringSrv::Request> request,
+                           std::shared_ptr<GetStringSrv::Response> response);
+
+  /**
+   * @brief Service callback for saving a pfs file
+   * @param req request
+   * @param res response
+   */
+  void savePfsCallback(const std::shared_ptr<SetStringSrv::Request> request,
+                           std::shared_ptr<SetStringSrv::Response> response);
+
+  /**
+   * @brief Service callback for loading a pfs file
+   * @param req request
+   * @param res response
+   */
+  void loadPfsCallback(const std::shared_ptr<SetStringSrv::Request> request,
+                           std::shared_ptr<SetStringSrv::Response> response);
+
+  /**
    * @brief Service callback for reseting the camera device
    * @param req request
    * @param res response
@@ -1638,6 +1684,8 @@ protected:
   rclcpp::Service<GetIntegerSrv>::SharedPtr get_chunk_counter_value_srv_;
   
   rclcpp::Service<GetFloatSrv>::SharedPtr get_chunk_exposure_time_srv_;
+
+  rclcpp::Service<GetStringSrv>::SharedPtr get_pfs_srv_;
   
   rclcpp::Service<SetBinningSrv>::SharedPtr set_binning_srv_;
   rclcpp::Service<SetBrightnessSrv>::SharedPtr set_brightness_srv_;
@@ -1712,7 +1760,9 @@ protected:
   rclcpp::Service<SetFloatSrv>::SharedPtr set_scan_3d_calibration_offset_srv_;
 
   rclcpp::Service<SetStringSrv>::SharedPtr set_image_encoding_srv_;
-  
+  rclcpp::Service<SetStringSrv>::SharedPtr save_pfs_srv_;
+  rclcpp::Service<SetStringSrv>::SharedPtr load_pfs_srv_;
+
   rclcpp::Service<SetBoolSrv>::SharedPtr set_reverse_x_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr set_reverse_y_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr set_PGI_mode_srv_;
