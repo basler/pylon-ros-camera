@@ -142,6 +142,11 @@ protected:
     uint32_t getNumSubscribersRect() const;
 
     /**
+     * Returns the number of subscribers for the camera info topic
+     */
+    uint32_t getNumSubscribersInfo() const;
+
+    /**
      * Grabs an image and stores the image in img_raw_msg_
      * @return false if an error occurred.
      */
@@ -1221,7 +1226,8 @@ protected:
     PylonCamera* pylon_camera_;
 
     image_transport::ImageTransport* it_;
-    image_transport::CameraPublisher img_raw_pub_;
+    image_transport::Publisher img_raw_pub_;
+    ros::Publisher camera_info_pub_;
 
     image_transport::Publisher* img_rect_pub_;
     image_geometry::PinholeCameraModel* pinhole_model_;
