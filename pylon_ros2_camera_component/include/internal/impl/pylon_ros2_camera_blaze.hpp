@@ -870,12 +870,13 @@ std::string PylonROS2BlazeCamera::setTriggerSource(const int& source)
                     blaze_cam_->TriggerSource.SetValue(Pylon::BlazeCameraParams_Params::TriggerSource_Software);
                     RCLCPP_INFO_STREAM(LOGGER_BLAZE, "Trigger source: Software");
                     break;
-                case 1:
-                    blaze_cam_->TriggerSource.SetValue(Pylon::BlazeCameraParams_Params::TriggerSource_Line0);
-                    RCLCPP_INFO_STREAM(LOGGER_BLAZE, "Trigger source: Line 0");
-                    break;
+                //case 1:
+                //    blaze_cam_->TriggerSource.SetValue(Pylon::BlazeCameraParams_Params::TriggerSource_Line0);
+                //    RCLCPP_INFO_STREAM(LOGGER_BLAZE, "Trigger source: Line 0");
+                //    break;
                 default:
-                    RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Trigger source value is invalid! Please choose between 0 -> Trigger Software / 1 -> Line 0");
+                    //RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Trigger source value is invalid! Please choose between 0 -> Trigger Software / 1 -> Line 0");
+                    RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Trigger source value is invalid! Please choose 0 -> Trigger Software");
                     return "Error: unknown value for trigger source";
             }
         }

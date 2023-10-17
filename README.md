@@ -410,7 +410,7 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/set_trigger_delay  | value = delay in micro sec.
 /my_camera/pylon_ros2_camera_node/set_trigger_mode  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/set_trigger_selector  | value : 0 = Frame start, 1 = Frame burst start (ace USB cameras) / Acquisition Start (ace GigE cameras)
-/my_camera/pylon_ros2_camera_node/set_trigger_source  | value : 0 = Software, 1 = Line 1, 2 = Line 3, 3 = Line 4, 4 = Action 1, 5 = Periodic Signal 1
+/my_camera/pylon_ros2_camera_node/set_trigger_source  | value : 0 = Software, 1 = Line 1, 2 = Line 2, 3 = Line 3, 4 = Line 4, 5 = Action 1, 6 = Periodic Signal 1
 /my_camera/pylon_ros2_camera_node/set_trigger_timeout  | -
 /my_camera/pylon_ros2_camera_node/set_user_output_[index]  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/set_user_set_default_selector  | value : 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw

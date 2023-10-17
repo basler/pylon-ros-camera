@@ -648,14 +648,14 @@ public:
 
     /**
      * set camera trigger source  
-     * @param source : 0 = software, 1 = Line1, 2 = Line3, 3 = Line4, 4 = Action1(only selected GigE Camera)
+     * @param source : 0 = software, 1 = Line1, 2 = Line2, 3 = Line3, 4 = Line4, 5 = Action1, 6 = PeriodicSignal1 (only selected GigE Camera and Blaze)
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setTriggerSource(const int& source) = 0;
 
     /**
      * get current camera trigger source  
-     * @return -3 = Unknown, -2 = Error, -1 = Not available, 0 = Software, 1 = Line1, 2 = Line3, 3 = Line4, 4 = Action1(Selected Gige)
+     * @return -3 = Unknown, -2 = Error, -1 = Not available, 0 = Software, 1 = Line1, 2 = Line3, 3 = Line4, 4 = Action1(only selected GigE Camera and Blaze)
      */
     virtual int getTriggerSource() = 0;
 

@@ -830,6 +830,7 @@ int PylonROS2GigECamera::getTriggerSelector()
     }
 }
 
+/*
 template <>
 std::string PylonROS2GigECamera::setTriggerSource(const int& source)
 {
@@ -877,7 +878,9 @@ std::string PylonROS2GigECamera::setTriggerSource(const int& source)
     }
     return "done";
 }
+*/
 
+/*
 template <>
 int PylonROS2GigECamera::getTriggerSource()
 {
@@ -920,6 +923,7 @@ int PylonROS2GigECamera::getTriggerSource()
         return -2; // Error
     }
 }
+*/
 
 template <>
 std::string PylonROS2GigECamera::setTriggerDelay(const float& delayValue)

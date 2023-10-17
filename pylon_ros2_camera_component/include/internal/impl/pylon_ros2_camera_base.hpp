@@ -2070,15 +2070,27 @@ std::string PylonROS2CameraImpl<CameraTraitT>::setTriggerSource(const int& sourc
                     RCLCPP_INFO_STREAM(LOGGER_BASE, "Trigger source: Line 1");
                     break;
                 case 2:
+                    cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Line2);
+                    RCLCPP_INFO_STREAM(LOGGER_BASE, "Trigger source: Line 2");
+                    break;
+                case 3:
                     cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Line3);
                     RCLCPP_INFO_STREAM(LOGGER_BASE, "Trigger source: Line 3");
                     break;
-                case 3:
+                case 4:
                     cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Line4);
                     RCLCPP_INFO_STREAM(LOGGER_BASE, "Trigger source: Line 4");
                     break;
+                case 5:
+                    cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_Action1);
+                    RCLCPP_INFO_STREAM(LOGGER_BASE, "Trigger source: Action 1");
+                    break;
+                case 6:
+                    cam_->TriggerSource.SetValue(TriggerSourceEnums::TriggerSource_PeriodicSignal1);
+                    RCLCPP_INFO_STREAM(LOGGER_BASE, "Trigger source: Periodic Signal 1");
+                    break;
                 default:
-                    RCLCPP_ERROR_STREAM(LOGGER_BASE, "Trigger source value is invalid! Please choose between 0 -> Trigger Software / 1 -> Line 1 / 2 -> Line 3 / 3 -> Line 4");
+                    RCLCPP_ERROR_STREAM(LOGGER_BASE, "Trigger source value is invalid! Please choose between 0 -> Trigger Software / 1 -> Line 1 / 2 -> Line 2 / 3 -> Line 3 / 4 -> Line 4 / 5 -> Action 1 / 6 -> Periodic signal 1");
                     return "Error: unknown value for trigger source";
             }
         }
@@ -2092,7 +2104,8 @@ std::string PylonROS2CameraImpl<CameraTraitT>::setTriggerSource(const int& sourc
     catch (const GenICam::GenericException &e)
     {
         RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while setting the trigger source occurred:" << e.GetDescription());
-        return e.GetDescription(); 
+        RCLCPP_WARN_STREAM(LOGGER_BASE, "If the enum entry is not writable or if the value is invalid, it may be because the connected camera does not support this value");
+        return e.GetDescription();
     }
     return "done";
 }
@@ -2111,13 +2124,25 @@ int PylonROS2CameraImpl<CameraTraitT>::getTriggerSource()
             {
                 return 1; // Line1
             }
+            else if (cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_Line2)
+            {
+                return 2; // Line2
+            }
             else if (cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_Line3)
             {
-                return 2; // Line3
+                return 3; // Line3
             }
             else if (cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_Line4)
             {
-                return 3; // Line4
+                return 4; // Line4
+            }
+            else if (cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_Action1)
+            {
+                return 5; // Action1
+            }
+            else if (cam_->TriggerSource.GetValue() == TriggerSourceEnums::TriggerSource_PeriodicSignal1)
+            {
+                return 6; // PeriodicSignal1
             }
             else 
             {
@@ -2128,8 +2153,9 @@ int PylonROS2CameraImpl<CameraTraitT>::getTriggerSource()
         {
             return -1; // Not available
         }
+
     }
-    catch ( const GenICam::GenericException &e )
+    catch (const GenICam::GenericException &e)
     {
         return -2; // Error
     }

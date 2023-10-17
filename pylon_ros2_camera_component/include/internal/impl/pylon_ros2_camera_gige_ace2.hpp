@@ -69,7 +69,7 @@ public:
     virtual int getDeviceLinkThroughputLimitMode();
     virtual std::string setDeviceLinkThroughputLimit(const int& limit);
     virtual bool setGain(const float& target_gain, float& reached_gain);
-    virtual std::string setTriggerSource(const int& source);
+    //virtual std::string setTriggerSource(const int& source);
     virtual std::string setTimerSelector(const int& selector);
     virtual std::string setPTPPriority(const int& value);
     virtual std::string setPTPProfile(const int& value);
@@ -640,6 +640,7 @@ std::string PylonROS2GigEAce2Camera::typeName() const
     return "GIGE2";
 }
 
+/*
 std::string PylonROS2GigEAce2Camera::setTriggerSource(const int& source)
 {
     try
@@ -690,6 +691,7 @@ std::string PylonROS2GigEAce2Camera::setTriggerSource(const int& source)
     }
     return "done";
 }
+*/
 
 std::string PylonROS2GigEAce2Camera::setTimerSelector(const int& selector)
 {
