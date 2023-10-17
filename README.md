@@ -1,6 +1,6 @@
 # ROS2-Driver for Basler Cameras
 
-The official pylon ROS2 driver for [Basler](http://www.baslerweb.com/) GigE Vision, Basler USB3 Vision and Basler blaze 3D cameras (branch: `humble_incl_blaze`)
+The official pylon ROS2 driver for [Basler](http://www.baslerweb.com/) GigE Vision, Basler USB3 Vision and Basler blaze 3D cameras (Humble Hawksbill)
 
 This driver provides many functionalities available through the Basler [pylon Camera Software Suite](https://www.baslerweb.com/en/products/software/basler-pylon-camera-software-suite/) C++ API.
 
@@ -24,7 +24,7 @@ You are welcome to post any questions or issues on [GitHub](https://github.com/b
 ### Install and build the packages
 
 This repository including the pylon ROS2 packages must be cloned in your workspace (e.g., `dev_ws` for instance):  
-``cd ~/dev_ws/src && git clone -b humble_incl_blaze https://github.com/basler/pylon-ros-camera pylon_ros2_camera``  
+``cd ~/dev_ws/src && git clone -b humble https://github.com/basler/pylon-ros-camera pylon_ros2_camera``  
 Due to a known issue with ROS2 (see the dedicated section below), the latest version of the `image_common` package must be installed from sources:  
 ``cd ~/dev_ws/src/pylon_ros2_camera && git clone https://github.com/ros-perception/image_common.git -b humble``  
 
