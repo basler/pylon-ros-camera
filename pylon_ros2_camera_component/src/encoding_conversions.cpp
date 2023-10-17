@@ -143,6 +143,10 @@ bool genAPI2Ros(const std::string& gen_api_enc, std::string& ros_enc)
     {
         ros_enc = sensor_msgs::image_encodings::MONO16;
     }
+    else if ( gen_api_enc == "Confidence16" )
+    {
+        ros_enc = sensor_msgs::image_encodings::MONO16;
+    }
     else if ( gen_api_enc == "BGR8" )
     {
         ros_enc = sensor_msgs::image_encodings::BGR8;

@@ -50,6 +50,7 @@ find_package(rclcpp_components REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(pcl_ros REQUIRED)
 find_package(camera_info_manager REQUIRED)
 find_package(image_geometry REQUIRED)
 find_package(image_transport REQUIRED)
@@ -63,6 +64,7 @@ set(PYLON_ROS2_CAMERA_DEPENDENCIES
 	rcutils
 	sensor_msgs
 	cv_bridge
+	pcl_ros
 	camera_info_manager
 	image_geometry
 	image_transport
