@@ -57,7 +57,7 @@ PylonROS2CameraImpl<CameraTraitT>::PylonROS2CameraImpl(Pylon::IPylonDevice* devi
     cam_(new CBaslerInstantCameraT(device))
 {
   // information logging severity mode
-  //rcutils_ret_t __attribute__((unused)) res = rcutils_logging_set_logger_level(LOGGER_BASE.get_name(), RCUTILS_LOG_SEVERITY_DEBUG);
+  rcutils_ret_t __attribute__((unused)) res = rcutils_logging_set_logger_level(LOGGER_BASE.get_name(), RCUTILS_LOG_SEVERITY_DEBUG);
   //RCUTILS_LOG_SEVERITY_DEBUG
   //RCUTILS_LOG_SEVERITY_INFO
   //RCUTILS_LOG_SEVERITY_WARN
@@ -487,6 +487,17 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(uint8_t* image)
     return true;
 }
 
+template <typename CameraTrait>
+bool PylonROS2CameraImpl<CameraTrait>::grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
+                                                 sensor_msgs::msg::Image& intensity_map_msg, 
+                                                 sensor_msgs::msg::Image& depth_map_msg, 
+                                                 sensor_msgs::msg::Image& depth_map_color_msg, 
+                                                 sensor_msgs::msg::Image& confidence_map_msg)
+{
+    RCLCPP_WARN(LOGGER_BASE, "The connected camera is not a blaze, nothing is going to be grabbed!");
+    return true;
+}
+
 // Lowest level grab function called by the other grab functions
 template <typename CameraTrait>
 bool PylonROS2CameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
@@ -550,6 +561,12 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
     }
 
     return true;
+}
+
+template <typename CameraTraitT>
+bool PylonROS2CameraImpl<CameraTraitT>::isBlaze()
+{
+    return false;
 }
 
 template <typename CameraTraitT>
@@ -4341,6 +4358,160 @@ std::string PylonROS2CameraImpl<CameraTraitT>::issueScheduledActionCommand(const
     (void)device_key, (void)group_key, (void)group_mask, (void)action_time_ns_from_current_timestamp, (void)broadcast_address;
     RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to issue scheduled action command. The connected camera does not support this feature.");
     return "The connected camera does not support this feature";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMin(const int& depth_min)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMax(const int& depth_max)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setTemporalFilterStrength(const int& strength)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setOutlierRemovalThreshold(const int& threshold)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setOutlierRemovalTolerance(const int& tolerance)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setAmbiguityFilterThreshold(const int& threshold)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setConfidenceThreshold(const int& threshold)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setIntensityCalculation(const int& calculation)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setExposureTimeSelector(const int& selector)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setOperatingMode(const int& mode)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setMultiCameraChannel(const int& channel)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setAcquisitionFrameRate(const float& framerate)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setScan3dCalibrationOffset(const float& offset)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableSpatialFilter(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableTemporalFilter(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableOutlierRemoval(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableAmbiguityFilter(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableThermalDriftCorrection(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableDistortionCorrection(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableAcquisitionFrameRate(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableHDRMode(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableFastMode(const bool& enable)
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
+    return "Feature not available except for blaze";
 }
 
 }  // namespace pylon_ros2_camera

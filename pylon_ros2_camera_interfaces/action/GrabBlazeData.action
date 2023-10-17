@@ -1,0 +1,46 @@
+##########################################
+################## GOAL ##################
+##########################################
+
+# Flag which indicates if the exposure times are provided and hence should be
+# set before grabbing
+bool exposure_given
+
+# Only relevant, if exposure_given is true:
+# The list of target exposure times in microseconds.
+# It is possible to grab only one image as well as several images with
+# different exposure times. This values can be overriden from the brightness
+# search, in case that the flag exposure_fixed is not true.
+float32[] exposure_times
+
+---
+##########################################
+################# RESULT #################
+##########################################
+
+# Data acquired from blaze
+sensor_msgs/PointCloud2[] point_clouds
+sensor_msgs/Image[] intensity_maps
+sensor_msgs/Image[] depth_maps
+sensor_msgs/Image[] depth_color_maps
+sensor_msgs/Image[] confidence_maps
+
+# The CameraInfo obejct describing the camera properties for the above image
+# sequence. Static in many cases, but can also support variable binning setting
+sensor_msgs/CameraInfo cam_info
+
+# The reached values of the images e.g., the values that were set to the camera
+# before the grab
+float32[] reached_exposure_times
+
+# Flag which indicates the success of the grabbing action
+# In case of failure, the images-vector contains only the images, that could be
+# grabbed before the failure occurred.
+bool success
+
+---
+##########################################
+################ FEEDBACK ################
+##########################################
+# The number of images already taken
+int32 curr_nr_data_acquired

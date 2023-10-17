@@ -45,6 +45,7 @@ enum PYLON_CAM_TYPE
     USB = 2,
     DART = 3,
     GIGE2 = 4,
+    BLAZE = 5,
     UNKNOWN = -1,
 };
 
@@ -127,6 +128,16 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
                 return UNKNOWN;
             }
         }
+        else if (device_class == "BaslerGTC/Basler/GenTL_Producer_for_Basler_blaze_101_cameras")
+        {
+            if (device_info.IsModelNameAvailable())
+            {
+                std::string model_name(device_info.GetModelName());
+                //RCLCPP_INFO_STREAM(LOGGER, "blaze model name: " << model_name);
+            }
+
+            return BLAZE;
+        }
         else
         {
             RCLCPP_ERROR_STREAM(LOGGER, "The detected camera type is: " << device_class << ". "
@@ -158,6 +169,8 @@ PylonROS2Camera* createFromDevice(PYLON_CAM_TYPE cam_type, Pylon::IPylonDevice* 
             return new PylonROS2USBCamera(device);
         case DART:
             return new PylonROS2DARTCamera(device);
+        case BLAZE:
+            return new PylonROS2BlazeCamera(device);
         case UNKNOWN:
         default:
             return nullptr;

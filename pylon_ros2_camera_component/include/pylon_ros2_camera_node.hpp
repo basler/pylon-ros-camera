@@ -40,6 +40,7 @@
 #include "pylon_ros2_camera_interfaces/msg/component_status.hpp"
 
 #include <sensor_msgs/msg/image.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
 
 // services
 #include "pylon_ros2_camera_interfaces/srv/get_integer_value.hpp"
@@ -66,6 +67,7 @@
 
 // actions
 #include "pylon_ros2_camera_interfaces/action/grab_images.hpp"
+#include "pylon_ros2_camera_interfaces/action/grab_blaze_data.hpp"
 
 // camera
 #include "pylon_ros2_camera.hpp"
@@ -110,6 +112,8 @@ using TriggerSrv                    = std_srvs::srv::Trigger;
 
 using GrabImagesAction              = pylon_ros2_camera_interfaces::action::GrabImages;
 using GrabImagesGoalHandle          = rclcpp_action::ServerGoalHandle<GrabImagesAction>;
+using GrabBlazeDataAction           = pylon_ros2_camera_interfaces::action::GrabBlazeData;
+using GrabBlazeDataGoalHandle       = rclcpp_action::ServerGoalHandle<GrabBlazeDataAction>;
 
 
 class PylonROS2CameraNode : public rclcpp::Node
@@ -1003,6 +1007,83 @@ protected:
                                                 std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
+   * @brief Service callback for setting depth min - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void setDepthMinCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting depth max - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void setDepthMaxCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting temporal filter strength - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void setTemporalFilterStrengthCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting outlier removal threshold - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void setOutlierRemovalThresholdCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting outlier removal tolerance - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void setOutlierRemovalToleranceCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting ambiguity filter threshold - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void setAmbiguityFilterThresholdCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting confidence threshold - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void setConfidenceThresholdCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting intensity calculation - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void setIntensityCalculationCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting exposure time selector - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void setExposureTimeSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting operating mode - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void setOperatingModeCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting multi camera channel - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void setMultiCameraChannelCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
    * @brief Service callback for setting the noise reduction value 
    * @param req request
    * @param res response
@@ -1073,6 +1154,20 @@ protected:
    */
   void setSyncFreeRunTimerTriggerRateAbsCallback(const std::shared_ptr<SetFloatSrv::Request> request,
                                                  std::shared_ptr<SetFloatSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting acquisition frame rate - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void setAcquisitionFrameRateCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting scan 3d calibration offset - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void setScan3dCalibrationOffsetCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response);
 
   /**
    * @brief Service callback for setting the camera image encoding
@@ -1207,6 +1302,69 @@ protected:
                                       std::shared_ptr<SetBoolSrv::Response> response);
 
   /**
+   * @brief Service callback for enabling/disabling spatial filter - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void enableSpatialFilterCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling temporal filter - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void enableTemporalFilterCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling outlier removal - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void enableOutlierRemovalCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling ambiguity filter - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void enableAmbiguityFilterCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling thermal drift correction - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void enableThermalDriftCorrectionCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling distortion correction - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void enableDistortionCorrectionCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling acquisition frame rate - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void enableAcquisitionFrameRateCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling hdr mode - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void enableHDRModeCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling fast mode - Applies to: blaze.
+   * @param req request
+   * @param res response
+   */
+  void enableFastModeCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
    * @brief Service callback for executing a software trigger
    * @param req request
    * @param res response
@@ -1336,6 +1494,40 @@ protected:
    */
   void executeGrabRectImagesAction(const std::shared_ptr<GrabImagesGoalHandle> goal_handle);
 
+
+
+
+  /**
+   * @brief Handle action goal relatively to blaze data grabbing
+   * @return goal response
+   */
+  rclcpp_action::GoalResponse handleGrabBlazeDataActionGoal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const GrabBlazeDataAction::Goal> goal);
+
+  /**
+   * @brief Handle action cancellation relatively to blaze data grabbing
+   * @param goal_handle Goal handle
+   * @return Response of the action is cancelled 
+   */
+  rclcpp_action::CancelResponse handleGrabBlazeDataActionGoalCancel(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
+
+  /**
+   * @brief Handle action if goal is accepted relatively to blaze data grabbing
+   * @param goal_handle handle 
+   */
+  void handleGrabBlazeDataActionGoalAccepted(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
+
+  /**
+   * @brief Grab blaze data through action
+   * @param goal_handle 
+   */
+  void executeGrabBlazeDataAction(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
+
+
+
+
+
+
+
   /**
    * @brief Create diagnostics
    * @param stat Diagnostic status wrapper
@@ -1449,6 +1641,10 @@ protected:
 
   cv_bridge::CvImage* cv_bridge_img_rect_;
 
+  sensor_msgs::msg::PointCloud2 blaze_cloud_msg_;
+  sensor_msgs::msg::Image intensity_map_msg_, depth_map_msg_, depth_map_color_msg_, confidence_map_msg_;
+  sensor_msgs::msg::CameraInfo blaze_cam_info_msg_;
+
   // topics
   rclcpp::Publisher<pylon_ros2_camera_interfaces::msg::CurrentParams>::SharedPtr current_params_pub_;
   pylon_ros2_camera_interfaces::msg::CurrentParams current_params_;
@@ -1457,6 +1653,18 @@ protected:
   // image transport publishers
   image_transport::CameraPublisher img_raw_pub_;
   image_transport::Publisher* img_rect_pub_;
+  // blaze related topics
+  std::string blaze_cloud_topic_name_;
+  std::string blaze_intensity_topic_name_;
+  std::string blaze_depth_map_topic_name_;
+  std::string blaze_depth_map_color_topic_name_;
+  std::string blaze_confidence_topic_name_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr blaze_cloud_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr blaze_intensity_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr blaze_depth_map_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr blaze_depth_map_color_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr blaze_confidence_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr blaze_cam_info_pub_;
 
   // services
   rclcpp::Service<GetIntegerSrv>::SharedPtr get_max_num_buffer_srv_;
@@ -1525,6 +1733,18 @@ protected:
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_ptp_uc_port_address_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_sync_free_run_timer_start_time_low_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_sync_free_run_timer_start_time_high_srv_;
+  // blaze related services
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_min_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_max_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_temporal_filter_strength_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_outlier_removal_threshold_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_outlier_removal_tolerance_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_ambiguity_filter_threshold_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_confidence_threshold_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_intensity_calculation_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_exposure_time_selector_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_operating_mode_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_multi_camera_channel_srv_;
 
   rclcpp::Service<SetFloatSrv>::SharedPtr set_noise_reduction_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_sharpness_enhancement_srv_;
@@ -1535,6 +1755,9 @@ protected:
   rclcpp::Service<SetFloatSrv>::SharedPtr set_periodic_signal_period_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_periodic_signal_delay_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_sync_free_run_timer_trigger_rate_abs_srv_;
+  // blaze related services
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_acquisition_frame_rate_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_scan_3d_calibration_offset_srv_;
 
   rclcpp::Service<SetStringSrv>::SharedPtr set_image_encoding_srv_;
   rclcpp::Service<SetStringSrv>::SharedPtr save_pfs_srv_;
@@ -1553,7 +1776,17 @@ protected:
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_two_step_operation_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_ptp_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_sync_free_run_timer_srv_;
-  
+  // blaze related services
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_spatial_filter_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_temporal_filter_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_outlier_removal_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_ambiguity_filter_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_thermal_drift_correction_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_distortion_correction_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_acquisition_frame_rate_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_hdr_mode_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_fast_mode_srv_;
+ 
   rclcpp::Service<TriggerSrv>::SharedPtr execute_software_trigger_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr save_user_set_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr load_user_set_srv_;
@@ -1567,6 +1800,8 @@ protected:
   // actions
   rclcpp_action::Server<GrabImagesAction>::SharedPtr grab_imgs_raw_as_;
   rclcpp_action::Server<GrabImagesAction>::SharedPtr grab_imgs_rect_as_;
+  // blaze related action
+  rclcpp_action::Server<GrabBlazeDataAction>::SharedPtr grab_blaze_data_as_;
 
   // spinning thread
   rclcpp::TimerBase::SharedPtr timer_;
