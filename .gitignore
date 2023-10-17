@@ -4,6 +4,7 @@
 build
 cmake-*
 image_common/
+.vscode/
 
 #############
 ##  files  ##
