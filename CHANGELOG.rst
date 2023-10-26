@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.1 (2023-10-26)
+* Blaze functionalities are now included in the official galactic and humble branches. Beware that it is now requiring the installation of the pylon Supplementary Package for blaze to be able to compile the driver.
+* Readme file updated with new Basler website links.
+
 1.3.0 (2023-02-07)
 -------------------
 * Official humble version integrating the blaze.
