@@ -276,6 +276,16 @@ public:
     int inter_pkg_delay_;
 
     /**
+     * The frame transmission delay in ticks. Only used for GigE cameras.
+     * In most cases, this parameter should be set to 0.
+     * However, if your network hardware can't handle spikes in network traffic
+     * (e.g., if you are triggering multiple camera simultaneously),
+     * you can use the frame transmission delay parameter to stagger the
+     * start of image data transmissions from each camera.
+     */
+    int frame_transmission_delay_;
+
+    /**
       Shutter mode
     */
     SHUTTER_MODE shutter_mode_;

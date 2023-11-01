@@ -201,6 +201,9 @@ The following settings do **NOT** have to be set. Each camera has default values
 - **gige/inter_pkg_delay (not for the blaze)**  
   The inter-packet delay in ticks. Only used for GigE cameras. To prevent lost frames it should be greater than 0. For most of GigE cameras, a value of 1000 is reasonable. For GigE cameras used on single-board computer, this value should be set to 11772.
 
+- **gige/frame_transmission_delay (not for the blaze)**  
+ In most cases, this parameter should be set to 0. However, if your network hardware can't handle spikes in network traffic (e.g., if you are triggering multiple camera simultaneously), you can use the frame transmission delay parameter to stagger the start of image data transmissions from each camera.
+
 - **auto_flash (not for the blaze)**  
   Flag that indicates if the camera has a flash connected, which should be on exposure. Only supported for GigE cameras. Default: false.
 
