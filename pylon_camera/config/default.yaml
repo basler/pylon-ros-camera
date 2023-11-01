@@ -140,3 +140,13 @@ grab_strategy : 0
 #  For cameras used on a RaspberryPI this value should be set to 11772.
 # gige:
 #  inter_pkg_delay: 1000
+
+#  Only used for GigE cameras.
+#  The frame transmission delay in ticks.
+#  In most cases, this parameter should be set to 0.
+#  However, if your network hardware can't handle spikes in network traffic
+#  (e.g., if you are triggering multiple camera simultaneously),
+#  you can use the frame transmission delay parameter to stagger the
+#  start of image data transmissions from each camera.
+# gige:
+#  frame_transmission_delay: 0

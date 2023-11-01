@@ -85,123 +85,142 @@ bool PylonGigEAce2Camera::applyCamSpecificStartupSettings(const PylonCameraParam
         grabbingStarting();
         cam_->StopGrabbing();
         if (parameters.startup_user_set_ == "Default")
+        {
+            // Remove all previous settings (sequencer etc.)
+            // Default Setting = Free-Running
+            cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_Default);
+            cam_->UserSetLoad.Execute();
+
+            // UserSetSelector_Default overrides Software Trigger Mode !!
+            cam_->TriggerSource.SetValue(Basler_UniversalCameraParams::TriggerSource_Software);
+            cam_->TriggerMode.SetValue(Basler_UniversalCameraParams::TriggerMode_On);
+            /* Thresholds for the AutoExposure Functions:
+                *  - lower limit can be used to get rid of changing light conditions
+                *    due to 50Hz lamps (-> 20ms cycle duration)
+                *  - upper limit is to prevent motion blur
+                */
+            double upper_lim = std::min(parameters.auto_exp_upper_lim_,
+                                        cam_->ExposureTimeAbs.GetMax());
+            cam_->AutoExposureTimeAbsLowerLimit.SetValue(cam_->ExposureTimeAbs.GetMin());
+            cam_->AutoExposureTimeAbsUpperLimit.SetValue(upper_lim);
+            // The gain auto function and the exposure auto function can be used at the
+            // same time. In this case, however, you must also set the
+            // Auto Function Profile feature.
+            // acA1920-40gm does not support Basler_UniversalCameraParams::GainSelector_AnalogAll
+            // has Basler_UniversalCameraParams::GainSelector_All instead
+            // cam_->GainSelector.SetValue(Basler_UniversalCameraParams::GainSelector_AnalogAll);
+
+            if ( GenApi::IsAvailable(cam_->BinningHorizontal) &&
+                    GenApi::IsAvailable(cam_->BinningVertical) )
             {
-                // Remove all previous settings (sequencer etc.)
-                // Default Setting = Free-Running
-                cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_Default);
-                cam_->UserSetLoad.Execute();
-                // UserSetSelector_Default overrides Software Trigger Mode !!
-                cam_->TriggerSource.SetValue(Basler_UniversalCameraParams::TriggerSource_Software);
-                cam_->TriggerMode.SetValue(Basler_UniversalCameraParams::TriggerMode_On);
-                /* Thresholds for the AutoExposure Functions:
-                 *  - lower limit can be used to get rid of changing light conditions
-                 *    due to 50Hz lamps (-> 20ms cycle duration)
-                 *  - upper limit is to prevent motion blur
-                 */
-                double upper_lim = std::min(parameters.auto_exp_upper_lim_,
-                                            cam_->ExposureTimeAbs.GetMax());
-                cam_->AutoExposureTimeAbsLowerLimit.SetValue(cam_->ExposureTimeAbs.GetMin());
-                cam_->AutoExposureTimeAbsUpperLimit.SetValue(upper_lim);
-                // The gain auto function and the exposure auto function can be used at the
-                // same time. In this case, however, you must also set the
-                // Auto Function Profile feature.
-                // acA1920-40gm does not support Basler_UniversalCameraParams::GainSelector_AnalogAll
-                // has Basler_UniversalCameraParams::GainSelector_All instead
-                // cam_->GainSelector.SetValue(Basler_UniversalCameraParams::GainSelector_AnalogAll);
-
-                if ( GenApi::IsAvailable(cam_->BinningHorizontal) &&
-                     GenApi::IsAvailable(cam_->BinningVertical) )
-                {
-                    ROS_INFO_STREAM("Cam has binning range: x(hz) = ["
-                            << cam_->BinningHorizontal.GetMin() << " - "
-                            << cam_->BinningHorizontal.GetMax() << "], y(vt) = ["
-                            << cam_->BinningVertical.GetMin() << " - "
-                            << cam_->BinningVertical.GetMax() << "].");
-                }
-                else
-                {
-                    ROS_INFO_STREAM("Cam does not support binning.");
-                }
-
-                ROS_INFO_STREAM("Cam has exposure time range: ["
-                        << cam_->ExposureTimeAbs.GetMin()
-                        << " - " << cam_->ExposureTimeAbs.GetMax()
-                        << "] measured in microseconds.");
-                ROS_INFO_STREAM("Cam has gain range: ["
-                        << cam_->Gain.GetMin() << " - "
-                        << cam_->Gain.GetMax()
-                        << "] measured in device specific units.");
-
-                // Check if gamma is available, print range
-                if ( !GenApi::IsAvailable(cam_->Gamma) )
-                {
-                    ROS_WARN("Cam gamma not available, will keep the default (auto).");
-                }
-                else
-                {
-                    ROS_INFO_STREAM("Cam has gamma range: ["
-                        << cam_->Gamma.GetMin() << " - "
-                        << cam_->Gamma.GetMax() << "].");
-                }
-
-                ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
-                        << cam_->AutoTargetValue.GetMin() << " - "
-                        << cam_->AutoTargetValue.GetMax()
-                        << "] which is the average pixel intensity.");
-
-                // raise inter-package delay (GevSCPD) for solving error:
-                // 'the image buffer was incompletely grabbed'
-                // also in ubuntu settings -> network -> options -> MTU Size
-                // from 'automatic' to 3000 if card supports it
-                // Raspberry PI has MTU = 1500, max value for some cards: 9000
-                ROS_WARN("setting MTU");
-                cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
-                ROS_WARN("MTU Setted");
-                if (parameters.auto_flash_)
-                {
-                    std::map<int, bool> flash_on_lines;
-                    ROS_INFO("Flash 2: %i", parameters.auto_flash_line_2_);
-                    ROS_INFO("Flash 3: %i", parameters.auto_flash_line_3_);
-
-                    flash_on_lines[2] = parameters.auto_flash_line_2_;
-                    flash_on_lines[3] = parameters.auto_flash_line_3_;
-                    setAutoflash(flash_on_lines);
-                }
-
-                // http://www.baslerweb.com/media/documents/AW00064902000%20Control%20Packet%20Timing%20With%20Delays.pdf
-                // inter package delay in ticks (? -> mathi said in nanosec) -> prevent lost frames
-                // package size * n_cams + 5% overhead = inter package size
-                // int n_cams = 1;
-                // int inter_package_delay_in_ticks = n_cams * imageSize() * 1.05;
-                cam_->GevSCPD.SetValue(parameters.inter_pkg_delay_);
-                ROS_WARN("Default User Setting Loaded");
+                ROS_INFO_STREAM("Cam has binning range: x(hz) = ["
+                        << cam_->BinningHorizontal.GetMin() << " - "
+                        << cam_->BinningHorizontal.GetMax() << "], y(vt) = ["
+                        << cam_->BinningVertical.GetMin() << " - "
+                        << cam_->BinningVertical.GetMax() << "].");
             }
+            else
+            {
+                ROS_INFO_STREAM("Cam does not support binning.");
+            }
+
+            ROS_INFO_STREAM("Cam has exposure time range: ["
+                    << cam_->ExposureTimeAbs.GetMin()
+                    << " - " << cam_->ExposureTimeAbs.GetMax()
+                    << "] measured in microseconds.");
+            ROS_INFO_STREAM("Cam has gain range: ["
+                    << cam_->Gain.GetMin() << " - "
+                    << cam_->Gain.GetMax()
+                    << "] measured in device specific units.");
+
+            // Check if gamma is available, print range
+            if ( !GenApi::IsAvailable(cam_->Gamma) )
+            {
+                ROS_WARN("Cam gamma not available, will keep the default (auto).");
+            }
+            else
+            {
+                ROS_INFO_STREAM("Cam has gamma range: ["
+                    << cam_->Gamma.GetMin() << " - "
+                    << cam_->Gamma.GetMax() << "].");
+            }
+
+            ROS_INFO_STREAM("Cam has pylon auto brightness range: ["
+                    << cam_->AutoTargetValue.GetMin() << " - "
+                    << cam_->AutoTargetValue.GetMax()
+                    << "] which is the average pixel intensity.");
+
+            // raise inter-package delay (GevSCPD) for solving error:
+            // 'the image buffer was incompletely grabbed'
+            // also in ubuntu settings -> network -> options -> MTU Size
+            // from 'automatic' to 3000 if card supports it
+            // Raspberry PI has MTU = 1500, max value for some cards: 9000
+            cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
+
+            if (parameters.auto_flash_)
+            {
+                std::map<int, bool> flash_on_lines;
+                ROS_INFO("Flash 2: %i", parameters.auto_flash_line_2_);
+                ROS_INFO("Flash 3: %i", parameters.auto_flash_line_3_);
+
+                flash_on_lines[2] = parameters.auto_flash_line_2_;
+                flash_on_lines[3] = parameters.auto_flash_line_3_;
+                setAutoflash(flash_on_lines);
+            }
+
+            // http://www.baslerweb.com/media/documents/AW00064902000%20Control%20Packet%20Timing%20With%20Delays.pdf
+            // inter package delay in ticks (? -> mathi said in nanosec) -> prevent lost frames
+            // package size * n_cams + 5% overhead = inter package size
+            // int n_cams = 1;
+            // int inter_package_delay_in_ticks = n_cams * imageSize() * 1.05;
+            cam_->GevSCPD.SetValue(parameters.inter_pkg_delay_);
+
+            // frame transmission delay
+            cam_->GevSCFTD.SetValue(parameters.frame_transmission_delay_);
+
+            ROS_WARN("Default User Setting Loaded");
+        }
         else if (parameters.startup_user_set_ == "UserSet1")
-            {
-                cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet1);
-                cam_->UserSetLoad.Execute();
-                cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
-                ROS_WARN("User Set 1 Loaded");
-            } 
+        {
+            cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet1);
+            cam_->UserSetLoad.Execute();
+
+            cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
+            cam_->GevSCPD.SetValue(parameters.inter_pkg_delay_);
+            cam_->GevSCFTD.SetValue(parameters.frame_transmission_delay_);
+            
+            ROS_WARN("User Set 1 Loaded");
+        }
         else if (parameters.startup_user_set_ == "UserSet2")
-            {
-                cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet2);
-                cam_->UserSetLoad.Execute();
-                cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
-                ROS_WARN("User Set 2 Loaded");
-            } 
+        {
+            cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet2);
+            cam_->UserSetLoad.Execute();
+
+            cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
+            cam_->GevSCPD.SetValue(parameters.inter_pkg_delay_);
+            cam_->GevSCFTD.SetValue(parameters.frame_transmission_delay_);
+
+            ROS_WARN("User Set 2 Loaded");
+        }
         else if (parameters.startup_user_set_ == "UserSet3")
-            {
-                cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet3);
-                cam_->UserSetLoad.Execute();
-                cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
-                ROS_WARN("User Set 3 Loaded");
-            } 
+        {
+            cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet3);
+            cam_->UserSetLoad.Execute();
+
+            cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
+            cam_->GevSCPD.SetValue(parameters.inter_pkg_delay_);
+            cam_->GevSCFTD.SetValue(parameters.frame_transmission_delay_);
+
+            ROS_WARN("User Set 3 Loaded");
+        }
         else if (parameters.startup_user_set_ == "CurrentSetting")
-            {
-                cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
-                ROS_WARN("No user set is provided -> Camera current setting will be applied");
-            }
+        {
+            cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
+            cam_->GevSCPD.SetValue(parameters.inter_pkg_delay_);
+            cam_->GevSCFTD.SetValue(parameters.frame_transmission_delay_);
+
+            ROS_WARN("No user set is provided -> Camera current setting will be applied");
+        }
     }
     catch ( const GenICam::GenericException &e )
     {

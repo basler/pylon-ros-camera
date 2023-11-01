@@ -2,6 +2,11 @@
 Changelog for package pylon_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.17.3 (2023-11-01)
+-------------------
+pylon6:
+* Add streamable parameter frame_transmission_delay
+
 0.17.2 (2021-10-01)
 -------------------
 pylon6:
@@ -19,8 +24,6 @@ pylon6:
   - get_chunk_frame_counter (ace GigE)
   - get_chunk_counter_value  (ace 2 GigE/USB, ace USB)
 * Add new ROS srv type SetFloatValue.
-
-
 
 0.17.1 (2021-09-20)
 -------------------

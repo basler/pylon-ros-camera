@@ -67,12 +67,13 @@ PylonCameraParameter::PylonCameraParameter() :
         enable_status_publisher_(false),
         enable_current_params_publisher_(false),
         inter_pkg_delay_(1000),
+        frame_transmission_delay_(0),
         startup_user_set_(""),
         shutter_mode_(SM_DEFAULT),
         auto_flash_(false), 
         grab_timeout_(500),
         trigger_timeout_(5000),
-	grab_strategy_(0),
+	    grab_strategy_(0),
         white_balance_auto_(0),
         white_balance_auto_given_(false),
         white_balance_ratio_red_(1.0),
@@ -241,6 +242,11 @@ void PylonCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
     if ( nh.hasParam("gige/inter_pkg_delay") )
     {
         nh.getParam("gige/inter_pkg_delay", inter_pkg_delay_);
+    }
+
+    if ( nh.hasParam("gige/frame_transmission_delay") )
+    {
+        nh.getParam("gige/frame_transmission_delay", frame_transmission_delay_);
     }
 
     std::string shutter_param_string;
