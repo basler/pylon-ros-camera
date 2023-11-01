@@ -62,6 +62,7 @@ PylonROS2CameraParameter::PylonROS2CameraParameter() :
     enable_current_params_publisher_(false),
     startup_user_set_(""),
     inter_pkg_delay_(1000),
+    frame_transmission_delay_(0),
     shutter_mode_(SM_DEFAULT),
     auto_flash_(false), 
     grab_timeout_(500),
@@ -294,6 +295,13 @@ void PylonROS2CameraParameter::readFromRosParameterServer(rclcpp::Node& nh)
         nh.declare_parameter<int>("gige/inter_pkg_delay", 1000);
     }
     nh.get_parameter("gige/inter_pkg_delay", this->inter_pkg_delay_);
+
+    RCLCPP_DEBUG(LOGGER, "---> gige/frame_transmission_delay");
+    if (!nh.has_parameter("gige/frame_transmission_delay"))
+    {
+        nh.declare_parameter<int>("gige/frame_transmission_delay", 0);
+    }
+    nh.get_parameter("gige/frame_transmission_delay", this->frame_transmission_delay_);
 
     RCLCPP_DEBUG(LOGGER, "---> shutter_mode");
     if (!nh.has_parameter("shutter_mode"))

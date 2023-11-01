@@ -110,16 +110,17 @@ bool PylonROS2GigEAce2Camera::applyCamSpecificStartupSettings(const PylonROS2Cam
             // Default Setting = Free-Running
             cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_Default);
             cam_->UserSetLoad.Execute();
+
             // UserSetSelector_Default overrides Software Trigger Mode !!
             cam_->TriggerSource.SetValue(Basler_UniversalCameraParams::TriggerSource_Software);
             cam_->TriggerMode.SetValue(Basler_UniversalCameraParams::TriggerMode_On);
+            
             /* Thresholds for the AutoExposure Functions:
                 *  - lower limit can be used to get rid of changing light conditions
                 *    due to 50Hz lamps (-> 20ms cycle duration)
                 *  - upper limit is to prevent motion blur
                 */
-            double upper_lim = std::min(parameters.auto_exposure_upper_limit_,
-                                        cam_->ExposureTimeAbs.GetMax());
+            double upper_lim = std::min(parameters.auto_exposure_upper_limit_, cam_->ExposureTimeAbs.GetMax());
             cam_->AutoExposureTimeAbsLowerLimit.SetValue(cam_->ExposureTimeAbs.GetMin());
             cam_->AutoExposureTimeAbsUpperLimit.SetValue(upper_lim);
             RCLCPP_INFO_STREAM(LOGGER_GIGE_ACE2, "Cam has upper exposure value limit range: ["
@@ -179,9 +180,8 @@ bool PylonROS2GigEAce2Camera::applyCamSpecificStartupSettings(const PylonROS2Cam
             // also in ubuntu settings -> network -> options -> MTU Size
             // from 'automatic' to 3000 if card supports it
             // single-board computers have MTU = 1500, max value for some cards: 9000
-            RCLCPP_WARN(LOGGER_GIGE_ACE2, "Setting MTU");
             cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
-            RCLCPP_WARN(LOGGER_GIGE_ACE2, "MTU Setted");
+            
             if (parameters.auto_flash_)
             {
                 std::map<int, bool> flash_on_lines;
@@ -199,32 +199,51 @@ bool PylonROS2GigEAce2Camera::applyCamSpecificStartupSettings(const PylonROS2Cam
             // int n_cams = 1;
             // int inter_package_delay_in_ticks = n_cams * imageSize() * 1.05;
             cam_->GevSCPD.SetValue(parameters.inter_pkg_delay_);
+
+            // frame transmission delay
+            cam_->GevSCFTD.SetValue(parameters.frame_transmission_delay_);
+
             RCLCPP_WARN(LOGGER_GIGE_ACE2, "Default User Setting Loaded");
         }
         else if (parameters.startup_user_set_ == "UserSet1")
         {
             cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet1);
             cam_->UserSetLoad.Execute();
+
             cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
+            cam_->GevSCPD.SetValue(parameters.inter_pkg_delay_);
+            cam_->GevSCFTD.SetValue(parameters.frame_transmission_delay_);
+            
             RCLCPP_WARN(LOGGER_GIGE_ACE2, "User Set 1 Loaded");
         }
         else if (parameters.startup_user_set_ == "UserSet2")
         {
             cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet2);
             cam_->UserSetLoad.Execute();
+
             cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
+            cam_->GevSCPD.SetValue(parameters.inter_pkg_delay_);
+            cam_->GevSCFTD.SetValue(parameters.frame_transmission_delay_);
+            
             RCLCPP_WARN(LOGGER_GIGE_ACE2, "User Set 2 Loaded");
         }
         else if (parameters.startup_user_set_ == "UserSet3")
         {
             cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet3);
             cam_->UserSetLoad.Execute();
+
             cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
+            cam_->GevSCPD.SetValue(parameters.inter_pkg_delay_);
+            cam_->GevSCFTD.SetValue(parameters.frame_transmission_delay_);
+            
             RCLCPP_WARN(LOGGER_GIGE_ACE2, "User Set 3 Loaded");
         }
         else if (parameters.startup_user_set_ == "CurrentSetting")
         {
             cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
+            cam_->GevSCPD.SetValue(parameters.inter_pkg_delay_);
+            cam_->GevSCFTD.SetValue(parameters.frame_transmission_delay_);
+            
             RCLCPP_WARN(LOGGER_GIGE_ACE2, "No user set is provided -> Camera current setting will be applied");
         }
     }
