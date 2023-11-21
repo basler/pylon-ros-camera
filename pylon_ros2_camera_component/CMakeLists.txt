@@ -116,8 +116,8 @@ ament_target_dependencies(${PROJECT_NAME}
 	${PYLON_ROS2_CAMERA_DEPENDENCIES}
 )
 
-rclcpp_components_register_nodes(${PROJECT_NAME} "pylon_ros2_camera_component::PylonROS2CameraNode")
-set(node_plugins "${node_plugins}pylon_ros2_camera_component::PylonROS2CameraNode;$<TARGET_FILE:${PROJECT_NAME}>\n")
+rclcpp_components_register_nodes(${PROJECT_NAME} "pylon_ros2_camera::PylonROS2CameraNode")
+set(node_plugins "${node_plugins}pylon_ros2_camera::PylonROS2CameraNode;$<TARGET_FILE:${PROJECT_NAME}>\n")
 
 ### tools
 
