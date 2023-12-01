@@ -2,6 +2,11 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.3 (2023-12-01)
+-------------------
+* Fix path to pylon API
+* PylonROS2CameraNode plugin-component mismatch
+
 2.0.2 (2023-11-01)
 -------------------
 * All streamable parameters are set, regardless of the loaded user set
