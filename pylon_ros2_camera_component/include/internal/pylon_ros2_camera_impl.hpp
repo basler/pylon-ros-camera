@@ -298,17 +298,17 @@ public:
 
     virtual int getChunkEnable();
 
-    virtual int getChunkTimestamp();
+    virtual int64_t getChunkTimestamp();
 
     virtual float getChunkExposureTime();
 
     virtual std::string setChunkExposureTime(const float& value);
 
-    virtual int getChunkLineStatusAll();
+    virtual int64_t getChunkLineStatusAll();
 
-    virtual int getChunkFramecounter();
+    virtual int64_t getChunkFramecounter();
 
-    virtual int getChunkCounterValue();
+    virtual int64_t getChunkCounterValue();
 
     virtual std::string setTimerSelector(const int& selector);
 

@@ -440,7 +440,9 @@ For camera models other than the blaze, the camera-characteristic parameter such
 
 ### Tests
 
-The folder `pylon_ros2_camera_wrapper/test` includes test programs implementing an action client sending the goal to trigger the image or the 3d data set grabbing through the actions `/my_camera/pylon_ros2_camera_node/grab_images_raw` or `/my_camera/pylon_ros2_camera_node/grab_blaze_data`, depending on the camera model. Each grabbed image (only the intensity image for the blaze) is displayed in a dedicated popup window. These programs are for testing purposes and should be adapted according to one's needs.  
+The folder `pylon_ros2_camera_wrapper/test` includes different test programs. testing specific functionalities implemented by the driver. These programs are for testing purposes and should be adapted according to one's needs.
+- *test_get_chunk_data*: test the access of specific chunk data
+- *test_grab_blaze_data_action_client*, *test_grab_image_action_client*, and *test_grab_images_action_client*: trigger the image or the 3d data set grabbing through the actions `/my_camera/pylon_ros2_camera_node/grab_images_raw` or `/my_camera/pylon_ros2_camera_node/grab_blaze_data`, depending on the camera model. Each grabbed image (only the intensity image for the blaze) is displayed in a dedicated popup window.  
 
 
 ## Known issues

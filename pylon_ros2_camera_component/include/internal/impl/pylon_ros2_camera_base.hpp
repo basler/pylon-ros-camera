@@ -454,14 +454,14 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image)
 template <typename CameraTrait>
 bool PylonROS2CameraImpl<CameraTrait>::grab(uint8_t* image)
 {   
-
     // If camera is not grabbing, don't grab
-    if (!cam_->IsGrabbing()){
+    if (!cam_->IsGrabbing())
+    {
         return false;
     }
 
     Pylon::CGrabResultPtr ptr_grab_result;
-    if ( !grab(ptr_grab_result) )
+    if (!grab(ptr_grab_result))
     {   
         RCLCPP_ERROR(LOGGER_BASE, "Error: Grab was not successful");
         return false;
@@ -2033,7 +2033,8 @@ template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::executeSoftwareTrigger()
 {
     try
-    {   if ( GenApi::IsAvailable(cam_->TriggerSoftware) )
+    {  
+        if (GenApi::IsAvailable(cam_->TriggerSoftware))
         {
             cam_->TriggerSoftware.Execute();
             return "done";
@@ -2050,6 +2051,7 @@ std::string PylonROS2CameraImpl<CameraTraitT>::executeSoftwareTrigger()
         RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while setting the trigger mode occurred:" << e.GetDescription());
         return e.GetDescription();
     }
+
     return "done";
 }
 
@@ -3059,18 +3061,24 @@ std::string PylonROS2CameraImpl<CameraTraitT>::grabbingStarting() const
 {
     try
     {
-        if(grab_strategy == 0) {
-           cam_->StartGrabbing(Pylon::EGrabStrategy::GrabStrategy_OneByOne); 
-        } else if (grab_strategy == 1) {
-           cam_->StartGrabbing(Pylon::EGrabStrategy::GrabStrategy_LatestImageOnly); 
-        } else if (grab_strategy == 2) {
-           cam_->StartGrabbing(Pylon::EGrabStrategy::GrabStrategy_LatestImages); 
-        } else {
-            cam_->StartGrabbing(Pylon::EGrabStrategy::GrabStrategy_OneByOne); 
+        if (grab_strategy == 1)
+        {
+            cam_->StartGrabbing(Pylon::EGrabStrategy::GrabStrategy_LatestImageOnly);
+            RCLCPP_DEBUG(LOGGER_BASE, "Grabbing started (GrabStrategy_LatestImageOnly)");
+            return "done";
         }
 
-        return "done";
+        if (grab_strategy == 2)
+        {
+            cam_->StartGrabbing(Pylon::EGrabStrategy::GrabStrategy_LatestImages);
+            RCLCPP_DEBUG(LOGGER_BASE, "Grabbing started (GrabStrategy_LatestImages)");
+            return "done";
+        }
 
+        cam_->StartGrabbing(Pylon::EGrabStrategy::GrabStrategy_OneByOne);
+        RCLCPP_DEBUG(LOGGER_BASE, "Grabbing started (GrabStrategy_OneByOne)");
+
+        return "done";
     }
     catch ( const GenICam::GenericException &e )
     {
@@ -3085,6 +3093,7 @@ std::string PylonROS2CameraImpl<CameraTraitT>::grabbingStopping()
     try
     {
         cam_->StopGrabbing();
+        RCLCPP_DEBUG(LOGGER_BASE, "Grabbing stopped");
         return "done";
     }
     catch ( const GenICam::GenericException &e )
@@ -3149,14 +3158,17 @@ std::string PylonROS2CameraImpl<CameraTraitT>::setWhiteBalance(const double& red
 }
 
 template <typename CameraTraitT> 
-bool PylonROS2CameraImpl<CameraTraitT>::setGrabbingStrategy(const int& strategy) {
-    if (strategy >= 0 && strategy <= 2){
+bool PylonROS2CameraImpl<CameraTraitT>::setGrabbingStrategy(const int& strategy)
+{
+    if (strategy >= 0 && strategy <= 2)
+    {
         grab_strategy = strategy;
         return true;
-    } else {
+    }
+    else
+    {
         return false;
     }
-
 }
 
 template <typename CameraTraitT> 
@@ -3323,200 +3335,264 @@ int PylonROS2CameraImpl<CameraTraitT>::getStatisticResynchronizationCount() {
 }
 
 template <typename CameraTraitT> 
-std::string PylonROS2CameraImpl<CameraTraitT>::setChunkModeActive(const bool& enable) {
-    if (GenApi::IsAvailable(cam_->ChunkModeActive)){
-        try {
+std::string PylonROS2CameraImpl<CameraTraitT>::setChunkModeActive(const bool& enable)
+{
+    if (GenApi::IsAvailable(cam_->ChunkModeActive))
+    {
+        try
+        {
             //cam_->StopGrabbing();
             cam_->ChunkModeActive.SetValue(enable);
             //grabbingStarting();
+
+            if (enable)
+                RCLCPP_DEBUG(LOGGER_BASE, "Chunk mode active enabled");
+            else
+                RCLCPP_DEBUG(LOGGER_BASE, "Chunk mode active disabled");
+
             return "done";
-        } catch ( const GenICam::GenericException &e ){
-                RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while setting the Chunk Mode Active occurred:" << e.GetDescription());
-                return e.GetDescription();
         }
-    } else {
+        catch ( const GenICam::GenericException &e )
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while setting the Chunk Mode Active occurred:" << e.GetDescription());
+            return e.GetDescription();
+        }
+    }
+    else
+    {
         RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to setting the Chunk Mode Active. The connected Camera not supporting this feature");
         return "The connected Camera not supporting this feature";      // No Supported 
     }
-
 }
 
 template <typename CameraTraitT> 
-int PylonROS2CameraImpl<CameraTraitT>::getChunkModeActive() {
-    if (GenApi::IsAvailable(cam_->ChunkModeActive)){
-        try {
-            if (cam_->ChunkModeActive.GetValue()){
+int PylonROS2CameraImpl<CameraTraitT>::getChunkModeActive()
+{
+    if (GenApi::IsAvailable(cam_->ChunkModeActive))
+    {
+        try
+        {
+            if (cam_->ChunkModeActive.GetValue())
+            {
                 return 1;
-            } else {
+            }
+            else
+            {
                 return 0;
             }
-        } catch ( ... ){ //const GenICam::GenericException &e
-                //RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the Chunk Mode Active occurred:" << e.GetDescription());
-                return -2;
+        } 
+        catch ( ... )
+        {
+            //const GenICam::GenericException &e
+            //RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the Chunk Mode Active occurred:" << e.GetDescription());
+            return -2;
         }
-    } else {
+    } 
+    else
+    {
         RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to getting the Chunk Mode Active. The connected Camera not supporting this feature");
         return -1;      // No Supported 
     }
-
 }
 
 template <typename CameraTraitT> 
-std::string PylonROS2CameraImpl<CameraTraitT>::setChunkSelector(const int& value) {
-    if (GenApi::IsAvailable(cam_->ChunkSelector)){
-        try {
-            switch(value){
+std::string PylonROS2CameraImpl<CameraTraitT>::setChunkSelector(const int& value)
+{
+    if (GenApi::IsAvailable(cam_->ChunkSelector))
+    {
+        try
+        {
+            switch(value)
+            {
                 case 1 : 
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_AutoBrightnessStatus);
+                    RCLCPP_DEBUG(LOGGER_BASE, "AutoBrightnessStatus selected");
                     return "done";
                     break;
                 case 2 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_BrightPixel);
+                    RCLCPP_DEBUG(LOGGER_BASE, "BrightPixel selected");
                     return "done";
                     break;
                 case 3 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_CounterValue);
+                    RCLCPP_DEBUG(LOGGER_BASE, "CounterValue selected");
                     return "done";
                     break;
                 case 4 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_DynamicRangeMax);
+                    RCLCPP_DEBUG(LOGGER_BASE, "DynamicRangeMax selected");
                     return "done";
                     break;
                 case 5 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_DynamicRangeMin);
+                    RCLCPP_DEBUG(LOGGER_BASE, "DynamicRangeMin selected");
                     return "done";
                     break;
                 case 6 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_ExposureTime);
+                    RCLCPP_DEBUG(LOGGER_BASE, "ExposureTime selected");
                     return "done";
                     break;
                 case 7 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_FrameID);
+                    RCLCPP_DEBUG(LOGGER_BASE, "FrameID selected");
                     return "done";
                     break;
                 case 8 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_FrameTriggerCounter);
+                    RCLCPP_DEBUG(LOGGER_BASE, "FrameTriggerCounter selected");
                     return "done";
                     break;
                 case 9 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_FrameTriggerIgnoredCounter);
+                    RCLCPP_DEBUG(LOGGER_BASE, "FrameTriggerIgnoredCounter selected");
                     return "done";
                     break;
                 case 10 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Framecounter);
+                    RCLCPP_DEBUG(LOGGER_BASE, "Framecounter selected");
                     return "done";
                     break;
                 case 11 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_FramesPerTriggerCounter);
+                    RCLCPP_DEBUG(LOGGER_BASE, "FramesPerTriggerCounter selected");
                     return "done";
                     break;
                 case 12 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Gain);
+                    RCLCPP_DEBUG(LOGGER_BASE, "Gain selected");
                     return "done";
                     break;
                 case 13 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_GainAll);
+                    RCLCPP_DEBUG(LOGGER_BASE, "GainAll selected");
                     return "done";
                     break;
                 case 14 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Height);
+                    RCLCPP_DEBUG(LOGGER_BASE, "Height selected");
                     return "done";
                     break;
                 case 15 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Image);
+                    RCLCPP_DEBUG(LOGGER_BASE, "Image selected");
                     return "done";
                     break;
                 case 16 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_InputStatusAtLineTrigger);
+                    RCLCPP_DEBUG(LOGGER_BASE, "InputStatusAtLineTrigger selected");
                     return "done";
                     break;
                 case 17 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_LineStatusAll);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineStatusAll selected");
                     return "done";
                     break;
                 case 18 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_LineTriggerCounter);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineTriggerCounter selected");
                     return "done";
                     break;
                 case 19 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_LineTriggerEndToEndCounter);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineTriggerEndToEndCounter selected");
                     return "done";
                     break;
                 case 20 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_LineTriggerIgnoredCounter);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineTriggerIgnoredCounter selected");
                     return "done";
                     break;
                 case 21 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_OffsetX);
+                    RCLCPP_DEBUG(LOGGER_BASE, "OffsetX selected");
                     return "done";
                     break;
                 case 22 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_OffsetY);
+                    RCLCPP_DEBUG(LOGGER_BASE, "OffsetY selected");
                     return "done";
                     break;
                 case 23 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_PayloadCRC16);
+                    RCLCPP_DEBUG(LOGGER_BASE, "PayloadCRC16 selected");
                     return "done";
                     break;
                 case 24 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_PixelFormat);
+                    RCLCPP_DEBUG(LOGGER_BASE, "PixelFormat selected");
                     return "done";
                     break;
                 case 25 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_SequenceSetIndex);
+                    RCLCPP_DEBUG(LOGGER_BASE, "SequenceSetIndex selected");
                     return "done";
                     break;
                 case 26 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_SequencerSetActive);
+                    RCLCPP_DEBUG(LOGGER_BASE, "SequenceSetActive selected");
                     return "done";
                     break;
                 case 27 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_ShaftEncoderCounter);
+                    RCLCPP_DEBUG(LOGGER_BASE, "ShaftEncoderCounter selected");
                     return "done";
                     break;
                 case 28 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Stride);
+                    RCLCPP_DEBUG(LOGGER_BASE, "Stride selected");
                     return "done";
                     break;
                 case 29 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Timestamp);
+                    RCLCPP_DEBUG(LOGGER_BASE, "Timestamp selected");
                     return "done";
                     break;
                 case 30 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Triggerinputcounter);
+                    RCLCPP_DEBUG(LOGGER_BASE, "Triggerinputcounter selected");
                     return "done";
                     break;
                 case 31 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_VirtLineStatusAll);
+                    RCLCPP_DEBUG(LOGGER_BASE, "VirtLineStatusAll selected");
                     return "done";
                     break;
                 case 32 :
                     cam_->ChunkSelector.SetValue(Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_Width);
+                    RCLCPP_DEBUG(LOGGER_BASE, "Width selected");
                     return "done";
                     break;
                 default :
                     return "Error: Unknown selection number";
                     break;
             }
-        } catch ( const GenICam::GenericException &e ){
-                RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while setting the Chunk Selector occurred:" << e.GetDescription());
-                return e.GetDescription();
+        } 
+        catch (const GenICam::GenericException &e)
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while setting the Chunk Selector occurred:" << e.GetDescription());
+            return e.GetDescription();
         }
-    } else {
+    } 
+    else 
+    {
         RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to setting the Chunk Selector. The connected Camera not supporting this feature");
         return "The connected Camera not supporting this feature";      // No Supported 
     }
-
 }
 
 template <typename CameraTraitT> 
-int PylonROS2CameraImpl<CameraTraitT>::getChunkSelector() {
-    if (GenApi::IsAvailable(cam_->ChunkSelector)){
-
-        try {
+int PylonROS2CameraImpl<CameraTraitT>::getChunkSelector()
+{
+    if (GenApi::IsAvailable(cam_->ChunkSelector))
+    {
+        try
+        {
             Basler_UniversalCameraParams::ChunkSelectorEnums value;
             value = cam_->ChunkSelector.GetValue();
-            switch(value){
+            switch(value)
+            {
                 case Basler_UniversalCameraParams::ChunkSelectorEnums::ChunkSelector_AutoBrightnessStatus : 
                     return 1;
                     break;
@@ -3617,80 +3693,182 @@ int PylonROS2CameraImpl<CameraTraitT>::getChunkSelector() {
                     return -3;
                     break;
             }
-        } catch ( const GenICam::GenericException &e ){
-                RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the Chunk Selector occurred:" << e.GetDescription());
-                return -2;
+        } 
+        catch (const GenICam::GenericException &e)
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the Chunk Selector occurred:" << e.GetDescription());
+            return -2;
         }
-    } else {
+    } 
+    else 
+    {
         RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to getting the Chunk Selector. The connected Camera not supporting this feature");
         return -1;      // No Supported 
     }
-
 }
 
 template <typename CameraTraitT> 
-std::string PylonROS2CameraImpl<CameraTraitT>::setChunkEnable(const bool& enable) {
-    if (GenApi::IsAvailable(cam_->ChunkEnable)){
-        try {
+std::string PylonROS2CameraImpl<CameraTraitT>::setChunkEnable(const bool& enable)
+{
+    if (GenApi::IsAvailable(cam_->ChunkEnable))
+    {
+        try
+        {
             cam_->ChunkEnable.SetValue(enable);
+            if (enable)
+                RCLCPP_DEBUG(LOGGER_BASE, "Chunk enable enabled");
+            else
+                RCLCPP_DEBUG(LOGGER_BASE, "Chunk enable disabled");
+
             return "done";
-        } catch ( const GenICam::GenericException &e ){
-                RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while setting the Chunk Enable occurred:" << e.GetDescription());
-                return e.GetDescription();
+        } 
+        catch (const GenICam::GenericException &e)
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while setting the Chunk Enable occurred:" << e.GetDescription());
+            return e.GetDescription();
         }
-    } else {
+    } 
+    else
+    {
         RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to setting the Chunk Enable. The connected Camera not supporting this feature");
         return "The connected Camera not supporting this feature";      // No Supported 
     }
-
 }
 
 template <typename CameraTraitT> 
-int PylonROS2CameraImpl<CameraTraitT>::getChunkEnable() {
-    if (GenApi::IsAvailable(cam_->ChunkEnable)){
-        try {
-            if (cam_->ChunkEnable.GetValue()){
+int PylonROS2CameraImpl<CameraTraitT>::getChunkEnable() 
+{
+    if (GenApi::IsAvailable(cam_->ChunkEnable))
+    {
+        try
+        {
+            if (cam_->ChunkEnable.GetValue())
+            {
                 return 1;
-            } else {
+            }
+            else
+            {
                 return 0;
             }
-        } catch ( const GenICam::GenericException &e ){
-                RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the Chunk Enable occurred:" << e.GetDescription());
-                return -2;
+        } 
+        catch (const GenICam::GenericException &e)
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the Chunk Enable occurred:" << e.GetDescription());
+            return -2;
         }
-    } else {
+    } 
+    else 
+    {
         RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to getting the Chunk Enable. The connected Camera not supporting this feature");
         return -1;      // No Supported 
     }
 }
 
 template <typename CameraTraitT> 
-int PylonROS2CameraImpl<CameraTraitT>::getChunkTimestamp() {
-    if (GenApi::IsAvailable(cam_->ChunkTimestamp)){
-        try {
-            return cam_->ChunkTimestamp.GetValue();
-        } catch ( const GenICam::GenericException &e ){
-                RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the Chunk Timestamp occurred:" << e.GetDescription());
-                return -2;
+int64_t PylonROS2CameraImpl<CameraTraitT>::getChunkTimestamp()
+{
+    // -1 feature not supported
+    // -2 exception
+    // -3 did not manage to grab
+
+    // If camera is not grabbing, don't grab
+    if (!cam_->IsGrabbing())
+    {
+        RCLCPP_WARN(LOGGER_BASE, "Grabbing needs to be started prior to chunk timestamp access");
+        return -3;  // not grabbing
+    }
+
+    Pylon::CBaslerUniversalGrabResultPtr ptr_grab_result;
+    try
+    {
+        cam_->TriggerSoftware.Execute();
+        cam_->RetrieveResult(5000, ptr_grab_result, Pylon::TimeoutHandling_ThrowException);
+        //std::cout << "GrabSucceeded: " << ptr_grab_result->GrabSucceeded() << std::endl;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while trying to grab prior to chunk timestamp access: " << e.GetDescription());
+        return -3;  // exception
+    }
+    
+    if (!ptr_grab_result->GrabSucceeded())
+    {
+        RCLCPP_WARN(LOGGER_BASE, "Grab was not successful prior to chunk timestamp access");
+        return -3;  // did not manage to grab
+    }
+
+    try
+    {
+        if (!ptr_grab_result->ChunkTimestamp.IsReadable())
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to getting the chunk timestamp. The connected camera may not support this feature");
+            return -1;  // not supported 
         }
-    } else {
-        RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to getting the Chunk Timestamp. The connected Camera not supporting this feature");
-        return -1;      // No Supported 
+        else
+        {
+            // this is the way
+            RCLCPP_DEBUG_STREAM(LOGGER_BASE, "Chunk timestamp value: " << ptr_grab_result->ChunkTimestamp.GetValue());
+            return ptr_grab_result->ChunkTimestamp.GetValue();
+        }
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the chunk timestamp occurred: " << e.GetDescription());
+        return -2;  // exception
     }
 }
 
 template <typename CameraTraitT> 
-float PylonROS2CameraImpl<CameraTraitT>::getChunkExposureTime() {
-    if (GenApi::IsAvailable(cam_->ChunkExposureTime)){
-        try {
-            return cam_->ChunkExposureTime.GetValue();
-        } catch ( const GenICam::GenericException &e ){
-                RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the Chunk Exposure Time occurred:" << e.GetDescription());
-                return -2.0;
+float PylonROS2CameraImpl<CameraTraitT>::getChunkExposureTime()
+{
+    // -1 feature not supported
+    // -2 exception
+    // -3 did not manage to grab
+
+    // If camera is not grabbing, don't grab
+    if (!cam_->IsGrabbing())
+    {
+        RCLCPP_WARN(LOGGER_BASE, "Grabbing needs to be started prior to chunk exposure access");
+        return -3.0;  // not grabbing
+    }
+
+    Pylon::CBaslerUniversalGrabResultPtr ptr_grab_result;
+    try
+    {
+        cam_->TriggerSoftware.Execute();
+        cam_->RetrieveResult(5000, ptr_grab_result, Pylon::TimeoutHandling_ThrowException);
+        //std::cout << "GrabSucceeded: " << ptr_grab_result->GrabSucceeded() << std::endl;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while trying to grab prior to chunk exposure access: " << e.GetDescription());
+        return -3.0;  // exception
+    }
+    
+    if (!ptr_grab_result->GrabSucceeded())
+    {
+        RCLCPP_WARN(LOGGER_BASE, "Grab was not successful prior to chunk exposure access");
+        return -3.0;  // did not manage to grab
+    }
+
+    try
+    {
+        if (!ptr_grab_result->ChunkExposureTime.IsReadable())
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to getting the chunk exposure. The connected camera may not support this feature");
+            return -1.0;  // not supported 
         }
-    } else {
-        RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to getting the Chunk Exposure Time. The connected Camera not supporting this feature");
-        return -1.0;      // No Supported 
+        else
+        {
+            // this is the way
+            RCLCPP_DEBUG_STREAM(LOGGER_BASE, "Chunk exposure value: " << ptr_grab_result->ChunkExposureTime.GetValue());
+            return ptr_grab_result->ChunkExposureTime.GetValue();
+        }
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the chunk exposure occurred: " << e.GetDescription());
+        return -2.0;  // exception
     }
 }
 
@@ -3711,47 +3889,164 @@ std::string PylonROS2CameraImpl<CameraTraitT>::setChunkExposureTime(const float&
 }
 
 template <typename CameraTraitT> 
-int PylonROS2CameraImpl<CameraTraitT>::getChunkLineStatusAll() {
-    if (GenApi::IsAvailable(cam_->ChunkLineStatusAll)){
-        try {
-            return cam_->ChunkLineStatusAll.GetValue();
-        } catch ( const GenICam::GenericException &e ){
-                RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the Chunk Line Status All occurred:" << e.GetDescription());
-                return -2;
+int64_t PylonROS2CameraImpl<CameraTraitT>::getChunkLineStatusAll()
+{
+    // -1 feature not supported
+    // -2 exception
+    // -3 did not manage to grab
+
+    // If camera is not grabbing, don't grab
+    if (!cam_->IsGrabbing())
+    {
+        RCLCPP_WARN(LOGGER_BASE, "Grabbing needs to be started prior to chunk line status all access");
+        return -3;  // not grabbing
+    }
+
+    Pylon::CBaslerUniversalGrabResultPtr ptr_grab_result;
+    try
+    {
+        cam_->TriggerSoftware.Execute();
+        cam_->RetrieveResult(5000, ptr_grab_result, Pylon::TimeoutHandling_ThrowException);
+        //std::cout << "GrabSucceeded: " << ptr_grab_result->GrabSucceeded() << std::endl;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while trying to grab prior to chunk line status all access: " << e.GetDescription());
+        return -3;  // exception
+    }
+    
+    if (!ptr_grab_result->GrabSucceeded())
+    {
+        RCLCPP_WARN(LOGGER_BASE, "Grab was not successful prior to chunk line status all access");
+        return -3;  // did not manage to grab
+    }
+
+    try
+    {
+        if (!ptr_grab_result->ChunkLineStatusAll.IsReadable())
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to getting the chunk line status all. The connected camera may not support this feature");
+            return -1;  // not supported 
         }
-    } else {
-        RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to getting the Chunk Line Status All. The connected Camera not supporting this feature");
-        return -1;      // No Supported 
+        else
+        {
+            // this is the way
+            RCLCPP_DEBUG_STREAM(LOGGER_BASE, "Chunk line status all value: " << ptr_grab_result->ChunkLineStatusAll.GetValue());
+            return ptr_grab_result->ChunkLineStatusAll.GetValue();
+        }
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the chunk line status all occurred: " << e.GetDescription());
+        return -2;  // exception
     }
 }
 
 template <typename CameraTraitT> 
-int PylonROS2CameraImpl<CameraTraitT>::getChunkFramecounter() {
-    if (GenApi::IsAvailable(cam_->ChunkFramecounter)){
-        try {
-            return cam_->ChunkFramecounter.GetValue();
-        } catch ( const GenICam::GenericException &e ){
-                RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the Chunk Frame Counter occurred:" << e.GetDescription());
-                return -2;
+int64_t PylonROS2CameraImpl<CameraTraitT>::getChunkFramecounter()
+{
+    // -1 feature not supported
+    // -2 exception
+    // -3 did not manage to grab
+
+    // If camera is not grabbing, don't grab
+    if (!cam_->IsGrabbing())
+    {
+        RCLCPP_WARN(LOGGER_BASE, "Grabbing needs to be started prior to chunk frame counter access");
+        return -3;  // not grabbing
+    }
+
+    Pylon::CBaslerUniversalGrabResultPtr ptr_grab_result;
+    try
+    {
+        cam_->TriggerSoftware.Execute();
+        cam_->RetrieveResult(5000, ptr_grab_result, Pylon::TimeoutHandling_ThrowException);
+        //std::cout << "GrabSucceeded: " << ptr_grab_result->GrabSucceeded() << std::endl;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while trying to grab prior to chunk frame counter access: " << e.GetDescription());
+        return -3;  // exception
+    }
+    
+    if (!ptr_grab_result->GrabSucceeded())
+    {
+        RCLCPP_WARN(LOGGER_BASE, "Grab was not successful prior to chunk frame counter access");
+        return -3;  // did not manage to grab
+    }
+
+    try
+    {
+        if (!ptr_grab_result->ChunkFramecounter.IsReadable())
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to getting the chunk frame counter. The connected camera may not support this feature");
+            return -1;  // not supported 
         }
-    } else {
-        RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to getting the Chunk Frame Counter. The connected Camera not supporting this feature");
-        return -1;      // No Supported 
+        else
+        {
+            // this is the way
+            RCLCPP_DEBUG_STREAM(LOGGER_BASE, "Chunk frame counter value: " << ptr_grab_result->ChunkFramecounter.GetValue());
+            return ptr_grab_result->ChunkFramecounter.GetValue();
+        }
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the chunk frame counter occurred: " << e.GetDescription());
+        return -2;  // exception
     }
 }
 
 template <typename CameraTraitT> 
-int PylonROS2CameraImpl<CameraTraitT>::getChunkCounterValue() {
-    if (GenApi::IsAvailable(cam_->ChunkCounterValue)){
-        try {
-            return cam_->ChunkCounterValue.GetValue();
-        } catch ( const GenICam::GenericException &e ){
-                RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the Chunk Counter Value occurred:" << e.GetDescription());
-                return -2;
+int64_t PylonROS2CameraImpl<CameraTraitT>::getChunkCounterValue()
+{
+    // -1 feature not supported
+    // -2 exception
+    // -3 did not manage to grab
+
+    // If camera is not grabbing, don't grab
+    if (!cam_->IsGrabbing())
+    {
+        RCLCPP_WARN(LOGGER_BASE, "Grabbing needs to be started prior to chunk counter value access");
+        return -3;  // not grabbing
+    }
+
+    Pylon::CBaslerUniversalGrabResultPtr ptr_grab_result;
+    try
+    {
+        cam_->TriggerSoftware.Execute();
+        cam_->RetrieveResult(5000, ptr_grab_result, Pylon::TimeoutHandling_ThrowException);
+        //std::cout << "GrabSucceeded: " << ptr_grab_result->GrabSucceeded() << std::endl;
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while trying to grab prior to chunk counter value access: " << e.GetDescription());
+        return -3;  // exception
+    }
+    
+    if (!ptr_grab_result->GrabSucceeded())
+    {
+        RCLCPP_WARN(LOGGER_BASE, "Grab was not successful prior to chunk counter value access");
+        return -3;  // did not manage to grab
+    }
+
+    try
+    {
+        if (!ptr_grab_result->ChunkCounterValue.IsReadable())
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to getting the chunk counter value. The connected camera may not support this feature");
+            return -1;  // not supported 
         }
-    } else {
-        RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to getting the Chunk Counter Value. The connected Camera not supporting this feature");
-        return -1;      // No Supported 
+        else
+        {
+            // this is the way
+            RCLCPP_DEBUG_STREAM(LOGGER_BASE, "Chunk counter value value: " << ptr_grab_result->ChunkCounterValue.GetValue());
+            return ptr_grab_result->ChunkCounterValue.GetValue();
+        }
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while getting the chunk counter value occurred: " << e.GetDescription());
+        return -2;  // exception
     }
 }
 
