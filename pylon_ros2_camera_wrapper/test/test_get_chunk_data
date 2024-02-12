@@ -1,9 +1,7 @@
 # script to test the access to dedicated chunk data value
 # uncomment and adjust accordingly relatively to your tests and setups
-# to execute: source test_get_chunk_data
+# to execute: source test_get_chunk_data (don't forget to source install/setup.bash)
 # check the availability of specific features here: https://docs.baslerweb.com/data-chunks
-
-./../../../../. install/setup.bash
 
 echo STOP GRABBING
 ros2 service call /my_camera/pylon_ros2_camera_node/stop_grabbing std_srvs/srv/Trigger "{}"
