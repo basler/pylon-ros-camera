@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.4 (2024-02-12)
+-------------------
+* Fix access to chunk data: line status all, counter value, frame counter, exposure, timestamp. Adding dedicated test script.
+
 2.0.3 (2023-12-01)
 -------------------
 * Fix PylonROS2CameraNode plugin-component mismatch 
