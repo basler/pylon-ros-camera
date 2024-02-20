@@ -33,7 +33,7 @@ camera_info_url: ""
 #  Calling the GrabImages-Action can result in a higher framerate
 frame_rate: 5.0
 
-trigger_timeout: 5000  # in ms
+trigger_timeout: 500  # in ms
 grab_timeout: 500  # in ms
 
 # Camera grab strategy 
