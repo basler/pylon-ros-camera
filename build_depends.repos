@@ -1,5 +1,5 @@
 repositories:
-  pylon-ros-camera:
+  dragandbot:
     type: git
     url: https://github.com/dragandbot/dragandbot_common.git
     version: release/v1.1.0
