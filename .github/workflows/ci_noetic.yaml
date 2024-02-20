@@ -1,0 +1,38 @@
+name: ci_noetic
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    types: [opened, synchronize, labeled]
+
+jobs:
+  ci:
+    runs-on: ${{ matrix.os }}
+    if: |
+      ((github.event.action == 'labeled') && (github.event.label.name == 'TESTING') && (github.base_ref == 'main' )) ||
+      ((github.event.action == 'synchronize') && (github.base_ref == 'main') && contains(github.event.pull_request.labels.*.name, 'TESTING')) ||
+      (github.ref_name == 'main')
+    container:
+      image: osrf/ros:${{ matrix.ros_distribution }}-desktop
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04]
+        ros_distribution: [noetic]
+    steps:
+      - name: "checkout this repo"
+        uses: actions/checkout@v3
+      - uses: ros-tooling/setup-ros@v0.7
+        with:
+          required-ros-distributions: noetic
+      - name: Buid and Test!
+        uses: ros-tooling/action-ros-ci@v0.3
+        with:
+          target-ros1-distro: noetic
+          import-token: ${{ secrets.GRAMEYE_PERSONAL_ACCESS_TOKEN }}
+          package-name: |
+            pylon-ros-camera
+          vcs-repo-file-url: build_depends.repos
