@@ -5,7 +5,6 @@ build
 cmake-*
 image_common/
 .vscode/
-.github/
 
 #############
 ##  files  ##
@@ -20,3 +19,11 @@ CATKIN_IGNORE
 *.idea
 *.pyc
 *.save
+
+# Vim
+*.swp
+*.swo
+
+# catkin
+build/
+devel/
