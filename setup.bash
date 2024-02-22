@@ -20,6 +20,7 @@ vcs pull ${catkin_ws}/src
 
 ## From apt repositories
 echo "Start to install dependent binarys(rosdep )"
+sudo sh -c 'echo "yaml https://raw.githubusercontent.com/basler/pylon-ros-camera/master/pylon_camera/rosdep/pylon_sdk.yaml" > /etc/ros/rosdep/sources.list.d/30-pylon_camera.list' 
 rosdep update
 rosdep install -r -y -i \
   --from-paths ${catkin_ws}/src \
