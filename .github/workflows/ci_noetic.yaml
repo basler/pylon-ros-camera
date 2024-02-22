@@ -11,9 +11,9 @@ jobs:
   ci:
     runs-on: ${{ matrix.os }}
     if: |
-      ((github.event.action == 'labeled') && (github.event.label.name == 'TESTING') && (github.base_ref == 'main' )) ||
-      ((github.event.action == 'synchronize') && (github.base_ref == 'main') && contains(github.event.pull_request.labels.*.name, 'TESTING')) ||
-      (github.ref_name == 'main')
+      ((github.event.action == 'labeled') && (github.event.label.name == 'TESTING') && (github.base_ref == 'master' )) ||
+      ((github.event.action == 'synchronize') && (github.base_ref == 'master') && contains(github.event.pull_request.labels.*.name, 'TESTING')) ||
+      (github.ref_name == 'master')
     container:
       image: osrf/ros:${{ matrix.ros_distribution }}-desktop
     timeout-minutes: 20
@@ -28,11 +28,14 @@ jobs:
       - uses: ros-tooling/setup-ros@v0.7
         with:
           required-ros-distributions: noetic
+      - name: "add pylon_sdk to rosdep source list"
+        run: sudo sh -c 'echo "yaml https://raw.githubusercontent.com/basler/pylon-ros-camera/master/pylon_camera/rosdep/pylon_sdk.yaml" > /etc/ros/rosdep/sources.list.d/30-pylon_camera.list'
       - name: Buid and Test!
         uses: ros-tooling/action-ros-ci@v0.3
         with:
           target-ros1-distro: noetic
           import-token: ${{ secrets.GRAMEYE_PERSONAL_ACCESS_TOKEN }}
           package-name: |
-            pylon-ros-camera
+            camera_control_msgs
+            pylon_camera
           vcs-repo-file-url: build_depends.repos
