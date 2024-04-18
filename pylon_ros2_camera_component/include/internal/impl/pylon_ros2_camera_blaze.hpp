@@ -102,8 +102,8 @@ public:
                            sensor_msgs::msg::Image& depth_map_color_msg, 
                            sensor_msgs::msg::Image& confidence_map_msg);
             bool grabBlaze(Pylon::CGrabResultPtr& grab_result);
-    virtual bool grab(Pylon::CGrabResultPtr& grab_result);      // is not used but needs to be implemented
-    virtual bool grab(std::vector<uint8_t>& image);             // is not used but needs to be implemented
+    virtual bool grab(Pylon::CGrabResultPtr& grab_result);                 // is not used but needs to be implemented
+    virtual bool grab(std::vector<uint8_t>& image, rclcpp::Time &stamp);   // is not used but needs to be implemented
 
             bool processAndConvertBlazeData(const Pylon::CPylonDataContainer& container,
                                             sensor_msgs::msg::PointCloud2& cloud_msg,
@@ -1426,7 +1426,7 @@ bool PylonROS2BlazeCamera::grab(Pylon::CGrabResultPtr& grab_result)
     return true;
 }
 
-bool PylonROS2BlazeCamera::grab(std::vector<uint8_t>& image)
+bool PylonROS2BlazeCamera::grab(std::vector<uint8_t>& image, rclcpp::Time &stamp)
 {
     RCLCPP_DEBUG(LOGGER_BLAZE, "This function is not the right one to grab data from the blaze - use the function grabBlaze instead.");
     return true;
