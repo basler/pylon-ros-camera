@@ -1,0 +1,10 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Basler Documentation
+    url: https://docs.baslerweb.com
+    about: "Camera and Pylon AP documentation"
+    
+  - name: ROS Documentation
+    url: https://docs.ros.org/
+    about: "ROS documentation"
+
