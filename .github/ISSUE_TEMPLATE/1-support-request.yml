@@ -1,0 +1,82 @@
+name: Support request
+description: Ask for support
+title: "Please write a comprehensive title"
+labels: ["Needs Triage"]
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      For a support request on how to operate your cameras with the Basler ROS driver, please use the fields below to describe your environment.
+      
+      To help Basler find the right support channel for you, please indicate where your company is located, e.g., in Germany, China, Canada, etc.
+      If you feel confident, you may also indicate your company's name.
+      
+      If you have challenges operating your cameras independently of the ROS driver, please refer to the Basler documentation on https://docs.baslerweb.com/.
+      If you have challenges using ROS, please refer to the ROS documentation on https://docs.ros.org/.
+      Support request on how to operate your Basler cameras only or on how to use ROS may be rejected.
+
+- type: textarea
+  attributes:
+    label: "Describe what you want to implement and what the issue & the steps to reproduce it are:"
+    description: >
+      Please specify here the branch you are working with.
+    placeholder: |
+      If you want to add code please
+      use markdown formatting
+      ```
+        << your code here >>
+      ```
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: "Hardware setup description"
+    description: >
+      Please describe here your hardware setup as thoroughly as possible. If not enough information is provided, the support request may be rejected.
+      
+      * List the camera serial number(s) & model(s) involved in this support request. Serial number(s) is/are mandatory.
+      * Describe your hardware setup including:
+        * PC or embedded system model/type:
+          * CPU architecture X86/X86_64/ARM/ARM64
+          * Operating System
+          * RAM
+          * ... and any other relevant information
+      * Interfaces used to connect the cameras:
+          * Type in type/model/name of interface cards
+          * Switches or hubs used
+          * Cable types/lengths
+          * ... and any other relevant information
+          
+      The following command will show your OS architecture:
+      ```uname -m```
+  placeholder: |
+    << Hardware setup description >>
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: "Runtime information"
+    description: |
+      Do you have the full Basler pylon Camera Software Suite installed in addition to ROS driver?
+      In the pylon Viewer, the keys `Shift + Ctrl + Alt + i` will capture OS / software version information, that you can paste here.
+      Specify here the ROS version you are working with. The following command will show the ROS version you are working with:
+      ```echo $ROS_DISTRO```
+      In case of containerized applications, list as well the operating base system and platform.
+    placeholder: |
+      << Runtime information >>
+    render: shell
+  validations:
+    required: true
+
+- type: dropdown
+  attributes:
+    label: Is your camera operational with the Basler pylon Viewer on your platform?
+    description: To better understand where the issue is coming from, please tell us if the camera works in the pylon Viewer on your platform.
+    options:
+      - 'Yes'
+      - 'No'
+  validations:
+    required: true

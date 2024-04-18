@@ -1,0 +1,93 @@
+name: Bug report
+description: Report a bug
+title: "BUG: <Please write a comprehensive title after the 'BUG: ' prefix>"
+labels: ["Bug", "Needs Triage"]
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      Thank you for taking the time to submit a bug report. Before creating a new issue, please take a few minutes to check the already opened and closed issues on Github, as your issue may already have been solved.
+
+- type: textarea
+  attributes:
+    label: "Issue description"
+    description: >
+      Please describe as thoroughly as possible your issue here.
+  placeholder: |
+      << Issue description >>
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: "Code example about how to reproduce the issue"
+    description: >
+      A short code example that reproduces the problem/missing feature. It should be as much as possible self-contained.
+    placeholder: |
+      use markdown formatting to add your code
+      ```
+        << your code here >>
+      ```
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: "Error message"
+    description: >
+      Please add here the full error message, if any.
+    placeholder: |
+      << Error message >>
+    render: shell
+
+- type: textarea
+  attributes:
+    label: "Hardware setup description"
+    description: >
+      Please describe here your hardware setup as thoroughly as possible. If not enough information is provided, the support request may be rejected.
+      
+      * List the camera serial number(s) & model(s) involved in this support request. Serial number(s) is/are mandatory.
+      * Describe your hardware setup including:
+        * PC or embedded system model/type:
+          * CPU architecture X86/X86_64/ARM/ARM64
+          * Operating System
+          * RAM
+          * ... and any other relevant information
+      * Interfaces used to connect the cameras:
+          * Type in type/model/name of interface cards
+          * Switches or hubs used
+          * Cable types/lengths
+          * ... and any other relevant information
+          
+      The following command will show your OS architecture:
+      ```uname -m```
+  placeholder: |
+    << Hardware setup description >>
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: "Runtime information"
+    description: |
+      Do you have the full Basler pylon Camera Software Suite installed in addition to ROS driver?
+      In the pylon Viewer, the keys `Shift + Ctrl + Alt + i` will capture OS / software version information, that you can paste here.
+      Specify here the ROS version you are working with. The following command will show the ROS version you are working with:
+      ```echo $ROS_DISTRO```
+      In case of containerized applications, list as well the operating base system and platform.
+    placeholder: |
+      << Runtime information >>
+    render: shell
+  validations:
+    required: true
+
+- type: dropdown
+  attributes:
+    label: Is your camera operational with the Basler pylon Viewer on your platform?
+    description: To better understand where the issue is coming from, please tell us if the camera works in the pylon Viewer on your platform.
+    options:
+      - 'Yes'
+      - 'No'
+  validations:
+    required: true
