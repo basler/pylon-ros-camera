@@ -160,7 +160,7 @@ namespace pylon_ros2_camera
                     << "Step:      " << confidence_map.step << "\n\t\t"
                     << "Timestamp: " << confidence_map.header.stamp.sec << "\n\t\t"
                     << "Frame ID:  " << confidence_map.header.frame_id);
-          
+
           cv_bridge::CvImagePtr cv_img = cv_bridge::toCvCopy(result.result->intensity_maps[i], result.result->intensity_maps[i].encoding);
           
           std::stringstream ss;
@@ -180,7 +180,7 @@ namespace pylon_ros2_camera
 
         rclcpp::shutdown();
       }
-  
+
   }; // class TestGrabBlazeDataActionClient
 
 } // namespace pylon_ros2_camera

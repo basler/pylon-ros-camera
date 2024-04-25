@@ -114,7 +114,7 @@ bool PylonROS2GigEAce2Camera::applyCamSpecificStartupSettings(const PylonROS2Cam
             // UserSetSelector_Default overrides Software Trigger Mode !!
             cam_->TriggerSource.SetValue(Basler_UniversalCameraParams::TriggerSource_Software);
             cam_->TriggerMode.SetValue(Basler_UniversalCameraParams::TriggerMode_On);
-            
+
             /* Thresholds for the AutoExposure Functions:
                 *  - lower limit can be used to get rid of changing light conditions
                 *    due to 50Hz lamps (-> 20ms cycle duration)
@@ -181,7 +181,7 @@ bool PylonROS2GigEAce2Camera::applyCamSpecificStartupSettings(const PylonROS2Cam
             // from 'automatic' to 3000 if card supports it
             // single-board computers have MTU = 1500, max value for some cards: 9000
             cam_->GevSCPSPacketSize.SetValue(parameters.mtu_size_);
-            
+
             if (parameters.auto_flash_)
             {
                 std::map<int, bool> flash_on_lines;
@@ -321,10 +321,10 @@ std::string PylonROS2GigEAce2Camera::setBlackLevel(const int& value)
     {
         if ( GenApi::IsAvailable(cam_->BlackLevel) )
         {
-            cam_->BlackLevel.SetValue(value);   
+            cam_->BlackLevel.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
              RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to change the image black level. The connected Camera not supporting this feature");
              return "The connected Camera not supporting this feature";
@@ -344,10 +344,10 @@ int PylonROS2GigEAce2Camera::getBlackLevel()
     {
         if ( GenApi::IsAvailable(cam_->BlackLevel) )
         {
-            return static_cast<int>(cam_->BlackLevel.GetValue());     
+            return static_cast<int>(cam_->BlackLevel.GetValue());
         }
-        else 
-        { 
+        else
+        {
              return -10000;
         }
 
@@ -369,7 +369,7 @@ std::string PylonROS2GigEAce2Camera::setNoiseReduction(const float& value)
             cam_->BslNoiseReduction.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to change the noise reduction value. The connected Camera not supporting this feature");
             return "The connected Camera not supporting this feature";
@@ -391,7 +391,7 @@ float PylonROS2GigEAce2Camera::getNoiseReduction()
         {
             return  static_cast<float>(cam_->BslNoiseReduction.GetValue());
         }
-        else 
+        else
         {
             return -10000.0;
         }
@@ -412,7 +412,7 @@ std::string PylonROS2GigEAce2Camera::setSharpnessEnhancement(const float& value)
             cam_->BslSharpnessEnhancement.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to change the sharpness enhancement value. The connected Camera not supporting this feature");
             return "The connected Camera not supporting this feature";
@@ -434,7 +434,7 @@ float PylonROS2GigEAce2Camera::getSharpnessEnhancement()
         {
             return static_cast<float>(cam_->BslSharpnessEnhancement.GetValue());
         }
-        else 
+        else
         {
             return -10000.0;
         }
@@ -453,7 +453,7 @@ std::string PylonROS2GigEAce2Camera::setTriggerDelay(const float& delayValue)
 
             cam_->TriggerDelay.SetValue(delayValue);
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to change the trigger delay. The connected Camera not supporting this feature");
             return "The connected Camera not supporting this feature";
@@ -475,7 +475,7 @@ float PylonROS2GigEAce2Camera::getTriggerDelay()
 
              return static_cast<float>(cam_->TriggerDelay.GetValue());
         }
-        else 
+        else
         {
             return -10000.0; // Not available
         }
@@ -491,12 +491,12 @@ std::string PylonROS2GigEAce2Camera::setAcquisitionFrameCount(const int& frameCo
     try
     {
         if ( GenApi::IsAvailable(cam_->AcquisitionFrameRate) && GenApi::IsAvailable(cam_->AcquisitionFrameRateEnable))
-        {  
+        {
             cam_->AcquisitionFrameRateEnable.SetValue(true);
-            cam_->AcquisitionFrameRate.SetValue(static_cast<float>(frameCount));   
+            cam_->AcquisitionFrameRate.SetValue(static_cast<float>(frameCount));
             return "done";
         }
-        else 
+        else
         {
              RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to change the Acquisition frame count. The connected Camera not supporting this feature");
              return "The connected Camera not supporting this feature";
@@ -515,10 +515,10 @@ int PylonROS2GigEAce2Camera::getAcquisitionFrameCount()
     try
     {
         if ( GenApi::IsAvailable(cam_->AcquisitionFrameRate) )
-        {  
+        {
             return static_cast<int>(cam_->AcquisitionFrameRate.GetValue());
         }
-        else 
+        else
         {
              return -10000; // Not available
         }
@@ -535,19 +535,19 @@ std::string PylonROS2GigEAce2Camera::setDeviceLinkThroughputLimitMode(const bool
     try
     {
         if ( GenApi::IsAvailable(cam_->DeviceLinkThroughputLimitMode) )
-        {  
+        {
             if (turnOn)
             {
-            cam_->DeviceLinkThroughputLimitMode.SetValue( Basler_UniversalCameraParams::DeviceLinkThroughputLimitModeEnums::DeviceLinkThroughputLimitMode_On);   
+            cam_->DeviceLinkThroughputLimitMode.SetValue( Basler_UniversalCameraParams::DeviceLinkThroughputLimitModeEnums::DeviceLinkThroughputLimitMode_On);
             return "done";
             }
-            else 
+            else
             {
-            cam_->DeviceLinkThroughputLimitMode.SetValue( Basler_UniversalCameraParams::DeviceLinkThroughputLimitModeEnums::DeviceLinkThroughputLimitMode_Off);    
+            cam_->DeviceLinkThroughputLimitMode.SetValue( Basler_UniversalCameraParams::DeviceLinkThroughputLimitModeEnums::DeviceLinkThroughputLimitMode_Off);
             return "done";
             }
         }
-        else 
+        else
         {
              RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to change the device link throughput limit mode. The connected Camera not supporting this feature");
              return "The connected Camera not supporting this feature";
@@ -567,7 +567,7 @@ int PylonROS2GigEAce2Camera::getDeviceLinkThroughputLimitMode()
     try
     {
         if ( GenApi::IsAvailable(cam_->DeviceLinkThroughputLimitMode) )
-        {  
+        {
             if (cam_->DeviceLinkThroughputLimitMode.GetValue() ==  Basler_UniversalCameraParams::DeviceLinkThroughputLimitModeEnums::DeviceLinkThroughputLimitMode_On)
             {
                 return 0; // On
@@ -576,12 +576,12 @@ int PylonROS2GigEAce2Camera::getDeviceLinkThroughputLimitMode()
             {
             return 1; // Off
             }
-            else 
+            else
             {
             return -3; // Unknown
             }
         }
-        else 
+        else
         {
              return -1; // Not Available
         }
@@ -598,18 +598,18 @@ std::string PylonROS2GigEAce2Camera::setDeviceLinkThroughputLimit(const int& lim
     try
     {
         if ( GenApi::IsAvailable(cam_->DeviceLinkThroughputLimit) )
-        {  
+        {
             if (cam_->DeviceLinkThroughputLimitMode.GetValue() ==  Basler_UniversalCameraParams::DeviceLinkThroughputLimitModeEnums::DeviceLinkThroughputLimitMode_On)
             {
-                cam_->DeviceLinkThroughputLimit.SetValue(limit);     
+                cam_->DeviceLinkThroughputLimit.SetValue(limit);
                 return "done";
             }
-            else 
+            else
             {
                 return "Error : device link throughput limit mode is off";
             }
         }
-        else 
+        else
         {
              RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to change the device link throughput limit. The connected Camera not supporting this feature");
              return "The connected Camera not supporting this feature";
@@ -700,7 +700,7 @@ std::string PylonROS2GigEAce2Camera::setTriggerSource(const int& source)
                     return "Error: unknown value for trigger source";
             }
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to change the trigger source. The connected camera does not support this feature");
             return "The connected camera does not support this feature";
@@ -734,7 +734,7 @@ std::string PylonROS2GigEAce2Camera::setTimerSelector(const int& selector)
                     return "Error: unknown value for timer selector";
             }
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to change the timer selector. The connected camera does not support this feature");
             return "The connected camera does not support this feature";
@@ -745,7 +745,7 @@ std::string PylonROS2GigEAce2Camera::setTimerSelector(const int& selector)
         RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "An exception while setting the timer selector occurred:" << e.GetDescription());
         return e.GetDescription();
     }
-    
+
     return "done";
 }
 
@@ -755,10 +755,10 @@ std::string PylonROS2GigEAce2Camera::setPTPPriority(const int& value)
     {
         if (GenApi::IsAvailable(cam_->BslPtpPriority1))
         {
-            cam_->BslPtpPriority1.SetValue(value);   
+            cam_->BslPtpPriority1.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to set PTP priority. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
@@ -793,7 +793,7 @@ std::string PylonROS2GigEAce2Camera::setPTPProfile(const int& value)
                     break;
             }
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to set PTP profile. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
@@ -826,13 +826,13 @@ std::string PylonROS2GigEAce2Camera::setPTPNetworkMode(const int& value)
                 case 3:
                     cam_->BslPtpNetworkMode.SetValue(Basler_UniversalCameraParams::BslPtpNetworkModeEnums::BslPtpNetworkMode_Unicast);
                     return "done";
-                    break;        
+                    break;
                 default:
                     return "Error: Unknown ptp network mode";
                     break;
             }
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to set PTP network mode. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
@@ -852,10 +852,10 @@ std::string PylonROS2GigEAce2Camera::setPTPUCPortAddressIndex(const int& value)
     {
         if (GenApi::IsAvailable(cam_->BslPtpUcPortAddrIndex))
         {
-            cam_->BslPtpUcPortAddrIndex.SetValue(value);   
+            cam_->BslPtpUcPortAddrIndex.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to set PTP UC address index. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
@@ -875,10 +875,10 @@ std::string PylonROS2GigEAce2Camera::setPTPUCPortAddress(const int& value)
     {
         if (GenApi::IsAvailable(cam_->BslPtpUcPortAddr))
         {
-            cam_->BslPtpUcPortAddr.SetValue(value);   
+            cam_->BslPtpUcPortAddr.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to set PTP UC address. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
@@ -901,7 +901,7 @@ std::string PylonROS2GigEAce2Camera::setPeriodicSignalPeriod(const float& value)
             cam_->BslPeriodicSignalPeriod.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to set periodic signal period. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
@@ -924,7 +924,7 @@ std::string PylonROS2GigEAce2Camera::setPeriodicSignalDelay(const float& value)
             cam_->BslPeriodicSignalDelay.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to set periodic signal delay. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
@@ -944,10 +944,10 @@ std::string PylonROS2GigEAce2Camera::enablePTPManagementProtocol(const bool& val
     {
         if (GenApi::IsAvailable(cam_->BslPtpManagementEnable))
         {
-            cam_->BslPtpManagementEnable.SetValue(value);   
+            cam_->BslPtpManagementEnable.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to enable/disable PTP management protocol. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
@@ -967,10 +967,10 @@ std::string PylonROS2GigEAce2Camera::enablePTPTwoStepOperation(const bool& value
     {
         if (GenApi::IsAvailable(cam_->BslPtpTwoStep))
         {
-            cam_->BslPtpTwoStep.SetValue(value);   
+            cam_->BslPtpTwoStep.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to enable/disable PTP two step operation. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
@@ -990,10 +990,10 @@ std::string PylonROS2GigEAce2Camera::enablePTP(const bool& value)
     {
         if (GenApi::IsAvailable(cam_->PtpEnable))
         {
-            cam_->PtpEnable.SetValue(value);   
+            cam_->PtpEnable.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error while trying to enable/disable PTP. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
@@ -1040,13 +1040,13 @@ std::string PylonROS2GigEAce2Camera::setActionTriggerConfiguration(const int& ac
 
         cam_->RegisterConfiguration(new Pylon::CActionTriggerConfiguration(action_device_key, action_group_key, action_group_mask), reg_mode, cu);
 
-        RCLCPP_INFO_STREAM(LOGGER_GIGE_ACE2, "Action trigger configuration has been set successfully: " 
+        RCLCPP_INFO_STREAM(LOGGER_GIGE_ACE2, "Action trigger configuration has been set successfully: "
                                           << "Device key -> " << action_device_key << ", "
                                           << "Group key -> " << action_group_key << ", "
                                           << "Group mask -> " << std::hex << action_group_mask << ", "
                                           << "Registration mode -> " << (reg_mode == Pylon::ERegistrationMode::RegistrationMode_Append ? "RegistrationMode_Append" : "RegistrationMode_ReplaceAll") << ", "
                                           << "Cleanup -> " << (cu == Pylon::ECleanup::Cleanup_None ? "Cleanup_None" : "Cleanup_Delete"));
-        
+
         return "done";
     }
     catch (const GenICam::GenericException &e)
@@ -1068,12 +1068,12 @@ std::string PylonROS2GigEAce2Camera::issueActionCommand(const int& device_key, c
         // Send an action command to the cameras
         pTl->IssueActionCommand(device_key, group_key, group_mask, broadcast_address.c_str());
 
-        RCLCPP_INFO_STREAM(LOGGER_GIGE_ACE2, "Action command has been issued successfully: " 
+        RCLCPP_INFO_STREAM(LOGGER_GIGE_ACE2, "Action command has been issued successfully: "
                                         << "Device key -> " << device_key << ", "
                                         << "Group key -> " << group_key << ", "
                                         << "Group mask -> " << std::hex << group_mask << ", "
                                         << "Broadcast address -> " << broadcast_address);
-        
+
         return "done";
     }
     catch (const GenICam::GenericException &e)
@@ -1102,13 +1102,13 @@ std::string PylonROS2GigEAce2Camera::issueScheduledActionCommand(const int& devi
         // Send a scheduled action command to the cameras
         pTl->IssueScheduledActionCommand(device_key, group_key, group_mask, action_time, broadcast_address.c_str());
 
-        RCLCPP_INFO_STREAM(LOGGER_GIGE_ACE2, "Scheduled action command has been issued successfully: " 
+        RCLCPP_INFO_STREAM(LOGGER_GIGE_ACE2, "Scheduled action command has been issued successfully: "
                                         << "Device key -> " << device_key << ", "
                                         << "Group key -> " << group_key << ", "
                                         << "Group mask -> " << std::hex << group_mask << ", "
                                         << "Action time from current timestamp -> " << (double)action_time_ns_from_current_timestamp << " ns, "
                                         << "Broadcast address -> " << broadcast_address);
-        
+
         return "done";
     }
     catch (const GenICam::GenericException &e)

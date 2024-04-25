@@ -68,7 +68,7 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
     if (device_info.IsDeviceClassAvailable())
     {
         device_class = device_info.GetDeviceClass();
-        
+
         if (device_class == "BaslerGigE")
         {
             if (device_info.IsModelNameAvailable())
@@ -82,8 +82,8 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
                 else if (model_name.compare(0, 3, "a2A") == 0)
                 {
                     return GIGE2;
-                } 
-                else 
+                }
+                else
                 {
                     RCLCPP_ERROR_STREAM(LOGGER, "Found 'BaslerGigE' camera device type, "
                         << "but it is neither a ace, nor a ace2 camera device. "
@@ -116,7 +116,7 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
                     RCLCPP_ERROR_STREAM(LOGGER, "Found 'BaslerUsb' camera device type, "
                         << "but it is neither a Dart, nor a USB camera device. "
                         << "Other camera types are not supported by this driver for now!");
-                    
+
                     return UNKNOWN;
                 }
             }
@@ -124,7 +124,7 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
             {
                 RCLCPP_ERROR_STREAM(LOGGER, "Error while detecting the pylon camera type from its Model Name. "
                     << "The connected camera has no Model Name available!");
-                
+
                 return UNKNOWN;
             }
         }
@@ -186,7 +186,7 @@ PylonROS2Camera* PylonROS2Camera::create(const std::string& device_user_id_to_op
         Pylon::CTlFactory& tl_factory = Pylon::CTlFactory::GetInstance();
 
         Pylon::DeviceInfoList_t device_list;
-        
+
         // EnumerateDevices() returns the number of devices found
         if (0 == tl_factory.EnumerateDevices(device_list))
         {
@@ -204,21 +204,21 @@ PylonROS2Camera* PylonROS2Camera::create(const std::string& device_user_id_to_op
                     RCLCPP_INFO_STREAM(LOGGER, "Found camera device!"
                                             << " Device Model: " << it->GetModelName()
                                             << " with Device User Id: " << it->GetUserDefinedName());
-                    
+
                     PYLON_CAM_TYPE cam_type = detectPylonCamType(*it);
                     if (cam_type != UNKNOWN)
                     {
                         //RCLCPP_ERROR_STREAM(LOGGER, "CAM TYPE: " << cam_type);
                         PylonROS2Camera* new_cam_ptr = createFromDevice(cam_type, tl_factory.CreateDevice(*it));
                         new_cam_ptr->device_user_id_ = it->GetUserDefinedName();
-                        
+
                         return new_cam_ptr;
                     }
                 }
 
                 Pylon::PylonTerminate();
                 RCLCPP_ERROR_ONCE(LOGGER, "No available compatible camera device");
-                
+
                 return nullptr;
             }
 
@@ -254,7 +254,7 @@ PylonROS2Camera* PylonROS2Camera::create(const std::string& device_user_id_to_op
                 RCLCPP_ERROR_STREAM(LOGGER, "Couldn't find the camera that matches the "
                     << "specified Device User ID: " << device_user_id_to_open << "! "
                     << "Either the ID is wrong or the camera device is not connected (yet)");
-                
+
                 return nullptr;
             }
         }

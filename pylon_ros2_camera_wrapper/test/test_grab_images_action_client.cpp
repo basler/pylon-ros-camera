@@ -124,7 +124,7 @@ namespace pylon_ros2_camera
         for (std::size_t i = 0; i < result.result->images.size(); i++)
         {
           sensor_msgs::msg::Image& img = result.result->images[i];
-          
+
           RCLCPP_INFO_STREAM(this->get_logger(), "Image #" << i+1 << "\n\t"
             << "Encoding:  " << img.encoding << "\n\t"
             << "Width:     " << img.width << "\n\t"
@@ -132,7 +132,7 @@ namespace pylon_ros2_camera
             << "Step:      " << img.step << "\n\t"
             << "Timestamp: " << img.header.stamp.sec << "\n\t"
             << "Frame ID:  " << img.header.frame_id);
-          
+
           cv_bridge::CvImagePtr cv_img = cv_bridge::toCvCopy(result.result->images[i], result.result->images[i].encoding);
           
           std::stringstream ss;
@@ -152,7 +152,7 @@ namespace pylon_ros2_camera
 
         rclcpp::shutdown();
       }
-  
+
   }; // class TestGrabImagesActionClient
 
 } // namespace pylon_ros2_camera
