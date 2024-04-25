@@ -358,19 +358,22 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
         available_image_encodings_ = detectAvailableImageEncodings(true); // Basler format
 
         // Check if the image can be encoded with the parameter defined value
-        if (setImageEncoding(parameters.imageEncoding()).find("done") == std::string::npos)
+        const std::string return_str = setImageEncoding(parameters.imageEncoding());
+        if (return_str != "done")
         {
             bool error = true;
+            RCLCPP_WARN_STREAM(LOGGER_BASE, return_str);
             // The desired encoding cannot be used. We will try to use one of the available
             // This avoid the Error while start grabbing program termination
-            for (std::string x : available_image_encodings_)
+            for (const std::string & x : available_image_encodings_)
             {
                 std::string ros_encoding;
                 encodingconversions::genAPI2Ros(x, ros_encoding);
-                if ((setImageEncoding(ros_encoding).find("done") != std::string::npos))
+                if (setImageEncoding(ros_encoding) == "done")
                 {
                     // Achieved one of the encodings
                     error = false;
+                    RCLCPP_WARN_STREAM(LOGGER_BASE, "Falling back to encoding: " << ros_encoding);
                     break;
                 }
             }
