@@ -38,18 +38,13 @@
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 
-using namespace Pylon;
-using namespace GenApi;
-using namespace Basler_GigECameraParams;
-using namespace Basler_GigEStreamParams;
-
 typedef Pylon::CBaslerGigECamera camera_t;
 std::vector<std::string> logs;
 
-std::string autoProbe(CBaslerGigEDeviceInfo &bdi, IGigETransportLayer* s_pTl);
+std::string autoProbe(Pylon::CBaslerGigEDeviceInfo &bdi, Pylon::IGigETransportLayer* s_pTl);
 void enumurateNIC(std::vector<std::tuple <std::string, std::string>> *InterfaceList);
 void enumurateNIC();
-void displayCurrentStatus(DeviceInfoList_t &listDevices, IGigETransportLayer* s_pTl);
+void displayCurrentStatus(Pylon::DeviceInfoList_t &listDevices, Pylon::IGigETransportLayer* s_pTl);
 int readKB(int);
 bool checkIPFormat(char* IP);
 bool checkSubNetFormat(char* SubnetMask);
@@ -72,14 +67,14 @@ int main(int argc __attribute__((unused)), char** argv __attribute__((unused)))
 
     try
     {
-        PylonInitialize();
+        Pylon::PylonInitialize();
         int selection = -1;
-        DeviceInfoList_t listDevices;
-        DeviceInfoList_t listReachableDevices;
+        Pylon::DeviceInfoList_t listDevices;
+        Pylon::DeviceInfoList_t listReachableDevices;
         
-        CTlFactory & theFactory(CTlFactory::GetInstance());
-        ITransportLayer * const pTemp(theFactory.CreateTl(CBaslerGigECamera::DeviceClass()));
-        IGigETransportLayer* s_pTl = dynamic_cast<IGigETransportLayer*> (pTemp);
+        Pylon::CTlFactory & theFactory(Pylon::CTlFactory::GetInstance());
+        Pylon::ITransportLayer * const pTemp(theFactory.CreateTl(Pylon::CBaslerGigECamera::DeviceClass()));
+        Pylon::IGigETransportLayer* s_pTl = dynamic_cast<Pylon::IGigETransportLayer*> (pTemp);
         //IGigETransportLayer *pTl = (IGigETransportLayer*)theFactory.CreateTl(BaslerGigEDeviceClass);
 
         do
@@ -101,7 +96,7 @@ int main(int argc __attribute__((unused)), char** argv __attribute__((unused)))
                 {
                     std::cout << x;
                     std::string InterfaceAdd = "";
-                    CBaslerGigEDeviceInfo &info = static_cast<CBaslerGigEDeviceInfo&> (listDevices[x]);
+                    Pylon::CBaslerGigEDeviceInfo &info = static_cast<Pylon::CBaslerGigEDeviceInfo&> (listDevices[x]);
                     InterfaceAdd = info.GetInterface().c_str();
                     if(InterfaceAdd  == "255.255.255.255")
                     {
@@ -153,11 +148,11 @@ int main(int argc __attribute__((unused)), char** argv __attribute__((unused)))
                     std::cerr << "Your camera will get following setting" << std::endl;
                     std::cerr << "IP " << IP << " subnet : " << Subnet << std::endl;
 
-                    CBaslerGigEDeviceInfo &bdi = static_cast<CBaslerGigEDeviceInfo&> (listDevices[selection - 1]);
+                    Pylon::CBaslerGigEDeviceInfo &bdi = static_cast<Pylon::CBaslerGigEDeviceInfo&> (listDevices[selection - 1]);
                     s_pTl->ForceIp(bdi.GetMacAddress(), IP, Subnet, "0.0.0.0");
                     std::cerr << "Thread will sleep for 1s in order to wait on updated ARP table" << std::endl;
                     sleep(2); // needed to get ARP Table be updated;
-                    CBaslerGigEDeviceInfo bdi_new(s_pTl->CreateDeviceInfo());
+                    Pylon::CBaslerGigEDeviceInfo bdi_new(s_pTl->CreateDeviceInfo());
                     bdi_new.SetIpAddress(IP);
 
                     s_pTl->EnumerateAllDevices(listDevices);
@@ -172,7 +167,7 @@ int main(int argc __attribute__((unused)), char** argv __attribute__((unused)))
                     try 
                     {
                         // 1 meaning the camera is reachable after assigning a temporary ip1
-                        if (s_pTl->IsDeviceAccessible(bdi_new, Control))
+                        if (s_pTl->IsDeviceAccessible(bdi_new, Pylon::Control))
                         { 
                             camera_t camera(s_pTl->CreateDevice(bdi_new));
                             camera.Open();
@@ -223,10 +218,10 @@ int main(int argc __attribute__((unused)), char** argv __attribute__((unused)))
     return exitCode;
 }
 
-std::string autoProbe(CBaslerGigEDeviceInfo &bdi, IGigETransportLayer* s_pTl)
+std::string autoProbe(Pylon::CBaslerGigEDeviceInfo &bdi, Pylon::IGigETransportLayer* s_pTl)
 {
-    String_t OriginalIP =  bdi.GetIpAddress();
-    String_t OriginalSubnet = bdi.GetSubnetMask();  
+    Pylon::String_t OriginalIP =  bdi.GetIpAddress();
+    Pylon::String_t OriginalSubnet = bdi.GetSubnetMask();  
     std::vector <std::tuple <std::string, std::string>> InterfaceList;
     enumurateNIC(&InterfaceList);
 
@@ -242,11 +237,11 @@ std::string autoProbe(CBaslerGigEDeviceInfo &bdi, IGigETransportLayer* s_pTl)
         address_struct.s_addr = TemIP;
         std::string camIP = inet_ntoa(address_struct);
         s_pTl->ForceIp(bdi.GetMacAddress(), camIP.c_str(), Subnet.c_str(), "0.0.0.0");
-        DeviceInfoList_t devicelist;
+        Pylon::DeviceInfoList_t devicelist;
         s_pTl->EnumerateDevices(devicelist);
         for(auto& di : devicelist)
         {
-            CBaslerGigEDeviceInfo &GigEdi = static_cast<CBaslerGigEDeviceInfo&>(di) ;
+            Pylon::CBaslerGigEDeviceInfo &GigEdi = static_cast<Pylon::CBaslerGigEDeviceInfo&>(di) ;
             if(GigEdi.GetMacAddress() == bdi.GetMacAddress())
             {
                 s_pTl->ForceIp(bdi.GetMacAddress(),OriginalIP,OriginalSubnet, "0.0.0.0");
@@ -310,7 +305,7 @@ void enumurateNIC()
     freeifaddrs(ifap);
 }
 
-void displayCurrentStatus(DeviceInfoList_t &listDevices, IGigETransportLayer* s_pTl) 
+void displayCurrentStatus(Pylon::DeviceInfoList_t &listDevices, Pylon::IGigETransportLayer* s_pTl) 
 {
     if (listDevices.size() > 0) 
     {
@@ -319,23 +314,23 @@ void displayCurrentStatus(DeviceInfoList_t &listDevices, IGigETransportLayer* s_
             std::cerr << "Camera No :      SN:            Current IP       Interface IP       Status " << std::endl << std::endl;
             Pylon::EDeviceAccessiblityInfo isAccessable;
             //camera_t camera=s_pTl->CreateDevice(listDevices[x]);
-            s_pTl->IsDeviceAccessible(listDevices[x], Control, &isAccessable);
-            CBaslerGigEDeviceInfo &bdi = static_cast<CBaslerGigEDeviceInfo&> (listDevices[x]);
+            s_pTl->IsDeviceAccessible(listDevices[x], Pylon::Control, &isAccessable);
+            Pylon::CBaslerGigEDeviceInfo &bdi = static_cast<Pylon::CBaslerGigEDeviceInfo&> (listDevices[x]);
 
             std::string status = "";
             
             switch (isAccessable) 
             {
-                case Accessibility_NotReachable:
+                case Pylon::Accessibility_NotReachable:
                     status = "NotReachable";
                     break;
-                case Accessibility_Ok:
+                case Pylon::Accessibility_Ok:
                     status = "OK";
                     break;
-                case Accessibility_Opened:
+                case Pylon::Accessibility_Opened:
                     status = "Opened";
                     break;
-                case Accessibility_OpenedExclusively:
+                case Pylon::Accessibility_OpenedExclusively:
                     status = "OpenedExclusively";
                     break;
                 default:
