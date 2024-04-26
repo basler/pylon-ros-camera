@@ -74,7 +74,7 @@ PylonROS2CameraNode::PylonROS2CameraNode(const rclcpp::NodeOptions& options)
     return;
 
   // starting spinning thread
-  RCLCPP_INFO_STREAM(LOGGER, "Start image grabbing if node connects to topic with " << "a spinning rate of: " << this->frameRate() << " Hz");
+  RCLCPP_INFO_STREAM(LOGGER, "Start image grabbing (if node connects) to topic with a spinning rate of: " << this->frameRate() << " Hz");
   timer_ = this->create_wall_timer(
             std::chrono::duration<double>(1. / this->frameRate()),
             std::bind(&PylonROS2CameraNode::spin, this));
@@ -658,7 +658,7 @@ bool PylonROS2CameraNode::initAndRegister()
 
   if (!this->pylon_camera_->applyCamSpecificStartupSettings(this->pylon_camera_parameter_set_))
   {
-    RCLCPP_ERROR_STREAM(LOGGER, "Error while applying the user-specified startup settings " << "(e.g., mtu size for GigE, ...) to the camera!");
+    RCLCPP_ERROR_STREAM(LOGGER, "Error while applying the user-specified startup settings (e.g., mtu size for GigE, ...) to the camera!");
     this->cm_status_.status_id = pylon_ros2_camera_interfaces::msg::ComponentStatus::ERROR;
     this->cm_status_.status_msg = "Error while applying the user-specified startup settings";
     if (this->pylon_camera_parameter_set_.enable_status_publisher_)
