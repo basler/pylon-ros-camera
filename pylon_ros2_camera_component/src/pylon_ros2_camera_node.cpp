@@ -28,6 +28,10 @@
 
 #include <GenApi/GenApi.h>
 
+#include <rclcpp/logger.hpp>
+
+#include <functional>
+
 #include "pylon_ros2_camera_node.hpp"
 
 

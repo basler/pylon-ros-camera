@@ -84,6 +84,13 @@
 
 #include <diagnostic_updater/diagnostic_updater.hpp>
 
+#include <array>
+#include <chrono>
+#include <cstddef>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
 
 namespace pylon_ros2_camera
 {
