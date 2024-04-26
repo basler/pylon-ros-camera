@@ -29,6 +29,7 @@
 #pragma once
 
 #include <cmath>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -187,7 +188,7 @@ std::string PylonROS2CameraImpl<CameraTraitT>::currentROSEncoding() const
 
     if (!encodingconversions::genAPI2Ros(gen_api_encoding, ros_encoding))
     {
-        //std::stringstream ss;
+        //std::ostringstream ss;
         //ss << "No ROS equivalent to GenApi encoding '" << gen_api_encoding << "' found! This is bad because this case should never occur!";
         //throw std::runtime_error(ss.str());
         RCLCPP_ERROR_STREAM(LOGGER_BASE, "No ROS equivalent to GenApi encoding");
@@ -326,7 +327,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::setupSequencer(const std::vector<float>&
     if ( setupSequencer(exposure_times, exposure_times_set) )
     {
         seq_exp_times_ = exposure_times_set;
-        std::stringstream ss;
+        std::ostringstream ss;
         ss << "Initialized sequencer with the following inverse exposure-times [1/s]: ";
         for ( size_t i = 0; i < seq_exp_times_.size(); ++i )
         {
@@ -684,7 +685,7 @@ std::vector<std::string> PylonROS2CameraImpl<CameraTraitT>::detectAvailableImage
     GenApi::CEnumerationPtr img_encoding_enumeration_ptr(node_map.GetNode("PixelFormat"));
     GenApi::NodeList_t feature_list;
     img_encoding_enumeration_ptr->GetEntries(feature_list);
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << "The camera device supports the following [GenAPI|ROS] image encodings: ";
 
     for (GenApi::NodeList_t::iterator it = feature_list.begin(); it != feature_list.end(); ++it)

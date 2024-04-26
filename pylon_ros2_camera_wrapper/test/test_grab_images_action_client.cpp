@@ -33,6 +33,7 @@
 
 #include <opencv4/opencv2/highgui.hpp>
 
+#include <sstream>
 
 namespace pylon_ros2_camera
 {
@@ -135,7 +136,7 @@ namespace pylon_ros2_camera
 
           cv_bridge::CvImagePtr cv_img = cv_bridge::toCvCopy(result.result->images[i], result.result->images[i].encoding);
           
-          std::stringstream ss;
+          std::ostringstream ss;
           ss << "Image #" << i+1;
 
           double ratio = (double)img.height / (double)img.width;
