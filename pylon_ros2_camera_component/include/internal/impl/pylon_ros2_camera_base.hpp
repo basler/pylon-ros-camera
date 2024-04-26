@@ -688,11 +688,11 @@ std::vector<std::string> PylonROS2CameraImpl<CameraTraitT>::detectAvailableImage
     std::ostringstream ss;
     ss << "The camera device supports the following [GenAPI|ROS] image encodings: ";
 
-    for (GenApi::NodeList_t::iterator it = feature_list.begin(); it != feature_list.end(); ++it)
+    for (const auto& feature : feature_list)
     {
-        if ( GenApi::IsAvailable(*it) )
+        if ( GenApi::IsAvailable(feature) )
         {
-            GenApi::CEnumEntryPtr enum_entry(*it);
+            GenApi::CEnumEntryPtr enum_entry(feature);
             std::string encoding_gen_api = enum_entry->GetSymbolic().c_str();
             std::string encoding_ros("NO_ROS_EQUIVALENT");
             encodingconversions::genAPI2Ros(encoding_gen_api, encoding_ros);
