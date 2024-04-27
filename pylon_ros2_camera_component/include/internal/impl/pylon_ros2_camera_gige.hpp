@@ -144,7 +144,7 @@ bool PylonROS2GigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
         }
         catch ( const GenICam::GenericException &e )
         {
-            RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error applying cam specific startup setting for GigE cameras: "
+            RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error applying cam specific startup setting for GigE camera: "
                     << e.GetDescription());
         }
     }

@@ -569,9 +569,13 @@ bool PylonROS2CameraNode::initAndRegister()
 {
   this->pylon_camera_ = PylonROS2Camera::create(this->pylon_camera_parameter_set_.deviceUserID());
   if (this->pylon_camera_parameter_set_.deviceUserID() != "")
+  {
     RCLCPP_DEBUG_STREAM(LOGGER, "Pylon camera instance created with the following user id: " << this->pylon_camera_parameter_set_.deviceUserID());
+  }
   else
+  {
     RCLCPP_DEBUG(LOGGER, "No user id for the camera has been set");
+  }
 
   if (this->pylon_camera_ == nullptr)
   {

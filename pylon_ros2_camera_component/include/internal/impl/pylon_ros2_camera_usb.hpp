@@ -183,7 +183,7 @@ bool PylonROS2USBCamera::applyCamSpecificStartupSettings(const PylonROS2CameraPa
     }
     catch ( const GenICam::GenericException &e )
     {
-        RCLCPP_ERROR_STREAM(LOGGER_USB, "Error applying camera specific startup setting for USB cameras: "
+        RCLCPP_ERROR_STREAM(LOGGER_USB, "Error applying camera specific startup setting for USB camera: "
                 << e.GetDescription());
         return false;
     }

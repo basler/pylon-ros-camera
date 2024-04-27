@@ -80,7 +80,7 @@ namespace pylon_ros2_camera
         send_goal_options.result_callback = std::bind(&TestGrabBlazeDataActionClient::result_callback, this, _1);
         this->client_ptr_->async_send_goal(goal_msg, send_goal_options);
 
-        RCLCPP_INFO(this->get_logger(), "Goal sendt!");
+        RCLCPP_INFO(this->get_logger(), "Goal sent!");
       }
 
     private:

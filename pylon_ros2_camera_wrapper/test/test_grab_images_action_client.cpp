@@ -55,6 +55,7 @@ namespace pylon_ros2_camera
       {
         using namespace std::placeholders;
 
+        // Run only once
         this->timer_->cancel();
 
         if (!this->client_ptr_->wait_for_action_server())
@@ -80,7 +81,7 @@ namespace pylon_ros2_camera
         send_goal_options.result_callback = std::bind(&TestGrabImagesActionClient::result_callback, this, _1);
         this->client_ptr_->async_send_goal(goal_msg, send_goal_options);
 
-        RCLCPP_INFO(this->get_logger(), "Goal sendt!");
+        RCLCPP_INFO(this->get_logger(), "Goal sent!");
       }
 
     private:

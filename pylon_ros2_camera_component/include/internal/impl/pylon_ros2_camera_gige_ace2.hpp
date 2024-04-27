@@ -253,7 +253,7 @@ bool PylonROS2GigEAce2Camera::applyCamSpecificStartupSettings(const PylonROS2Cam
     }
     catch ( const GenICam::GenericException &e )
     {
-        RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error applying camera specific startup setting for GigE cameras: "
+        RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "Error applying camera specific startup setting for GigE camera: "
                 << e.GetDescription());
         return false;
     }
