@@ -3,31 +3,31 @@
 <package format="3">
 
   <name>pylon_ros2_camera_interfaces</name>
-  
+
   <version>1.1.0</version>
-  
+
   <description>
   	Interface package from the pylon_camera package.
   	Contains message, service and action definitions of the pylon_camera interface.
   </description>
-    
+
   <maintainer email="fpi@teknologisk.dk">Francois Picard</maintainer>
-  
+
   <license>BSD</license>
-  
+
   <url type="website">https://www.baslerweb.com/en/</url>
   <url type="repository">https://github.com/basler/pylon-ros-camera</url>
   <url type="bugtracker">https://github.com/basler/pylon-ros-camera/issues</url>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  
+
   <build_depend>builtin_interfaces</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>std_srvs</build_depend>
   <build_depend>action_msgs</build_depend>
   <build_depend>rosidl_default_generators</build_depend>
-  
+
   <exec_depend>builtin_interfaces</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>

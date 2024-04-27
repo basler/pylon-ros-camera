@@ -47,7 +47,7 @@ enum SHUTTER_MODE
 
 class PylonROS2CameraParameter
 {
-    
+
 public:
     PylonROS2CameraParameter();
 
@@ -95,7 +95,7 @@ public:
     /**
      * Setter for the image encoding
      */
-    void setimageEncodingParam(rclcpp::Node& nh, const std::string& format); 
+    void setimageEncodingParam(rclcpp::Node& nh, const std::string& format);
 
     /**
      * Setter for the frame_rate_ initially set from ros-parameter server
@@ -305,7 +305,7 @@ public:
      * Only supported for GigE cameras. Default: true
      */
     bool auto_flash_line_3_;
-    
+
     /**
     * camera grab timeout in ms
     */
@@ -317,19 +317,19 @@ public:
     int trigger_timeout_;
 
     /**
-    * camera white balance auto 
+    * camera white balance auto
     */
     int white_balance_auto_;
 
     /**
-    * camera white balance ratio 
+    * camera white balance ratio
     */
     float white_balance_ratio_red_;
     float white_balance_ratio_green_;
     float white_balance_ratio_blue_;
 
     /**
-    * Camera grab strategy 
+    * Camera grab strategy
     * 0 = GrabStrategy_OneByOne
     * 1 = GrabStrategy_LatestImageOnly
     * 2 = GrabStrategy_LatestImages

@@ -12,7 +12,7 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    
+
     # adapt if needed
     frame_id = 'pylon_camera'
     publish_tf2 = True
@@ -87,7 +87,7 @@ def generate_launch_description():
     )
 
     pylon_ros2_camera_node = Node(
-        package='pylon_ros2_camera_wrapper',        
+        package='pylon_ros2_camera_wrapper',
         namespace=camera_id,
         executable='pylon_ros2_camera_wrapper',
         name=node_name,

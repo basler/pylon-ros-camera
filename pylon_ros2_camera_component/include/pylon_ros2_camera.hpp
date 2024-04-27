@@ -104,7 +104,7 @@ public:
     virtual bool applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters) = 0;
 
     /**
-     * Get initial camera info 
+     * Get initial camera info
      * @return initial camera info.
      */
     virtual void getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg) = 0;
@@ -143,9 +143,9 @@ public:
      * @return true if the process is successful.
      */
     virtual bool grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
-                           sensor_msgs::msg::Image& intensity_map_msg, 
-                           sensor_msgs::msg::Image& depth_map_msg, 
-                           sensor_msgs::msg::Image& depth_map_color_msg, 
+                           sensor_msgs::msg::Image& intensity_map_msg,
+                           sensor_msgs::msg::Image& depth_map_msg,
+                           sensor_msgs::msg::Image& depth_map_color_msg,
                            sensor_msgs::msg::Image& confidence_map_msg) = 0;
 
     /**
@@ -163,7 +163,7 @@ public:
      */
     virtual bool setROI(const sensor_msgs::msg::RegionOfInterest target_roi,
 			sensor_msgs::msg::RegionOfInterest& reached_roi) = 0;
-    
+
     /**
      * Sets the target horizontal binning_x factor
      * @param target_binning_x the target horizontal binning_x factor.
@@ -172,7 +172,7 @@ public:
      */
     virtual bool setBinningX(const size_t& target_binning_x,
                              size_t& reached_binning_x) = 0;
-    
+
     /**
      * Sets the target vertical binning_y factor
      * @param target_binning_y the target vertical binning_y factor.
@@ -211,7 +211,7 @@ public:
 
     /**
      * Sets autoflash active for the specified lines
-     * @param flash_on_lines map from line e.g., 1 or 2 to a boolean to 
+     * @param flash_on_lines map from line e.g., 1 or 2 to a boolean to
               activate or deactivate the autoflash for this line .
      * @return false if a communication error occurred or true otherwise.
      */
@@ -282,13 +282,13 @@ public:
      * @return the horizontal y offset setting.
      */
     virtual size_t currentOffsetY() = 0;
-    
+
     /**
      * Returns the current roi setting.
      * @return the roi setting.
      */
     virtual sensor_msgs::msg::RegionOfInterest currentROI() = 0;
-    
+
     /**
      * Returns the current horizontal binning_x setting.
      * @return the horizontal binning_x setting.
@@ -476,12 +476,12 @@ public:
     const std::vector<float>& sequencerExposureTimes() const;
 
     /**
-     * set the x-axis, y-axis offset value 
+     * set the x-axis, y-axis offset value
      * @param offsetValue the offset value in the x-axis.
      * @param xAxis if true set the offset in the x-axis otherwise in y-axis.
      * @return error message if an error occurred or done message otherwise.
      */
-    virtual std::string setOffsetXY(const int& offsetValue, bool xAxis) = 0; 
+    virtual std::string setOffsetXY(const int& offsetValue, bool xAxis) = 0;
 
     /**
      * Reverse the image around x-axis and/or y-axis
@@ -492,40 +492,40 @@ public:
     virtual std::string reverseXY(const bool& data, bool around_x) = 0;
 
     /**
-     * Get current status of reverse X/Y 
+     * Get current status of reverse X/Y
      * @param returnX true-> return reverse status of x-axis, false->return reverse status of y-axis
      * @return current reverse status of x or y
      */
     virtual bool getReverseXY(const bool& returnX) = 0;
 
     /**
-     * Set the image black level 
+     * Set the image black level
      * @param data the new black level.
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setBlackLevel(const int& data) = 0;
 
     /**
-     * Get the image black level 
+     * Get the image black level
      * @return current black level
      */
     virtual int getBlackLevel() = 0;
 
     /**
-     * Set the PGI mode 
+     * Set the PGI mode
      * @param on : true = on, false = off.
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setPGIMode(const bool& on) = 0;
 
     /**
-     * Get the PGI mode 
+     * Get the PGI mode
      * @return -3 = Unknown, -2 = Error, -1 = Not available, 0 = Off, 1 = On
      */
     virtual int getPGIMode() = 0;
 
     /**
-     * Set the demosaicing mode 
+     * Set the demosaicing mode
      * @param mode : 0 = simple, 1 = Basler PGI.
      * @return error message if an error occurred or done message otherwise.
      */
@@ -538,46 +538,46 @@ public:
     virtual int getDemosaicingMode() = 0;
 
     /**
-     * Set the noise reduction value 
+     * Set the noise reduction value
      * @param value : targeted noise reduction value (range : 0.0 to 0.2).
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setNoiseReduction(const float& value) = 0;
 
     /**
-     * get current noise reduction value 
-     * @return current noise reduction value, -20000.0 = Error, -10000.0 = Not available 
+     * get current noise reduction value
+     * @return current noise reduction value, -20000.0 = Error, -10000.0 = Not available
      */
     virtual float getNoiseReduction() = 0;
 
     /**
-     * Set the sharpness enhancement value. 
+     * Set the sharpness enhancement value.
      * @param value : targeted sharpness enhancement value (range : 1.0 to 3.98438).
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setSharpnessEnhancement(const float& value) = 0;
 
     /**
-     * Get current sharpness enhancement value. 
-     * @return current sharpness enhancement value, -20000.0 = Error, -10000.0 = Not available 
+     * Get current sharpness enhancement value.
+     * @return current sharpness enhancement value, -20000.0 = Error, -10000.0 = Not available
      */
     virtual float getSharpnessEnhancement() = 0;
 
     /**
-     * set light source preset 
+     * set light source preset
      * @param value : 0 = off, 1 = Daylight5000K, 2 = Daylight6500K, 3 = Tungsten2800K
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setLightSourcePreset(const int& mode) = 0;
 
     /**
-     * get current light source preset 
+     * get current light source preset
      * @return -3 = Unknown, -2 = Error, -1 = Not available, 0 = Off, 1 = Daylight5000K, 2 = Daylight6500K, 3 = Tungsten2800K
      */
     virtual int getLightSourcePreset() = 0;
 
     /**
-     * set the camera balance white auto 
+     * set the camera balance white auto
      * @param mode : 0 = off , 1 = once, 2 = continuous
      * @return error message if an error occurred or done message otherwise.
      */
@@ -594,121 +594,121 @@ public:
      * @param mode : 0 = normal , 1 = fast.
      * @return error message if an error occurred or done message otherwise.
      */
-    virtual std::string setSensorReadoutMode(const int& mode) = 0;   
+    virtual std::string setSensorReadoutMode(const int& mode) = 0;
 
      /**
      * get current sensor readout mode status
      * @return -3 = Unknown, -2 = Error, -1 = Not available, 0 = Normal, 1 = Fast
      */
-    virtual int getSensorReadoutMode() = 0;  
+    virtual int getSensorReadoutMode() = 0;
 
      /**
-     * set the acquisition frame count  
+     * set the acquisition frame count
      * @param frameCount targeted frame count.
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setAcquisitionFrameCount(const int& frameCount) = 0 ;
 
      /**
-     * get current acquisition frame count  
-     * @return current acquisition frame count value, -20000.0 = Error, -10000.0 = Not available 
+     * get current acquisition frame count
+     * @return current acquisition frame count value, -20000.0 = Error, -10000.0 = Not available
      */
     virtual int getAcquisitionFrameCount() = 0 ;
 
      /**
-     * set the trigger selector   
+     * set the trigger selector
      * @param mode : 0 = Frame Start, 1 = Frame Burst Start (ace USB) / Acquisition Start (ace GigE)
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setTriggerSelector(const int& mode) = 0 ;
 
      /**
-     * get current trigger selector status   
+     * get current trigger selector status
      * @return -3 = Unknown, -2 = Error, -1 = Not available, 0 = FrameStart, 1 = FrameBurstStart(USB)/AcquisitionStart(GigE)
      */
     virtual int getTriggerSelector() = 0 ;
 
     /**
-     * set the trigger mode   
+     * set the trigger mode
      * @param value : false = off, true = on
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setTriggerMode(const bool& value) = 0 ;
 
     /**
-     * get current trigger mode   
+     * get current trigger mode
      * @return true when on, otherwise false
      */
     virtual int getTriggerMode() = 0 ;
 
     /**
-     * execute a software trigger   
+     * execute a software trigger
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string executeSoftwareTrigger() = 0;
 
     /**
-     * set camera trigger source  
+     * set camera trigger source
      * @param source : 0 = software, 1 = Line1, 2 = Line2, 3 = Line3, 4 = Line4, 5 = Action1, 6 = PeriodicSignal1 (only selected GigE Camera and Blaze)
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setTriggerSource(const int& source) = 0;
 
     /**
-     * get current camera trigger source  
+     * get current camera trigger source
      * @return -3 = Unknown, -2 = Error, -1 = Not available, 0 = Software, 1 = Line1, 2 = Line3, 3 = Line4, 4 = Action1(only selected GigE Camera and Blaze)
      */
     virtual int getTriggerSource() = 0;
 
     /**
-     * set camera trigger activation type  
+     * set camera trigger activation type
      * @param value : 0 = RigingEdge, 1 = FallingEdge
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setTriggerActivation(const int& value) = 0;
 
     /**
-     * get current camera trigger activation type  
+     * get current camera trigger activation type
      * @return -3 = Unknown, -2 = Error, -1 = Not available, 0 = RisingEdge, 1 = FallingEdge
      */
     virtual int getTriggerActivation() = 0;
 
     /**
-     * set camera trigger delay value  
-     * @param delayValue required dely value in µs 
+     * set camera trigger delay value
+     * @param delayValue required dely value in µs
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setTriggerDelay(const float& delayValue) = 0;
 
     /**
-     * get current camera trigger delay value  
-     * @return current trigger delay value, -20000.0 = Error, -10000.0 = Not available 
+     * get current camera trigger delay value
+     * @return current trigger delay value, -20000.0 = Error, -10000.0 = Not available
      */
     virtual float getTriggerDelay() = 0;
 
     /**
-     * set camera line selector  
-     * @param value : 0 = line1, 1 = line2, 2 = line3, 3 = line4   
+     * set camera line selector
+     * @param value : 0 = line1, 1 = line2, 2 = line3, 3 = line4
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setLineSelector(const int& value) = 0;
 
     /**
-     * set camera line mode  
-     * @param value : 0 = input, 1 = output   
+     * set camera line mode
+     * @param value : 0 = input, 1 = output
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setLineMode(const int& value) = 0;
 
     /**
-     * set camera line source  
-     * @param value : 0 = exposure active  
+     * set camera line source
+     * @param value : 0 = exposure active
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setLineSource(const int& value) = 0;
 
     /**
-     * set device link throughput limit mode 
+     * set device link throughput limit mode
      * @param value : ture = invert line
      * @return error message if an error occurred or done message otherwise.
      */
@@ -729,7 +729,7 @@ public:
     virtual std::string setUserSetSelector(const int& set) = 0;
 
     /**
-     * get current selected camera user set 
+     * get current selected camera user set
      * @return -3 = Unknown, -2 = Error, -1 = Not available, 0 = Default, 1 = UserSet1, 2 = UserSet2, 3 = UserSet3, 4 = HighGain, 5 = AutoFunctions, 6 = ColorRaw
      */
     virtual int getUserSetSelector() = 0;
@@ -793,7 +793,7 @@ public:
     virtual int getDeviceLinkThroughputLimitMode() = 0;
 
     /**
-     * set device link throughput limit 
+     * set device link throughput limit
      * @param limit : device link throughput limit  Bytes/second
      * @return error message if an error occurred or done message otherwise.
      */
@@ -803,19 +803,19 @@ public:
      * reset the camera device
      * @return error message if an error occurred or done message otherwise.
      */
-    virtual std::string triggerDeviceReset() = 0; 
+    virtual std::string triggerDeviceReset() = 0;
 
     /**
      * start camera aqcuisition
      * @return error message if an error occurred or done message otherwise.
      */
-    virtual std::string grabbingStarting() const = 0; 
+    virtual std::string grabbingStarting() const = 0;
 
     /**
      * stop camera aqcuisition
      * @return error message if an error occurred or done message otherwise.
      */
-    virtual std::string grabbingStopping() = 0; 
+    virtual std::string grabbingStopping() = 0;
 
     /**
      * set the camera Maximum USB data transfer size in bytes
@@ -833,7 +833,7 @@ public:
 
     /**
      * enable/disable the camera Gamma (GigE Camera only)
-     * @param enable 
+     * @param enable
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string gammaEnable(const bool& enable) = 0;
@@ -847,15 +847,15 @@ public:
     /**
      * manual correction of the color shifts so that white objects appear white in images acquired.
      * The increase or decrease in intensity is proportional. For example, if the balance ratio for a color is set to 1.2, the intensity of that color is increased by 20 %
-     * @param redValue : balancd ratio of red channel 
-     * @param greenValue : balancd ratio of green channel 
-     * @param blueValue : balancd ratio of blue channel 
+     * @param redValue : balancd ratio of red channel
+     * @param greenValue : balancd ratio of green channel
+     * @param blueValue : balancd ratio of blue channel
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue) = 0;
-    
+
     /**
-     * set the camera grapping strategy 
+     * set the camera grapping strategy
      * @param strategy : 0 = GrabStrategy_OneByOne, 1 = GrabStrategy_LatestImageOnly, 2 = GrabStrategy_LatestImages
      * @return error message if an error occurred or done message otherwise.
      */

@@ -77,7 +77,7 @@ public:
 
     virtual bool setROI(const sensor_msgs::msg::RegionOfInterest target_roi,
                         sensor_msgs::msg::RegionOfInterest& reached_roi) override;
-    
+
     virtual bool setBinningX(const size_t& target_binning_x,
                              size_t& reached_binning_x) override;
 
@@ -102,11 +102,11 @@ public:
     virtual std::vector<int> detectAndCountNumUserOutputs() override;
 
     virtual bool setUserOutput(const int& output_id, const bool& value) override;
-    
+
     virtual size_t currentOffsetX() override;
 
     virtual size_t currentOffsetY() override;
-    
+
     virtual sensor_msgs::msg::RegionOfInterest currentROI() override;
 
     virtual size_t currentBinningX() override;
@@ -361,11 +361,11 @@ public:
     virtual bool isBlaze() override;
 
     virtual bool grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
-                           sensor_msgs::msg::Image& intensity_map_msg, 
-                           sensor_msgs::msg::Image& depth_map_msg, 
-                           sensor_msgs::msg::Image& depth_map_color_msg, 
+                           sensor_msgs::msg::Image& intensity_map_msg,
+                           sensor_msgs::msg::Image& depth_map_msg,
+                           sensor_msgs::msg::Image& depth_map_color_msg,
                            sensor_msgs::msg::Image& confidence_map_msg) override;
-    
+
     virtual std::string setDepthMin(const int& depth_min) override;
 
     virtual std::string setDepthMax(const int& depth_max) override;

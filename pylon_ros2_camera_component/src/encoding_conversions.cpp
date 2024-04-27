@@ -247,7 +247,7 @@ bool genAPI2Ros(const std::string& gen_api_enc, std::string& ros_enc)
 }
 
 bool is_12_bit_gen_api_enc(const std::string& gen_api_enc){
-    return ( gen_api_enc == "Mono12" )      || 
+    return ( gen_api_enc == "Mono12" )      ||
            ( gen_api_enc == "BayerRG12" )   ||
            ( gen_api_enc == "BayerBG12" )   ||
            ( gen_api_enc == "BayerGB12" )   ||

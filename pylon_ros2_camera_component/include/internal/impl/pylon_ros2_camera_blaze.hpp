@@ -43,7 +43,7 @@
 #include "pcl_conversions/pcl_conversions.h"
 
 #pragma pack(push, 1)
-struct BGR 
+struct BGR
 {
     uint8_t b;
     uint8_t g;
@@ -97,9 +97,9 @@ public:
     virtual bool isCamRemoved();
 
     virtual bool grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
-                           sensor_msgs::msg::Image& intensity_map_msg, 
-                           sensor_msgs::msg::Image& depth_map_msg, 
-                           sensor_msgs::msg::Image& depth_map_color_msg, 
+                           sensor_msgs::msg::Image& intensity_map_msg,
+                           sensor_msgs::msg::Image& depth_map_msg,
+                           sensor_msgs::msg::Image& depth_map_color_msg,
                            sensor_msgs::msg::Image& confidence_map_msg);
             bool grabBlaze(Pylon::CGrabResultPtr& grab_result);
     virtual bool grab(Pylon::CGrabResultPtr& grab_result);                 // is not used but needs to be implemented
@@ -107,27 +107,27 @@ public:
 
             bool processAndConvertBlazeData(const Pylon::CPylonDataContainer& container,
                                             sensor_msgs::msg::PointCloud2& cloud_msg,
-                                            sensor_msgs::msg::Image& intensity_map_msg, 
-                                            sensor_msgs::msg::Image& depth_map_msg, 
-                                            sensor_msgs::msg::Image& depth_map_color_msg, 
+                                            sensor_msgs::msg::Image& intensity_map_msg,
+                                            sensor_msgs::msg::Image& depth_map_msg,
+                                            sensor_msgs::msg::Image& depth_map_color_msg,
                                             sensor_msgs::msg::Image& confidence_map_msg);
             bool convertGrabResultToPointCloud(const Pylon::CPylonDataContainer& container,
                                                sensor_msgs::msg::PointCloud2& cloud_msg);
 
             // Calculates a grayscale depth map from point cloud data sent from a blaze camera.
-            // The buffer that pDepthMap points to must be allocated accordingly before 
+            // The buffer that pDepthMap points to must be allocated accordingly before
             // passing it to the calculateDepthMap function.
             void calculateDepthMap(const Pylon::CPylonDataComponent& pointCloud, int min_depth, int max_depth, uint16_t* pDepthMap);
             // Calculates a color depth map from point cloud data sent from a blaze camera.
             // The buffer that pDepthMap points to must be allocated accordingly before
             // passing it to the calculateDepthMap function.
             void calculateDepthMapColor(const Pylon::CPylonDataComponent& pointCloud, int min_depth, int max_depth, BGR* pDepthMap);
-    
+
     virtual void getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg);
-    
+
     virtual int imagePixelDepth() const;
     virtual float maxPossibleFramerate();
-    
+
     //virtual bool setExposure(const float& target_exposure, float& reached_exposure);
     virtual std::string gammaEnable(const bool& enable);
 
@@ -188,10 +188,10 @@ PylonROS2BlazeCamera::~PylonROS2BlazeCamera()
 {
     try
     {
-        if (blaze_cam_->IsOpen()) 
+        if (blaze_cam_->IsOpen())
         {
-            for (auto axis : {  Pylon::BlazeCameraParams_Params::Scan3dCoordinateSelector_CoordinateA, 
-                                Pylon::BlazeCameraParams_Params::Scan3dCoordinateSelector_CoordinateB, 
+            for (auto axis : {  Pylon::BlazeCameraParams_Params::Scan3dCoordinateSelector_CoordinateA,
+                                Pylon::BlazeCameraParams_Params::Scan3dCoordinateSelector_CoordinateB,
                                 Pylon::BlazeCameraParams_Params::Scan3dCoordinateSelector_CoordinateC })
             {
                 // Choose axis to configure.
@@ -205,7 +205,7 @@ PylonROS2BlazeCamera::~PylonROS2BlazeCamera()
     {
         RCLCPP_DEBUG_STREAM(LOGGER_BLAZE, "Destructor (blaze): Failed to reset properties to default: " << e.GetDescription());
     }
-  
+
     try
     {
         if (blaze_cam_->IsOpen())
@@ -280,7 +280,7 @@ bool PylonROS2BlazeCamera::applyCamSpecificStartupSettings(const PylonROS2Camera
         RCLCPP_DEBUG_STREAM(LOGGER_BLAZE, "-> IP address:        " << blaze_cam_->GetDeviceInfo().GetIpAddress().c_str());
 
         // Set up acquisition.
-        
+
         // Enable depth data
         blaze_cam_->ComponentSelector.SetValue(Pylon::BlazeCameraParams_Params::ComponentSelector_Range);
         blaze_cam_->ComponentEnable.SetValue(true);
@@ -298,8 +298,8 @@ bool PylonROS2BlazeCamera::applyCamSpecificStartupSettings(const PylonROS2Camera
 
         invalid_data_value_old_ = blaze_cam_->Scan3dInvalidDataValue.GetValue();
 
-        for (auto axis : {  Pylon::BlazeCameraParams_Params::Scan3dCoordinateSelector_CoordinateA, 
-                            Pylon::BlazeCameraParams_Params::Scan3dCoordinateSelector_CoordinateB, 
+        for (auto axis : {  Pylon::BlazeCameraParams_Params::Scan3dCoordinateSelector_CoordinateA,
+                            Pylon::BlazeCameraParams_Params::Scan3dCoordinateSelector_CoordinateB,
                             Pylon::BlazeCameraParams_Params::Scan3dCoordinateSelector_CoordinateC })
         {
             // Choose axis to configure.
@@ -309,7 +309,7 @@ bool PylonROS2BlazeCamera::applyCamSpecificStartupSettings(const PylonROS2Camera
         }
 
         // set up some default parameters
-        
+
         blaze_cam_->TriggerSource.SetValue(Pylon::BlazeCameraParams_Params::TriggerSource_Software);
         blaze_cam_->TriggerMode.SetValue(Pylon::BlazeCameraParams_Params::TriggerMode_On);
 
@@ -319,12 +319,12 @@ bool PylonROS2BlazeCamera::applyCamSpecificStartupSettings(const PylonROS2Camera
                                                     << blaze_cam_->AcquisitionFrameRate.GetMax() << "])");
 
         RCLCPP_INFO_STREAM(LOGGER_BLAZE, "blaze has exposure time range: ["
-                    << blaze_cam_->ExposureTime.GetMin() << " - " 
+                    << blaze_cam_->ExposureTime.GetMin() << " - "
                     << blaze_cam_->ExposureTime.GetMax()
                     << "] measured in microseconds.");
 
         RCLCPP_INFO_STREAM(LOGGER_BLAZE, "blaze has depth range: ["
-                    << blaze_cam_->DepthMin.GetValue() << " - " 
+                    << blaze_cam_->DepthMin.GetValue() << " - "
                     << blaze_cam_->DepthMax.GetValue()
                     << "] measured in millimeters.");
     }
@@ -355,7 +355,7 @@ bool PylonROS2BlazeCamera::startGrabbing(const PylonROS2CameraParameter& paramet
 
         Pylon::CGrabResultPtr grab_result;
         this->grabBlaze(grab_result);
-        
+
         if (grab_result.IsValid())
         {
             is_ready_ = true;
@@ -411,14 +411,14 @@ bool PylonROS2BlazeCamera::isCamRemoved()
 }
 
 bool PylonROS2BlazeCamera::grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
-                                     sensor_msgs::msg::Image& intensity_map_msg, 
-                                     sensor_msgs::msg::Image& depth_map_msg, 
-                                     sensor_msgs::msg::Image& depth_map_color_msg, 
+                                     sensor_msgs::msg::Image& intensity_map_msg,
+                                     sensor_msgs::msg::Image& depth_map_msg,
+                                     sensor_msgs::msg::Image& depth_map_color_msg,
                                      sensor_msgs::msg::Image& confidence_map_msg)
 {
     Pylon::CGrabResultPtr ptr_grab_result;
     if (!this->grabBlaze(ptr_grab_result))
-    {   
+    {
         RCLCPP_ERROR(LOGGER_BLAZE, "Grabbing with blaze failed");
         return false;
     }
@@ -444,37 +444,37 @@ bool PylonROS2BlazeCamera::grabBlaze(Pylon::CGrabResultPtr& grab_result)
             // The blaze does not support waiting for frame trigger ready.
             blaze_cam_->ExecuteSoftwareTrigger();
         }
-        
+
         blaze_cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException);
     }
     catch (const GenICam::GenericException &e)
     {
         if (blaze_cam_->IsCameraDeviceRemoved())
-        {   
+        {
             RCLCPP_ERROR(LOGGER_BLAZE, "Lost connection to the camera...");
         }
         else
-        {   
+        {
             if ((blaze_cam_->TriggerSource.GetValue() != Pylon::BlazeCameraParams_Params::TriggerSource_Software) && (blaze_cam_->TriggerMode.GetValue() == Pylon::BlazeCameraParams_Params::TriggerMode_On))
             {
                 RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Waiting for Trigger signal");
             }
-            else 
+            else
             {
                 RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "An image grabbing exception in pylon camera occurred: " << e.GetDescription());
             }
         }
-        
+
         return false;
     }
     catch (...)
-    {   
+    {
         RCLCPP_ERROR(LOGGER_BLAZE, "An unspecified image grabbing exception occurred");
         return false;
     }
 
     if (!grab_result->GrabSucceeded())
-    {   
+    {
         RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Error: " << grab_result->GetErrorCode() << " " << grab_result->GetErrorDescription());
         return false;
     }
@@ -522,7 +522,7 @@ bool PylonROS2BlazeCamera::processAndConvertBlazeData(const Pylon::CPylonDataCon
 
     // point cloud
     this->convertGrabResultToPointCloud(container, cloud_msg);
-    
+
     // intensity
     cv::Mat intensity_map = cv::Mat(height, width, CV_16UC1, (void*) intensity_component.GetData());
     // Scale the intensity image since it often looks quite dark.
@@ -597,9 +597,9 @@ bool PylonROS2BlazeCamera::processAndConvertBlazeData(const Pylon::CPylonDataCon
 bool PylonROS2BlazeCamera::convertGrabResultToPointCloud(const Pylon::CPylonDataContainer& container,
                                                          sensor_msgs::msg::PointCloud2& cloud_msg)
 {
-    // An organized point cloud is used, i.e., for each camera pixel there is an entry 
+    // An organized point cloud is used, i.e., for each camera pixel there is an entry
     // in the data structure indicating the 3D coordinates calculated from that pixel.
-    // If the camera wasn't able to create depth information for a pixel, the x, y, and z coordinates 
+    // If the camera wasn't able to create depth information for a pixel, the x, y, and z coordinates
     // are set to NaN. These NaNs will be retained in the PCL point cloud.
 
     auto range_component = container.GetDataComponent(0);
@@ -696,7 +696,7 @@ void PylonROS2BlazeCamera::calculateDepthMapColor(const Pylon::CPylonDataCompone
                     distance = min_depth;
                 else if (distance > max_depth)
                     distance = max_depth;
-                
+
                 // Calculate the color.
                 BGR bgr;
                 const uint16_t g = (uint16_t)((distance - min_depth) * scale);
@@ -759,7 +759,7 @@ void PylonROS2BlazeCamera::getInitialCameraInfo(sensor_msgs::msg::CameraInfo& ca
     // Projects 3D points in the camera coordinate frame to 2D pixel coordinates
     // using the focal lengths (fx, fy) and principal point (cx, cy) -> float64[9] k.
     cam_info_msg.k = {f, 0.0, cx, 0.0, f, cy, 0.0, 0.0, 1.0};
-    
+
     // Rectification matrix (stereo cameras only)
     // A rotation matrix aligning the camera coordinate system to the ideal
     // stereo image plane so that epipolar lines in both stereo images are parallel -> float64[9] r, 3x3 row-major matrix.
@@ -794,7 +794,7 @@ void PylonROS2BlazeCamera::getInitialCameraInfo(sensor_msgs::msg::CameraInfo& ca
 int PylonROS2BlazeCamera::imagePixelDepth() const
 {
     // there's no pixel size for the blaze
-    // intensity and confidence pixels are coded over 2 bytes    
+    // intensity and confidence pixels are coded over 2 bytes
     return 2;
 }
 
@@ -832,7 +832,7 @@ std::string PylonROS2BlazeCamera::setTriggerSelector(const int& mode)
     try
     {
         if (GenApi::IsAvailable(blaze_cam_->TriggerSelector))
-        {  
+        {
             if (mode == 0)
             {
                 blaze_cam_->TriggerSelector.SetValue(Pylon::BlazeCameraParams_Params::TriggerSelector_FrameStart);
@@ -843,7 +843,7 @@ std::string PylonROS2BlazeCamera::setTriggerSelector(const int& mode)
                 return "Error: unknown value";
             }
         }
-        else 
+        else
         {
              RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Error while trying to change the Acquisition frame count. The connected Camera not supporting this feature");
              return "The connected Camera not supporting this feature";
@@ -880,7 +880,7 @@ std::string PylonROS2BlazeCamera::setTriggerSource(const int& source)
                     return "Error: unknown value for trigger source";
             }
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Error while trying to change the trigger source. The connected camera does not support this feature");
             return "The connected camera does not support this feature";
@@ -890,7 +890,7 @@ std::string PylonROS2BlazeCamera::setTriggerSource(const int& source)
     catch (const GenICam::GenericException &e)
     {
         RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "An exception while setting the trigger source occurred:" << e.GetDescription());
-        return e.GetDescription(); 
+        return e.GetDescription();
     }
     return "done";
 }
@@ -898,7 +898,7 @@ std::string PylonROS2BlazeCamera::setTriggerSource(const int& source)
 std::string PylonROS2BlazeCamera::setLineSelector(const int& value)
 {
     try
-    {   
+    {
         if (GenApi::IsAvailable(blaze_cam_->LineSelector))
         {
             if (value == 0)
@@ -909,12 +909,12 @@ std::string PylonROS2BlazeCamera::setLineSelector(const int& value)
             {
                 blaze_cam_->LineSelector.SetValue(Pylon::BlazeCameraParams_Params::LineSelector_Line1);
             }
-            else 
+            else
             {
                 return "Error: unknown value";
             }
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Error while trying to set the line selector. The connected Camera not supporting this feature");
             return "The connected Camera not supporting this feature";
@@ -923,7 +923,7 @@ std::string PylonROS2BlazeCamera::setLineSelector(const int& value)
     catch ( const GenICam::GenericException &e )
     {
         RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "An exception while setting the line selector occurred:" << e.GetDescription());
-        return e.GetDescription(); 
+        return e.GetDescription();
     }
 
     return "done";
@@ -934,17 +934,17 @@ std::string PylonROS2BlazeCamera::setDeviceLinkThroughputLimitMode(const bool& t
     try
     {
         if (GenApi::IsAvailable(cam_->DeviceLinkThroughputLimitMode))
-        {  
+        {
             if (turnOn)
             {
                 cam_->DeviceLinkThroughputLimitMode.SetValue(Basler_UniversalCameraParams::DeviceLinkThroughputLimitModeEnums::DeviceLinkThroughputLimitMode_On);
             }
-            else 
+            else
             {
                 cam_->DeviceLinkThroughputLimitMode.SetValue(Basler_UniversalCameraParams::DeviceLinkThroughputLimitModeEnums::DeviceLinkThroughputLimitMode_Off);
             }
         }
-        else 
+        else
         {
              RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Error while trying to change the device link throughput limit mode. The connected Camera not supporting this feature");
              return "The connected Camera not supporting this feature";
@@ -968,7 +968,7 @@ std::string PylonROS2BlazeCamera::setDeviceLinkThroughputLimit(const int& limit)
         {
             cam_->DeviceLinkThroughputLimit.SetValue(limit);
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Error while trying to change the device link throughput limit. The connected Camera not supporting this feature");
             return "The connected Camera not supporting this feature";

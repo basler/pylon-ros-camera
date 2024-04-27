@@ -125,7 +125,7 @@ using GrabBlazeDataGoalHandle       = rclcpp_action::ServerGoalHandle<GrabBlazeD
 
 class PylonROS2CameraNode : public rclcpp::Node
 {
-  
+
 public:
   PYLON_ROS2_CAMERA_PUBLIC
   explicit PylonROS2CameraNode(const rclcpp::NodeOptions& options);
@@ -144,7 +144,7 @@ public:
   const std::string& cameraFrame() const;
 
 protected:
-  
+
   /**
    * @brief initialize the camera and the node. Calls ros::shutdown if an error occurs.
    */
@@ -159,7 +159,7 @@ protected:
    * @brief initialize the node publishers
    */
   void initPublishers();
-  
+
   /**
    * @brief initialize the node services
    */
@@ -249,7 +249,7 @@ protected:
    */
   bool setROI(const sensor_msgs::msg::RegionOfInterest target_roi,
               sensor_msgs::msg::RegionOfInterest& reached_roi);
-  
+
   /**
    * @brief Update the horizontal binning_x factor to get downsampled images
    * @param target_binning_x the target horizontal binning_x factor
@@ -271,7 +271,7 @@ protected:
                    size_t& reached_binning_y);
 
   /**
-   * @brief Method to set the offset in the camera x-axis or y-axis.  
+   * @brief Method to set the offset in the camera x-axis or y-axis.
    * @param offsetValue the targeted offset value.
    * @param xAxis when true set the oddset in the x-axis, otherwise in the y-axis.
    * @return error message if an error occurred or done message otherwise.
@@ -287,49 +287,49 @@ protected:
   std::string reverseXY(const bool& data, bool around_x);
 
   /**
-   * @brief Method for increasing/decreasing the image black level 
+   * @brief Method for increasing/decreasing the image black level
    * @param value the new black level value
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setBlackLevel(const int& value);
 
   /**
-   * @brief Method for setting the PGI mode. 
+   * @brief Method for setting the PGI mode.
    * @param on : true = on, false = off.
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setPGIMode(const bool& on);
 
   /**
-   * @brief Method for setting the demosaicing mode. 
+   * @brief Method for setting the demosaicing mode.
    * @param mode : 0 = simple, 1 = Basler PGI.
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setDemosaicingMode(const int& mode);
 
   /**
-   * @brief Method for setting the noise reduction value 
+   * @brief Method for setting the noise reduction value
    * @param value : targeted noise reduction value (range : 0.0 to 0.2).
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setNoiseReduction(const float& value);
 
   /**
-   * @brief Method for setting the sharpness enhancement value. 
+   * @brief Method for setting the sharpness enhancement value.
    * @param value : targeted sharpness enhancement value (range : 1.0 to 3.98438).
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setSharpnessEnhancement(const float& value);
 
   /**
-   * @brief Method to set the camera light source preset  
+   * @brief Method to set the camera light source preset
    * @param mode : 0 = off, 1 = Daylight5000K, 2 = Daylight6500K, 3 = Tungsten2800K
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setLightSourcePreset(const int& mode);
 
   /**
-   * @brief Method to set the camera white balance auto 
+   * @brief Method to set the camera white balance auto
    * @param mode : 0 = off , 1 = once, 2 = continuous
    * @return error message if an error occurred or done message otherwise.
    */
@@ -350,63 +350,63 @@ protected:
   std::string setAcquisitionFrameCount(const int& frameCount);
 
   /**
-   * @brief Method to set the trigger selector   
+   * @brief Method to set the trigger selector
    * @param mode : 0 = Frame Start, 1 = Frame Burst Start (ace USB) / Acquisition Start (ace GigE)
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setTriggerSelector(const int& mode);
 
   /**
-   * @brief Method to set the trigger mode   
+   * @brief Method to set the trigger mode
    * @param value : false = off, true = on
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setTriggerMode(const bool& value);
 
   /**
-   * @brief Method to execute a software trigger   
+   * @brief Method to execute a software trigger
    * @return error message if an error occurred or done message otherwise.
    */
   std::string executeSoftwareTrigger();
 
   /**
    * @brief Method to set the camera trigger source.
-   * @param source : 0 = software, 1 = Line1, 2 = Line3, 3 = Line4, 4 = Action1(only selected GigE Camera)  
+   * @param source : 0 = software, 1 = Line1, 2 = Line3, 3 = Line4, 4 = Action1(only selected GigE Camera)
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setTriggerSource(const int& source);
 
   /**
-   * @brief Method to set camera trigger activation type  
+   * @brief Method to set camera trigger activation type
    * @param value : 0 = RigingEdge, 1 = FallingEdge
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setTriggerActivation(const int& value);
 
   /**
-   * @brief Method to set camera trigger delay value  
-   * @param delayValue required dely value in µs 
+   * @brief Method to set camera trigger delay value
+   * @param delayValue required dely value in µs
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setTriggerDelay(const float& value);
 
   /**
    * @brief Method to set camera line selector
-   * @param value : 0 = line1, 1 = line2, 2 = line3, 3 = line4  
+   * @param value : 0 = line1, 1 = line2, 2 = line3, 3 = line4
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setLineSelector(const int& value);
 
   /**
    * @brief Method to set camera line Mode
-   * @param value : 0 = input, 1 = output   
+   * @param value : 0 = input, 1 = output
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setLineMode(const int& value);
 
   /**
    * @brief Method to set camera line source
-   * @param value : 0 = exposure active  
+   * @param value : 0 = exposure active
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setLineSource(const int& value);
@@ -417,7 +417,7 @@ protected:
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setLineInverter(const bool& value);
-  
+
   /**
    * @brief Method to set camera line debouncer time
    * @param value delay time in microseconds
@@ -472,14 +472,14 @@ protected:
   std::string setUserSetDefaultSelector(const int& set);
 
   /**
-   * @brief Method to set device link throughput limit mode 
+   * @brief Method to set device link throughput limit mode
    * @param turnOn : true = on , false = Off
    * @return error message if an error occurred or done message otherwise.
    */
   std::string setDeviceLinkThroughputLimitMode(const bool& turnOn);
 
   /**
-   * @brief Method to set device link throughput limit  
+   * @brief Method to set device link throughput limit
    * @param limit : device link throughput limit  Bytes/second
    * @return error message if an error occurred or done message otherwise.
    */
@@ -646,7 +646,7 @@ protected:
                                     std::shared_ptr<GetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for getting the Exposure time used to acquire the image - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB 
+   * @brief Service callback for getting the Exposure time used to acquire the image - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB
    * @param req request
    * @param res response
    */
@@ -708,7 +708,7 @@ protected:
    */
   void setSleepingCallback(const std::shared_ptr<SetSleepingSrv::Request> request,
                            std::shared_ptr<SetSleepingSrv::Response> response);
-  
+
   /**
    * @brief Service callback for setting the white balance of the image channels
    * @param req request
@@ -742,7 +742,7 @@ protected:
                                            std::shared_ptr<IssueScheduledActionCommand::Response> response);
 
   /**
-   * @brief Service callback for setting camera x-axis offset 
+   * @brief Service callback for setting camera x-axis offset
    * @param req request
    * @param res response
    */
@@ -750,7 +750,7 @@ protected:
                           std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for setting camera y-axis offset 
+   * @brief Service callback for setting camera y-axis offset
    * @param req request
    * @param res response
    */
@@ -758,7 +758,7 @@ protected:
                           std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for increasing/decreasing the image black level 
+   * @brief Service callback for increasing/decreasing the image black level
    * @param req request
    * @param res response
    */
@@ -766,7 +766,7 @@ protected:
                              std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for setting the demosaicing mode 
+   * @brief Service callback for setting the demosaicing mode
    * @param req request
    * @param res response
    */
@@ -774,7 +774,7 @@ protected:
                                   std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for setting the camera light source preset 
+   * @brief Service callback for setting the camera light source preset
    * @param req request
    * @param res response
    */
@@ -782,7 +782,7 @@ protected:
                                     std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for setting the camera balance white auto 
+   * @brief Service callback for setting the camera balance white auto
    * @param req request
    * @param res response
    */
@@ -796,7 +796,7 @@ protected:
    */
   void setSensorReadoutModeCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                     std::shared_ptr<SetIntegerSrv::Response> response);
-  
+
   /**
    * @brief Service callback for setting the acquisition frame count
    * @param req request
@@ -804,7 +804,7 @@ protected:
    */
   void setAcquisitionFrameCountCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                                         std::shared_ptr<SetIntegerSrv::Response> response);
-  
+
   /**
    * @brief Service callback for setting the trigger selector
    * @param req request
@@ -870,7 +870,7 @@ protected:
                                          std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for setting the device link throughput limit  
+   * @brief Service callback for setting the device link throughput limit
    * @param req request
    * @param res response
    */
@@ -910,7 +910,7 @@ protected:
                                  std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for setting the camera grabbing strategy 
+   * @brief Service callback for setting the camera grabbing strategy
    * @param req request
    * @param res response
    */
@@ -964,7 +964,7 @@ protected:
    */
   void setPTPPriorityCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
                               std::shared_ptr<SetIntegerSrv::Response> response);
-  
+
   /**
    * @brief Service callback for setting the ptp profile - Applies to: ace 2 GigE.
    * @param req request
@@ -1091,7 +1091,7 @@ protected:
   void setMultiCameraChannelCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for setting the noise reduction value 
+   * @brief Service callback for setting the noise reduction value
    * @param req request
    * @param res response
    */
@@ -1099,7 +1099,7 @@ protected:
                                  std::shared_ptr<SetFloatSrv::Response> response);
 
   /**
-   * @brief Service callback for setting the sharpness enhancement value. 
+   * @brief Service callback for setting the sharpness enhancement value.
    * @param req request
    * @param res response
    */
@@ -1123,7 +1123,7 @@ protected:
                                     std::shared_ptr<SetFloatSrv::Response> response);
 
   /**
-   * @brief Service callback for setting the Exposure time used to acquire the image - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB 
+   * @brief Service callback for setting the Exposure time used to acquire the image - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB
    * @param req request
    * @param res response
    */
@@ -1201,7 +1201,7 @@ protected:
                            std::shared_ptr<SetBoolSrv::Response> response);
 
   /**
-   * @brief Service callback for setting the PGI mode 
+   * @brief Service callback for setting the PGI mode
    * @param req request
    * @param res response
    */
@@ -1215,7 +1215,7 @@ protected:
    */
   void setTriggerModeCallback(const std::shared_ptr<SetBoolSrv::Request> request,
                               std::shared_ptr<SetBoolSrv::Response> response);
-  
+
   /**
    * @brief Service callback for setting the camera line inverter
    * @param req request
@@ -1225,7 +1225,7 @@ protected:
                                std::shared_ptr<SetBoolSrv::Response> response);
 
   /**
-   * @brief Service callback for setting the device link throughput limit mode 
+   * @brief Service callback for setting the device link throughput limit mode
    * @param req request
    * @param res response
    */
@@ -1283,7 +1283,7 @@ protected:
    */
   void enablePTPManagementProtocolCallback(const std::shared_ptr<SetBoolSrv::Request> request,
                                            std::shared_ptr<SetBoolSrv::Response> response);
-  
+
   /**
    * @brief Service callback for enabling/disabling PTP two step operation - Applies to: ace 2 GigE.
    * @param req request
@@ -1291,7 +1291,7 @@ protected:
    */
   void enablePTPTwoStepOperationCallback(const std::shared_ptr<SetBoolSrv::Request> request,
                                          std::shared_ptr<SetBoolSrv::Response> response);
-  
+
   /**
    * @brief Service callback for enabling/disabling PTP - Applies to: GigE, ace 2 GigE.
    * @param req request
@@ -1460,19 +1460,19 @@ protected:
   /**
    * @brief Handle action cancellation relatively to raw image grabbing
    * @param goal_handle Goal handle
-   * @return Response of the action is cancelled 
+   * @return Response of the action is cancelled
    */
   rclcpp_action::CancelResponse handleGrabRawImagesActionGoalCancel(const std::shared_ptr<GrabImagesGoalHandle> goal_handle);
 
   /**
    * @brief Handle action if goal is accepted relatively to raw image grabbing
-   * @param goal_handle handle 
+   * @param goal_handle handle
    */
   void handleGrabRawImagesActionGoalAccepted(const std::shared_ptr<GrabImagesGoalHandle> goal_handle);
 
   /**
    * @brief Grab raw images through action
-   * @param goal_handle 
+   * @param goal_handle
    */
   void executeGrabRawImagesAction(const std::shared_ptr<GrabImagesGoalHandle> goal_handle);
 
@@ -1485,19 +1485,19 @@ protected:
   /**
    * @brief Handle action cancellation relatively to rectified image grabbing
    * @param goal_handle Goal handle
-   * @return Response of the action is cancelled 
+   * @return Response of the action is cancelled
    */
   rclcpp_action::CancelResponse handleGrabRectImagesActionGoalCancel(const std::shared_ptr<GrabImagesGoalHandle> goal_handle);
 
   /**
    * @brief Handle action if goal is accepted relatively to rectified image grabbing
-   * @param goal_handle handle 
+   * @param goal_handle handle
    */
   void handleGrabRectImagesActionGoalAccepted(const std::shared_ptr<GrabImagesGoalHandle> goal_handle);
 
   /**
    * @brief Grab rectified images through action
-   * @param goal_handle 
+   * @param goal_handle
    */
   void executeGrabRectImagesAction(const std::shared_ptr<GrabImagesGoalHandle> goal_handle);
 
@@ -1510,19 +1510,19 @@ protected:
   /**
    * @brief Handle action cancellation relatively to blaze data grabbing
    * @param goal_handle Goal handle
-   * @return Response of the action is cancelled 
+   * @return Response of the action is cancelled
    */
   rclcpp_action::CancelResponse handleGrabBlazeDataActionGoalCancel(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
 
   /**
    * @brief Handle action if goal is accepted relatively to blaze data grabbing
-   * @param goal_handle handle 
+   * @param goal_handle handle
    */
   void handleGrabBlazeDataActionGoalAccepted(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
 
   /**
    * @brief Grab blaze data through action
-   * @param goal_handle 
+   * @param goal_handle
    */
   void executeGrabBlazeDataAction(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
 
@@ -1680,11 +1680,11 @@ protected:
   rclcpp::Service<GetIntegerSrv>::SharedPtr get_chunk_line_status_all_srv_;
   rclcpp::Service<GetIntegerSrv>::SharedPtr get_chunk_frame_counter_srv_;
   rclcpp::Service<GetIntegerSrv>::SharedPtr get_chunk_counter_value_srv_;
-  
+
   rclcpp::Service<GetFloatSrv>::SharedPtr get_chunk_exposure_time_srv_;
 
   rclcpp::Service<GetStringSrv>::SharedPtr get_pfs_srv_;
-  
+
   rclcpp::Service<SetBinningSrv>::SharedPtr set_binning_srv_;
   rclcpp::Service<SetBrightnessSrv>::SharedPtr set_brightness_srv_;
   rclcpp::Service<SetExposureSrv>::SharedPtr set_exposure_srv_;
@@ -1715,7 +1715,7 @@ protected:
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_user_set_default_selector_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_device_link_throughput_limit_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_max_transfer_size_srv_;
-  rclcpp::Service<SetIntegerSrv>::SharedPtr set_gamma_selector_srv_; 
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_gamma_selector_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_grab_timeout_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_trigger_timeout_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_grabbing_strategy_srv_;
@@ -1784,7 +1784,7 @@ protected:
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_acquisition_frame_rate_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_hdr_mode_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_fast_mode_srv_;
- 
+
   rclcpp::Service<TriggerSrv>::SharedPtr execute_software_trigger_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr save_user_set_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr load_user_set_srv_;

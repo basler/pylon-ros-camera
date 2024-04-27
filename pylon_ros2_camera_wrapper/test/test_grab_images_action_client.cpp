@@ -135,7 +135,7 @@ namespace pylon_ros2_camera
             << "Frame ID:  " << img.header.frame_id);
 
           cv_bridge::CvImagePtr cv_img = cv_bridge::toCvCopy(result.result->images[i], result.result->images[i].encoding);
-          
+
           std::ostringstream ss;
           ss << "Image #" << i+1;
 
