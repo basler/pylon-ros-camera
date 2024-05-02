@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.5 (2024-05-02)
+-------------------
+* Use acquisition timestamp if corresponding chunk is enabled.
+
 2.0.4 (2024-02-12)
 -------------------
 * Fix access to chunk data: line status all, counter value, frame counter, exposure, timestamp. Adding dedicated test script.

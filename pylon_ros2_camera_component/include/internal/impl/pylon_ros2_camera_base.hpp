@@ -446,16 +446,17 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp:
     delete[] shift_array;
 
     bool use_chunk_timestamp = false;
-    if (getChunkModeActive() == 1) 
+    if (this->getChunkModeActive() == 1) 
     {
-        std::string success = setChunkSelector(29); // = ChunkSelector_Timestamp
-        if (success.find("done") != std::string::npos && getChunkEnable() == 1) 
+        std::string success = this->setChunkSelector(29); // = ChunkSelector_Timestamp
+        if (success.find("done") != std::string::npos && this->getChunkEnable() == 1) 
         {
             use_chunk_timestamp = true;
         }
     }
 
-    if (use_chunk_timestamp) {
+    if (use_chunk_timestamp)
+    {
         try
         {
             if (!ptr_grab_result->ChunkTimestamp.IsReadable())
@@ -473,8 +474,9 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp:
         }
     }
     
-    if ( !is_ready_ )
+    if (!is_ready_)
         is_ready_ = true;
+    
     return true;
 }
 

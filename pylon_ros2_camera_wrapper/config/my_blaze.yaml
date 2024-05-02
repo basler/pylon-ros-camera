@@ -8,7 +8,7 @@
 
     #  The DeviceUserID of the camera. If empty, the first camera found in the
     #  device list will be used
-    # device_user_id: my_blaze
+    device_user_id: my_blaze
 
     #  The desired publisher frame rate if listening to the topics.
     #  This parameter can only be set once at startup
