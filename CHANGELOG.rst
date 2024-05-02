@@ -5,6 +5,7 @@ Changelog for package pylon_ros2_camera
 2.0.5 (2024-05-02)
 -------------------
 * Use acquisition timestamp if corresponding chunk is enabled.
+* Minor fix: warn on unsupported startup profile.
 
 2.0.4 (2024-02-12)
 -------------------
