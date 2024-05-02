@@ -395,7 +395,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
         trigger_timeout = parameters.trigger_timeout_;
         
         // grab one image to be sure, that the communication is successful
-        Pylon::CGrabResultPtr grab_result;
+        Pylon::CBaslerUniversalGrabResultPtr grab_result;
         grab(grab_result);
         if ( grab_result.IsValid() )
         {
@@ -416,9 +416,9 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
 
 // Grab a picture as std::vector of 8bits objects
 template <typename CameraTrait>
-bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image)
+bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp::Time &stamp)
 { 
-    Pylon::CGrabResultPtr ptr_grab_result;
+    Pylon::CBaslerUniversalGrabResultPtr ptr_grab_result;
     if ( !grab(ptr_grab_result) )
     {   
         RCLCPP_ERROR(LOGGER_BASE, "Error: Grab was not successful");
@@ -444,9 +444,39 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image)
     }
 
     delete[] shift_array;
+
+    bool use_chunk_timestamp = false;
+    if (this->getChunkModeActive() == 1) 
+    {
+        std::string success = this->setChunkSelector(29); // = ChunkSelector_Timestamp
+        if (success.find("done") != std::string::npos && this->getChunkEnable() == 1) 
+        {
+            use_chunk_timestamp = true;
+        }
+    }
+
+    if (use_chunk_timestamp)
+    {
+        try
+        {
+            if (!ptr_grab_result->ChunkTimestamp.IsReadable())
+            {
+                RCLCPP_WARN_STREAM(LOGGER_BASE, "Error while trying to get the chunk timestamp. The connected camera may not support this feature");
+            }
+            else
+            {
+                stamp = rclcpp::Time(static_cast<uint64_t>(ptr_grab_result->ChunkTimestamp.GetValue()));
+            }
+        }
+        catch (const GenICam::GenericException &e)
+        {
+            RCLCPP_WARN_STREAM(LOGGER_BASE, "An exception while getting the chunk timestamp occurred: " << e.GetDescription());
+        }
+    }
     
-    if ( !is_ready_ )
+    if (!is_ready_)
         is_ready_ = true;
+    
     return true;
 }
 
@@ -460,7 +490,7 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(uint8_t* image)
         return false;
     }
 
-    Pylon::CGrabResultPtr ptr_grab_result;
+    Pylon::CBaslerUniversalGrabResultPtr ptr_grab_result;
     if (!grab(ptr_grab_result))
     {   
         RCLCPP_ERROR(LOGGER_BASE, "Error: Grab was not successful");
@@ -500,7 +530,7 @@ bool PylonROS2CameraImpl<CameraTrait>::grabBlaze(sensor_msgs::msg::PointCloud2& 
 
 // Lowest level grab function called by the other grab functions
 template <typename CameraTrait>
-bool PylonROS2CameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
+bool PylonROS2CameraImpl<CameraTrait>::grab(Pylon::CBaslerUniversalGrabResultPtr& grab_result)
 {
     // If camera is not grabbing, don't grab
     if (!cam_->IsGrabbing())

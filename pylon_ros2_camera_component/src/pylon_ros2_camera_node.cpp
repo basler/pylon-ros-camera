@@ -1014,13 +1014,14 @@ bool PylonROS2CameraNode::grabImage()
   
   if (!this->pylon_camera_->isBlaze())
   {
-    // Store current time before the image is transmitted for a more accurate grab time estimation
-    auto grab_time = rclcpp::Node::now();
-    if (!this->pylon_camera_->grab(this->img_raw_msg_.data))
+    // Store current time before the image is transmitted for a more accurate grab time estimation.
+    // If chunk timestamp is enabled, grab will overwrite it with the acquisition timestamp.
+    auto stamp = rclcpp::Node::now();
+    if (!this->pylon_camera_->grab(this->img_raw_msg_.data, stamp))
     {
       return false;
     }
-    this->img_raw_msg_.header.stamp = grab_time;
+    this->img_raw_msg_.header.stamp = stamp;
   }
   else
   {
@@ -4848,15 +4849,17 @@ std::shared_ptr<GrabImagesAction::Result> PylonROS2CameraNode::grabRawImages(con
     // already contains the number of channels
     img.step = img.width * this->pylon_camera_->imagePixelDepth();
 
-    // Store current time before the image is transmitted for a more accurate grab time estimation
-    img.header.stamp = rclcpp::Node::now();
+    // Store current time before the image is transmitted for a more accurate grab time estimation.
+    // If chunk timestamp is enabled, grab will overwrite it with the acquisition timestamp.
+    auto stamp = rclcpp::Node::now();
     img.header.frame_id = cameraFrame();
 
-    if (!this->pylon_camera_->grab(img.data))
+    if (!this->pylon_camera_->grab(img.data, stamp))
     {
       result->success = false;
       break;
     }
+    img.header.stamp = stamp;
 
     feedback->curr_nr_images_taken = i + 1;
     //RCLCPP_DEBUG_STREAM(LOGGER, "Publishing feedback...");
