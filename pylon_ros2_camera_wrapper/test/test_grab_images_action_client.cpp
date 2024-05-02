@@ -127,6 +127,12 @@ namespace pylon_ros2_camera
         {
           sensor_msgs::msg::Image& img = result.result->images[i];
 
+          if (img.data.empty())
+          {
+            RCLCPP_ERROR_STREAM(this->get_logger(), "The image contains no data");
+            continue;
+          }
+
           RCLCPP_INFO_STREAM(this->get_logger(), "Image #" << i+1 << "\n\t"
             << "Encoding:  " << img.encoding << "\n\t"
             << "Width:     " << img.width << "\n\t"
@@ -136,6 +142,12 @@ namespace pylon_ros2_camera
             << "Frame ID:  " << img.header.frame_id);
 
           cv_bridge::CvImagePtr cv_img = cv_bridge::toCvCopy(result.result->images[i], result.result->images[i].encoding);
+
+          if (cv_img == nullptr)
+          {
+            RCLCPP_ERROR_STREAM(this->get_logger(), "The image cannot be converted to cv::Mat");
+            continue;
+          }
 
           std::ostringstream ss;
           ss << "Image #" << i+1;
