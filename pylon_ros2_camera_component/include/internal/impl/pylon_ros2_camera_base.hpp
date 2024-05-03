@@ -433,19 +433,17 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp:
     // ------------------------------------------------------------------------
     // In case of 12 bits we need to shift the image bits 4 positions to the left
     std::string ros_enc = currentROSEncoding();
-    uint16_t * shift_array = new uint16_t[img_size_byte_ / 2]; // Dynamically allocated to avoid heap size error
     std::string gen_api_encoding(cam_->PixelFormat.ToString().c_str());
     if (encodingconversions::is_12_bit_ros_enc(ros_enc) && (gen_api_encoding == "BayerRG12" || gen_api_encoding == "BayerBG12" || gen_api_encoding == "BayerGB12" || gen_api_encoding == "BayerGR12" || gen_api_encoding == "Mono12") ){
+        std::vector<uint16_t> shift_array(img_size_byte_ / 2); // Dynamically allocated to avoid heap size error
         const uint16_t *convert_bits = reinterpret_cast<uint16_t*>(ptr_grab_result->GetBuffer());
         for (size_t i = 0; i < img_size_byte_ / 2; i++){
             shift_array[i] = convert_bits[i] << 4;
         }
-        image.assign((uint8_t *) shift_array, (uint8_t *) shift_array + img_size_byte_);
+        image.assign(reinterpret_cast<uint8_t *>(shift_array.data()), reinterpret_cast<uint8_t *>(shift_array.data()) + img_size_byte_);
     } else {
         image.assign(pImageBuffer, pImageBuffer + img_size_byte_);
     }
-
-    delete[] shift_array;
 
     bool use_chunk_timestamp = false;
     if (this->getChunkModeActive() == 1)
@@ -504,14 +502,14 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(uint8_t* image)
     // ------------------------------------------------------------------------
     // In case of 12 bits we need to shift the image bits 4 positions to the left
     std::string ros_enc = currentROSEncoding();
-    uint16_t shift_array[img_size_byte_ / 2];
 
     if (encodingconversions::is_12_bit_ros_enc(ros_enc)){
+        std::vector<uint16_t> shift_array(img_size_byte_ / 2);
         const uint16_t *convert_bits = reinterpret_cast<uint16_t*>(ptr_grab_result->GetBuffer());
         for (size_t i = 0; i < img_size_byte_ / 2; i++){
             shift_array[i] = convert_bits[i] << 4;
         }
-        memcpy(image, (uint8_t *) shift_array, img_size_byte_);
+        memcpy(image, shift_array.data(), 2 * shift_array.size());
     } else {
         memcpy(image, ptr_grab_result->GetBuffer(), img_size_byte_);
     }
