@@ -1308,7 +1308,7 @@ protected:
     /**
      * Camera trigger timeout in ms
      */
-    int trigger_timeout;
+    int trigger_timeout_;
 
     /**
      * Camera grab strategy

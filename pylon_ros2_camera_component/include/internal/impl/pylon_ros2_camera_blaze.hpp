@@ -349,9 +349,9 @@ bool PylonROS2BlazeCamera::startGrabbing(const PylonROS2CameraParameter& paramet
         img_size_byte_ = img_cols_ * img_rows_ * imagePixelDepth();
 
         grab_timeout_ = parameters.grab_timeout_;
-        trigger_timeout = parameters.trigger_timeout_;
+        trigger_timeout_ = parameters.trigger_timeout_;
         RCLCPP_DEBUG_STREAM_ONCE(LOGGER_BLAZE, "Grab timeout for blaze: " << grab_timeout_);
-        RCLCPP_DEBUG_STREAM_ONCE(LOGGER_BLAZE, "Trigger timeout for blaze: " << trigger_timeout);
+        RCLCPP_DEBUG_STREAM_ONCE(LOGGER_BLAZE, "Trigger timeout for blaze: " << trigger_timeout_);
 
         Pylon::CGrabResultPtr grab_result;
         this->grabBlaze(grab_result);

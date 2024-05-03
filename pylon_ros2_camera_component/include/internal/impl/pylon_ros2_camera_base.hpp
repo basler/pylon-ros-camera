@@ -50,8 +50,6 @@ namespace
     static const rclcpp::Logger LOGGER_BASE = rclcpp::get_logger("basler.pylon.ros2.pylon_ros2_camera_base");
 }
 
-int trigger_timeout;
-
 template <typename CameraTraitT>
 PylonROS2CameraImpl<CameraTraitT>::PylonROS2CameraImpl(Pylon::IPylonDevice* device) :
     PylonROS2Camera(),
@@ -396,7 +394,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
 
         //grab_timeout_ = exposureTime().GetMax() * 1.05;
         grab_timeout_ = parameters.grab_timeout_; // grab timeout = 500 ms
-        trigger_timeout = parameters.trigger_timeout_;
+        trigger_timeout_ = parameters.trigger_timeout_;
 
         // grab one image to be sure, that the communication is successful
         Pylon::CBaslerUniversalGrabResultPtr grab_result;
@@ -549,7 +547,7 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(Pylon::CBaslerUniversalGrabResultPtr
         // -> 2nd trigger might get lost
         if ((cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On))
         {
-            if (cam_->WaitForFrameTriggerReady(trigger_timeout, Pylon::TimeoutHandling_ThrowException))
+            if (cam_->WaitForFrameTriggerReady(trigger_timeout_, Pylon::TimeoutHandling_ThrowException))
             {
                 cam_->ExecuteSoftwareTrigger();
             }
