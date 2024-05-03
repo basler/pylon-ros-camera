@@ -86,82 +86,82 @@ public:
     explicit PylonROS2BlazeCamera(Pylon::IPylonDevice* device);
     virtual ~PylonROS2BlazeCamera();
 
-    virtual bool isBlaze();
-    virtual bool registerCameraConfiguration();
-    virtual bool openCamera();
-    virtual bool applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters);
+    virtual bool isBlaze() override;
+    virtual bool registerCameraConfiguration() override;
+    virtual bool openCamera() override;
+    virtual bool applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters) override;
 
-    virtual bool startGrabbing(const PylonROS2CameraParameter& parameters);
-    virtual std::string grabbingStarting();
-    virtual std::string grabbingStopping();
-    virtual bool isCamRemoved();
+    virtual bool startGrabbing(const PylonROS2CameraParameter& parameters) override;
+    virtual std::string grabbingStarting() const override;
+    virtual std::string grabbingStopping() override;
+    virtual bool isCamRemoved() override;
 
     virtual bool grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
                            sensor_msgs::msg::Image& intensity_map_msg,
                            sensor_msgs::msg::Image& depth_map_msg,
                            sensor_msgs::msg::Image& depth_map_color_msg,
-                           sensor_msgs::msg::Image& confidence_map_msg);
-            bool grabBlaze(Pylon::CGrabResultPtr& grab_result);
     virtual bool grab(Pylon::CGrabResultPtr& grab_result);                 // is not used but needs to be implemented
-    virtual bool grab(std::vector<uint8_t>& image, rclcpp::Time &stamp);   // is not used but needs to be implemented
+                           sensor_msgs::msg::Image& confidence_map_msg) override;
+    bool grabBlaze(Pylon::CGrabResultPtr& grab_result);
+    virtual bool grab(std::vector<uint8_t>& image, rclcpp::Time &stamp) override;   // is not used but needs to be implemented
 
-            bool processAndConvertBlazeData(const Pylon::CPylonDataContainer& container,
-                                            sensor_msgs::msg::PointCloud2& cloud_msg,
-                                            sensor_msgs::msg::Image& intensity_map_msg,
-                                            sensor_msgs::msg::Image& depth_map_msg,
-                                            sensor_msgs::msg::Image& depth_map_color_msg,
-                                            sensor_msgs::msg::Image& confidence_map_msg);
-            bool convertGrabResultToPointCloud(const Pylon::CPylonDataContainer& container,
-                                               sensor_msgs::msg::PointCloud2& cloud_msg);
+    bool processAndConvertBlazeData(const Pylon::CPylonDataContainer& container,
+            sensor_msgs::msg::PointCloud2& cloud_msg,
+            sensor_msgs::msg::Image& intensity_map_msg,
+            sensor_msgs::msg::Image& depth_map_msg,
+            sensor_msgs::msg::Image& depth_map_color_msg,
+            sensor_msgs::msg::Image& confidence_map_msg);
+    bool convertGrabResultToPointCloud(const Pylon::CPylonDataContainer& container,
+            sensor_msgs::msg::PointCloud2& cloud_msg);
 
-            // Calculates a grayscale depth map from point cloud data sent from a blaze camera.
-            // The buffer that pDepthMap points to must be allocated accordingly before
-            // passing it to the calculateDepthMap function.
-            void calculateDepthMap(const Pylon::CPylonDataComponent& pointCloud, int min_depth, int max_depth, uint16_t* pDepthMap);
-            // Calculates a color depth map from point cloud data sent from a blaze camera.
-            // The buffer that pDepthMap points to must be allocated accordingly before
-            // passing it to the calculateDepthMap function.
-            void calculateDepthMapColor(const Pylon::CPylonDataComponent& pointCloud, int min_depth, int max_depth, BGR* pDepthMap);
+    // Calculates a grayscale depth map from point cloud data sent from a blaze camera.
+    // The buffer that pDepthMap points to must be allocated accordingly before
+    // passing it to the calculateDepthMap function.
+    void calculateDepthMap(const Pylon::CPylonDataComponent& pointCloud, int min_depth, int max_depth, uint16_t* pDepthMap);
+    // Calculates a color depth map from point cloud data sent from a blaze camera.
+    // The buffer that pDepthMap points to must be allocated accordingly before
+    // passing it to the calculateDepthMap function.
+    void calculateDepthMapColor(const Pylon::CPylonDataComponent& pointCloud, int min_depth, int max_depth, BGR* pDepthMap);
 
-    virtual void getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg);
+    virtual void getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg) override;
 
-    virtual int imagePixelDepth() const;
-    virtual float maxPossibleFramerate();
+    virtual int imagePixelDepth() const override;
+    virtual float maxPossibleFramerate() override;
 
     //virtual bool setExposure(const float& target_exposure, float& reached_exposure);
-    virtual std::string gammaEnable(const bool& enable);
+    virtual std::string gammaEnable(const bool& enable) override;
 
-    virtual std::string setTriggerSelector(const int& mode);
-    virtual std::string setTriggerSource(const int& source);
+    virtual std::string setTriggerSelector(const int& mode) override;
+    virtual std::string setTriggerSource(const int& source) override;
 
-    virtual std::string setLineSelector(const int& value);
+    virtual std::string setLineSelector(const int& value) override;
 
-    virtual std::string setDeviceLinkThroughputLimitMode(const bool& turnOn);
-    virtual std::string setDeviceLinkThroughputLimit(const int& limit);
+    virtual std::string setDeviceLinkThroughputLimitMode(const bool& turnOn) override;
+    virtual std::string setDeviceLinkThroughputLimit(const int& limit) override;
 
     // blaze specific
-    virtual std::string setDepthMin(const int& depth_min);
-    virtual std::string setDepthMax(const int& depth_max);
-    virtual std::string setTemporalFilterStrength(const int& strength);
-    virtual std::string setOutlierRemovalThreshold(const int& threshold);
-    virtual std::string setOutlierRemovalTolerance(const int& tolerance);
-    virtual std::string setAmbiguityFilterThreshold(const int& threshold);
-    virtual std::string setConfidenceThreshold(const int& threshold);
-    virtual std::string setIntensityCalculation(const int& calculation);
-    virtual std::string setExposureTimeSelector(const int& selector);
-    virtual std::string setOperatingMode(const int& mode);
-    virtual std::string setMultiCameraChannel(const int& channel);
-    virtual std::string setAcquisitionFrameRate(const float& framerate);
-    virtual std::string setScan3dCalibrationOffset(const float& offset);
-    virtual std::string enableSpatialFilter(const bool& enable);
-    virtual std::string enableTemporalFilter(const bool& enable);
-    virtual std::string enableOutlierRemoval(const bool& enable);
-    virtual std::string enableAmbiguityFilter(const bool& enable);
-    virtual std::string enableThermalDriftCorrection(const bool& enable);
-    virtual std::string enableDistortionCorrection(const bool& enable);
-    virtual std::string enableAcquisitionFrameRate(const bool& enable);
-    virtual std::string enableHDRMode(const bool& enable);
-    virtual std::string enableFastMode(const bool& enable);
+    virtual std::string setDepthMin(const int& depth_min) override;
+    virtual std::string setDepthMax(const int& depth_max) override;
+    virtual std::string setTemporalFilterStrength(const int& strength) override;
+    virtual std::string setOutlierRemovalThreshold(const int& threshold) override;
+    virtual std::string setOutlierRemovalTolerance(const int& tolerance) override;
+    virtual std::string setAmbiguityFilterThreshold(const int& threshold) override;
+    virtual std::string setConfidenceThreshold(const int& threshold) override;
+    virtual std::string setIntensityCalculation(const int& calculation) override;
+    virtual std::string setExposureTimeSelector(const int& selector) override;
+    virtual std::string setOperatingMode(const int& mode) override;
+    virtual std::string setMultiCameraChannel(const int& channel) override;
+    virtual std::string setAcquisitionFrameRate(const float& framerate) override;
+    virtual std::string setScan3dCalibrationOffset(const float& offset) override;
+    virtual std::string enableSpatialFilter(const bool& enable) override;
+    virtual std::string enableTemporalFilter(const bool& enable) override;
+    virtual std::string enableOutlierRemoval(const bool& enable) override;
+    virtual std::string enableAmbiguityFilter(const bool& enable) override;
+    virtual std::string enableThermalDriftCorrection(const bool& enable) override;
+    virtual std::string enableDistortionCorrection(const bool& enable) override;
+    virtual std::string enableAcquisitionFrameRate(const bool& enable) override;
+    virtual std::string enableHDRMode(const bool& enable) override;
+    virtual std::string enableFastMode(const bool& enable) override;
 
 public:
     Pylon::CBlazeInstantCamera* blaze_cam_;
@@ -375,7 +375,7 @@ bool PylonROS2BlazeCamera::startGrabbing(const PylonROS2CameraParameter& paramet
     return true;
 }
 
-std::string PylonROS2BlazeCamera::grabbingStarting()
+std::string PylonROS2BlazeCamera::grabbingStarting() const
 {
     try
     {

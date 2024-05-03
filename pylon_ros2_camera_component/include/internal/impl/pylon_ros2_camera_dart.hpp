@@ -48,14 +48,14 @@ public:
     explicit PylonROS2DARTCamera(Pylon::IPylonDevice* device);
     virtual ~PylonROS2DARTCamera();
 
-    virtual bool applyCamSpecificStartupSettings(const PylonROS2CameraParameter& params);
-    virtual bool setUserOutput(int output_id, bool value);
-    virtual std::string typeName() const;
+    virtual bool applyCamSpecificStartupSettings(const PylonROS2CameraParameter& params) override;
+    virtual bool setUserOutput(const int& output_id, const bool& value) override;
+    virtual std::string typeName() const override;
 
 protected:
     virtual bool setupSequencer(const std::vector<float>& exposure_times,
-                                std::vector<float>& exposure_times_set);
-    virtual bool grab(Pylon::CGrabResultPtr& grab_result);
+                                std::vector<float>& exposure_times_set) override;
+    bool grab(Pylon::CGrabResultPtr& grab_result);
 };
 
 PylonROS2DARTCamera::PylonROS2DARTCamera(Pylon::IPylonDevice* device) :
@@ -74,7 +74,7 @@ bool PylonROS2DARTCamera::applyCamSpecificStartupSettings(const PylonROS2CameraP
     return true;
 }
 
-bool PylonROS2DARTCamera::setUserOutput(int output_id, bool value)
+bool PylonROS2DARTCamera::setUserOutput(const int& output_id, const bool& value)
 {
     (void)output_id;
     (void)value;

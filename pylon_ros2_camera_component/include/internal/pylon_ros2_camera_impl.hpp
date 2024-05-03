@@ -461,10 +461,10 @@ protected:
     virtual bool setExtendedBrightness(const int& target_brightness,
                                        const float& current_brightness) override;
 
-    virtual bool grab(Pylon::CBaslerUniversalGrabResultPtr& grab_result);
-
     virtual bool setupSequencer(const std::vector<float>& exposure_times,
                                 std::vector<float>& exposure_times_set);
+
+    bool grab(Pylon::CBaslerUniversalGrabResultPtr& grab_result);
 };
 
 }  // namespace pylon_ros2_camera
