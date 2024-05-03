@@ -262,7 +262,7 @@ bool PylonROS2BlazeCamera::openCamera()
     return true;
 }
 
-bool PylonROS2BlazeCamera::applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters)
+bool PylonROS2BlazeCamera::applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters __attribute__((unused)))
 {
     try
     {
@@ -1419,7 +1419,7 @@ std::string PylonROS2BlazeCamera::enableFastMode(const bool& enable)
     return "done";
 }
 
-bool PylonROS2BlazeCamera::grab(std::vector<uint8_t>& image, rclcpp::Time &stamp)
+bool PylonROS2BlazeCamera::grab(std::vector<uint8_t>& image __attribute((unused)), rclcpp::Time &stamp __attribute((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BLAZE, "This function is not the right one to grab data from the blaze - use the function grabBlaze instead.");
     return true;

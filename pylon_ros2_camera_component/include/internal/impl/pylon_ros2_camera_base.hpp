@@ -432,8 +432,8 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp:
     // Bit shifting
     // ------------------------------------------------------------------------
     // In case of 12 bits we need to shift the image bits 4 positions to the left
-    std::string ros_enc = currentROSEncoding();
-    std::string gen_api_encoding(cam_->PixelFormat.ToString().c_str());
+    const std::string ros_enc = currentROSEncoding();
+    const std::string gen_api_encoding(cam_->PixelFormat.ToString().c_str());
     if (encodingconversions::is_12_bit_ros_enc(ros_enc) && (gen_api_encoding == "BayerRG12" || gen_api_encoding == "BayerBG12" || gen_api_encoding == "BayerGB12" || gen_api_encoding == "BayerGR12" || gen_api_encoding == "Mono12") ){
         std::vector<uint16_t> shift_array(img_size_byte_ / 2); // Dynamically allocated to avoid heap size error
         const uint16_t *convert_bits = reinterpret_cast<uint16_t*>(ptr_grab_result->GetBuffer());
@@ -448,7 +448,7 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp:
     bool use_chunk_timestamp = false;
     if (this->getChunkModeActive() == 1)
     {
-        std::string success = this->setChunkSelector(29); // = ChunkSelector_Timestamp
+        const std::string success = this->setChunkSelector(29); // = ChunkSelector_Timestamp
         if (success.find("done") != std::string::npos && this->getChunkEnable() == 1)
         {
             use_chunk_timestamp = true;
@@ -518,11 +518,11 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(uint8_t* image)
 }
 
 template <typename CameraTrait>
-bool PylonROS2CameraImpl<CameraTrait>::grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
-                                                 sensor_msgs::msg::Image& intensity_map_msg,
-                                                 sensor_msgs::msg::Image& depth_map_msg,
-                                                 sensor_msgs::msg::Image& depth_map_color_msg,
-                                                 sensor_msgs::msg::Image& confidence_map_msg)
+bool PylonROS2CameraImpl<CameraTrait>::grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg __attribute__((unused)),
+                                                 sensor_msgs::msg::Image& intensity_map_msg __attribute__((unused)),
+                                                 sensor_msgs::msg::Image& depth_map_msg __attribute__((unused)),
+                                                 sensor_msgs::msg::Image& depth_map_color_msg __attribute__((unused)),
+                                                 sensor_msgs::msg::Image& confidence_map_msg __attribute__((unused)))
 {
     RCLCPP_WARN(LOGGER_BASE, "The connected camera is not a blaze, nothing is going to be grabbed!");
     return true;
@@ -4708,154 +4708,154 @@ std::string PylonROS2CameraImpl<CameraTraitT>::issueScheduledActionCommand(const
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMin(const int& depth_min)
+std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMin(const int& depth_min __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMax(const int& depth_max)
+std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMax(const int& depth_max __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setTemporalFilterStrength(const int& strength)
+std::string PylonROS2CameraImpl<CameraTraitT>::setTemporalFilterStrength(const int& strength __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setOutlierRemovalThreshold(const int& threshold)
+std::string PylonROS2CameraImpl<CameraTraitT>::setOutlierRemovalThreshold(const int& threshold __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setOutlierRemovalTolerance(const int& tolerance)
+std::string PylonROS2CameraImpl<CameraTraitT>::setOutlierRemovalTolerance(const int& tolerance __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setAmbiguityFilterThreshold(const int& threshold)
+std::string PylonROS2CameraImpl<CameraTraitT>::setAmbiguityFilterThreshold(const int& threshold __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setConfidenceThreshold(const int& threshold)
+std::string PylonROS2CameraImpl<CameraTraitT>::setConfidenceThreshold(const int& threshold __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setIntensityCalculation(const int& calculation)
+std::string PylonROS2CameraImpl<CameraTraitT>::setIntensityCalculation(const int& calculation __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setExposureTimeSelector(const int& selector)
+std::string PylonROS2CameraImpl<CameraTraitT>::setExposureTimeSelector(const int& selector __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setOperatingMode(const int& mode)
+std::string PylonROS2CameraImpl<CameraTraitT>::setOperatingMode(const int& mode __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setMultiCameraChannel(const int& channel)
+std::string PylonROS2CameraImpl<CameraTraitT>::setMultiCameraChannel(const int& channel __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setAcquisitionFrameRate(const float& framerate)
+std::string PylonROS2CameraImpl<CameraTraitT>::setAcquisitionFrameRate(const float& framerate __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setScan3dCalibrationOffset(const float& offset)
+std::string PylonROS2CameraImpl<CameraTraitT>::setScan3dCalibrationOffset(const float& offset __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::enableSpatialFilter(const bool& enable)
+std::string PylonROS2CameraImpl<CameraTraitT>::enableSpatialFilter(const bool& enable __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::enableTemporalFilter(const bool& enable)
+std::string PylonROS2CameraImpl<CameraTraitT>::enableTemporalFilter(const bool& enable __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::enableOutlierRemoval(const bool& enable)
+std::string PylonROS2CameraImpl<CameraTraitT>::enableOutlierRemoval(const bool& enable __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::enableAmbiguityFilter(const bool& enable)
+std::string PylonROS2CameraImpl<CameraTraitT>::enableAmbiguityFilter(const bool& enable __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::enableThermalDriftCorrection(const bool& enable)
+std::string PylonROS2CameraImpl<CameraTraitT>::enableThermalDriftCorrection(const bool& enable __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::enableDistortionCorrection(const bool& enable)
+std::string PylonROS2CameraImpl<CameraTraitT>::enableDistortionCorrection(const bool& enable __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::enableAcquisitionFrameRate(const bool& enable)
+std::string PylonROS2CameraImpl<CameraTraitT>::enableAcquisitionFrameRate(const bool& enable __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::enableHDRMode(const bool& enable)
+std::string PylonROS2CameraImpl<CameraTraitT>::enableHDRMode(const bool& enable __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::enableFastMode(const bool& enable)
+std::string PylonROS2CameraImpl<CameraTraitT>::enableFastMode(const bool& enable __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
     return "Feature not available except for blaze";
