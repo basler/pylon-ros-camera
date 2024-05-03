@@ -100,7 +100,6 @@ public:
                            sensor_msgs::msg::Image& intensity_map_msg,
                            sensor_msgs::msg::Image& depth_map_msg,
                            sensor_msgs::msg::Image& depth_map_color_msg,
-    virtual bool grab(Pylon::CGrabResultPtr& grab_result);                 // is not used but needs to be implemented
                            sensor_msgs::msg::Image& confidence_map_msg) override;
     bool grabBlaze(Pylon::CGrabResultPtr& grab_result);
     virtual bool grab(std::vector<uint8_t>& image, rclcpp::Time &stamp) override;   // is not used but needs to be implemented
@@ -1418,12 +1417,6 @@ std::string PylonROS2BlazeCamera::enableFastMode(const bool& enable)
     }
 
     return "done";
-}
-
-bool PylonROS2BlazeCamera::grab(Pylon::CGrabResultPtr& grab_result)
-{
-    RCLCPP_DEBUG(LOGGER_BLAZE, "This function is not the right one to grab data from the blaze - use the function grabBlaze instead.");
-    return true;
 }
 
 bool PylonROS2BlazeCamera::grab(std::vector<uint8_t>& image, rclcpp::Time &stamp)
