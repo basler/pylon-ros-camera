@@ -385,7 +385,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
             }
         }
 
-        grab_strategy = parameters.grab_strategy_;
+        grab_strategy_ = parameters.grab_strategy_;
         //cam_->StartGrabbing();
         grabbingStarting();
         user_output_selector_enums_ = detectAndCountNumUserOutputs();
@@ -3117,14 +3117,14 @@ std::string PylonROS2CameraImpl<CameraTraitT>::grabbingStarting() const
 {
     try
     {
-        if (grab_strategy == 1)
+        if (grab_strategy_ == 1)
         {
             cam_->StartGrabbing(Pylon::EGrabStrategy::GrabStrategy_LatestImageOnly);
             RCLCPP_DEBUG(LOGGER_BASE, "Grabbing started (GrabStrategy_LatestImageOnly)");
             return "done";
         }
 
-        if (grab_strategy == 2)
+        if (grab_strategy_ == 2)
         {
             cam_->StartGrabbing(Pylon::EGrabStrategy::GrabStrategy_LatestImages);
             RCLCPP_DEBUG(LOGGER_BASE, "Grabbing started (GrabStrategy_LatestImages)");
@@ -3218,7 +3218,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::setGrabbingStrategy(const int& strategy)
 {
     if (strategy >= 0 && strategy <= 2)
     {
-        grab_strategy = strategy;
+        grab_strategy_ = strategy;
         return true;
     }
     else

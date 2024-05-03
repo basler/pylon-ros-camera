@@ -1316,7 +1316,7 @@ protected:
      * 1 = GrabStrategy_LatestImageOnly
      * 2 = GrabStrategy_LatestImages
      */
-    int grab_strategy ;
+    int grab_strategy_;
 
     /**
      * True if the extended binary exposure search is running.
