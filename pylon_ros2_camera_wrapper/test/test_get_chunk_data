@@ -1,0 +1,41 @@
+# script to test the access to dedicated chunk data value
+# uncomment and adjust accordingly relatively to your tests and setups
+# to execute: source test_get_chunk_data (don't forget to source install/setup.bash)
+# check the availability of specific features here: https://docs.baslerweb.com/data-chunks
+
+echo STOP GRABBING
+ros2 service call /my_camera/pylon_ros2_camera_node/stop_grabbing std_srvs/srv/Trigger "{}"
+
+echo SET CHUNK MODE ACTIVE
+ros2 service call /my_camera/pylon_ros2_camera_node/set_chunk_mode_active std_srvs/srv/SetBool "{data: true}"
+
+echo SET CHUNK SELECTOR
+# counter value
+#ros2 service call /my_camera/pylon_ros2_camera_node/set_chunk_selector pylon_ros2_camera_interfaces/srv/SetIntegerValue "{value: 3}"
+# exposure
+#ros2 service call /my_camera/pylon_ros2_camera_node/set_chunk_selector pylon_ros2_camera_interfaces/srv/SetIntegerValue "{value: 6}"
+# frame counter
+#ros2 service call /my_camera/pylon_ros2_camera_node/set_chunk_selector pylon_ros2_camera_interfaces/srv/SetIntegerValue "{value: 10}"
+# line status all
+#ros2 service call /my_camera/pylon_ros2_camera_node/set_chunk_selector pylon_ros2_camera_interfaces/srv/SetIntegerValue "{value: 17}"
+# timestamp
+ros2 service call /my_camera/pylon_ros2_camera_node/set_chunk_selector pylon_ros2_camera_interfaces/srv/SetIntegerValue "{value: 29}"
+
+echo SET CHUNK ENABLE
+ros2 service call /my_camera/pylon_ros2_camera_node/set_chunk_enable std_srvs/srv/SetBool "{data: true}"
+
+echo START GRABBING
+ros2 service call /my_camera/pylon_ros2_camera_node/start_grabbing std_srvs/srv/Trigger "{}"
+
+echo GET CHUNK DATA
+# counter value
+#ros2 service call /my_camera/pylon_ros2_camera_node/get_chunk_counter_value pylon_ros2_camera_interfaces/srv/GetIntegerValue "{}"
+# exposure
+#ros2 service call /my_camera/pylon_ros2_camera_node/get_chunk_exposure_time pylon_ros2_camera_interfaces/srv/GetFloatValue "{}"
+# frame counter
+ros2 service call /my_camera/pylon_ros2_camera_node/get_chunk_frame_counter pylon_ros2_camera_interfaces/srv/GetIntegerValue "{}"
+# line status all
+#ros2 service call /my_camera/pylon_ros2_camera_node/get_chunk_line_status_all pylon_ros2_camera_interfaces/srv/GetIntegerValue "{}"
+# timestamp
+ros2 service call /my_camera/pylon_ros2_camera_node/get_chunk_timestamp pylon_ros2_camera_interfaces/srv/GetIntegerValue "{}"
+

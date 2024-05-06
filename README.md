@@ -440,7 +440,9 @@ For camera models other than the blaze, the camera-characteristic parameter such
 
 ### Tests
 
-The folder `pylon_ros2_camera_wrapper/test` includes test programs implementing an action client sending the goal to trigger the image or the 3d data set grabbing through the actions `/my_camera/pylon_ros2_camera_node/grab_images_raw` or `/my_camera/pylon_ros2_camera_node/grab_blaze_data`, depending on the camera model. Each grabbed image (only the intensity image for the blaze) is displayed in a dedicated popup window. These programs are for testing purposes and should be adapted according to one's needs.  
+The folder `pylon_ros2_camera_wrapper/test` includes different test programs. testing specific functionalities implemented by the driver. These programs are for testing purposes and should be adapted according to one's needs.
+- *test_get_chunk_data*: test the access of specific chunk data
+- *test_grab_blaze_data_action_client*, *test_grab_image_action_client*, and *test_grab_images_action_client*: trigger the image or the 3d data set grabbing through the actions `/my_camera/pylon_ros2_camera_node/grab_images_raw` or `/my_camera/pylon_ros2_camera_node/grab_blaze_data`, depending on the camera model. Each grabbed image (only the intensity image for the blaze) is displayed in a dedicated popup window.  
 
 
 ## Known issues
@@ -463,6 +465,11 @@ To increase performance and to minimize CPU usage when grabbing images, the foll
 
 If you hot-swap the camera with a different camera with a non-compatible pixel encoding format (e.g., mono and color cameras), you need to restart the ROS system to replace the encoding value or replace the rosparam directly by setting the image_encoding parameter. e.g.,:
 `rosparam set /pylon_camera_node/image_encoding "mono8"`
+
+### Slow frame rate
+
+If the camera image acquistion is triggered by sofware trigger (default setting), then it is not possible to get the maximum frame rate, because the image acquisition is sequentially triggered, which is not overlapping then.
+Several possible solutions are mentionned and tested in issue [#21](https://github.com/basler/pylon-ros-camera/issues/21), [#28](https://github.com/basler/pylon-ros-camera/issues/28), [#29](https://github.com/basler/pylon-ros-camera/issues/29), [#81](https://github.com/basler/pylon-ros-camera/issues/81), [#116](https://github.com/basler/pylon-ros-camera/issues/116), [#147](https://github.com/basler/pylon-ros-camera/issues/147), and [#200](https://github.com/basler/pylon-ros-camera/issues/200). Please refer to them for more information.
 
 ### GigE Devices
 

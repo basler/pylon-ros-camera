@@ -119,9 +119,10 @@ public:
     /**
      * Grab a camera frame and copy the result into image
      * @param image reference to the output image.
+     * @param stamp if chunk timestamp is enabled, overwrite input stamp with the acquisition timestamp.
      * @return true if the image was grabbed successfully.
      */
-    virtual bool grab(std::vector<uint8_t>& image) = 0;
+    virtual bool grab(std::vector<uint8_t>& image, rclcpp::Time &stamp) = 0;
 
     /**
      * Grab a camera frame and copy the result into image
@@ -960,7 +961,7 @@ public:
      * Value of the timestamp when the image was acquired - Applies to: GigE and ace USB.
      * @return error code message if an error occurred or value message otherwise.
      */
-    virtual int getChunkTimestamp() = 0;
+    virtual int64_t getChunkTimestamp() = 0;
 
     /**
      * Value of the Exposure time used to acquire the image - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
@@ -978,19 +979,19 @@ public:
      * Bit field that indicates the status of all of the camera's input and output lines when the image was acquired - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.
      * @return error  message if an error occurred or done message otherwise.
      */
-    virtual int getChunkLineStatusAll() = 0;
+    virtual int64_t getChunkLineStatusAll() = 0;
 
     /**
     * Value of the Frame counter when the image was acquired - Applies to: GigE.
     * @return error  message if an error occurred or done message otherwise.
     */
-    virtual int getChunkFramecounter() = 0;
+    virtual int64_t getChunkFramecounter() = 0;
 
     /**
     * Value of the selected chunk counter - Applies to: ace 2 GigE, ace 2 USB and ace USB.
     * @return error  message if an error occurred or done message otherwise.
     */
-    virtual int getChunkCounterValue() = 0;
+    virtual int64_t getChunkCounterValue() = 0;
 
     /**
     * Set timer selector - Applies to: GigE, ace 2 GigE, ace 2 USB and ace USB.

@@ -31,6 +31,7 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #pragma GCC diagnostic ignored "-Wliteral-suffix"
 
+#include <pylon/BaslerUniversalGrabResultPtr.h>
 #include <pylon/PylonIncludes.h>
 #include <GenApi/IEnumEntry.h>
 #include <string>
@@ -68,7 +69,7 @@ public:
 
     virtual bool startGrabbing(const PylonROS2CameraParameter& parameters);
 
-    virtual bool grab(std::vector<uint8_t>& image);
+    virtual bool grab(std::vector<uint8_t>& image, rclcpp::Time &stamp);
 
     virtual bool grab(uint8_t* image);
 
@@ -298,17 +299,17 @@ public:
 
     virtual int getChunkEnable();
 
-    virtual int getChunkTimestamp();
+    virtual int64_t getChunkTimestamp();
 
     virtual float getChunkExposureTime();
 
     virtual std::string setChunkExposureTime(const float& value);
 
-    virtual int getChunkLineStatusAll();
+    virtual int64_t getChunkLineStatusAll();
 
-    virtual int getChunkFramecounter();
+    virtual int64_t getChunkFramecounter();
 
-    virtual int getChunkCounterValue();
+    virtual int64_t getChunkCounterValue();
 
     virtual std::string setTimerSelector(const int& selector);
 
@@ -460,7 +461,7 @@ protected:
     virtual bool setExtendedBrightness(const int& target_brightness,
                                        const float& current_brightness);
 
-    virtual bool grab(Pylon::CGrabResultPtr& grab_result);
+    virtual bool grab(Pylon::CBaslerUniversalGrabResultPtr& grab_result);
 
     virtual bool setupSequencer(const std::vector<float>& exposure_times,
                                 std::vector<float>& exposure_times_set);

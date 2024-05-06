@@ -94,7 +94,7 @@ bool PylonROS2USBCamera::applyCamSpecificStartupSettings(const PylonROS2CameraPa
         grabbingStarting();
         cam_->StopGrabbing();
 
-        RCLCPP_INFO_STREAM(LOGGER_USB, "Startup user profile set to " << parameters.startup_user_set_);
+        RCLCPP_INFO_STREAM(LOGGER_USB, "Startup user profile set to \"" << parameters.startup_user_set_ << "\"");
         if (parameters.startup_user_set_ == "Default")
         {
             // Remove all previous settings (sequencer etc.)
@@ -158,23 +158,27 @@ bool PylonROS2USBCamera::applyCamSpecificStartupSettings(const PylonROS2CameraPa
         {
             cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet1);
             cam_->UserSetLoad.Execute();
-            RCLCPP_WARN(LOGGER_USB, "User Set 1 Loaded");
+            RCLCPP_INFO(LOGGER_USB, "User Set 1 Loaded");
         }
         else if (parameters.startup_user_set_ == "UserSet2")
         {
             cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet2);
             cam_->UserSetLoad.Execute();
-            RCLCPP_WARN(LOGGER_USB, "User Set 2 Loaded");
+            RCLCPP_INFO(LOGGER_USB, "User Set 2 Loaded");
         }
         else if (parameters.startup_user_set_ == "UserSet3")
         {
             cam_->UserSetSelector.SetValue(Basler_UniversalCameraParams::UserSetSelector_UserSet3);
             cam_->UserSetLoad.Execute();
-            RCLCPP_WARN(LOGGER_USB, "User Set 3 Loaded");
+            RCLCPP_INFO(LOGGER_USB, "User Set 3 Loaded");
         }
         else if (parameters.startup_user_set_ == "CurrentSetting")
         {
-            RCLCPP_WARN(LOGGER_USB, "No user set is provided -> Camera current setting will be applied");
+            RCLCPP_INFO(LOGGER_USB, "No user set is provided -> Camera current setting will be applied");
+        }
+        else
+        {
+            RCLCPP_WARN_STREAM(LOGGER_USB, "Unsupported startup user profile \"" << parameters.startup_user_set_ << "\", ignoring");
         }
     }
     catch ( const GenICam::GenericException &e )

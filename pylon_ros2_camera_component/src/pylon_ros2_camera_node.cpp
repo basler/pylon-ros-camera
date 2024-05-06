@@ -1014,13 +1014,14 @@ bool PylonROS2CameraNode::grabImage()
   
   if (!this->pylon_camera_->isBlaze())
   {
-    // Store current time before the image is transmitted for a more accurate grab time estimation
-    auto grab_time = rclcpp::Node::now();
-    if (!this->pylon_camera_->grab(this->img_raw_msg_.data))
+    // Store current time before the image is transmitted for a more accurate grab time estimation.
+    // If chunk timestamp is enabled, grab will overwrite it with the acquisition timestamp.
+    auto stamp = rclcpp::Node::now();
+    if (!this->pylon_camera_->grab(this->img_raw_msg_.data, stamp))
     {
       return false;
     }
-    this->img_raw_msg_.header.stamp = grab_time;
+    this->img_raw_msg_.header.stamp = stamp;
   }
   else
   {
@@ -2420,21 +2421,35 @@ void PylonROS2CameraNode::getChunkTimestampCallback(const std::shared_ptr<GetInt
                                                     std::shared_ptr<GetIntegerSrv::Response> response)
 {
   (void)request;
-  int value = this->pylon_camera_->getChunkTimestamp();
-  if (value == -1)
+  int64_t value = this->pylon_camera_->getChunkTimestamp();
+  //std::cout << value << std::endl;
+
+  if (value < 0)
   {
     response->success = false;
-    response->message = "The connected Camera not supporting this feature";
-  }
-  else if (value == -2)
-  {
-    response->success = false;
-    response->message = "Error, Refer to the ROS console";
+    response->value = value;
+
+    switch (value)
+    {
+    case -1:
+      response->message = "The connected camera does not supporting this feature";
+      break;
+    case -2:
+      response->message = "An exception occured";
+      break;
+    case -3:
+      response->message = "An error occurred when trying to grab";
+      break;
+    default:
+      response->message = "An unexpected problem occured";
+      break;
+    }
   }
   else
   {
     response->success = true;
     response->value = value;
+    response->message = "Access to chunk timestamp successful";
   }
 }
 
@@ -2442,21 +2457,35 @@ void PylonROS2CameraNode::getChunkLineStatusAllCallback(const std::shared_ptr<Ge
                                                         std::shared_ptr<GetIntegerSrv::Response> response)
 {
   (void)request;
-  int value = this->pylon_camera_->getChunkLineStatusAll();
-  if (value == -1)
+  int64_t value = this->pylon_camera_->getChunkLineStatusAll();
+  //std::cout << value << std::endl;
+
+  if (value < 0)
   {
     response->success = false;
-    response->message = "The connected Camera not supporting this feature";
-  }
-  else if (value == -2)
-  {
-    response->success = false;
-    response->message = "Error, Refer to the ROS console";
+    response->value = value;
+
+    switch (value)
+    {
+    case -1:
+      response->message = "The connected camera does not supporting this feature";
+      break;
+    case -2:
+      response->message = "An exception occured";
+      break;
+    case -3:
+      response->message = "An error occurred when trying to grab";
+      break;
+    default:
+      response->message = "An unexpected problem occured";
+      break;
+    }
   }
   else
   {
     response->success = true;
     response->value = value;
+    response->message = "Access to chunk line status all successful";
   }
 }
 
@@ -2464,21 +2493,35 @@ void PylonROS2CameraNode::getChunkFramecounterCallback(const std::shared_ptr<Get
                                                        std::shared_ptr<GetIntegerSrv::Response> response)
 {
   (void)request;
-  int value = this->pylon_camera_->getChunkFramecounter();
-  if (value == -1) 
+  int64_t value = this->pylon_camera_->getChunkFramecounter();
+  //std::cout << value << std::endl;
+
+  if (value < 0)
   {
     response->success = false;
-    response->message = "The connected Camera not supporting this feature";
-  } 
-  else if (value == -2)
-  {
-    response->success = false;
-    response->message = "Error, Refer to the ROS console";
-  } 
-  else 
+    response->value = value;
+
+    switch (value)
+    {
+    case -1:
+      response->message = "The connected camera does not supporting this feature";
+      break;
+    case -2:
+      response->message = "An exception occured";
+      break;
+    case -3:
+      response->message = "An error occurred when trying to grab";
+      break;
+    default:
+      response->message = "An unexpected problem occured";
+      break;
+    }
+  }
+  else
   {
     response->success = true;
     response->value = value;
+    response->message = "Access to chunk frame counter successful";
   }
 }
 
@@ -2486,21 +2529,35 @@ void PylonROS2CameraNode::getChunkCounterValueCallback(const std::shared_ptr<Get
                                                        std::shared_ptr<GetIntegerSrv::Response> response)
 {
   (void)request;
-  int value = this->pylon_camera_->getChunkCounterValue();
-  if (value == -1 )
+  int64_t value = this->pylon_camera_->getChunkCounterValue();
+  //std::cout << value << std::endl;
+
+  if (value < 0)
   {
     response->success = false;
-    response->message = "The connected Camera not supporting this feature";
+    response->value = value;
+
+    switch (value)
+    {
+    case -1:
+      response->message = "The connected camera does not supporting this feature";
+      break;
+    case -2:
+      response->message = "An exception occured";
+      break;
+    case -3:
+      response->message = "An error occurred when trying to grab";
+      break;
+    default:
+      response->message = "An unexpected problem occured";
+      break;
+    }
   }
-  else if (value == -2)
-  {
-    response->success = false;
-    response->message = "Error, Refer to the ROS console";
-  } 
-  else 
+  else
   {
     response->success = true;
     response->value = value;
+    response->message = "Access to chunk counter successful";
   }
 }
 
@@ -2509,20 +2566,35 @@ void PylonROS2CameraNode::getChunkExposureTimeCallback(const std::shared_ptr<Get
 {
   (void)request;
   float value = this->pylon_camera_->getChunkExposureTime();
-  if (value == -1.0)
+  //std::cout << value << std::endl;
+
+  if (value < 0.0)
   {
     response->success = false;
-    response->message = "The connected Camera not supporting this feature";
-  }
-  else if (value == -2.0)
-  {
-    response->success = false;
-    response->message = "Error, Refer to the ROS console";
+    response->value = value;
+
+    if (value == -1.0)
+    {
+      response->message = "The connected camera does not supporting this feature";
+    }
+    else if (value == -2.0)
+    {
+      response->message = "An exception occured";
+    }
+    else if (value == -3.0)
+    {
+      response->message = "An error occurred when trying to grab";
+    }
+    else
+    {
+      response->message = "An unexpected problem occured";
+    }
   }
   else
   {
     response->success = true;
     response->value = value;
+    response->message = "Access to chunk exposure successful";
   }
 }
 
@@ -4777,15 +4849,17 @@ std::shared_ptr<GrabImagesAction::Result> PylonROS2CameraNode::grabRawImages(con
     // already contains the number of channels
     img.step = img.width * this->pylon_camera_->imagePixelDepth();
 
-    // Store current time before the image is transmitted for a more accurate grab time estimation
-    img.header.stamp = rclcpp::Node::now();
+    // Store current time before the image is transmitted for a more accurate grab time estimation.
+    // If chunk timestamp is enabled, grab will overwrite it with the acquisition timestamp.
+    auto stamp = rclcpp::Node::now();
     img.header.frame_id = cameraFrame();
 
-    if (!this->pylon_camera_->grab(img.data))
+    if (!this->pylon_camera_->grab(img.data, stamp))
     {
       result->success = false;
       break;
     }
+    img.header.stamp = stamp;
 
     feedback->curr_nr_images_taken = i + 1;
     //RCLCPP_DEBUG_STREAM(LOGGER, "Publishing feedback...");
