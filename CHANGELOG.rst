@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.6 (2024-05-06)
+-------------------
+* Improving the setLineMode function to handle easily other modes
+
 2.0.5 (2024-05-02)
 -------------------
 * Use acquisition timestamp if corresponding chunk is enabled.
