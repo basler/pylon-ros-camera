@@ -4304,12 +4304,14 @@ void PylonROS2CameraNode::executeGrabRectImagesAction(const std::shared_ptr<Grab
 
     for ( std::size_t i = 0; i < result->images.size(); ++i)
     {
+      const int src_bit_depth = sensor_msgs::image_encodings::bitDepth(result->images[i].encoding);
+      const std::string debayed_encoding = (src_bit_depth == 8) ? "bgr8" : "bgr16";
       cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(result->images[i],
-                                                             result->images[i].encoding);
+                                                             debayed_encoding);
       this->pinhole_model_->fromCameraInfo(this->camera_info_manager_->getCameraInfo());
       cv_bridge::CvImage cv_bridge_img_rect;
       cv_bridge_img_rect.header = result->images[i].header;
-      cv_bridge_img_rect.encoding = result->images[i].encoding;
+      cv_bridge_img_rect.encoding = debayed_encoding;
       this->pinhole_model_->rectifyImage(cv_img_raw->image, cv_bridge_img_rect.image);
       cv_bridge_img_rect.toImageMsg(result->images[i]);
     }
