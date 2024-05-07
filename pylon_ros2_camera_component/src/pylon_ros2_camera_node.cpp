@@ -946,11 +946,28 @@ void PylonROS2CameraNode::spin()
       if (this->getNumSubscribersRectImagePub() > 0)
       {
         this->cv_bridge_img_rect_->header.stamp = this->img_raw_msg_.header.stamp;
-        assert(this->pinhole_model_->initialized());
-        cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(this->img_raw_msg_, this->img_raw_msg_.encoding);
-        this->pinhole_model_->fromCameraInfo(this->camera_info_manager_->getCameraInfo());
-        this->pinhole_model_->rectifyImage(cv_img_raw->image, this->cv_bridge_img_rect_->image);
-        this->img_rect_pub_->publish(this->cv_bridge_img_rect_->toImageMsg());
+        const int bit_depth = sensor_msgs::image_encodings::bitDepth(img_raw_msg_.encoding);
+        std::string rect_encoding = img_raw_msg_.encoding;
+        if (bit_depth == 8 && sensor_msgs::image_encodings::isBayer(rect_encoding))
+        {
+          rect_encoding = "bgr8";
+        }
+        else if (bit_depth == 16 && sensor_msgs::image_encodings::isBayer(rect_encoding))
+        {
+          rect_encoding ="bgr16";
+        }
+        this->cv_bridge_img_rect_->encoding = rect_encoding;
+        cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(this->img_raw_msg_, rect_encoding);
+        if (cv_img_raw == nullptr)
+        {
+          RCLCPP_ERROR(LOGGER, "cv_bridge::toCvCopy() failed, not publishing the rectified image");
+        }
+        else
+        {
+          this->pinhole_model_->fromCameraInfo(this->camera_info_manager_->getCameraInfo());
+          this->pinhole_model_->rectifyImage(cv_img_raw->image, this->cv_bridge_img_rect_->image);
+          this->img_rect_pub_->publish(this->cv_bridge_img_rect_->toImageMsg());
+        }
       }
     }
   }
