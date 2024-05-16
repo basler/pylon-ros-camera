@@ -82,12 +82,6 @@ PylonROS2CameraNode::PylonROS2CameraNode(const rclcpp::NodeOptions& options)
 
 PylonROS2CameraNode::~PylonROS2CameraNode()
 {
-  if (this->pylon_camera_)
-  {
-    delete this->pylon_camera_;
-    this->pylon_camera_ = nullptr;
-  }
-
   if (this->img_rect_pub_)
   {
     delete this->img_rect_pub_;
@@ -912,8 +906,7 @@ void PylonROS2CameraNode::spin()
 
     if (this->pylon_camera_)
     {
-      delete this->pylon_camera_;
-      this->pylon_camera_ = nullptr;
+      this->pylon_camera_.reset();
     }
 
     // Possible issue here: ROS2 does not allow to shutdown services

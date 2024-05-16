@@ -28,9 +28,10 @@
 
 #pragma once
 
+#include <map>
+#include <memory>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "sensor_msgs/msg/camera_info.hpp"
 #include "sensor_msgs/msg/region_of_interest.hpp"
@@ -59,7 +60,7 @@ public:
      * Create a new PylonROS2Camera instance. It will return the first camera that could be found.
      * @return new PylonROS2Camera instance or NULL if no camera was found.
      */
-    static PylonROS2Camera* create();
+    static std::unique_ptr<PylonROS2Camera> create();
 
     /**
      * Create a new PylonROS2Camera instance based on the DeviceUserID of the camera.
@@ -67,7 +68,7 @@ public:
      * first camera that could be found is returned.
      * @return new PylonROS2Camera instance or NULL if the camera was not found.
      */
-    static PylonROS2Camera* create(const std::string& device_user_id);
+    static std::unique_ptr<PylonROS2Camera> create(const std::string& device_user_id);
 
     /**
      * Configures the camera according to the software trigger mode.
@@ -1258,7 +1259,7 @@ protected:
     /**
      * Protected default constructor.
      */
-    PylonROS2Camera();
+    explicit PylonROS2Camera();
 
     /**
      * Enables the extended brightness search.

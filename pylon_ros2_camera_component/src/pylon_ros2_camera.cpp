@@ -157,27 +157,27 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
     return UNKNOWN;
 }
 
-PylonROS2Camera* createFromDevice(PYLON_CAM_TYPE cam_type, Pylon::IPylonDevice* device)
+std::unique_ptr<PylonROS2Camera> createFromDevice(PYLON_CAM_TYPE cam_type, Pylon::IPylonDevice* device)
 {
     switch (cam_type)
     {
         case GIGE:
-            return new PylonROS2GigECamera(device);
+            return std::make_unique<PylonROS2GigECamera>(device);
         case GIGE2 :
-            return new PylonROS2GigEAce2Camera(device);
+            return std::make_unique<PylonROS2GigEAce2Camera>(device);
         case USB:
-            return new PylonROS2USBCamera(device);
+            return std::make_unique<PylonROS2USBCamera>(device);
         case DART:
-            return new PylonROS2DARTCamera(device);
+            return std::make_unique<PylonROS2DARTCamera>(device);
         case BLAZE:
-            return new PylonROS2BlazeCamera(device);
+            return std::make_unique<PylonROS2BlazeCamera>(device);
         case UNKNOWN:
         default:
             return nullptr;
     }
 }
 
-PylonROS2Camera* PylonROS2Camera::create(const std::string& device_user_id_to_open)
+std::unique_ptr<PylonROS2Camera> PylonROS2Camera::create(const std::string& device_user_id_to_open)
 {
     try
     {
@@ -209,7 +209,7 @@ PylonROS2Camera* PylonROS2Camera::create(const std::string& device_user_id_to_op
                     if (cam_type != UNKNOWN)
                     {
                         //RCLCPP_ERROR_STREAM(LOGGER, "CAM TYPE: " << cam_type);
-                        PylonROS2Camera* new_cam_ptr = createFromDevice(cam_type, tl_factory.CreateDevice(*it));
+                        std::unique_ptr<PylonROS2Camera> new_cam_ptr = createFromDevice(cam_type, tl_factory.CreateDevice(*it));
                         new_cam_ptr->device_user_id_ = it->GetUserDefinedName();
 
                         return new_cam_ptr;

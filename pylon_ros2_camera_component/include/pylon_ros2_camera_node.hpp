@@ -1629,8 +1629,8 @@ protected:
 protected:
 
   // camera
-  PylonROS2Camera* pylon_camera_;
   image_geometry::PinholeCameraModel* pinhole_model_;
+  std::unique_ptr<PylonROS2Camera> pylon_camera_;
 
   PylonROS2CameraParameter pylon_camera_parameter_set_;
   camera_info_manager::CameraInfoManager* camera_info_manager_;
