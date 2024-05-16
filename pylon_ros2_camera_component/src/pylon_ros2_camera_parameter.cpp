@@ -89,9 +89,6 @@ PylonROS2CameraParameter::PylonROS2CameraParameter() :
     //RCUTILS_LOG_SEVERITY_FATAL
 }
 
-PylonROS2CameraParameter::~PylonROS2CameraParameter()
-{}
-
 void PylonROS2CameraParameter::readFromRosParameterServer(rclcpp::Node& nh)
 {
     RCLCPP_DEBUG(LOGGER, "-> Reading parameters from ROS2 server");

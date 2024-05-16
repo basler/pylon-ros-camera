@@ -54,7 +54,7 @@ public:
                          const float& right_lim,
                          const float& current_exp);
 
-    virtual ~BinaryExposureSearch();
+    virtual ~BinaryExposureSearch() = default;
 
     /**
      * Update the binary search based on the current
@@ -94,7 +94,7 @@ private:
     /**
      * Counts how often the exposure remained unchanged during search
      */
-    size_t last_unchanged_exposure_counter_;
+    std::size_t last_unchanged_exposure_counter_{0};
 
     /**
      * Left limit for the binary search
@@ -116,14 +116,14 @@ private:
      * Hence the BinaryExposureSearch will fail, if the target brightness
      * is not yet reached
      */
-    bool limit_reached_;
+    bool limit_reached_{false};
 
     /**
      * Flag which tells if it is the first time the update() function is called
      * Hence it is not necessary to update the search limits, because they
      * were set correctly in the constructor
      */
-    bool is_initial_setting_;
+    bool is_initial_setting_{false};
 };
 
 }  // namespace pylon_ros2_camera

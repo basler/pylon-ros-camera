@@ -43,15 +43,9 @@ BinaryExposureSearch::BinaryExposureSearch(const float& target_brightness,
                                            const float& current_exp)
     : target_brightness_(target_brightness)
     , last_exposure_(current_exp)
-    , last_unchanged_exposure_counter_(0)
     , left_limit_(left_lim)
     , right_limit_(right_lim)
     , new_exposure_((left_lim + right_lim) / 2.0)
-    , limit_reached_(false)
-    , is_initial_setting_(true)
-{}
-
-BinaryExposureSearch::~BinaryExposureSearch()
 {}
 
 bool BinaryExposureSearch::update(const float& current_brightness,

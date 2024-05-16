@@ -36,38 +36,38 @@
 #include "visibility_control.hpp"
 
 // topics
-#include "pylon_ros2_camera_interfaces/msg/current_params.hpp"
-#include "pylon_ros2_camera_interfaces/msg/component_status.hpp"
+#include <pylon_ros2_camera_interfaces/msg/current_params.hpp>
+#include <pylon_ros2_camera_interfaces/msg/component_status.hpp>
 
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 
 // services
-#include "pylon_ros2_camera_interfaces/srv/get_integer_value.hpp"
-#include "pylon_ros2_camera_interfaces/srv/get_float_value.hpp"
-#include "pylon_ros2_camera_interfaces/srv/get_string_value.hpp"
-#include "pylon_ros2_camera_interfaces/srv/set_binning.hpp"
-#include "pylon_ros2_camera_interfaces/srv/set_brightness.hpp"
-#include "pylon_ros2_camera_interfaces/srv/set_exposure.hpp"
-#include "pylon_ros2_camera_interfaces/srv/set_gain.hpp"
-#include "pylon_ros2_camera_interfaces/srv/set_gamma.hpp"
-#include "pylon_ros2_camera_interfaces/srv/set_integer_value.hpp"
-#include "pylon_ros2_camera_interfaces/srv/set_roi.hpp"
-#include "pylon_ros2_camera_interfaces/srv/set_sleeping.hpp"
-#include "pylon_ros2_camera_interfaces/srv/set_white_balance.hpp"
-#include "pylon_ros2_camera_interfaces/srv/set_integer_value.hpp"
-#include "pylon_ros2_camera_interfaces/srv/set_float_value.hpp"
-#include "pylon_ros2_camera_interfaces/srv/set_string_value.hpp"
-#include "pylon_ros2_camera_interfaces/srv/set_action_trigger_configuration.hpp"
-#include "pylon_ros2_camera_interfaces/srv/issue_action_command.hpp"
-#include "pylon_ros2_camera_interfaces/srv/issue_scheduled_action_command.hpp"
+#include <pylon_ros2_camera_interfaces/srv/get_integer_value.hpp>
+#include <pylon_ros2_camera_interfaces/srv/get_float_value.hpp>
+#include <pylon_ros2_camera_interfaces/srv/get_string_value.hpp>
+#include <pylon_ros2_camera_interfaces/srv/set_binning.hpp>
+#include <pylon_ros2_camera_interfaces/srv/set_brightness.hpp>
+#include <pylon_ros2_camera_interfaces/srv/set_exposure.hpp>
+#include <pylon_ros2_camera_interfaces/srv/set_gain.hpp>
+#include <pylon_ros2_camera_interfaces/srv/set_gamma.hpp>
+#include <pylon_ros2_camera_interfaces/srv/set_integer_value.hpp>
+#include <pylon_ros2_camera_interfaces/srv/set_roi.hpp>
+#include <pylon_ros2_camera_interfaces/srv/set_sleeping.hpp>
+#include <pylon_ros2_camera_interfaces/srv/set_white_balance.hpp>
+#include <pylon_ros2_camera_interfaces/srv/set_integer_value.hpp>
+#include <pylon_ros2_camera_interfaces/srv/set_float_value.hpp>
+#include <pylon_ros2_camera_interfaces/srv/set_string_value.hpp>
+#include <pylon_ros2_camera_interfaces/srv/set_action_trigger_configuration.hpp>
+#include <pylon_ros2_camera_interfaces/srv/issue_action_command.hpp>
+#include <pylon_ros2_camera_interfaces/srv/issue_scheduled_action_command.hpp>
 
 #include <std_srvs/srv/set_bool.hpp>
 #include <std_srvs/srv/trigger.hpp>
 
 // actions
-#include "pylon_ros2_camera_interfaces/action/grab_images.hpp"
-#include "pylon_ros2_camera_interfaces/action/grab_blaze_data.hpp"
+#include <pylon_ros2_camera_interfaces/action/grab_images.hpp>
+#include <pylon_ros2_camera_interfaces/action/grab_blaze_data.hpp>
 
 // camera
 #include "pylon_ros2_camera.hpp"
@@ -1808,9 +1808,9 @@ protected:
 
   // intern
   std::vector<std::size_t> sampling_indices_;
-  std::array<float, 256> brightness_exp_lut_;
+  std::array<float, 256> brightness_exp_lut_{};
 
-  bool is_sleeping_;
+  bool is_sleeping_{false};
 
   // diagnostics
   diagnostic_updater::Updater diagnostics_updater_;

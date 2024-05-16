@@ -51,7 +51,7 @@ class PylonROS2CameraParameter
 public:
     PylonROS2CameraParameter();
 
-    virtual ~PylonROS2CameraParameter();
+    virtual ~PylonROS2CameraParameter() = default;
 
     /**
      * Read the parameters from the parameter server.
