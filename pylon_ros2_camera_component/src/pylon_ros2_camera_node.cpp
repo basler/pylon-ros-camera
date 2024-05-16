@@ -740,7 +740,7 @@ bool PylonROS2CameraNode::startGrabbing()
           << this->pylon_camera_parameter_set_.cameraInfoURL() << "' is invalid!");
       RCLCPP_DEBUG_STREAM(LOGGER, "CameraInfoURL should have following style: "
           << "'file:///full/path/to/local/file.yaml' or "
-          << "'file://${ROS_HOME}/camera_info/${NAME}.yaml'");
+          << "'package://<package_name>/relative/path/to/file.yaml'");
       RCLCPP_WARN(LOGGER, "Will only provide distorted /image_raw images!");
     }
     else
@@ -778,8 +778,11 @@ bool PylonROS2CameraNode::startGrabbing()
     this->setBinningX(this->pylon_camera_parameter_set_.binning_x_, reached_binning_x);
     RCLCPP_INFO_STREAM(LOGGER, "Setting horizontal binning_x to "
             << this->pylon_camera_parameter_set_.binning_x_);
-    RCLCPP_WARN_STREAM(LOGGER, "The image width of the camera_info-msg will "
-            << "be adapted, so that the binning_x value in this msg remains 1");
+    if (reached_binning_x > 1)
+    {
+      RCLCPP_WARN_STREAM(LOGGER, "The image width of the camera_info-msg will "
+              << "be adapted, so that the binning_x value in this msg remains 1");
+    }
   }
 
   if (!this->pylon_camera_->isBlaze() && this->pylon_camera_parameter_set_.binning_y_given_)
@@ -788,15 +791,18 @@ bool PylonROS2CameraNode::startGrabbing()
     this->setBinningY(this->pylon_camera_parameter_set_.binning_y_, reached_binning_y);
     RCLCPP_INFO_STREAM(LOGGER, "Setting vertical binning_y to "
             << pylon_camera_parameter_set_.binning_y_);
-    RCLCPP_WARN_STREAM(LOGGER, "The image height of the camera_info-msg will "
-            << "be adapted, so that the binning_y value in this msg remains 1");
+    if (reached_binning_y > 1)
+    {
+      RCLCPP_WARN_STREAM(LOGGER, "The image height of the camera_info-msg will "
+              << "be adapted, so that the binning_y value in this msg remains 1");
+    }
   }
 
   if (this->pylon_camera_parameter_set_.exposure_given_)
   {
     float reached_exposure;
     this->setExposure(this->pylon_camera_parameter_set_.exposure_, reached_exposure);
-    RCLCPP_INFO_STREAM(LOGGER, "Setting exposure to "
+    RCLCPP_INFO_STREAM(LOGGER, "Attempting to set the exposure to "
             << this->pylon_camera_parameter_set_.exposure_ << ", reached: "
             << reached_exposure);
   }
@@ -805,7 +811,7 @@ bool PylonROS2CameraNode::startGrabbing()
   {
     float reached_gain;
     this->setGain(this->pylon_camera_parameter_set_.gain_, reached_gain);
-    RCLCPP_INFO_STREAM(LOGGER, "Setting gain to: "
+    RCLCPP_INFO_STREAM(LOGGER, "Attempting to set the gain to "
             << this->pylon_camera_parameter_set_.gain_ << ", reached: "
             << reached_gain);
   }
@@ -814,7 +820,7 @@ bool PylonROS2CameraNode::startGrabbing()
   {
     float reached_gamma;
     this->setGamma(pylon_camera_parameter_set_.gamma_, reached_gamma);
-    RCLCPP_INFO_STREAM(LOGGER, "Setting gamma to " << this->pylon_camera_parameter_set_.gamma_
+    RCLCPP_INFO_STREAM(LOGGER, "Attempting to set gamma to " << this->pylon_camera_parameter_set_.gamma_
             << ", reached: " << reached_gamma);
   }
 
@@ -826,7 +832,7 @@ bool PylonROS2CameraNode::startGrabbing()
                         this->pylon_camera_parameter_set_.exposure_auto_,
                         this->pylon_camera_parameter_set_.gain_auto_);
 
-    RCLCPP_INFO_STREAM(LOGGER, "Setting brightness to: "
+    RCLCPP_INFO_STREAM(LOGGER, "Attempting to set the brightness to "
             << this->pylon_camera_parameter_set_.brightness_ << ", reached: "
             << reached_brightness);
 
@@ -867,7 +873,7 @@ bool PylonROS2CameraNode::startGrabbing()
   // Framerate Settings
   if (this->pylon_camera_->maxPossibleFramerate() < this->pylon_camera_parameter_set_.frameRate())
   {
-    RCLCPP_INFO(LOGGER, "Desired framerate %.2f is higher than max possible. Will limit framerate to: %.2f Hz",
+    RCLCPP_INFO(LOGGER, "Desired framerate %.2f is higher than the max possible. Will limit the framerate to: %.2f Hz",
               this->pylon_camera_parameter_set_.frameRate(),
               this->pylon_camera_->maxPossibleFramerate());
     this->pylon_camera_parameter_set_.setFrameRate(*this, this->pylon_camera_->maxPossibleFramerate());
@@ -1156,7 +1162,7 @@ bool PylonROS2CameraNode::setBrightness(const int& target_brightness,
     return false;
   }
 
-  // calculates current brightness by generating the mean over all pixels
+  // calculates current brightness by generating the mean over some or all pixels
   // stored in img_raw_msg_.data vector
   float current_brightness = this->calcCurrentBrightness();
 
@@ -1186,11 +1192,7 @@ bool PylonROS2CameraNode::setBrightness(const int& target_brightness,
       float reached_exp;
       if (!this->setExposure(brightness_exp_lut_.at(50), reached_exp))
       {
-        RCLCPP_WARN_STREAM(LOGGER, "Tried to speed-up exposure search with initial guess, but setting the exposure failed!");
-      }
-      else
-      {
-        RCLCPP_DEBUG_STREAM(LOGGER, "Speed-up exposure search with initial exposure guess of " << reached_exp);
+        RCLCPP_WARN_STREAM(LOGGER, "Setting the exposure failed!");
       }
     }
   }
@@ -1252,7 +1254,7 @@ bool PylonROS2CameraNode::setBrightness(const int& target_brightness,
       // do nothing if the pylon auto function is running, we need to
       // wait till it's finished
       /*
-      ROS_DEBUG_STREAM("PylonAutoBrightnessFunction still running! "
+      RCLCPP_DEBUG_STREAM(LOGGER, "PylonAutoBrightnessFunction still running! "
           << " Current brightness: " << calcCurrentBrightness()
           << ", current exposure: " << pylon_camera_->currentExposure());
       */
@@ -1283,7 +1285,7 @@ bool PylonROS2CameraNode::setBrightness(const int& target_brightness,
     {
       RCLCPP_WARN_STREAM(LOGGER, "Seems like the desired brightness (" << target_brightness_co
               << ") is not reachable! Stuck at brightness " << current_brightness
-              << " and exposure " << this->pylon_camera_->currentExposure() << "us");
+              << " and exposure " << this->pylon_camera_->currentExposure() << "µs");
       this->pylon_camera_->disableAllRunningAutoBrightessFunctions();
       reached_brightness = static_cast<int>(current_brightness);
       return false;
@@ -1295,14 +1297,14 @@ bool PylonROS2CameraNode::setBrightness(const int& target_brightness,
       this->pylon_camera_->disableAllRunningAutoBrightessFunctions();
       RCLCPP_WARN_STREAM(LOGGER, "Did not reach the target brightness before "
           << "timeout of " << ((timeout - start_time).nanoseconds()/ 1e9)
-          << " sec! Stuck at brightness " << current_brightness
-          << " and exposure " << this->pylon_camera_->currentExposure() << "us");
+          << " s! Stuck at brightness " << current_brightness
+          << " and exposure " << this->pylon_camera_->currentExposure() << " µs");
       reached_brightness = static_cast<int>(current_brightness);
       return false;
     }
   }
 
-  RCLCPP_DEBUG_STREAM(LOGGER, "Finally reached brightness: " << current_brightness);
+  RCLCPP_DEBUG_STREAM(LOGGER, "Eventually reached brightness: " << current_brightness);
   reached_brightness = static_cast<int>(current_brightness);
 
   // store reached brightness - exposure tuple for next times search
@@ -4248,8 +4250,8 @@ rclcpp_action::GoalResponse PylonROS2CameraNode::handleGrabRawImagesActionGoal(c
 
 rclcpp_action::CancelResponse PylonROS2CameraNode::handleGrabRawImagesActionGoalCancel(const std::shared_ptr<GrabImagesGoalHandle> goal_handle)
 {
-  RCLCPP_DEBUG(this->get_logger(), "PylonROS2CameraNode::handleGrabRawImagesActionGoalCancel -> Received request to cancel goal");
   (void)goal_handle;
+  RCLCPP_DEBUG(LOGGER, "PylonROS2CameraNode::handleGrabRawImagesActionGoalCancel -> Received request to cancel goal");
   return rclcpp_action::CancelResponse::ACCEPT;
 }
 
@@ -4278,14 +4280,14 @@ rclcpp_action::GoalResponse PylonROS2CameraNode::handleGrabRectImagesActionGoal(
 
 rclcpp_action::CancelResponse PylonROS2CameraNode::handleGrabRectImagesActionGoalCancel(const std::shared_ptr<GrabImagesGoalHandle> goal_handle)
 {
-  RCLCPP_DEBUG(this->get_logger(), "PylonROS2CameraNode::handleGrabRectImagesActionGoalCancel -> Received request to cancel goal");
   (void)goal_handle;
+  RCLCPP_DEBUG(LOGGER, "PylonROS2CameraNode::handleGrabRectImagesActionGoalCancel -> Received request to cancel goal");
   return rclcpp_action::CancelResponse::ACCEPT;
 }
 
 void PylonROS2CameraNode::handleGrabRectImagesActionGoalAccepted(const std::shared_ptr<GrabImagesGoalHandle> goal_handle)
 {
-  RCLCPP_DEBUG(this->get_logger(), "PylonROS2CameraNode::handleGrabRectImagesActionGoalAccepted -> Goal has been accepted, starting the thread");
+  RCLCPP_DEBUG(LOGGER, "PylonROS2CameraNode::handleGrabRectImagesActionGoalAccepted -> Goal has been accepted, starting the thread");
 
   using namespace std::placeholders;
   // this needs to return quickly to avoid blocking the executor, so spin up a new thread
@@ -4299,7 +4301,7 @@ void PylonROS2CameraNode::executeGrabRectImagesAction(const std::shared_ptr<Grab
   auto feedback = std::make_shared<GrabImagesAction::Feedback>();
 
   // stop it here if the connected cam is a blaze
-  // should not happen as the action server is setup if the connected cam is not a blaze
+  // should not happen as the action server is only set-up if the connected cam is not a blaze
   if (this->pylon_camera_->isBlaze())
   {
     RCLCPP_WARN(LOGGER, "This action is not implemented for the blaze. Trigger the one dedicated to it instead.");
@@ -4350,14 +4352,14 @@ rclcpp_action::GoalResponse PylonROS2CameraNode::handleGrabBlazeDataActionGoal(c
 
 rclcpp_action::CancelResponse PylonROS2CameraNode::handleGrabBlazeDataActionGoalCancel(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle)
 {
-  RCLCPP_DEBUG(this->get_logger(), "PylonROS2CameraNode::handleGrabBlazeDataActionGoalCancel -> Received request to cancel goal");
+  RCLCPP_DEBUG(LOGGER, "PylonROS2CameraNode::handleGrabBlazeDataActionGoalCancel -> Received request to cancel goal");
   (void)goal_handle;
   return rclcpp_action::CancelResponse::ACCEPT;
 }
 
 void PylonROS2CameraNode::handleGrabBlazeDataActionGoalAccepted(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle)
 {
-  RCLCPP_DEBUG(this->get_logger(), "PylonROS2CameraNode::handleGrabBlazeDataActionGoalAccepted -> Goal has been accepted, starting the thread");
+  RCLCPP_DEBUG(LOGGER, "PylonROS2CameraNode::handleGrabBlazeDataActionGoalAccepted -> Goal has been accepted, starting the thread");
 
   using namespace std::placeholders;
   // this needs to return quickly to avoid blocking the executor, so spin up a new thread
@@ -4820,7 +4822,7 @@ std::shared_ptr<GrabImagesAction::Result> PylonROS2CameraNode::grabRawImages(con
     previous_exp = this->pylon_camera_->currentExposure();
   }
 
-  RCLCPP_DEBUG_STREAM(LOGGER, "Number of grabbed images: " << n_images);
+  RCLCPP_DEBUG_STREAM(LOGGER, "Number of images to grab: " << n_images);
   for (std::size_t i = 0; i < n_images; ++i)
   {
     // user cancel request
@@ -4836,27 +4838,43 @@ std::shared_ptr<GrabImagesAction::Result> PylonROS2CameraNode::grabRawImages(con
     {
       const bool success = this->setExposure(goal->exposure_times[i], result->reached_exposure_times[i]);
       result->success = result->success && success;
+      if (!success)
+      {
+        RCLCPP_ERROR_STREAM(LOGGER, "Error while setting the desired exposure (" << goal->exposure_times[i] << " µs). Aborting!");
+      }
     }
 
     if (goal->gain_given)
     {
       const bool success = this->setGain(goal->gain_values[i], result->reached_gain_values[i]);
       result->success = result->success && success;
+      if (!success)
+      {
+        RCLCPP_ERROR_STREAM(LOGGER, "Error while setting the desired gain (" << goal->gain_values[i] << "). Aborting!");
+      }
     }
 
     if (goal->gamma_given)
     {
       const bool success = this->setGamma(goal->gamma_values[i], result->reached_gamma_values[i]);
       result->success = result->success && success;
+      if (!success)
+      {
+        RCLCPP_ERROR_STREAM(LOGGER, "Error while setting the desired gamma (" << goal->gamma_values[i] << "). Aborting!");
+      }
     }
 
     if (goal->brightness_given)
     {
       int reached_brightness;
       const bool success = this->setBrightness(goal->brightness_values[i],
-                                            reached_brightness,
-                                            goal->exposure_auto,
-                                            goal->gain_auto);
+                                               reached_brightness,
+                                               goal->exposure_auto,
+                                               goal->gain_auto);
+      if (!success)
+      {
+        RCLCPP_ERROR_STREAM(LOGGER, "Error while setting the desired brightness (" << goal->brightness_values[i] << "). Aborting!");
+      }
       result->success = result->success && success;
       result->reached_brightness_values[i] = static_cast<float>(reached_brightness);
       result->reached_exposure_times[i] = this->pylon_camera_->currentExposure();
@@ -4865,7 +4883,6 @@ std::shared_ptr<GrabImagesAction::Result> PylonROS2CameraNode::grabRawImages(con
 
     if (!result->success)
     {
-      RCLCPP_ERROR_STREAM(LOGGER, "Error while setting one of the desired image properties during acquisition (action). Aborting!");
       break;
     }
 
