@@ -398,7 +398,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
 
         // grab one image to be sure, that the communication is successful
         Pylon::CBaslerUniversalGrabResultPtr grab_result;
-        grab(grab_result);
+        this->grab(grab_result);
         if ( grab_result.IsValid() )
         {
             is_ready_ = true;
@@ -421,7 +421,7 @@ template <typename CameraTrait>
 bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp::Time &stamp)
 {
     Pylon::CBaslerUniversalGrabResultPtr ptr_grab_result;
-    if ( !grab(ptr_grab_result) )
+    if ( !this->grab(ptr_grab_result) )
     {
         RCLCPP_ERROR(LOGGER_BASE, "Error: Grab was not successful");
         return false;
@@ -432,7 +432,7 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp:
     // Bit shifting
     // ------------------------------------------------------------------------
     // In case of 12 bits we need to shift the image bits 4 positions to the left
-    const std::string ros_enc = currentROSEncoding();
+    const std::string ros_enc = this->currentROSEncoding();
     const std::string gen_api_encoding(cam_->PixelFormat.ToString().c_str());
     if (encodingconversions::is_12_bit_ros_enc(ros_enc) && (gen_api_encoding == "BayerRG12" || gen_api_encoding == "BayerBG12" || gen_api_encoding == "BayerGB12" || gen_api_encoding == "BayerGR12" || gen_api_encoding == "Mono12") ){
         std::vector<uint16_t> shift_array(img_size_byte_ / 2); // Dynamically allocated to avoid heap size error
@@ -491,7 +491,7 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(uint8_t* image)
     }
 
     Pylon::CBaslerUniversalGrabResultPtr ptr_grab_result;
-    if (!grab(ptr_grab_result))
+    if (!this->grab(ptr_grab_result))
     {
         RCLCPP_ERROR(LOGGER_BASE, "Error: Grab was not successful");
         return false;
