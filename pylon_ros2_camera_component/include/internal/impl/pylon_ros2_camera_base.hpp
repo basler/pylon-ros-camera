@@ -1198,7 +1198,8 @@ bool PylonROS2CameraImpl<CameraTraitT>::setBrightness(const int& target_brightne
         {
             autoTargetBrightnessMin = cam_->AutoTargetValue.GetMin();
             autoTargetBrightnessMax = cam_->AutoTargetValue.GetMax();
-        } else if (GenApi::IsAvailable(cam_->AutoTargetBrightness))
+        }
+        else if (GenApi::IsAvailable(cam_->AutoTargetBrightness))
         {
             autoTargetBrightnessMin = cam_->AutoTargetBrightness.GetMin();
             autoTargetBrightnessMax = cam_->AutoTargetBrightness.GetMax();
@@ -1211,7 +1212,8 @@ bool PylonROS2CameraImpl<CameraTraitT>::setBrightness(const int& target_brightne
             if ( GenApi::IsAvailable(cam_->AutoTargetValue) )
             {
                 cam_->AutoTargetValue.SetValue(brightness_to_set, true);
-            } else if (GenApi::IsAvailable(cam_->AutoTargetBrightness))
+            }
+            else if (GenApi::IsAvailable(cam_->AutoTargetBrightness))
             {
                 cam_->AutoTargetBrightness.SetValue(brightness_to_set);
             }
@@ -1306,7 +1308,8 @@ bool PylonROS2CameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_
     if ( GenApi::IsAvailable(cam_->AutoTargetValue) )
     {
         autoTargetBrightnessMin = cam_->AutoTargetValue.GetMin();
-    } else if (GenApi::IsAvailable(cam_->AutoTargetBrightness))
+    }
+    else if (GenApi::IsAvailable(cam_->AutoTargetBrightness))
     {
         autoTargetBrightnessMin = cam_->AutoTargetBrightness.GetMin();
     }

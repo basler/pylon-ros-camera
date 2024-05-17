@@ -2655,7 +2655,9 @@ void PylonROS2CameraNode::setBrightnessCallback(const std::shared_ptr<SetBrightn
 
   response->reached_exposure_time = this->pylon_camera_->currentExposure();
   if (!this->pylon_camera_->isBlaze())
+  {
     response->reached_gain_value = this->pylon_camera_->currentGain();
+  }
   else
   {
     RCLCPP_WARN(LOGGER, "Trying to get gain: there's no gain parameter with the blaze camera - returning -9999.0");
@@ -2718,7 +2720,8 @@ void PylonROS2CameraNode::setWhiteBalanceCallback(const std::shared_ptr<SetWhite
     {
       response->success = false;
     }
-  } catch (...)
+  }
+  catch (...)
   {
     response->success = false;
   }
@@ -5035,18 +5038,30 @@ void PylonROS2CameraNode::publishCurrentParams()
       this->current_params_.user_set_default_selector = this->pylon_camera_->getUserSetDefaultSelector();
       this->current_params_.is_sleeping = this->isSleeping();
       if (!this->pylon_camera_->isBlaze())
+      {
         this->current_params_.brightness = this->calcCurrentBrightness();
+      }
       else
+      {
         this->current_params_.brightness = -9999;
+      }
       this->current_params_.exposure = this->pylon_camera_->currentExposure();
       if (!this->pylon_camera_->isBlaze())
+      {
         this->current_params_.gain = this->pylon_camera_->currentGain();
+      }
       else
+      {
         this->current_params_.gain = -9999.0;
+      }
       if (!this->pylon_camera_->isBlaze())
+      {
         this->current_params_.gamma = this->pylon_camera_->currentGamma();
+      }
       else
+      {
         this->current_params_.gamma = -9999.0;
+      }
       this->current_params_.binning_x = static_cast<uint32_t>(this->pylon_camera_->currentBinningX());
       this->current_params_.binning_y = static_cast<uint32_t>(this->pylon_camera_->currentBinningY());
       this->current_params_.roi = this->pylon_camera_->currentROI();
