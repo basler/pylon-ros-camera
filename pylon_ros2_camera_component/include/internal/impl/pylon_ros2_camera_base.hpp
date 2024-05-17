@@ -712,7 +712,10 @@ std::string PylonROS2CameraImpl<CameraTraitT>::setImageEncoding(const std::strin
     bool is_encoding_available = false;
     std::string gen_api_encoding;
     // An additional check to select the correct basler encoding, as ROS 16-bits encoding will cover both Basler 12-bits and 16-bits encoding
-    if (ros_encoding == "bayer_rggb16" || ros_encoding == "bayer_bggr16" || ros_encoding == "bayer_gbrg16" || ros_encoding == "bayer_grbg16")
+    if (ros_encoding == sensor_msgs::image_encodings::BAYER_RGGB16
+            || ros_encoding == sensor_msgs::image_encodings::BAYER_BGGR16
+            || ros_encoding == sensor_msgs::image_encodings::BAYER_GBRG16
+            || ros_encoding == sensor_msgs::image_encodings::BAYER_GRBG16)
     {
         for ( const std::string& enc : available_image_encodings_ )
             {
