@@ -78,7 +78,7 @@ public:
     /**
      * Getter for the new exposure calculated in out of the update step
      */
-    const float& newExposure() const;
+    float newExposure() const;
 
 private:
     /**

@@ -91,7 +91,7 @@ bool BinaryExposureSearch::update(const float& current_brightness,
     }
 }
 
-const float& BinaryExposureSearch::newExposure() const
+float BinaryExposureSearch::newExposure() const
 {
     return new_exposure_;
 }
