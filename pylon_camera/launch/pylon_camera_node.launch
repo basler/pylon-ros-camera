@@ -21,4 +21,13 @@
         <param name="enable_current_params_publisher" value="$(arg enable_current_params_publisher)"/>
     </node>
 
+    <!-- disable compressed depth plugin for image transport -->
+    <group ns="pylon_camera_node/image_raw">
+        <rosparam param="disable_pub_plugins">
+            - 'image_transport/compressed'
+            - 'image_transport/compressedDepth'
+            - 'image_transport/theora'
+        </rosparam>
+    </group>
+
 </launch>
