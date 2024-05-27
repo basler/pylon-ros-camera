@@ -1,7 +1,7 @@
 # Issue action command
-# The action command feature lets you trigger actions in multiple devices (e.g. cameras) 
-# at roughly the same time or at a defined point in time (scheduled action command) 
-# by using a single broadcast protocol message (without extra cabling). 
+# The action command feature lets you trigger actions in multiple devices (e.g. cameras)
+# at roughly the same time or at a defined point in time (scheduled action command)
+# by using a single broadcast protocol message (without extra cabling).
 # Action commands are used in cameras in the same way as for example the digital input lines.
 
 int32 device_key

@@ -89,9 +89,6 @@ PylonROS2CameraParameter::PylonROS2CameraParameter() :
     //RCUTILS_LOG_SEVERITY_FATAL
 }
 
-PylonROS2CameraParameter::~PylonROS2CameraParameter()
-{}
-
 void PylonROS2CameraParameter::readFromRosParameterServer(rclcpp::Node& nh)
 {
     RCLCPP_DEBUG(LOGGER, "-> Reading parameters from ROS2 server");
@@ -218,7 +215,7 @@ void PylonROS2CameraParameter::readFromRosParameterServer(rclcpp::Node& nh)
         encoding != sensor_msgs::image_encodings::YUV422)
     {
         RCLCPP_WARN_STREAM(LOGGER, "Specified image encoding parameter: '" << encoding
-            << "' is not part of the 'sensor_msgs/image_encodings.h' list!"
+            << "' is not part of the 'sensor_msgs/image_encodings.hpp' list!"
             << " Will not set encoding");
         encoding = std::string("");
     }
@@ -626,7 +623,7 @@ const std::string& PylonROS2CameraParameter::imageEncoding() const
     return this->image_encoding_;
 }
 
-void PylonROS2CameraParameter::setimageEncodingParam(rclcpp::Node& nh, const std::string& format) 
+void PylonROS2CameraParameter::setimageEncodingParam(rclcpp::Node& nh, const std::string& format)
 {
     if (!nh.has_parameter("image_encoding"))
     {
@@ -656,7 +653,7 @@ void PylonROS2CameraParameter::setFrameRate(rclcpp::Node& nh, const double& fram
     }
 
     this->frame_rate_ = frame_rate;
-    
+
     nh.set_parameter(rclcpp::Parameter("frame_rate", this->frame_rate_));
 }
 
@@ -673,7 +670,7 @@ void PylonROS2CameraParameter::setCameraInfoURL(rclcpp::Node& nh, const std::str
     }
 
     this->camera_info_url_ = camera_info_url;
-    
+
     nh.set_parameter(rclcpp::Parameter("camera_info_url", this->camera_info_url_));
 }
 

@@ -183,7 +183,7 @@ bool PylonROS2USBCamera::applyCamSpecificStartupSettings(const PylonROS2CameraPa
     }
     catch ( const GenICam::GenericException &e )
     {
-        RCLCPP_ERROR_STREAM(LOGGER_USB, "Error applying camera specific startup setting for USB cameras: "
+        RCLCPP_ERROR_STREAM(LOGGER_USB, "Error applying camera specific startup setting for USB camera: "
                 << e.GetDescription());
         return false;
     }
@@ -407,16 +407,16 @@ std::string PylonROS2USBCamera::setAcquisitionFrameCount(const int& frameCount)
     try
     {
         if ( GenApi::IsAvailable(cam_->AcquisitionBurstFrameCount) )
-        {  
-            cam_->AcquisitionBurstFrameCount.SetValue(frameCount);   
+        {
+            cam_->AcquisitionBurstFrameCount.SetValue(frameCount);
             return "done";
         }
         else if ( GenApi::IsAvailable(cam_->AcquisitionFrameRate) )
         {
-            cam_->AcquisitionFrameRate.SetValue(frameCount);   
+            cam_->AcquisitionFrameRate.SetValue(frameCount);
             return "done";
         }
-        else 
+        else
         {
              RCLCPP_ERROR_STREAM(LOGGER_USB, "Error while trying to change the Acquisition frame count. The connected Camera not supporting this feature");
              return "The connected Camera not supporting this feature";
@@ -436,14 +436,14 @@ int PylonROS2USBCamera::getAcquisitionFrameCount()
     try
     {
         if ( GenApi::IsAvailable(cam_->AcquisitionBurstFrameCount) )
-        {  
+        {
             return static_cast<int>(cam_->AcquisitionBurstFrameCount.GetValue());
         }
         else if ( GenApi::IsAvailable(cam_->AcquisitionFrameRate) )
         {
             return static_cast<int>(cam_->AcquisitionFrameRate.GetValue());
         }
-        else 
+        else
         {
              return -10000;
         }
@@ -469,15 +469,15 @@ std::string PylonROS2USBCamera::gammaEnable(const bool& enable)
     return "Error, the connect camera not supporting this feature";
 }
 
-template <> 
+template <>
 float PylonROS2USBCamera::getTemperature(){
     try
     {
         if ( GenApi::IsAvailable(cam_->DeviceTemperature) )
-        {  
-            return static_cast<float>(cam_->DeviceTemperature.GetValue());   
+        {
+            return static_cast<float>(cam_->DeviceTemperature.GetValue());
         }
-        else 
+        else
         {
              return 0.0;
         }
@@ -507,7 +507,7 @@ std::string PylonROS2USBCamera::setTimerSelector(const int& selector)
                     return "Error: unknown value for timer selector";
             }
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_USB, "Error while trying to change the timer selector. The connected camera does not support this feature");
             return "The connected camera does not support this feature";
@@ -518,7 +518,7 @@ std::string PylonROS2USBCamera::setTimerSelector(const int& selector)
         RCLCPP_ERROR_STREAM(LOGGER_USB, "An exception while setting the timer selector occurred:" << e.GetDescription());
         return e.GetDescription();
     }
-    
+
     return "done";
 }
 

@@ -57,7 +57,7 @@ struct GigECameraTrait
 
     // In GigE ace 1, gain is defined through GainRaw as integer (dB). With the new GigE ace2, it is a float.
     // Therefore now both of them will use floats and convert at the end to integer when necessary
-    typedef GenApi::IInteger GainType; 
+    typedef GenApi::IInteger GainType;
 
     typedef int64_t AutoTargetBrightnessValueType;
     typedef Basler_UniversalCameraParams::ShutterModeEnums ShutterModeEnums;
@@ -144,7 +144,7 @@ bool PylonROS2GigECamera::setAutoflash(const std::map<int, bool> flash_on_lines)
         }
         catch ( const GenICam::GenericException &e )
         {
-            RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error applying cam specific startup setting for GigE cameras: "
+            RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error applying cam specific startup setting for GigE camera: "
                     << e.GetDescription());
         }
     }
@@ -235,7 +235,7 @@ bool PylonROS2GigECamera::applyCamSpecificStartupSettings(const PylonROS2CameraP
                     << cam_->AutoTargetValue.GetMin() << " - "
                     << cam_->AutoTargetValue.GetMax()
                     << "] which is the average pixel intensity.");
-            } 
+            }
             else if ( GenApi::IsAvailable(cam_->AutoTargetBrightness) )
             {
                 RCLCPP_INFO_STREAM(LOGGER_GIGE, "Cam has pylon auto brightness range: ["
@@ -243,7 +243,7 @@ bool PylonROS2GigECamera::applyCamSpecificStartupSettings(const PylonROS2CameraP
                     << cam_->AutoTargetBrightness.GetMax()
                     << "] which is the average pixel intensity.");
             }
-            
+
             // raise inter-package delay (GevSCPD) for solving error:
             // 'the image buffer was incompletely grabbed'
             // also in ubuntu settings -> network -> options -> MTU Size
@@ -375,8 +375,8 @@ GenApi::IFloat& PylonROS2GigECamera::exposureTime()
     if (GenApi::IsAvailable(cam_->ExposureTimeAbs))
     {
         return cam_->ExposureTimeAbs; // GigE ace 1
-    } 
-    else if (GenApi::IsAvailable(cam_->ExposureTime)) 
+    }
+    else if (GenApi::IsAvailable(cam_->ExposureTime))
     {
         return cam_->ExposureTime; // GigE ace 2 (pylon 6)
     }
@@ -454,7 +454,7 @@ bool PylonROS2GigECamera::setGamma(const float& target_gamma, float& reached_gam
             return false;
         }
     }
-    
+
     try
     {
         float gamma_to_set = target_gamma;
@@ -582,10 +582,10 @@ std::string PylonROS2GigECamera::setBlackLevel(const int& value)
     {
         if ( GenApi::IsAvailable(cam_->BlackLevelRaw) )
         {
-            cam_->BlackLevelRaw.SetValue(value);   
+            cam_->BlackLevelRaw.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
              RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to change the image black level. The connected Camera not supporting this feature");
              return "The connected Camera not supporting this feature";
@@ -607,10 +607,10 @@ int PylonROS2GigECamera::getBlackLevel()
     {
         if ( GenApi::IsAvailable(cam_->BlackLevelRaw) )
         {
-            return static_cast<int>(cam_->BlackLevelRaw.GetValue());     
+            return static_cast<int>(cam_->BlackLevelRaw.GetValue());
         }
-        else 
-        { 
+        else
+        {
              return -10000;
         }
 
@@ -636,7 +636,7 @@ std::string PylonROS2GigECamera::setNoiseReduction(const float& value)
                     cam_->NoiseReductionRaw.SetValue(value);
                     return "done";
                 }
-                else 
+                else
                 {
                     RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to change the noise reduction value. The connected Camera not supporting this feature");
                     return "The connected Camera not supporting this feature";
@@ -647,11 +647,11 @@ std::string PylonROS2GigECamera::setNoiseReduction(const float& value)
                 return "Error : Noise Reduction feature not available while PGI mode is off";
             }
         }
-        else 
+        else
             {
                 RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to change the noise reduction value. The connected Camera not supporting this feature");
                 return "The connected Camera not supporting this feature";
-            } 
+            }
     }
     catch ( const GenICam::GenericException &e )
     {
@@ -669,7 +669,7 @@ float PylonROS2GigECamera::getNoiseReduction()
         {
             return  static_cast<float>(cam_->NoiseReductionRaw.GetValue());
         }
-        else 
+        else
         {
             return -10000.0;
         }
@@ -694,7 +694,7 @@ std::string PylonROS2GigECamera::setSharpnessEnhancement(const float& value)
                     cam_->SharpnessEnhancementRaw.SetValue(value);
                     return "done";
                 }
-                else 
+                else
                 {
                     RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to change the sharpness enhancement value. The connected Camera not supporting this feature");
                     return "The connected Camera not supporting this feature";
@@ -705,11 +705,11 @@ std::string PylonROS2GigECamera::setSharpnessEnhancement(const float& value)
                 return "Error : Sharpness Enhancement feature not available while PGI mode is off";
             }
         }
-        else 
+        else
             {
                 RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to change the sharpness enhancement value. The connected Camera not supporting this feature");
                 return "The connected Camera not supporting this feature";
-            } 
+            }
     }
     catch ( const GenICam::GenericException &e )
     {
@@ -727,7 +727,7 @@ float PylonROS2GigECamera::getSharpnessEnhancement()
         {
             return static_cast<float>(cam_->SharpnessEnhancementRaw.GetValue());
         }
-        else 
+        else
         {
             return -10000.0;
         }
@@ -744,11 +744,11 @@ std::string PylonROS2GigECamera::setAcquisitionFrameCount(const int& frameCount)
     try
     {
         if ( GenApi::IsAvailable(cam_->AcquisitionFrameCount) )
-        {  
-            cam_->AcquisitionFrameCount.SetValue(frameCount);   
+        {
+            cam_->AcquisitionFrameCount.SetValue(frameCount);
             return "done";
         }
-        else 
+        else
         {
              RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to change the Acquisition frame count. The connected Camera not supporting this feature");
              return "The connected Camera not supporting this feature";
@@ -768,10 +768,10 @@ int PylonROS2GigECamera::getAcquisitionFrameCount()
     try
     {
         if ( GenApi::IsAvailable(cam_->AcquisitionFrameCount) )
-        {  
+        {
             return static_cast<int>(cam_->AcquisitionFrameCount.GetValue());
         }
-        else 
+        else
         {
              return -10000; // Not available
         }
@@ -789,7 +789,7 @@ std::string PylonROS2GigECamera::setTriggerSelector(const int& mode)
     try
     {
         if ( GenApi::IsAvailable(cam_->TriggerSelector) )
-        {  
+        {
             if (mode == 0)
             {
                 cam_->TriggerSelector.SetValue(TriggerSelectorEnums::TriggerSelector_FrameStart);
@@ -807,7 +807,7 @@ std::string PylonROS2GigECamera::setTriggerSelector(const int& mode)
                 return "Error: unknown value";
             }
         }
-        else 
+        else
         {
              RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to change the Acquisition frame count. The connected Camera not supporting this feature");
              return "The connected Camera not supporting this feature";
@@ -827,13 +827,13 @@ int PylonROS2GigECamera::getTriggerSelector()
     try
     {
         if ( GenApi::IsAvailable(cam_->TriggerSelector) )
-        {  
+        {
             if (cam_->TriggerSelector.GetValue() == TriggerSelectorEnums::TriggerSelector_FrameStart)
             {
             return 0; // FrameStart
             }
             else if (cam_->TriggerSelector.GetValue() == TriggerSelectorEnums::TriggerSelector_AcquisitionStart)
-            { 
+            {
             return 1; // AcquisitionStart
             }
             else
@@ -841,9 +841,9 @@ int PylonROS2GigECamera::getTriggerSelector()
                 return -3; // Unknown
             }
         }
-        else 
+        else
         {
-             return -1; // Not avalibale 
+             return -1; // Not avalibale
         }
 
     }
@@ -887,7 +887,7 @@ std::string PylonROS2GigECamera::setTriggerSource(const int& source)
                     return "Error: unknown value for trigger source";
             }
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to change the trigger source. The connected camera does not support this feature");
             return "The connected camera does not support this feature";
@@ -930,12 +930,12 @@ int PylonROS2GigECamera::getTriggerSource()
             {
                 return 4 ; // Action1
             }
-            else 
+            else
             {
                 return -3; // Unknown
             }
         }
-        else 
+        else
         {
             return -1; // Not available
         }
@@ -957,7 +957,7 @@ std::string PylonROS2GigECamera::setTriggerDelay(const float& delayValue)
 
             cam_->TriggerDelayAbs.SetValue(delayValue);
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to change the trigger delay. The connected Camera not supporting this feature");
             return "The connected Camera not supporting this feature";
@@ -980,7 +980,7 @@ float PylonROS2GigECamera::getTriggerDelay()
 
              return static_cast<float>(cam_->TriggerDelayAbs.GetValue());
         }
-        else 
+        else
         {
             return -10000.0; // Not available
         }
@@ -1005,12 +1005,12 @@ std::string PylonROS2GigECamera::setLineMode(const int& value)
             {
                 cam_->LineMode.SetValue(LineModeEnums::LineMode_Output);
             }
-            else 
+            else
             {
                 return "Error: unknown value";
             }
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error : the selected line number dose not have change line mode feature");
             return "Error : the selected line number dose not have change line mode feature";
@@ -1019,7 +1019,7 @@ std::string PylonROS2GigECamera::setLineMode(const int& value)
     catch ( const GenICam::GenericException &e )
     {
         RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while setting the line mode occurred:" << e.GetDescription());
-        return e.GetDescription(); 
+        return e.GetDescription();
     }
     return "done";
 }
@@ -1029,18 +1029,18 @@ std::string PylonROS2GigECamera::setLineDebouncerTime(const float& value)
 {
     try
     {   if ( GenApi::IsAvailable(cam_->LineDebouncerTimeAbs) )
-        {   
+        {
             if ( cam_->LineMode.GetValue() == Basler_UniversalCameraParams::LineMode_Input)
             {
                 cam_->LineDebouncerTimeAbs.SetValue(value);
             }
-            else 
+            else
             {
                 return "Error: can't set the line debouncer time, is the selected line number is an input";
             }
-            
+
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to set the line debouncer time. The connected Camera not supporting this feature");
             return "The connected Camera not supporting this feature";
@@ -1049,7 +1049,7 @@ std::string PylonROS2GigECamera::setLineDebouncerTime(const float& value)
     catch ( const GenICam::GenericException &e )
     {
         RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while setting the line debouncer time occurred:" << e.GetDescription());
-        return e.GetDescription(); 
+        return e.GetDescription();
     }
     return "done";
 }
@@ -1084,21 +1084,21 @@ std::string PylonROS2GigECamera::setBalanceWhiteAuto(const int& mode)
             if (mode == 0)
             {
                 cam_->BalanceWhiteAuto.SetValue(BalanceWhiteAutoEnums::BalanceWhiteAuto_Off);
-            }  
+            }
             else if (mode == 1)
             {
                 cam_->BalanceWhiteAuto.SetValue(BalanceWhiteAutoEnums::BalanceWhiteAuto_Once);
-            } 
+            }
             else if (mode == 2)
             {
                 cam_->BalanceWhiteAuto.SetValue(BalanceWhiteAutoEnums::BalanceWhiteAuto_Continuous);
-            } 
-            else 
+            }
+            else
             {
                 return "Error: unknown value";
             }
         }
-        else 
+        else
         {
              RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to change the balance white auto. The connected Camera not supporting this feature");
              return "The connected Camera not supporting this feature";
@@ -1118,25 +1118,25 @@ int PylonROS2GigECamera::getBalanceWhiteAuto()
     try
     {
         if ( GenApi::IsAvailable(cam_->AutoFunctionAOISelector) && GenApi::IsAvailable(cam_->BalanceWhiteAuto) && cam_->AutoFunctionAOISelector.GetValue() == AutoFunctionROISelectorEnums::AutoFunctionAOISelector_AOI2)
-        {  
+        {
             if (cam_->BalanceWhiteAuto.GetValue() == BalanceWhiteAutoEnums::BalanceWhiteAuto_Off)
             {
                 return 0; // Off
-            }  
+            }
             else if (cam_->BalanceWhiteAuto.GetValue() == BalanceWhiteAutoEnums::BalanceWhiteAuto_Once)
             {
                 return 1; // Once
-            } 
+            }
             else if (cam_->BalanceWhiteAuto.GetValue() == BalanceWhiteAutoEnums::BalanceWhiteAuto_Continuous)
             {
                 return 2; // Continuous
-            } 
-            else 
+            }
+            else
             {
                 return -3; // Unknown
             }
         }
-        else 
+        else
         {
              return -1; //Not available
         }
@@ -1153,52 +1153,52 @@ std::string PylonROS2GigECamera::setLightSourcePreset(const int& mode)
     try
     {
         if ( GenApi::IsAvailable(cam_->LightSourceSelector))
-        {  
+        {
             if (mode == 0)
             {
                 cam_->LightSourceSelector.SetValue(LightSourcePresetEnums::LightSourceSelector_Off);
-            }  
+            }
             else if (mode == 1)
             {
                 cam_->LightSourceSelector.SetValue(LightSourcePresetEnums::LightSourceSelector_Daylight); //(at about 5000K)
-            } 
+            }
             else if (mode == 2)
             {
                 cam_->LightSourceSelector.SetValue(LightSourcePresetEnums::LightSourceSelector_Daylight6500K);
-            } 
+            }
             else if (mode == 3)
             {
                 cam_->LightSourceSelector.SetValue(LightSourcePresetEnums::LightSourceSelector_Tungsten);
-            } 
-            else 
+            }
+            else
             {
                 return "Error: unknown value";
             }
         }
         else if ( GenApi::IsAvailable(cam_->BslLightSourcePreset))
-        {  
+        {
             if (mode == 0)
             {
                 cam_->BslLightSourcePreset.SetValue(Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Off );
-            }  
+            }
             else if (mode == 1)
             {
                 cam_->BslLightSourcePreset.SetValue(Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Daylight5000K); //(at about 5000K)
-            } 
+            }
             else if (mode == 2)
             {
                 cam_->BslLightSourcePreset.SetValue(Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Daylight6500K );
-            } 
+            }
             else if (mode == 3)
             {
                 cam_->BslLightSourcePreset.SetValue(Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Tungsten );
-            } 
-            else 
+            }
+            else
             {
                 return "Error: unknown value";
             }
         }
-        else 
+        else
         {
              RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to change the light source preset. The connected Camera not supporting this feature");
              return "The connected Camera not supporting this feature";
@@ -1218,52 +1218,52 @@ int PylonROS2GigECamera::getLightSourcePreset()
     try
     {
         if ( GenApi::IsAvailable(cam_->LightSourceSelector))
-        {  
+        {
             if (cam_->LightSourceSelector.GetValue() == LightSourcePresetEnums::LightSourceSelector_Off)
             {
                 return 0; // Off
-            }  
+            }
             else if (cam_->LightSourceSelector.GetValue() == LightSourcePresetEnums::LightSourceSelector_Daylight)
             {
                 return 1; //Daylight(~ Daylight5000K)
-            } 
+            }
             else if (cam_->LightSourceSelector.GetValue() == LightSourcePresetEnums::LightSourceSelector_Daylight6500K)
             {
                 return 2; //Daylight6500K
-            } 
+            }
             else if (cam_->LightSourceSelector.GetValue() == LightSourcePresetEnums::LightSourceSelector_Tungsten)
             {
                 return 3;
-            } 
-            else 
-            {
-                return -3; // Unknown
             }
-        } 
-        else if ( GenApi::IsAvailable(cam_->BslLightSourcePreset))
-        {  
-            if (cam_->BslLightSourcePreset.GetValue() == Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Off)
-            {
-                return 0; // Off
-            }  
-            else if (cam_->BslLightSourcePreset.GetValue() == Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Daylight5000K)
-            {
-                return 1; //Daylight(~ Daylight5000K)
-            } 
-            else if (cam_->BslLightSourcePreset.GetValue() == Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Daylight6500K)
-            {
-                return 2; //Daylight6500K
-            } 
-            else if (cam_->BslLightSourcePreset.GetValue() == Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Tungsten)
-            {
-                return 3;
-            } 
-            else 
+            else
             {
                 return -3; // Unknown
             }
         }
-        else 
+        else if ( GenApi::IsAvailable(cam_->BslLightSourcePreset))
+        {
+            if (cam_->BslLightSourcePreset.GetValue() == Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Off)
+            {
+                return 0; // Off
+            }
+            else if (cam_->BslLightSourcePreset.GetValue() == Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Daylight5000K)
+            {
+                return 1; //Daylight(~ Daylight5000K)
+            }
+            else if (cam_->BslLightSourcePreset.GetValue() == Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Daylight6500K)
+            {
+                return 2; //Daylight6500K
+            }
+            else if (cam_->BslLightSourcePreset.GetValue() == Basler_UniversalCameraParams::BslLightSourcePresetEnums::BslLightSourcePreset_Tungsten)
+            {
+                return 3;
+            }
+            else
+            {
+                return -3; // Unknown
+            }
+        }
+        else
         {
             return -1; // Not available
         }
@@ -1277,99 +1277,99 @@ int PylonROS2GigECamera::getLightSourcePreset()
 template <>
 std::string PylonROS2GigECamera::setUserSetDefaultSelector(const int& set)
 {
-    try 
+    try
     {
-        if ( GenApi::IsAvailable(cam_->UserSetDefaultSelector)) 
-        {  
-            if (set == 0) 
+        if ( GenApi::IsAvailable(cam_->UserSetDefaultSelector))
+        {
+            if (set == 0)
             {
                 cam_->UserSetDefaultSelector.SetValue(UserSetDefaultSelectorEnums::UserSetDefaultSelector_Default);
-            } 
-            else if (set == 1) 
+            }
+            else if (set == 1)
             {
                 cam_->UserSetDefaultSelector.SetValue(UserSetDefaultSelectorEnums::UserSetDefaultSelector_UserSet1);
-            } 
-            else if (set == 2) 
+            }
+            else if (set == 2)
             {
                 cam_->UserSetDefaultSelector.SetValue(UserSetDefaultSelectorEnums::UserSetDefaultSelector_UserSet2);
-            } 
-            else if (set == 3) 
+            }
+            else if (set == 3)
             {
                 cam_->UserSetDefaultSelector.SetValue(UserSetDefaultSelectorEnums::UserSetDefaultSelector_UserSet3);
-            } 
-            else if (set == 4) 
+            }
+            else if (set == 4)
             {
                 cam_->UserSetDefaultSelector.SetValue(UserSetDefaultSelectorEnums::UserSetDefaultSelector_HighGain);
-            } 
-            else if (set == 5) 
+            }
+            else if (set == 5)
             {
                 cam_->UserSetDefaultSelector.SetValue(UserSetDefaultSelectorEnums::UserSetDefaultSelector_AutoFunctions);
-            } 
-            else if (set == 6) 
+            }
+            else if (set == 6)
             {
                 cam_->UserSetDefaultSelector.SetValue(UserSetDefaultSelectorEnums::UserSetDefaultSelector_ColorRaw);
-            } 
-            else 
+            }
+            else
             {
                 return "Error: unknown value";
             }
-        } 
+        }
         else if ( GenApi::IsAvailable(cam_->UserSetDefault))
-        {  
+        {
             if (set == 0)
             {
                 grabbingStopping();
                 cam_->UserSetDefault.SetValue(Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_Default);
                 grabbingStarting();
-            }  
+            }
             else if (set == 1)
             {
                 grabbingStopping();
                 cam_->UserSetDefault.SetValue(Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_UserSet1);
                 grabbingStarting();
-            } 
+            }
             else if (set == 2)
             {
                 grabbingStopping();
                 cam_->UserSetDefault.SetValue(Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_UserSet2);
                 grabbingStarting();
-            } 
+            }
             else if (set == 3)
             {
                 grabbingStopping();
                 cam_->UserSetDefault.SetValue(Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_UserSet3);
                 grabbingStarting();
-            } 
+            }
             else if (set == 4)
             {
                 grabbingStopping();
                 cam_->UserSetDefault.SetValue(Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_HighGain);
                 grabbingStarting();
-            } 
+            }
             else if (set == 5)
             {
                 grabbingStopping();
                 cam_->UserSetDefault.SetValue(Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_AutoFunctions);
                 grabbingStarting();
-            } 
+            }
             else if (set == 6)
             {
                 grabbingStopping();
                 cam_->UserSetDefault.SetValue(Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_ColorRaw);
                 grabbingStarting();
-            } 
-            else 
+            }
+            else
             {
                 return "Error: unknown value";
             }
-        } 
-        else 
+        }
+        else
         {
              RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to select the user default set. The connected Camera not supporting this feature");
              return "The connected Camera not supporting this feature";
         }
     }
-    catch ( const GenICam::GenericException &e ) 
+    catch ( const GenICam::GenericException &e )
     {
         RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while selecting the user default set occurred:" << e.GetDescription());
         return e.GetDescription();
@@ -1383,76 +1383,76 @@ int PylonROS2GigECamera::getUserSetDefaultSelector()
     try
     {
         if ( GenApi::IsAvailable(cam_->UserSetDefaultSelector))
-        {  
+        {
             if (cam_->UserSetDefaultSelector.GetValue() == UserSetDefaultSelectorEnums::UserSetDefaultSelector_Default)
             {
                 return 0;
-            }  
+            }
             else if (cam_->UserSetDefaultSelector.GetValue() == UserSetDefaultSelectorEnums::UserSetDefaultSelector_UserSet1)
             {
                 return 1; // UserSet1
-            } 
+            }
             else if (cam_->UserSetDefaultSelector.GetValue() == UserSetDefaultSelectorEnums::UserSetDefaultSelector_UserSet2)
             {
                 return 2; // UserSet2
-            } 
+            }
             else if (cam_->UserSetDefaultSelector.GetValue() == UserSetDefaultSelectorEnums::UserSetDefaultSelector_UserSet3)
             {
                 return 3; // UserSet3
-            } 
+            }
             else if (cam_->UserSetDefaultSelector.GetValue() == UserSetDefaultSelectorEnums::UserSetDefaultSelector_HighGain)
             {
                 return 4; // HighGain
-            } 
+            }
             else if (cam_->UserSetDefaultSelector.GetValue() == UserSetDefaultSelectorEnums::UserSetDefaultSelector_AutoFunctions)
             {
                 return 5; // AutoFunctions
-            } 
+            }
             else if (cam_->UserSetDefaultSelector.GetValue() == UserSetDefaultSelectorEnums::UserSetDefaultSelector_ColorRaw)
             {
                 return 6; // ColorRaw
-            } 
-            else 
-            {
-                return -3; // Unknown
             }
-        } 
-        else if ( GenApi::IsAvailable(cam_->UserSetDefault)) 
-        {  
-            if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_Default) 
-            {
-                return 0; // Default
-            } 
-            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_UserSet1) 
-            {
-                return 1; // UserSet1
-            } 
-            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_UserSet2) 
-            {
-                return 2; // UserSet2
-            } 
-            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_UserSet3) 
-            {
-                return 3; // UserSet3
-            } 
-            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_HighGain) 
-            {
-                return 4; // HighGain
-            } 
-            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_AutoFunctions) 
-            {
-                return 5; // AutoFunctions
-            } 
-            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_ColorRaw) 
-            {
-                return 6; // ColorRaw
-            } 
-            else 
+            else
             {
                 return -3; // Unknown
             }
         }
-        else 
+        else if ( GenApi::IsAvailable(cam_->UserSetDefault))
+        {
+            if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_Default)
+            {
+                return 0; // Default
+            }
+            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_UserSet1)
+            {
+                return 1; // UserSet1
+            }
+            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_UserSet2)
+            {
+                return 2; // UserSet2
+            }
+            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_UserSet3)
+            {
+                return 3; // UserSet3
+            }
+            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_HighGain)
+            {
+                return 4; // HighGain
+            }
+            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_AutoFunctions)
+            {
+                return 5; // AutoFunctions
+            }
+            else if (cam_->UserSetDefault.GetValue() == Basler_UniversalCameraParams::UserSetDefaultEnums::UserSetDefault_ColorRaw)
+            {
+                return 6; // ColorRaw
+            }
+            else
+            {
+                return -3; // Unknown
+            }
+        }
+        else
         {
              return -1; // Not available
         }
@@ -1477,23 +1477,23 @@ std::string PylonROS2GigECamera::setGammaSelector(const int& gammaSelector)
 try
     {
         if ( GenApi::IsAvailable(cam_->GammaSelector))
-        {  
+        {
             if (gammaSelector == 0)
             {
                 cam_-> GammaSelector.SetValue(Basler_UniversalCameraParams::GammaSelector_User);
                 return "done";
-            }  
+            }
             else if (gammaSelector == 1)
             {
                 cam_-> GammaSelector.SetValue(Basler_UniversalCameraParams::GammaSelector_sRGB );
                 return "done";
-            } 
-            else 
+            }
+            else
             {
                 return "Error: unknown value";
             }
         }
-        else 
+        else
         {
              RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to set the gamma selector. The connected Camera not supporting this feature");
              return "The connected Camera not supporting this feature";
@@ -1530,16 +1530,16 @@ std::string PylonROS2GigECamera::gammaEnable(const bool& enable)
     }
 }
 
-template <> 
+template <>
 float PylonROS2GigECamera::getTemperature()
 {
     try
     {
         if ( GenApi::IsAvailable(cam_->TemperatureAbs) )
-        {  
-            return static_cast<float>(cam_->TemperatureAbs.GetValue());   
+        {
+            return static_cast<float>(cam_->TemperatureAbs.GetValue());
         }
-        else 
+        else
         {
              return 0.0;
         }
@@ -1550,12 +1550,12 @@ float PylonROS2GigECamera::getTemperature()
     }
 }
 
-template <> 
+template <>
 std::string PylonROS2GigECamera::setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue)
 {
     try
     {
-        if (GenApi::IsAvailable(cam_->BalanceWhiteAuto) && GenApi::IsAvailable(cam_->BalanceRatioAbs)) 
+        if (GenApi::IsAvailable(cam_->BalanceWhiteAuto) && GenApi::IsAvailable(cam_->BalanceRatioAbs))
         {
             cam_->BalanceWhiteAuto.SetValue(BalanceWhiteAutoEnums::BalanceWhiteAuto_Off);
             cam_->BalanceRatioSelector.SetValue(BalanceRatioSelectorEnums::BalanceRatioSelector_Red);
@@ -1566,8 +1566,8 @@ std::string PylonROS2GigECamera::setWhiteBalance(const double& redValue, const d
             cam_->BalanceRatioAbs.SetValue(blueValue);
 
             return "done";
-        } 
-        else 
+        }
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to set the white balance. The connected Camera not supporting this feature");
             return "The connected Camera not supporting this feature";
@@ -1605,7 +1605,7 @@ std::string PylonROS2GigECamera::setTimerSelector(const int& selector)
                     return "Error: unknown value for timer selector";
             }
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to change the timer selector. The connected camera does not support this feature");
             return "The connected camera does not support this feature";
@@ -1616,7 +1616,7 @@ std::string PylonROS2GigECamera::setTimerSelector(const int& selector)
         RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while setting the timer selector occurred:" << e.GetDescription());
         return e.GetDescription();
     }
-    
+
     return "done";
 }
 
@@ -1627,10 +1627,10 @@ std::string PylonROS2GigECamera::setSyncFreeRunTimerStartTimeLow(const int& valu
     {
         if (GenApi::IsAvailable(cam_->SyncFreeRunTimerStartTimeLow))
         {
-            cam_->SyncFreeRunTimerStartTimeLow.SetValue(value);   
+            cam_->SyncFreeRunTimerStartTimeLow.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to set sync. free run timer start time low. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
@@ -1651,10 +1651,10 @@ std::string PylonROS2GigECamera::setSyncFreeRunTimerStartTimeHigh(const int& val
     {
         if (GenApi::IsAvailable(cam_->SyncFreeRunTimerStartTimeHigh))
         {
-            cam_->SyncFreeRunTimerStartTimeHigh.SetValue(value);   
+            cam_->SyncFreeRunTimerStartTimeHigh.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to set sync. free run timer start time high. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
@@ -1678,7 +1678,7 @@ std::string PylonROS2GigECamera::setSyncFreeRunTimerTriggerRateAbs(const float& 
             cam_->SyncFreeRunTimerTriggerRateAbs.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to set sync. free run timer trigger rate abs. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
@@ -1692,7 +1692,7 @@ std::string PylonROS2GigECamera::setSyncFreeRunTimerTriggerRateAbs(const float& 
     }
 }
 
-template <> 
+template <>
 std::string PylonROS2GigECamera::enablePTP(const bool& value)
 {
     try
@@ -1715,7 +1715,7 @@ std::string PylonROS2GigECamera::enablePTP(const bool& value)
     }
 }
 
-template <> 
+template <>
 std::string PylonROS2GigECamera::enableSyncFreeRunTimer(const bool& value)
 {
     try
@@ -1725,7 +1725,7 @@ std::string PylonROS2GigECamera::enableSyncFreeRunTimer(const bool& value)
             cam_->SyncFreeRunTimerEnable.SetValue(value);
             return "done";
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to enable/disable sync. free run timer. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
@@ -1738,7 +1738,7 @@ std::string PylonROS2GigECamera::enableSyncFreeRunTimer(const bool& value)
     }
 }
 
-template <> 
+template <>
 std::string PylonROS2GigECamera::updateSyncFreeRunTimer()
 {
     try
@@ -1748,7 +1748,7 @@ std::string PylonROS2GigECamera::updateSyncFreeRunTimer()
             cam_->SyncFreeRunTimerUpdate.Execute();
             return "done";
         }
-        else 
+        else
         {
             RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error while trying to update sync. free run timer. The connected camera does not support this feature.");
             return "The connected camera does not support this feature";
@@ -1761,7 +1761,7 @@ std::string PylonROS2GigECamera::updateSyncFreeRunTimer()
     }
 }
 
-template <> 
+template <>
 std::string PylonROS2GigECamera::setActionTriggerConfiguration(const int& action_device_key, const int& action_group_key, const unsigned int& action_group_mask,
                                                                const int& registration_mode, const int& cleanup)
 {
@@ -1795,13 +1795,13 @@ std::string PylonROS2GigECamera::setActionTriggerConfiguration(const int& action
 
         cam_->RegisterConfiguration(new Pylon::CActionTriggerConfiguration(action_device_key, action_group_key, action_group_mask), reg_mode, cu);
 
-        RCLCPP_INFO_STREAM(LOGGER_GIGE, "Action trigger configuration has been set successfully: " 
+        RCLCPP_INFO_STREAM(LOGGER_GIGE, "Action trigger configuration has been set successfully: "
                                         << "Device key -> " << action_device_key << ", "
                                         << "Group key -> " << action_group_key << ", "
                                         << "Group mask -> " << std::hex << action_group_mask << ", "
                                         << "Registration mode -> " << (reg_mode == Pylon::ERegistrationMode::RegistrationMode_Append ? "RegistrationMode_Append" : "RegistrationMode_ReplaceAll") << ", "
                                         << "Cleanup -> " << (cu == Pylon::ECleanup::Cleanup_None ? "Cleanup_None" : "Cleanup_Delete"));
-        
+
         return "done";
     }
     catch (const GenICam::GenericException &e)
@@ -1812,7 +1812,7 @@ std::string PylonROS2GigECamera::setActionTriggerConfiguration(const int& action
     }
 }
 
-template <> 
+template <>
 std::string PylonROS2GigECamera::issueActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const std::string& broadcast_address)
 {
     try
@@ -1824,12 +1824,12 @@ std::string PylonROS2GigECamera::issueActionCommand(const int& device_key, const
         // Send an action command to the cameras
         pTl->IssueActionCommand(device_key, group_key, group_mask, broadcast_address.c_str());
 
-        RCLCPP_INFO_STREAM(LOGGER_GIGE, "Action command has been issued successfully: " 
+        RCLCPP_INFO_STREAM(LOGGER_GIGE, "Action command has been issued successfully: "
                                         << "Device key -> " << device_key << ", "
                                         << "Group key -> " << group_key << ", "
                                         << "Group mask -> " << std::hex << group_mask << ", "
                                         << "Broadcast address -> " << broadcast_address);
-        
+
         return "done";
     }
     catch (const GenICam::GenericException &e)
@@ -1859,13 +1859,13 @@ std::string PylonROS2GigECamera::issueScheduledActionCommand(const int& device_k
         // Send a scheduled action command to the cameras
         pTl->IssueScheduledActionCommand(device_key, group_key, group_mask, action_time, broadcast_address.c_str());
 
-        RCLCPP_INFO_STREAM(LOGGER_GIGE, "Scheduled action command has been issued successfully: " 
+        RCLCPP_INFO_STREAM(LOGGER_GIGE, "Scheduled action command has been issued successfully: "
                                         << "Device key -> " << device_key << ", "
                                         << "Group key -> " << group_key << ", "
                                         << "Group mask -> " << std::hex << group_mask << ", "
                                         << "Action time from current timestamp -> " << (double)action_time_ns_from_current_timestamp << " ns, "
                                         << "Broadcast address -> " << broadcast_address);
-        
+
         return "done";
     }
     catch (const GenICam::GenericException &e)

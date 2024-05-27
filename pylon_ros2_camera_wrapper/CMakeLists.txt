@@ -71,7 +71,7 @@ ament_target_dependencies(action_client_test_grab_images
 )
 
 rclcpp_components_register_node(action_client_test_grab_images
-	PLUGIN "pylon_ros2_camera::TestGrabImagesActionClient" 
+	PLUGIN "pylon_ros2_camera::TestGrabImagesActionClient"
 	EXECUTABLE test_grab_image_action_client
 )
 
@@ -87,7 +87,7 @@ ament_target_dependencies(action_client_test_grab_blaze_data
 )
 
 rclcpp_components_register_node(action_client_test_grab_blaze_data
-	PLUGIN "pylon_ros2_camera::TestGrabBlazeDataActionClient" 
+	PLUGIN "pylon_ros2_camera::TestGrabBlazeDataActionClient"
 	EXECUTABLE test_grab_blaze_data_action_client
 )
 

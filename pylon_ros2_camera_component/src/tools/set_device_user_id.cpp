@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-// no arguments -> set user id to the first connected camera 
+// no arguments -> set user id to the first connected camera
 // -sn with serial -> set user id of the camera with the specified serial
 
 #include <pylon/PylonIncludes.h>
@@ -66,7 +66,7 @@ public:
         return std::find(this->tokens.begin(), this->tokens.end(), option)
                 != this->tokens.end();
     }
-    
+
 private:
     std::vector <std::string> tokens;
 };
@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
             Pylon::CDeviceInfo dev_info;
             // Create an instant camera object with the first available camera.
             Pylon::CInstantCamera dev(Pylon::CTlFactory::GetInstance().CreateFirstDevice(dev_info));
-            
+
             dev.Open();
             GenApi::INodeMap& node_map = dev.GetNodeMap();
             GenApi::CStringPtr current_device_user_id(node_map.GetNode("DeviceUserID"));
@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
             }
 
             size_t i = 0;
-            for (i; i < devices.size(); i++) 
+            for (i; i < devices.size(); i++)
             {
                 Pylon::CDeviceInfo &dev_info = devices[i];
                 std::string serial_number(dev_info.GetSerialNumber().c_str());
@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
                 if (serial_number == serial)
                 {
                     Pylon::CInstantCamera dev(tl_factory.CreateDevice(dev_info));
-                    
+
                     dev.Open();
                     GenApi::INodeMap& node_map = dev.GetNodeMap();
                     GenApi::CStringPtr current_device_user_id(node_map.GetNode("DeviceUserID"));
@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
                         << dev.GetDeviceInfo().GetModelName() << std::endl;
                     std::cout << "  Don't forget to disconnect/reconnect the camera if it is a USB one" << std::endl;
                     dev.Close();
-                    
+
                     break;
                 }
             }
@@ -191,8 +191,8 @@ int main(int argc, char* argv[])
                         << "Check the serial by running IPAutoConfig for gigE cameras and \"lsusb -v | grep Serial\" for USB cameras" << std::endl;
             }
         }
-    } 
-    catch (GenICam::GenericException &e) 
+    }
+    catch (GenICam::GenericException &e)
     {
         // Error handling.
         std::cerr << "An exception occurred."

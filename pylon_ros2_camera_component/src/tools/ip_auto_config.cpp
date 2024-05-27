@@ -34,21 +34,17 @@
 
 #include <unistd.h>
 #include <fstream>
+#include <sstream>
 #include <arpa/inet.h>
 #include <ifaddrs.h>
-
-using namespace Pylon;
-using namespace GenApi;
-using namespace Basler_GigECameraParams;
-using namespace Basler_GigEStreamParams;
 
 typedef Pylon::CBaslerGigECamera camera_t;
 std::vector<std::string> logs;
 
-std::string autoProbe(CBaslerGigEDeviceInfo &bdi, IGigETransportLayer* s_pTl);
+std::string autoProbe(Pylon::CBaslerGigEDeviceInfo &bdi, Pylon::IGigETransportLayer* s_pTl);
 void enumurateNIC(std::vector<std::tuple <std::string, std::string>> *InterfaceList);
 void enumurateNIC();
-void displayCurrentStatus(DeviceInfoList_t &listDevices, IGigETransportLayer* s_pTl);
+void displayCurrentStatus(Pylon::DeviceInfoList_t &listDevices, Pylon::IGigETransportLayer* s_pTl);
 int readKB(int);
 bool checkIPFormat(char* IP);
 bool checkSubNetFormat(char* SubnetMask);
@@ -56,13 +52,13 @@ void writeLogToFile();
 
 
 /*
- * 
+ *
  */
-int main(int argc, char** argv)
+int main(int argc __attribute__((unused)), char** argv __attribute__((unused)))
 {
     // The exit code of the sample application.
     int exitCode = 0;
-    
+
     // Automagically call PylonInitialize and PylonTerminate to ensure the pylon runtime system
     // is initialized during the lifetime of this object.
     Pylon::PylonInitialize();
@@ -71,15 +67,14 @@ int main(int argc, char** argv)
 
     try
     {
-        PylonInitialize();
-        int exitCode = 0;
+        Pylon::PylonInitialize();
         int selection = -1;
-        DeviceInfoList_t listDevices;
-        DeviceInfoList_t listReachableDevices;
-        
-        CTlFactory & theFactory(CTlFactory::GetInstance());
-        ITransportLayer * const pTemp(theFactory.CreateTl(CBaslerGigECamera::DeviceClass()));
-        IGigETransportLayer* s_pTl = dynamic_cast<IGigETransportLayer*> (pTemp);
+        Pylon::DeviceInfoList_t listDevices;
+        Pylon::DeviceInfoList_t listReachableDevices;
+
+        Pylon::CTlFactory & theFactory(Pylon::CTlFactory::GetInstance());
+        Pylon::ITransportLayer * const pTemp(theFactory.CreateTl(Pylon::CBaslerGigECamera::DeviceClass()));
+        Pylon::IGigETransportLayer* s_pTl = dynamic_cast<Pylon::IGigETransportLayer*> (pTemp);
         //IGigETransportLayer *pTl = (IGigETransportLayer*)theFactory.CreateTl(BaslerGigEDeviceClass);
 
         do
@@ -92,16 +87,16 @@ int main(int argc, char** argv)
 
             s_pTl->EnumerateAllDevices(listDevices); // Finding all available Basler GigE cameras.
             s_pTl->EnumerateDevices(listReachableDevices);
-            
+
             if(listDevices.size() != listReachableDevices.size() )
             {
                 // there are some cameras with not matching IP addres.
-                
+
                 for(size_t x = 0 ; x < listDevices.size() ; ++x)
                 {
                     std::cout << x;
                     std::string InterfaceAdd = "";
-                    CBaslerGigEDeviceInfo &info = static_cast<CBaslerGigEDeviceInfo&> (listDevices[x]);
+                    Pylon::CBaslerGigEDeviceInfo &info = static_cast<Pylon::CBaslerGigEDeviceInfo&> (listDevices[x]);
                     InterfaceAdd = info.GetInterface().c_str();
                     if(InterfaceAdd  == "255.255.255.255")
                     {
@@ -111,10 +106,10 @@ int main(int argc, char** argv)
                     }
                 }
             }
-           
+
             if (listDevices.size() > 0)
             {
-                std::stringstream ss ;
+                std::ostringstream ss ;
                 ss << listDevices.size();
                 logs.push_back("Found cameras " + ss.str());
                 enumurateNIC();
@@ -153,11 +148,11 @@ int main(int argc, char** argv)
                     std::cerr << "Your camera will get following setting" << std::endl;
                     std::cerr << "IP " << IP << " subnet : " << Subnet << std::endl;
 
-                    CBaslerGigEDeviceInfo &bdi = static_cast<CBaslerGigEDeviceInfo&> (listDevices[selection - 1]);
+                    Pylon::CBaslerGigEDeviceInfo &bdi = static_cast<Pylon::CBaslerGigEDeviceInfo&> (listDevices[selection - 1]);
                     s_pTl->ForceIp(bdi.GetMacAddress(), IP, Subnet, "0.0.0.0");
                     std::cerr << "Thread will sleep for 1s in order to wait on updated ARP table" << std::endl;
                     sleep(2); // needed to get ARP Table be updated;
-                    CBaslerGigEDeviceInfo bdi_new(s_pTl->CreateDeviceInfo());
+                    Pylon::CBaslerGigEDeviceInfo bdi_new(s_pTl->CreateDeviceInfo());
                     bdi_new.SetIpAddress(IP);
 
                     s_pTl->EnumerateAllDevices(listDevices);
@@ -169,11 +164,11 @@ int main(int argc, char** argv)
                     sleep(1);
 
                     // EDeviceAccessiblityInfo isAccessable;
-                    try 
+                    try
                     {
                         // 1 meaning the camera is reachable after assigning a temporary ip1
-                        if (s_pTl->IsDeviceAccessible(bdi_new, Control))
-                        { 
+                        if (s_pTl->IsDeviceAccessible(bdi_new, Pylon::Control))
+                        {
                             camera_t camera(s_pTl->CreateDevice(bdi_new));
                             camera.Open();
                             camera.ChangeIpConfiguration(true, true);
@@ -187,7 +182,7 @@ int main(int argc, char** argv)
                             std::cerr << "Do you want assign IP for another camera or display the current status?" << std::endl;
                             std::cerr << "1= yes or 0 = exit" << std::endl;
                         }
-                    } 
+                    }
                     catch (GenICam::GenericException &e)
                     {
                         std::cerr << "Only a temporary IP address has been assigned, because camera is not reachable after assigning your addresses. Try once more: " << std::endl;
@@ -196,7 +191,7 @@ int main(int argc, char** argv)
 
                     selection = readKB(1);
                 } // if (selection >0)
-            } 
+            }
             else
             {
                 std::cerr << "No device found, will try once more in 2s..." << std::endl;
@@ -204,7 +199,7 @@ int main(int argc, char** argv)
             }
         }
         while (selection != 0);
-    } 
+    }
     catch (GenICam::GenericException &e)
     {
         // Error handling.
@@ -215,18 +210,18 @@ int main(int argc, char** argv)
     writeLogToFile();
 
     Pylon::PylonTerminate();
-    
+
     // Comment the following two lines to disable waiting on exit.
     std::cerr << std::endl << "Press Enter to exit." << std::endl;
     while (std::cin.get() != '\n');
-    
+
     return exitCode;
 }
 
-std::string autoProbe(CBaslerGigEDeviceInfo &bdi, IGigETransportLayer* s_pTl)
+std::string autoProbe(Pylon::CBaslerGigEDeviceInfo &bdi, Pylon::IGigETransportLayer* s_pTl)
 {
-    String_t OriginalIP =  bdi.GetIpAddress();
-    String_t OriginalSubnet = bdi.GetSubnetMask();  
+    Pylon::String_t OriginalIP =  bdi.GetIpAddress();
+    Pylon::String_t OriginalSubnet = bdi.GetSubnetMask();
     std::vector <std::tuple <std::string, std::string>> InterfaceList;
     enumurateNIC(&InterfaceList);
 
@@ -242,11 +237,11 @@ std::string autoProbe(CBaslerGigEDeviceInfo &bdi, IGigETransportLayer* s_pTl)
         address_struct.s_addr = TemIP;
         std::string camIP = inet_ntoa(address_struct);
         s_pTl->ForceIp(bdi.GetMacAddress(), camIP.c_str(), Subnet.c_str(), "0.0.0.0");
-        DeviceInfoList_t devicelist;
+        Pylon::DeviceInfoList_t devicelist;
         s_pTl->EnumerateDevices(devicelist);
         for(auto& di : devicelist)
         {
-            CBaslerGigEDeviceInfo &GigEdi = static_cast<CBaslerGigEDeviceInfo&>(di) ;
+            Pylon::CBaslerGigEDeviceInfo &GigEdi = static_cast<Pylon::CBaslerGigEDeviceInfo&>(di) ;
             if(GigEdi.GetMacAddress() == bdi.GetMacAddress())
             {
                 s_pTl->ForceIp(bdi.GetMacAddress(),OriginalIP,OriginalSubnet, "0.0.0.0");
@@ -258,15 +253,15 @@ std::string autoProbe(CBaslerGigEDeviceInfo &bdi, IGigETransportLayer* s_pTl)
     return "";
 }
 
-void enumurateNIC(std::vector<std::tuple <std::string, std::string>> *InterfaceList) 
+void enumurateNIC(std::vector<std::tuple <std::string, std::string>> *InterfaceList)
 {
     struct ifaddrs *ifap, *ifa;
     struct sockaddr_in *sa;
     char *addr;
     getifaddrs(&ifap);
-    for (ifa = ifap; ifa; ifa = ifa->ifa_next) 
+    for (ifa = ifap; ifa; ifa = ifa->ifa_next)
     {
-        if (ifa->ifa_addr->sa_family == AF_INET) 
+        if (ifa->ifa_addr->sa_family == AF_INET)
         {
             sa = (struct sockaddr_in *) ifa->ifa_addr;
             addr = inet_ntoa(sa->sin_addr);
@@ -274,7 +269,7 @@ void enumurateNIC(std::vector<std::tuple <std::string, std::string>> *InterfaceL
             sa= (struct sockaddr_in *) ifa->ifa_netmask;
             addr = inet_ntoa(sa->sin_addr);
             std::string subnet = addr;
-            if (s != "127.0.0.1") 
+            if (s != "127.0.0.1")
             {
                 InterfaceList->push_back(std::tuple<std::string, std::string>(s,subnet));
                 logs.push_back(addr);
@@ -284,58 +279,58 @@ void enumurateNIC(std::vector<std::tuple <std::string, std::string>> *InterfaceL
     freeifaddrs(ifap);
 }
 
-void enumurateNIC() 
+void enumurateNIC()
 {
     struct ifaddrs *ifap, *ifa;
     struct sockaddr_in *sa;
     char *addr;
     getifaddrs(&ifap);
-    for (ifa = ifap; ifa; ifa = ifa->ifa_next) 
+    for (ifa = ifap; ifa; ifa = ifa->ifa_next)
     {
-        if (ifa->ifa_addr->sa_family == AF_INET) 
+        if (ifa->ifa_addr->sa_family == AF_INET)
         {
             sa = (struct sockaddr_in *) ifa->ifa_addr;
             addr = inet_ntoa(sa->sin_addr);
             std::string s = addr;
             if (s != "127.0.0.1")
             {
-                std::stringstream ss;
+                std::ostringstream ss;
                 ss << "Interfaces " <<" " << ifa->ifa_name  << " "<< addr;
                 printf("Interface: %s\tAddress: %s\n", ifa->ifa_name, addr);
                 logs.push_back(ss.str());
-            }     
+            }
             std::cerr << std::endl;
         }
     }
     freeifaddrs(ifap);
 }
 
-void displayCurrentStatus(DeviceInfoList_t &listDevices, IGigETransportLayer* s_pTl) 
+void displayCurrentStatus(Pylon::DeviceInfoList_t &listDevices, Pylon::IGigETransportLayer* s_pTl)
 {
-    if (listDevices.size() > 0) 
+    if (listDevices.size() > 0)
     {
-        for (uint x = 0; x < listDevices.size(); x++) 
+        for (uint x = 0; x < listDevices.size(); x++)
         {
             std::cerr << "Camera No :      SN:            Current IP       Interface IP       Status " << std::endl << std::endl;
             Pylon::EDeviceAccessiblityInfo isAccessable;
             //camera_t camera=s_pTl->CreateDevice(listDevices[x]);
-            s_pTl->IsDeviceAccessible(listDevices[x], Control, &isAccessable);
-            CBaslerGigEDeviceInfo &bdi = static_cast<CBaslerGigEDeviceInfo&> (listDevices[x]);
+            s_pTl->IsDeviceAccessible(listDevices[x], Pylon::Control, &isAccessable);
+            Pylon::CBaslerGigEDeviceInfo &bdi = static_cast<Pylon::CBaslerGigEDeviceInfo&> (listDevices[x]);
 
             std::string status = "";
-            
-            switch (isAccessable) 
+
+            switch (isAccessable)
             {
-                case Accessibility_NotReachable:
+                case Pylon::Accessibility_NotReachable:
                     status = "NotReachable";
                     break;
-                case Accessibility_Ok:
+                case Pylon::Accessibility_Ok:
                     status = "OK";
                     break;
-                case Accessibility_Opened:
+                case Pylon::Accessibility_Opened:
                     status = "Opened";
                     break;
-                case Accessibility_OpenedExclusively:
+                case Pylon::Accessibility_OpenedExclusively:
                     status = "OpenedExclusively";
                     break;
                 default:
@@ -347,32 +342,32 @@ void displayCurrentStatus(DeviceInfoList_t &listDevices, IGigETransportLayer* s_
     }
 }
 
-int readKB(int iNumberofCamera) 
+int readKB(int iNumberofCamera)
 {
     int x = -1;
     std::cerr << "Type in a number between 0 and " << iNumberofCamera << "  " << std::endl;
     do
     {
         x = getchar();
-        if (x >= '0' || x <= '9') 
+        if (x >= '0' || x <= '9')
         {
             x = x - '0'; // c will have the value of the digit in the range 0-9
             if (x > iNumberofCamera)
                 std::cerr << "Type in a number between 0 and " << iNumberofCamera << "  " << std::endl;
         }
-    } 
+    }
     while (x < 0 || x > iNumberofCamera);
 
     return x;
 }
 
-bool checkIPFormat(char* _IP) 
+bool checkIPFormat(char* _IP)
 {
     std::string strTempIP = _IP;
     std::istringstream ss(strTempIP);
     std::string token;
     std::vector<std::string> result;
-    if (strTempIP.length() > 10 && strTempIP.length() <= 15) 
+    if (strTempIP.length() > 10 && strTempIP.length() <= 15)
     {
         while(getline(ss, token, '.'))
         {
@@ -380,7 +375,7 @@ bool checkIPFormat(char* _IP)
         }
         if (result.size() != 4)
             return false;
-        else 
+        else
         {
             for (size_t i = 0; i < result.size(); i++)
             {
@@ -399,13 +394,13 @@ bool checkIPFormat(char* _IP)
         return false;
 }
 
-bool checkSubNetFormat(char* _SubNet) 
+bool checkSubNetFormat(char* _SubNet)
 {
     std::string strTempSubNet = _SubNet;
     std::istringstream ss(strTempSubNet);
     std::string token;
     std::vector<std::string> result;
-    if (strTempSubNet.length() > 10 && strTempSubNet.length() <= 15) 
+    if (strTempSubNet.length() > 10 && strTempSubNet.length() <= 15)
     {
         while(getline(ss, token, '.'))
         {
@@ -413,7 +408,7 @@ bool checkSubNetFormat(char* _SubNet)
         }
         if (result.size() != 4)
             return false;
-        else 
+        else
         {
             for (size_t i = 0; i < result.size(); i++)
                 {
@@ -427,21 +422,21 @@ bool checkSubNetFormat(char* _SubNet)
                 }
             return true;
         }
-    } 
+    }
     else
         return false;
 }
 
 void writeLogToFile()
 {
-    if (logs.size() == 0) 
+    if (logs.size() == 0)
     {
         logs.push_back("No lines to be written");
     }
     std::ofstream ofs("ip_auto_config_output.txt");
     std::cout << "Log has " << logs.size()  << " Lines " << std::endl;
-     
-    for(std::vector<std::string>::const_iterator i = logs.begin(); i != logs.end(); ++i) 
+
+    for(std::vector<std::string>::const_iterator i = logs.begin(); i != logs.end(); ++i)
     {
         ofs << *i << '\n';
     }

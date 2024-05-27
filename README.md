@@ -23,59 +23,59 @@ You are welcome to post any questions or issues on [GitHub](https://github.com/b
 
 ### Install and build the packages
 
-This repository including the pylon ROS2 packages must be cloned in your workspace (e.g., `dev_ws` for instance):  
-``cd ~/dev_ws/src && git clone -b humble https://github.com/basler/pylon-ros-camera pylon_ros2_camera``  
-Due to a known issue with ROS2 (see the dedicated section below), the latest version of the `image_common` package must be installed from sources:  
-``cd ~/dev_ws/src/pylon_ros2_camera && git clone https://github.com/ros-perception/image_common.git -b humble``  
+This repository including the pylon ROS2 packages must be cloned in your workspace (e.g., `dev_ws` for instance):
+``cd ~/dev_ws/src && git clone -b humble https://github.com/basler/pylon-ros-camera pylon_ros2_camera``
+Due to a known issue with ROS2 (see the dedicated section below), the latest version of the `image_common` package must be installed from sources:
+``cd ~/dev_ws/src/pylon_ros2_camera && git clone https://github.com/ros-perception/image_common.git -b humble``
 
-Install the ROS2 dependencies required by the pylon ROS2 packages:  
-``cd ~/dev_ws && rosdep install --from-paths src --ignore-src -r -y``  
-You may experience some problems with the `diagnostic_updater` and `pcl_ros` dependencies. In this case, install them by executing the following commands:  
-``sudo apt install ros-humble-diagnostic-updater``  
-``sudo apt install ros-humble-pcl-ros``  
+Install the ROS2 dependencies required by the pylon ROS2 packages:
+``cd ~/dev_ws && rosdep install --from-paths src --ignore-src -r -y``
+You may experience some problems with the `diagnostic_updater` and `pcl_ros` dependencies. In this case, install them by executing the following commands:
+``sudo apt install ros-humble-diagnostic-updater``
+``sudo apt install ros-humble-pcl-ros``
 
-Compile the workspace using `colcon`:  
-``cd ~/dev_ws && colcon build``  
+Compile the workspace using `colcon`:
+``cd ~/dev_ws && colcon build``
 
 **Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g., Python files or other not compiled resourced) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html)).
 
 **Note**: The packages are built in Release by default. The build type can be modfied by using the `--cmake-args` flag (for instance `colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Debug`).
 
-Source the environment:  
-``cd ~/dev_ws && . install/setup.bash``  
+Source the environment:
+``cd ~/dev_ws && . install/setup.bash``
 
 **Note**: This step can be skipped if the `setup.bash` file is sourced in your `.bashrc`.
 
-Start the driver:  
-``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py``  or  
-``ros2 launch pylon_ros2_camera_wrapper my_blaze.launch.py``  to start the acquisition through the blaze.  
+Start the driver:
+``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py``  or
+``ros2 launch pylon_ros2_camera_wrapper my_blaze.launch.py``  to start the acquisition through the blaze.
 
 
 ## Usage in a nutshell
 
 Starting the *pylon_ros2_camera_node* starts the acquisition from a given Basler camera. The nodes allow as well to access many camera parameters and parameters related to the grabbing process itself.
 
-The *pylon_ros2_camera_node* can be started thanks to a dedicated launch file thanks to the command:  
-``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py``  or  
-``ros2 launch pylon_ros2_camera_wrapper my_blaze.launch.py`` for the blaze  
+The *pylon_ros2_camera_node* can be started thanks to a dedicated launch file thanks to the command:
+``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py``  or
+``ros2 launch pylon_ros2_camera_wrapper my_blaze.launch.py`` for the blaze
 Several parameters can be set through the launch file and the user parameter file loaded through it (the `pylon_ros2_camera_wrapper/config/default.yaml` user parameter file is loaded by default, `pylon_ros2_camera_wrapper/config/my_blaze.yaml` for the blaze).
 
-Acquisition from a specific camera is possible by setting the `device_user_id` parameter. If no specific camera is specified, the first available camera is connected automatically.  
+Acquisition from a specific camera is possible by setting the `device_user_id` parameter. If no specific camera is specified, the first available camera is connected automatically.
 
-The pylon node defines the different interface names according to the following convention:  
-``[Camera name (= my_camera or my_blaze by default)]/[Node name (= pylon_ros2_camera_node)]/[Interface name]``  
-The camera and the node names can be set thanks respectively to the `camera_name` and `node_name` parameters.  
+The pylon node defines the different interface names according to the following convention:
+``[Camera name (= my_camera or my_blaze by default)]/[Node name (= pylon_ros2_camera_node)]/[Interface name]``
+The camera and the node names can be set thanks respectively to the `camera_name` and `node_name` parameters.
 
-Acquisition images are published through the `[Camera name]/[Node name]/[image_raw]` topic, only if a subscriber to this topic has been registered.  
-To visualize the images, [rqt](https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools/Introducing-Turtlesim/Introducing-Turtlesim.html#install-rqt) can be used. Add an image viewer plugin through thanks to the contextual menu (Plugin -> Visualization -> Image View) and select the `[Camera name]/[Node name]/[image_raw]` topic to display the acquired and published images.  
-The 3d point clouds acquired by the blaze can be visualized thanks to [rviz2](https://index.ros.org/p/rviz2/).  
+Acquisition images are published through the `[Camera name]/[Node name]/[image_raw]` topic, only if a subscriber to this topic has been registered.
+To visualize the images, [rqt](https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools/Introducing-Turtlesim/Introducing-Turtlesim.html#install-rqt) can be used. Add an image viewer plugin through thanks to the contextual menu (Plugin -> Visualization -> Image View) and select the `[Camera name]/[Node name]/[image_raw]` topic to display the acquired and published images.
+The 3d point clouds acquired by the blaze can be visualized thanks to [rviz2](https://index.ros.org/p/rviz2/).
 
-For camera models other than the blaze, specific user set can be specified thanks to the `startup_user_set` parameter.  
-``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=Default``  or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet1`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet2`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet3``  
+For camera models other than the blaze, specific user set can be specified thanks to the `startup_user_set` parameter.
+``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=Default``  or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet1`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet2`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py --ros-args -p startup_user_set:=UserSet3``
 
 The default trigger mode is set to software trigger. This means that the image acquisition is triggered with a certain frame rate, which may be lower than the maximum camera frame rate. The maximum camera frame rate can be reached when running a camera in a free-run or a hardware trigger mode.
 
-Beware that some parameters implemented by the driver, like for instance the parameter `startup_user_set`, can be set through both the ROS2 parameter server and the driver launch file `pylon_ros2_camera.launch.py`, and that the latter has the priority over the ROS2 parameter server. For instance, if `startup_user_set` is set to `Default` in the `pylon_ros2_camera_wrapper/config/default.yaml` user parameter file and if it is set to `CurrentSetting` in the driver launch file (and if the driver is started thanks to it), then `startup_user_set` will be set to `CurrentSetting`.    
+Beware that some parameters implemented by the driver, like for instance the parameter `startup_user_set`, can be set through both the ROS2 parameter server and the driver launch file `pylon_ros2_camera.launch.py`, and that the latter has the priority over the ROS2 parameter server. For instance, if `startup_user_set` is set to `Default` in the `pylon_ros2_camera_wrapper/config/default.yaml` user parameter file and if it is set to `CurrentSetting` in the driver launch file (and if the driver is started thanks to it), then `startup_user_set` will be set to `CurrentSetting`.
 
 ### Image pixel encoding (not for the blaze)
 
@@ -108,7 +108,7 @@ If the calibration is valid, the rectified images are published through the `[Ca
 
 ### Setting device user id
 
-It is easily possible to connect to a specific camera through its user id. This user id can be set through the parameter `device_user_id` listed in the .yaml user parameter file loaded at launch time (by default `pylon_ros2_camera_wrapper/config/default.yaml`). It is up to the user to create specific launch files, loading specific .yaml user parameter files, which would specify the user ids of the cameras that need to be connected. If no specific camera is specified, either because the `device_user_id` parameter is not set or no .yaml user parameter file is loaded, the first available camera is connected automatically.  
+It is easily possible to connect to a specific camera through its user id. This user id can be set through the parameter `device_user_id` listed in the .yaml user parameter file loaded at launch time (by default `pylon_ros2_camera_wrapper/config/default.yaml`). It is up to the user to create specific launch files, loading specific .yaml user parameter files, which would specify the user ids of the cameras that need to be connected. If no specific camera is specified, either because the `device_user_id` parameter is not set or no .yaml user parameter file is loaded, the first available camera is connected automatically.
 
 In addition to being able to do so through the pylon Viewer provided by Basler, it is possible to set the device user id with the command: `ros2 run pylon_ros2_camera_component set_device_user_id [-sn SERIAL_NB] your_device_user_id`. If no serial number is specified thanks to the option `-sn`, the specified device user id `your_device_user_id` will be assigned to the first available camera.
 USB cameras must be disconnected and then reconnected after setting a new device user id. USB cameras keep their old user id otherwise.
@@ -125,103 +125,103 @@ USB cameras must be disconnected and then reconnected after setting a new device
 
 **Common parameters**
 
-- **camera_frame**  
-  The tf2 frame under which the images were published.  
+- **camera_frame**
+  The tf2 frame under which the images were published.
   ROS2 provides a library called [tf2](https://docs.ros.org/en/humble/Concepts/About-Tf2.html) (*TransForm* version 2) to manage the coordinate transformations between the different frames (coordinate systems) defined by the user and assigned to the components of a robotics system.
 
-- **device_user_id**  
+- **device_user_id**
   The DeviceUserID of the camera. If empty, the first camera found in the device list will be used.
 
-- **camera_info_url (not for the blaze)**  
+- **camera_info_url (not for the blaze)**
   The CameraInfo URL (Uniform Resource Locator) where the optional intrinsic camera calibration parameters are stored. This URL string will be parsed from the CameraInfoManager.
 
-- **image_encoding (not for the blaze)**  
+- **image_encoding (not for the blaze)**
   The encoding of the pixels -- channel meaning, ordering, size taken from the list of strings in include file *sensor_msgs/image_encodings.h*. The supported encodings are 'mono8', 'bgr8', 'rgb8', 'bayer_bggr8', 'bayer_gbrg8' and 'bayer_rggb8'. Default values are 'mono8' and 'rgb8'.
 
-- **binning_x & binning_y (not for the blaze)**  
+- **binning_x & binning_y (not for the blaze)**
   Binning factor to get downsampled images. It refers here to any camera setting which combines rectangular neighborhoods of pixels into larger "super-pixels." It reduces the resolution of the output image to (width / binning_x) x (height / binning_y). The default values binning_x = binning_y = 0 are considered the same as binning_x = binning_y = 1 (no subsampling).
 
-- **downsampling_factor_exposure_search (not for the blaze)**  
+- **downsampling_factor_exposure_search (not for the blaze)**
   To speed up the exposure search, the mean brightness is not calculated on the entire image, but on a subset instead. The image is downsampled until a desired window hight is reached. The window hight is calculated out of the image height divided by the downsampling_factor_exposure search.
 
-- **frame_rate**  
+- **frame_rate**
   The desired publisher frame rate if listening to the topics. This parameter can only be set once at start-up. Calling the GrabImages-Action can result in a higher frame rate.
 
-- **shutter_mode (not for the blaze)**  
+- **shutter_mode (not for the blaze)**
   Set mode of camera's shutter if the value is not empty. The supported modes are 'rolling', 'global' and 'global_reset'. Default value is '' (empty)
 
-- **white_balance_auto (not for the blaze)**  
+- **white_balance_auto (not for the blaze)**
   Camera white balance auto.
 
-- **white_balance_ratio_red & white_balance_ratio_green & white_balance_ratio_blue (not for the blaze)**  
+- **white_balance_ratio_red & white_balance_ratio_green & white_balance_ratio_blue (not for the blaze)**
   Camera white balance ratio.
 
-- **trigger_timeout (not for the blaze)**  
+- **trigger_timeout (not for the blaze)**
   Camera trigger timeout in ms.
 
-- **grab_timeout**  
+- **grab_timeout**
   Camera grab timeout in ms.
 
-- **grab_strategy (not for the blaze)**  
+- **grab_strategy (not for the blaze)**
   Camera grab strategy: 0 = GrabStrategy_OneByOne / 1 = GrabStrategy_LatestImageOnly / 2 = GrabStrategy_LatestImages
 
 **Image Intensity Settings**
 
 The following settings do **NOT** have to be set. Each camera has default values which provide an automatic image adjustment resulting in valid images.
 
-- **exposure**  
+- **exposure**
   The exposure time in microseconds to be set after opening the camera.
 
-- **gain (not for the blaze)**  
+- **gain (not for the blaze)**
   The target gain in percent of the maximal value the camera supports. For USB cameras, the gain is in dB, for GigE cameras it is given in so called 'device specific units'.
 
-- **gamma (not for the blaze)**  
+- **gamma (not for the blaze)**
   Gamma correction of pixel intensity. Adjusts the brightness of the pixel values output by the camera's sensor to account for a non-linearity in the human perception of brightness or of the display system (such as CRT).
 
-- **brightness (not for the blaze)**  
+- **brightness (not for the blaze)**
   The average intensity value of the images. It depends the exposure time as well as the gain setting. If '**exposure**' is provided, the interface will try to reach the desired brightness by only varying the gain. (What may often fail, because the range of possible exposure values is many times higher than the gain range). If '**gain**' is provided, the interface will try to reach the desired brightness by only varying the exposure time. If '**gain**' AND '**exposure**' are given, it is not possible to reach the brightness, because both are assumed to be fix.
 
-- **brightness_continuous (not for the blaze)**  
+- **brightness_continuous (not for the blaze)**
   Only relevant, if '**brightness**' is set: The brightness_continuous flag controls the auto brightness function. If it is set to false, the brightness will only be reached once. Hence changing light conditions lead to changing brightness values. If it is set to true, the given brightness will be reached continuously, trying to adapt to changing light conditions. This is only possible for values in the possible auto range of the pylon API which is e.g., [50 - 205] for acA2500-14um and acA1920-40gm.
 
-- **exposure_auto & gain_auto (not for the blaze)**  
+- **exposure_auto & gain_auto (not for the blaze)**
   Only relevant, if '**brightness**' is set: If the camera should try to reach and / or keep the brightness, hence adapting to changing light conditions, at least one of the following flags must be set. If both are set, the interface will use the profile that tries to keep the gain at minimum to reduce white noise. The exposure_auto flag indicates, that the desired brightness will be reached by adapting the exposure time. The gain_auto flag indicates, that the desired brightness will be reached by adapting the gain.
 
 **Optional and device specific parameter**
 
-- **exposure_search_timeout (not for the blaze)**  
+- **exposure_search_timeout (not for the blaze)**
   The timeout while searching the exposure which is connected to the desired brightness. For slow system this has to be increased.
 
-- **auto_exposure_upper_limit (not for the blaze)**  
-  The exposure search can be limited with an upper bound. This is to prevent very high exposure times and resulting timeouts. A typical value for this upper bound is ~2000000us. Beware that this upper limit is only set if `startup_user_set` is set to `Default`.  
+- **auto_exposure_upper_limit (not for the blaze)**
+  The exposure search can be limited with an upper bound. This is to prevent very high exposure times and resulting timeouts. A typical value for this upper bound is ~2000000us. Beware that this upper limit is only set if `startup_user_set` is set to `Default`.
 
-- **gige/mtu_size (not for the blaze)**  
+- **gige/mtu_size (not for the blaze)**
   The MTU size. Only used for GigE cameras. To prevent lost frames configure the camera has to be configured with the MTU size the network card supports. A value greater 3000 should be good (1500 for single-board computer)
 
-- **gige/inter_pkg_delay (not for the blaze)**  
+- **gige/inter_pkg_delay (not for the blaze)**
   The inter-packet delay in ticks. Only used for GigE cameras. To prevent lost frames it should be greater than 0. For most of GigE cameras, a value of 1000 is reasonable. For GigE cameras used on single-board computer, this value should be set to 11772.
 
-- **gige/frame_transmission_delay (not for the blaze)**  
+- **gige/frame_transmission_delay (not for the blaze)**
  In most cases, this parameter should be set to 0. However, if your network hardware can't handle spikes in network traffic (e.g., if you are triggering multiple camera simultaneously), you can use the frame transmission delay parameter to stagger the start of image data transmissions from each camera.
 
-- **auto_flash (not for the blaze)**  
+- **auto_flash (not for the blaze)**
   Flag that indicates if the camera has a flash connected, which should be on exposure. Only supported for GigE cameras. Default: false.
 
-- **auto_flash_line_2 (not for the blaze)**  
+- **auto_flash_line_2 (not for the blaze)**
   Flag that indicates if the camera has a flash connected on line 2, which should be on exposure. Only supported for GigE cameras. Default: true.
 
-- **auto_flash_line_3 (not for the blaze)**  
+- **auto_flash_line_3 (not for the blaze)**
   Flag that indicates if the camera has a flash connected on line 3, which should be on exposure. Only supported for GigE cameras. Default: true.
 
 **ROS2 pylon node specific parameter**
 
-- **startup_user_set (not for the blaze)**  
-  Flag specifying if a given user set is used when starting the camera. Can be set to `Default`, `UserSet1`, `UserSet2`, `UserSet3`, and `CurrentSetting`.  
+- **startup_user_set (not for the blaze)**
+  Flag specifying if a given user set is used when starting the camera. Can be set to `Default`, `UserSet1`, `UserSet2`, `UserSet3`, and `CurrentSetting`.
 
-- **enable_status_publisher**  
+- **enable_status_publisher**
   Flag used to enable/disable the node status publisher.
 
-- **enable_current_params_publisher**  
+- **enable_current_params_publisher**
   Flag used to enable/disable the current camera publisher.
 
 
@@ -230,9 +230,9 @@ The following settings do **NOT** have to be set. Each camera has default values
 The Precision Time Protocol (PTP) camera feature allows you to synchronize multiple GigE cameras in the same network. It enables a camera to use the following features, if available:
 - **Scheduled Action Commands** & **Action Commands**
 - **Synchronous Free Run** (applies to ace 1 cameras)
-- **Periodic Signal** (applies to ace 2 cameras)  
+- **Periodic Signal** (applies to ace 2 cameras)
 
-Refer to [the documentation](https://docs.baslerweb.com/precision-time-protocol) for more info about these features, with multiple code samples.  
+Refer to [the documentation](https://docs.baslerweb.com/precision-time-protocol) for more info about these features, with multiple code samples.
 
 The pylon driver gives accordingly access through ROS2 services to the following parameters and commands:
 
@@ -433,28 +433,28 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/grab_blaze_data | -
 /my_camera/pylon_ros2_camera_node/grab_images_raw  | -
 
-Depending on the camera model, it is possible to grab one or several images or 3d data sets (3d point cloud, intensity, confidence, depth map, depth color map) through the dedicated action with user-specified parameters (e.g., exposure time, brightness value, etc.). Refer to the action definitions to get more information.  
+Depending on the camera model, it is possible to grab one or several images or 3d data sets (3d point cloud, intensity, confidence, depth map, depth color map) through the dedicated action with user-specified parameters (e.g., exposure time, brightness value, etc.). Refer to the action definitions to get more information.
 
-For camera models other than the blaze, the camera-characteristic parameter such as height, width, projection matrix (by ROS2 convention, this matrix specifies the intrinsic (camera) matrix of the processed (rectified) image - see the [CameraInfo message definition](https://github.com/ros2/common_interfaces/blob/master/sensor_msgs/msg/CameraInfo.msg) for detailed information) and camera_frame were published over the /camera_info topic. Furthermore, an action-based image grabbing with desired exposure time, gain, gamma and / or brightness is provided. Hence, one can grab a sequence of images with above target settings as well as a single image. Grabbing images through this action can result in a higher frame rate.  
+For camera models other than the blaze, the camera-characteristic parameter such as height, width, projection matrix (by ROS2 convention, this matrix specifies the intrinsic (camera) matrix of the processed (rectified) image - see the [CameraInfo message definition](https://github.com/ros2/common_interfaces/blob/master/sensor_msgs/msg/CameraInfo.msg) for detailed information) and camera_frame were published over the /camera_info topic. Furthermore, an action-based image grabbing with desired exposure time, gain, gamma and / or brightness is provided. Hence, one can grab a sequence of images with above target settings as well as a single image. Grabbing images through this action can result in a higher frame rate.
 
 
 ### Tests
 
 The folder `pylon_ros2_camera_wrapper/test` includes different test programs. testing specific functionalities implemented by the driver. These programs are for testing purposes and should be adapted according to one's needs.
 - *test_get_chunk_data*: test the access of specific chunk data
-- *test_grab_blaze_data_action_client*, *test_grab_image_action_client*, and *test_grab_images_action_client*: trigger the image or the 3d data set grabbing through the actions `/my_camera/pylon_ros2_camera_node/grab_images_raw` or `/my_camera/pylon_ros2_camera_node/grab_blaze_data`, depending on the camera model. Each grabbed image (only the intensity image for the blaze) is displayed in a dedicated popup window.  
+- *test_grab_blaze_data_action_client*, *test_grab_image_action_client*, and *test_grab_images_action_client*: trigger the image or the 3d data set grabbing through the actions `/my_camera/pylon_ros2_camera_node/grab_images_raw` or `/my_camera/pylon_ros2_camera_node/grab_blaze_data`, depending on the camera model. Each grabbed image (only the intensity image for the blaze) is displayed in a dedicated popup window.
 
 
 ## Known issues
 
 ### Getting the number of subscribers from camera publisher
-It is not possible to count correctly the number of subscribers to the `image_raw` and `image_rect` topics because of a known issue with the function `CameraPublisher::getNumSubscribers`. That is why [this image_common package](https://github.com/ros-perception/image_common/tree/humble), fixing this issue, needs to be cloned and compiled together with the `pylon_ros2_camera_node`. 
+It is not possible to count correctly the number of subscribers to the `image_raw` and `image_rect` topics because of a known issue with the function `CameraPublisher::getNumSubscribers`. That is why [this image_common package](https://github.com/ros-perception/image_common/tree/humble), fixing this issue, needs to be cloned and compiled together with the `pylon_ros2_camera_node`.
 
 ### User input in terminal when starting node through launch files
 The ros2 launch mechanism doesn't allow to access stdin through a terminal (see [here](https://github.com/ros2/launch_ros/issues/165) and [here](https://answers.ros.org/question/343326/ros2-prefix-in-launch-file/)). This is solved in this implementation by installing and using `xterm` to emulate a terminal with possible user interaction.
 
 ### Service shutdown
-In the ROS pylon implementation, the `activate_autoflash_output` and `set_user_output` service servers are shutdowned when the connection with a camera is lost. It is not possible for now to do so with ROS2 without shutting down the whole node (see [here](https://discourse.ros.org/t/how-to-shutdown-and-reinitialize-a-publisher-node-in-ros-2/4090)). There is no way to overcome this issue at the moment. 
+In the ROS pylon implementation, the `activate_autoflash_output` and `set_user_output` service servers are shutdowned when the connection with a camera is lost. It is not possible for now to do so with ROS2 without shutting down the whole node (see [here](https://discourse.ros.org/t/how-to-shutdown-and-reinitialize-a-publisher-node-in-ros-2/4090)). There is no way to overcome this issue at the moment.
 
 
 ## Troubleshooting

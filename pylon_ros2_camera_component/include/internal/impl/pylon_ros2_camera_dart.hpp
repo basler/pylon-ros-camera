@@ -48,14 +48,14 @@ public:
     explicit PylonROS2DARTCamera(Pylon::IPylonDevice* device);
     virtual ~PylonROS2DARTCamera();
 
-    virtual bool applyCamSpecificStartupSettings(const PylonROS2CameraParameter& params);
-    virtual bool setUserOutput(int output_id, bool value);
-    virtual std::string typeName() const;
+    virtual bool applyCamSpecificStartupSettings(const PylonROS2CameraParameter& params) override;
+    virtual bool setUserOutput(const int& output_id, const bool& value) override;
+    virtual std::string typeName() const override;
 
 protected:
     virtual bool setupSequencer(const std::vector<float>& exposure_times,
-                                std::vector<float>& exposure_times_set);
-    virtual bool grab(Pylon::CGrabResultPtr& grab_result);
+                                std::vector<float>& exposure_times_set) override;
+    bool grab(Pylon::CGrabResultPtr& grab_result);
 };
 
 PylonROS2DARTCamera::PylonROS2DARTCamera(Pylon::IPylonDevice* device) :
@@ -74,7 +74,7 @@ bool PylonROS2DARTCamera::applyCamSpecificStartupSettings(const PylonROS2CameraP
     return true;
 }
 
-bool PylonROS2DARTCamera::setUserOutput(int output_id, bool value)
+bool PylonROS2DARTCamera::setUserOutput(const int& output_id, const bool& value)
 {
     (void)output_id;
     (void)value;
@@ -92,23 +92,23 @@ bool PylonROS2DARTCamera::setupSequencer(const std::vector<float>& exposure_time
 }
 
 bool PylonROS2DARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
-{   
+{
     try
-    { 
+    {
         // /!\ The dart camera device does not support
         // 'waitForFrameTriggerReady'
         cam_->ExecuteSoftwareTrigger();
         cam_->RetrieveResult(grab_timeout_, grab_result,
                              Pylon::TimeoutHandling_ThrowException);
-    }   
+    }
     catch (const GenICam::GenericException &e)
-    {   
+    {
         if ( cam_->IsCameraDeviceRemoved() )
-        {   
+        {
             RCLCPP_ERROR(LOGGER_DART, "Camera was removed");
         }
         else
-        { 
+        {
             if (cam_->TriggerSource.GetValue() != TriggerSourceEnums::TriggerSource_Software)
             {
                 RCLCPP_ERROR_STREAM(LOGGER_DART, "Waiting for Hardware Trigger");
@@ -117,7 +117,7 @@ bool PylonROS2DARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
             {
                 RCLCPP_ERROR_STREAM(LOGGER_DART, "Waiting for Trigger signal");
             }
-            else 
+            else
             {
             RCLCPP_ERROR_STREAM(LOGGER_DART, "An image grabbing exception in pylon camera occurred: "
                     << e.GetDescription());
@@ -131,7 +131,7 @@ bool PylonROS2DARTCamera::grab(Pylon::CGrabResultPtr& grab_result)
         return false;
     }
     if ( !grab_result->GrabSucceeded() )
-    {   
+    {
         RCLCPP_ERROR_STREAM(LOGGER_DART, "Error: " << grab_result->GetErrorCode()
                 << " " << grab_result->GetErrorDescription());
         return false;

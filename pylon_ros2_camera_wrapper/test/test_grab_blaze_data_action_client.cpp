@@ -33,6 +33,7 @@
 
 #include <opencv4/opencv2/highgui.hpp>
 
+#include <sstream>
 
 namespace pylon_ros2_camera
 {
@@ -79,7 +80,7 @@ namespace pylon_ros2_camera
         send_goal_options.result_callback = std::bind(&TestGrabBlazeDataActionClient::result_callback, this, _1);
         this->client_ptr_->async_send_goal(goal_msg, send_goal_options);
 
-        RCLCPP_INFO(this->get_logger(), "Goal sendt!");
+        RCLCPP_INFO(this->get_logger(), "Goal sent!");
       }
 
     private:
@@ -160,10 +161,10 @@ namespace pylon_ros2_camera
                     << "Step:      " << confidence_map.step << "\n\t\t"
                     << "Timestamp: " << confidence_map.header.stamp.sec << "\n\t\t"
                     << "Frame ID:  " << confidence_map.header.frame_id);
-          
+
           cv_bridge::CvImagePtr cv_img = cv_bridge::toCvCopy(result.result->intensity_maps[i], result.result->intensity_maps[i].encoding);
-          
-          std::stringstream ss;
+
+          std::ostringstream ss;
           ss << "Intensity map #" << i+1;
 
           double ratio = (double)intensity_map.height / (double)intensity_map.width;
@@ -180,7 +181,7 @@ namespace pylon_ros2_camera
 
         rclcpp::shutdown();
       }
-  
+
   }; // class TestGrabBlazeDataActionClient
 
 } // namespace pylon_ros2_camera
