@@ -169,23 +169,25 @@ void PylonROS2CameraParameter::readFromRosParameterServer(rclcpp::Node& nh)
     nh.get_parameter("downsampling_factor_exposure_search", this->downsampling_factor_exposure_search_);
 
     RCLCPP_DEBUG(LOGGER, "---> image_encoding");
-    if (nh.has_parameter("image_encoding"))
+    if (!nh.has_parameter("image_encoding"))
     {
-        std::string encoding;
-        nh.get_parameter("image_encoding", encoding);
-        if (!encoding.empty() &&
-            !sensor_msgs::image_encodings::isMono(encoding) &&
-            !sensor_msgs::image_encodings::isColor(encoding) &&
-            !sensor_msgs::image_encodings::isBayer(encoding) &&
-            encoding != sensor_msgs::image_encodings::YUV422)
-        {
-            RCLCPP_WARN_STREAM(LOGGER, "Desired image encoding parameter: '" << encoding
-                << "' is not part of the 'sensor_msgs/image_encodings.h' list!"
-                << " Will not set encoding");
-            encoding = std::string("");
-        }
-        this->image_encoding_ = encoding;
+        nh.declare_parameter<std::string>("image_encoding", "");
     }
+    std::string encoding;
+    nh.get_parameter("image_encoding", encoding);
+    if (!encoding.empty() &&
+    !sensor_msgs::image_encodings::isMono(encoding) &&
+    !sensor_msgs::image_encodings::isColor(encoding) &&
+    !sensor_msgs::image_encodings::isBayer(encoding) &&
+    encoding != sensor_msgs::image_encodings::YUV422)
+    {
+        RCLCPP_WARN_STREAM(LOGGER, "Desired image encoding parameter: '" << encoding
+        << "' is not part of the 'sensor_msgs/image_encodings.h' list!"
+        << " Will not set encoding");
+        encoding = std::string("");
+    }
+
+    this->image_encoding_ = encoding;
 
     // ##########################
     //  image intensity settings
