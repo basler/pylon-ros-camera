@@ -5,6 +5,7 @@ Changelog for package pylon_ros2_camera
 2.0.7 (2024-05-27)
 -------------------
 * Fix issue related to demosaicing and rectification of images. Demosaic images before rectify them.
+* Fix ros parameter initializing by declaring them if there're not set beforehand.
 
 2.0.6 (2024-05-06)
 -------------------
