@@ -946,6 +946,8 @@ void PylonROS2CameraNode::spin()
       if (this->getNumSubscribersRectImagePub() > 0)
       {
         this->cv_bridge_img_rect_->header.stamp = this->img_raw_msg_.header.stamp;
+        assert(this->pinhole_model_->initialized());
+
         const int bit_depth = sensor_msgs::image_encodings::bitDepth(img_raw_msg_.encoding);
         std::string rect_encoding = img_raw_msg_.encoding;
         if (bit_depth == 8 && sensor_msgs::image_encodings::isBayer(rect_encoding))
@@ -957,10 +959,11 @@ void PylonROS2CameraNode::spin()
           rect_encoding ="bgr16";
         }
         this->cv_bridge_img_rect_->encoding = rect_encoding;
+        
         cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(this->img_raw_msg_, rect_encoding);
         if (cv_img_raw == nullptr)
         {
-          RCLCPP_ERROR(LOGGER, "cv_bridge::toCvCopy() failed, not publishing the rectified image");
+          RCLCPP_ERROR(LOGGER, "Failed to initialize rectified image, not publishing it");
         }
         else
         {
@@ -4323,8 +4326,7 @@ void PylonROS2CameraNode::executeGrabRectImagesAction(const std::shared_ptr<Grab
     {
       const int src_bit_depth = sensor_msgs::image_encodings::bitDepth(result->images[i].encoding);
       const std::string debayed_encoding = (src_bit_depth == 8) ? "bgr8" : "bgr16";
-      cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(result->images[i],
-                                                             debayed_encoding);
+      cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(result->images[i], debayed_encoding);
       this->pinhole_model_->fromCameraInfo(this->camera_info_manager_->getCameraInfo());
       cv_bridge::CvImage cv_bridge_img_rect;
       cv_bridge_img_rect.header = result->images[i].header;
@@ -4332,6 +4334,7 @@ void PylonROS2CameraNode::executeGrabRectImagesAction(const std::shared_ptr<Grab
       this->pinhole_model_->rectifyImage(cv_img_raw->image, cv_bridge_img_rect.image);
       cv_bridge_img_rect.toImageMsg(result->images[i]);
     }
+
     goal_handle->succeed(result);
   }
 }
