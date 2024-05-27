@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.7 (2024-05-27)
+-------------------
+* Fix issue related to demosaicing and rectification of images. Demosaic images before rectify them.
+
 2.0.6 (2024-05-06)
 -------------------
 * Improving the setLineMode function to handle easily other modes

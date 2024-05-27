@@ -947,10 +947,30 @@ void PylonROS2CameraNode::spin()
       {
         this->cv_bridge_img_rect_->header.stamp = this->img_raw_msg_.header.stamp;
         assert(this->pinhole_model_->initialized());
-        cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(this->img_raw_msg_, this->img_raw_msg_.encoding);
-        this->pinhole_model_->fromCameraInfo(this->camera_info_manager_->getCameraInfo());
-        this->pinhole_model_->rectifyImage(cv_img_raw->image, this->cv_bridge_img_rect_->image);
-        this->img_rect_pub_->publish(this->cv_bridge_img_rect_->toImageMsg());
+
+        const int bit_depth = sensor_msgs::image_encodings::bitDepth(img_raw_msg_.encoding);
+        std::string rect_encoding = img_raw_msg_.encoding;
+        if (bit_depth == 8 && sensor_msgs::image_encodings::isBayer(rect_encoding))
+        {
+          rect_encoding = "bgr8";
+        }
+        else if (bit_depth == 16 && sensor_msgs::image_encodings::isBayer(rect_encoding))
+        {
+          rect_encoding ="bgr16";
+        }
+        this->cv_bridge_img_rect_->encoding = rect_encoding;
+        
+        cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(this->img_raw_msg_, rect_encoding);
+        if (cv_img_raw == nullptr)
+        {
+          RCLCPP_ERROR(LOGGER, "Failed to initialize rectified image, not publishing it");
+        }
+        else
+        {
+          this->pinhole_model_->fromCameraInfo(this->camera_info_manager_->getCameraInfo());
+          this->pinhole_model_->rectifyImage(cv_img_raw->image, this->cv_bridge_img_rect_->image);
+          this->img_rect_pub_->publish(this->cv_bridge_img_rect_->toImageMsg());
+        }
       }
     }
   }
@@ -4304,15 +4324,17 @@ void PylonROS2CameraNode::executeGrabRectImagesAction(const std::shared_ptr<Grab
 
     for ( std::size_t i = 0; i < result->images.size(); ++i)
     {
-      cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(result->images[i],
-                                                             result->images[i].encoding);
+      const int src_bit_depth = sensor_msgs::image_encodings::bitDepth(result->images[i].encoding);
+      const std::string debayed_encoding = (src_bit_depth == 8) ? "bgr8" : "bgr16";
+      cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(result->images[i], debayed_encoding);
       this->pinhole_model_->fromCameraInfo(this->camera_info_manager_->getCameraInfo());
       cv_bridge::CvImage cv_bridge_img_rect;
       cv_bridge_img_rect.header = result->images[i].header;
-      cv_bridge_img_rect.encoding = result->images[i].encoding;
+      cv_bridge_img_rect.encoding = debayed_encoding;
       this->pinhole_model_->rectifyImage(cv_img_raw->image, cv_bridge_img_rect.image);
       cv_bridge_img_rect.toImageMsg(result->images[i]);
     }
+
     goal_handle->succeed(result);
   }
 }
