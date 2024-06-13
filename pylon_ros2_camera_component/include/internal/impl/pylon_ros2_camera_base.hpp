@@ -2303,40 +2303,47 @@ template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setLineSelector(const int& value)
 {
     try
-    {   if ( GenApi::IsAvailable(cam_->LineSelector) )
+    {   if (GenApi::IsAvailable(cam_->LineSelector))
         {
-            if (value == 0)
+            if (value == 1)
             {
                 cam_->LineSelector.SetValue(LineSelectorEnums::LineSelector_Line1);
-            }
-            else if (value == 1)
-            {
-                cam_->LineSelector.SetValue(LineSelectorEnums::LineSelector_Line2);
+                RCLCPP_DEBUG(LOGGER_BASE, "LineSelector has been set to Line1");
             }
             else if (value == 2)
             {
-                cam_->LineSelector.SetValue(LineSelectorEnums::LineSelector_Line3);
+                cam_->LineSelector.SetValue(LineSelectorEnums::LineSelector_Line2);
+                RCLCPP_DEBUG(LOGGER_BASE, "LineSelector has been set to Line2");
             }
             else if (value == 3)
             {
+                cam_->LineSelector.SetValue(LineSelectorEnums::LineSelector_Line3);
+                RCLCPP_DEBUG(LOGGER_BASE, "LineSelector has been set to Line3");
+            }
+            else if (value == 4)
+            {
                 cam_->LineSelector.SetValue(LineSelectorEnums::LineSelector_Line4);
+                RCLCPP_DEBUG(LOGGER_BASE, "LineSelector has been set to Line4");
             }
             else 
             {
-                return "Error: unknown value";
+                RCLCPP_ERROR(LOGGER_BASE, "Error: unknown or unimplemented value");
+                return "Error: unknown or unimplemented value";
+                // if other values are available add your code here
             }
         }
         else 
         {
-            RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to set the line selector. The connected Camera not supporting this feature");
-            return "The connected Camera not supporting this feature";
+            RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to set the line selector. The connected camera does not support this feature");
+            return "The connected camera does not support this feature";
         }
     }
     catch ( const GenICam::GenericException &e )
     {
-        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while setting the line selector occurred:" << e.GetDescription());
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while setting the line selector occurred: " << e.GetDescription());
         return e.GetDescription(); 
     }
+
     return "done";
 }
 
@@ -2345,24 +2352,97 @@ std::string PylonROS2CameraImpl<CameraTraitT>::setLineMode(const int& value)
 {
     try
     {
-        LineSelectorEnums line_selector = cam_->LineSelector.GetValue();
-        if (line_selector == LineSelectorEnums::LineSelector_Line1)
+        if (GenApi::IsAvailable(cam_->LineMode))
         {
-            cam_->LineMode.SetValue(LineModeEnums::LineMode_Input);
+            LineSelectorEnums line_selector = cam_->LineSelector.GetValue();
+
+            if (line_selector == LineSelectorEnums::LineSelector_Line1)
+            {
+                RCLCPP_DEBUG(LOGGER_BASE, "LineSelector is set to Line1");
+
+                // only Input is allowed
+                if (value == 0) // Input
+                {
+                    cam_->LineMode.SetValue(LineModeEnums::LineMode_Input);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineMode has been set to Input");
+                }
+                else            // Output
+                {
+                    RCLCPP_ERROR(LOGGER_BASE, "Error: Line1 does not support Output mode");
+                    return "Error: Line1 does not support Output mode";
+                }
+            } 
+            else if (line_selector == LineSelectorEnums::LineSelector_Line2)
+            {
+                RCLCPP_DEBUG(LOGGER_BASE, "LineSelector is set to Line2");
+
+                // only Output is allowed
+                if (value == 0) // Input
+                {
+                    RCLCPP_ERROR(LOGGER_BASE, "Error: Line2 does not support Input mode");
+                    return "Error: Line2 does not support Input mode";
+                }
+                else            // Output
+                {
+                    cam_->LineMode.SetValue(LineModeEnums::LineMode_Output);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineMode has been set to Output");
+
+                    // uncomment and adjust relatively to your needs
+                    // the LineSource will always be used when a user goes for LineMode_Output.
+                    //cam_->LineSource.SetValue(LineSourceEnums::LineSource_ExposureActive);
+                    //LineSourceEnums line_source = cam_->LineSource.GetValue();
+                }
+            } 
+            else if (line_selector == LineSelectorEnums::LineSelector_Line3)
+            {
+                RCLCPP_DEBUG(LOGGER_BASE, "LineSelector is set to Line3");
+
+                if (value == 0) // Input
+                {
+                    cam_->LineMode.SetValue(LineModeEnums::LineMode_Input);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineMode has been set to Input");
+                }
+                else            // Output
+                {
+                    cam_->LineMode.SetValue(LineModeEnums::LineMode_Output);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineMode has been set to Output");
+
+                    // uncomment and adjust relatively to your needs
+                    // the LineSource will always be used when a user goes for LineMode_Output.
+                    //cam_->LineSource.SetValue(LineSourceEnums::LineSource_ExposureActive);
+                    //LineSourceEnums line_source = cam_->LineSource.GetValue();
+                }
+            } 
+            else
+            {
+                RCLCPP_DEBUG(LOGGER_BASE, "LineSelector is set to neither Line1, nor Line2, nor Line3. Please check this feature on PylonViewer");
+
+                if (value == 0) // Input
+                {
+                    cam_->LineMode.SetValue(LineModeEnums::LineMode_Input);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineMode has been set to Input");
+                }
+                else            // Output
+                {
+                    cam_->LineMode.SetValue(LineModeEnums::LineMode_Output);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineMode has been set to Output");
+
+                    // uncomment and adjust relatively to your needs
+                    // the LineSource will always be used when a user goes for LineMode_Output.
+                    //cam_->LineSource.SetValue(LineSourceEnums::LineSource_ExposureActive);
+                    //LineSourceEnums line_source = cam_->LineSource.GetValue();
+                }
+            }
         }
         else
         {
-            cam_->LineMode.SetValue(LineModeEnums::LineMode_Output);
-
-            // uncomment and adjust relatively to your needs
-            // the LineSource will always be used when a user goes for Line2 or Line3.
-            cam_->LineSource.SetValue(LineSourceEnums::LineSource_ExposureActive);
-            LineSourceEnums line_source = cam_->LineSource.GetValue();
+            RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to set the line mode. The connected camera does not support this feature");
+            return "The connected camera does not support this feature";
         }
     }
     catch (const GenICam::GenericException &e)
     {
-        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while setting the line mode occurred:" << e.GetDescription());
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while setting the line mode occurred: " << e.GetDescription());
         return e.GetDescription();
     }
     return "done";
@@ -2372,58 +2452,101 @@ template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setLineSource(const int& value)
 {
     try
-    {  
-        if (cam_->LineMode.GetValue() == LineModeEnums::LineMode_Output )
+    {
+        if (GenApi::IsAvailable(cam_->LineMode))
         {
-            if (value == 0)
-            {   
-                cam_->LineSource.SetValue(LineSourceEnums::LineSource_ExposureActive);
-                return "done";
-            }
-            else if (value == 1)
+            if (cam_->LineMode.GetValue() == LineModeEnums::LineMode_Output)
             {
-                cam_->LineSource.SetValue(LineSourceEnums::LineSource_FrameTriggerWait);
-                return "done"; 
-            }
-            else if (value == 2)
-            {
-                cam_->LineSource.SetValue(LineSourceEnums::LineSource_UserOutput1);
-                return "done"; 
-            }
-            else if (value == 3)
-            {
-                cam_->LineSource.SetValue(LineSourceEnums::LineSource_Timer1Active);
-                return "done"; 
-            }
-            else if (value == 4)
-            {
-                if (cam_->ShutterMode.GetValue() == ShutterModeEnums::ShutterMode_Rolling )
+                switch (value)
                 {
-                  cam_->LineSource.SetValue(LineSourceEnums::LineSource_FlashWindow);
-                    return "done";  
-                }
-                else 
-                {
-                    return "Error: the line source 'FlashWindow' supported by rolling shutter only";
-                }
-                 
-            }
-            else 
-            {
-                return "Error: unknown value";
-            }
-        }
-        else 
-        {
-            return "Error : can't change the line source, the selected line mode should be output";
-        }
+                case 0: // ExposureActive
+                    cam_->LineSource.SetValue(LineSourceEnums::LineSource_ExposureActive);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineSource has been set to ExposureActive");
+                    break;
+                
+                case 1: // FrameTriggerWait
+                    cam_->LineSource.SetValue(LineSourceEnums::LineSource_FrameTriggerWait);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineSource has been set to FrameTriggerWait");
+                    break;
 
+                case 2: // UserOutput1
+                    cam_->LineSource.SetValue(LineSourceEnums::LineSource_UserOutput1);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineSource has been set to UserOutput1");
+                    break;
+
+                case 3: // UserOutput2
+                    cam_->LineSource.SetValue(LineSourceEnums::LineSource_UserOutput2);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineSource has been set to UserOutput2");
+                    break;
+
+                case 4: // UserOutput3
+                    cam_->LineSource.SetValue(LineSourceEnums::LineSource_UserOutput3);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineSource has been set to UserOutput3");
+                    break;
+
+                case 5: // Timer1Active
+                    cam_->LineSource.SetValue(LineSourceEnums::LineSource_Timer1Active);
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineSource has been set to Timer1Active");
+                    break;
+
+                case 6: // FlashWindow
+                    if (cam_->ShutterMode.GetValue() == ShutterModeEnums::ShutterMode_Rolling)
+                    {
+                        cam_->LineSource.SetValue(LineSourceEnums::LineSource_FlashWindow);
+                        RCLCPP_DEBUG(LOGGER_BASE, "LineSource has been set to FlashWindow");
+                    }
+                    else 
+                    {
+                        RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error: The line source 'FlashWindow' is supported by rolling shutter only");
+                        return "Error: The line source 'FlashWindow' is supported by rolling shutter only";
+                    }
+                    break;
+
+                // add your code here to add several sources
+
+                default:
+                    RCLCPP_ERROR(LOGGER_BASE, "Error: unknown or unimplemented value");
+                    return "Error: unknown or unimplemented value";
+                }
+            }
+            else
+            {
+                LineSelectorEnums line_selector = cam_->LineSelector.GetValue();
+
+                if (line_selector == LineSelectorEnums::LineSelector_Line1)
+                {
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineSelector is set to Line1");
+                }
+                else if (line_selector == LineSelectorEnums::LineSelector_Line2)
+                {
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineSelector is set to Line2");
+                }
+                else if (line_selector == LineSelectorEnums::LineSelector_Line3)
+                {
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineSelector is set to Line3");
+                }
+                else
+                {
+                    RCLCPP_DEBUG(LOGGER_BASE, "LineSelector is set to neither Line1, nor Line2, nor Line3. Please check this feature on PylonViewer");
+                }
+
+                RCLCPP_ERROR(LOGGER_BASE, "Error: The selected line is set to Input mode, the LineSource cannot be modified. Change LineMode to Output if the selected line allows it.");
+                return "Error: The selected line is set to Input mode, the LineSource cannot be modified. Change LineMode to Output if the selected line allows it.";
+            }
+        }
+        else
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error while trying to set the line source. The connected camera does not support this feature");
+            return "The connected camera does not support this feature";
+        }
     }
     catch ( const GenICam::GenericException &e )
     {
-        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while setting the line source occurred:" << e.GetDescription());
+        RCLCPP_ERROR_STREAM(LOGGER_BASE, "An exception while setting the line source occurred: " << e.GetDescription());
         return e.GetDescription(); 
     }
+
+    return "done";
 }
 
 template <typename CameraTraitT>

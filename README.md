@@ -375,8 +375,8 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/set_line_debouncer_time  | value = delay in micro sec
 /my_camera/pylon_ros2_camera_node/set_line_inverter  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/set_line_mode  | value : 0 = Input, 1 = Output
-/my_camera/pylon_ros2_camera_node/set_line_selector  | value : 0 = Line1, 1 = Line2, 2 = Line3, 3 = Line4
-/my_camera/pylon_ros2_camera_node/set_line_source  | value : 0 = Exposure Active, 1 = FrameTriggerWait, 2 = UserOutput1, 3 = Timer1Active, 4 = FlashWindow
+/my_camera/pylon_ros2_camera_node/set_line_selector  | value : 1 = Line1, 2 = Line2, 3 = Line3, 4 = Line4
+/my_camera/pylon_ros2_camera_node/set_line_source  | value : 0 = Exposure Active, 1 = FrameTriggerWait, 2 = UserOutput1, 3 = UserOutput2, 4 = UserOutput3, 5 = Timer1Active, 6 = FlashWindow
 /my_camera/pylon_ros2_camera_node/set_max_num_buffer  | -
 /my_camera/pylon_ros2_camera_node/set_max_transfer_size  | maximum USB data transfer size in bytes
 /my_camera/pylon_ros2_camera_node/set_multi_camera_channel  | value = new channel
@@ -458,6 +458,10 @@ In the ROS pylon implementation, the `activate_autoflash_output` and `set_user_o
 
 
 ## Troubleshooting
+
+Some classes includes in their constructor the following command, commented by default:
+`rcutils_ret_t __attribute__((unused)) res = rcutils_logging_set_logger_level(LOGGER_BASE.get_name(), RCUTILS_LOG_SEVERITY_DEBUG);`
+Uncomment it to display on your terminal more detailed debug information.
 
 To increase performance and to minimize CPU usage when grabbing images, the following settings should be considered:
 

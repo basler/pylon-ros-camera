@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.8 (2024-05-27)
+-------------------
+* Fix issues and adjustment related to line selector, mode, and source setting. Beware that the line selector and source setting services' inputs have slightly changed. Refer to the documentation for more information.
+
 2.0.7 (2024-05-27)
 -------------------
 * Fix issue related to demosaicing and rectification of images. Demosaic images before rectify them.

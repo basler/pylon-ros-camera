@@ -991,38 +991,38 @@ float PylonROS2GigECamera::getTriggerDelay()
     }
 }
 
-template <>
-std::string PylonROS2GigECamera::setLineMode(const int& value)
-{
-    try
-    {   if ( (cam_->LineFormat.GetValue() == LineFormatEnums::LineFormat_TTL) )
-        {
-            if (value == 0)
-            {
-                cam_->LineMode.SetValue(LineModeEnums::LineMode_Input);
-            }
-            else if (value == 1)
-            {
-                cam_->LineMode.SetValue(LineModeEnums::LineMode_Output);
-            }
-            else 
-            {
-                return "Error: unknown value";
-            }
-        }
-        else 
-        {
-            RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error : the selected line number dose not have change line mode feature");
-            return "Error : the selected line number dose not have change line mode feature";
-        }
-    }
-    catch ( const GenICam::GenericException &e )
-    {
-        RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while setting the line mode occurred:" << e.GetDescription());
-        return e.GetDescription(); 
-    }
-    return "done";
-}
+// template <>
+// std::string PylonROS2GigECamera::setLineMode(const int& value)
+// {
+//     try
+//     {   if ( (cam_->LineFormat.GetValue() == LineFormatEnums::LineFormat_TTL) )
+//         {
+//             if (value == 0)
+//             {
+//                 cam_->LineMode.SetValue(LineModeEnums::LineMode_Input);
+//             }
+//             else if (value == 1)
+//             {
+//                 cam_->LineMode.SetValue(LineModeEnums::LineMode_Output);
+//             }
+//             else 
+//             {
+//                 return "Error: unknown value";
+//             }
+//         }
+//         else 
+//         {
+//             RCLCPP_ERROR_STREAM(LOGGER_GIGE, "Error : the selected line number dose not have change line mode feature");
+//             return "Error : the selected line number dose not have change line mode feature";
+//         }
+//     }
+//     catch ( const GenICam::GenericException &e )
+//     {
+//         RCLCPP_ERROR_STREAM(LOGGER_GIGE, "An exception while setting the line mode occurred:" << e.GetDescription());
+//         return e.GetDescription(); 
+//     }
+//     return "done";
+// }
 
 template <>
 std::string PylonROS2GigECamera::setLineDebouncerTime(const float& value)
