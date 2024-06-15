@@ -3517,6 +3517,12 @@ PylonCameraNode::~PylonCameraNode()
         delete pinhole_model_;
         pinhole_model_ = nullptr;
     }
+
+    if ( camera_info_manager_ )
+    {
+        delete camera_info_manager_;
+        camera_info_manager_ = nullptr;
+    }
 }
 
 }  // namespace pylon_camera
