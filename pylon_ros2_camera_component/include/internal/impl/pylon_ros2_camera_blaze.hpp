@@ -548,7 +548,7 @@ bool PylonROS2BlazeCamera::processAndConvertBlazeData(const Pylon::CPylonDataCon
     cv::Mat depth_map = cv::Mat(height, width, CV_16UC1, pdepth_data);
     // convert
     cv_bridge::CvImage depth_map_cv_img;
-    depth_map_cv_img.encoding = sensor_msgs::image_encodings::MONO16;
+    depth_map_cv_img.encoding = sensor_msgs::image_encodings::TYPE_16UC1;
     depth_map_cv_img.image    = depth_map;
     // define message
     depth_map_msg.header = depth_map_cv_img.toImageMsg()->header;
@@ -558,6 +558,8 @@ bool PylonROS2BlazeCamera::processAndConvertBlazeData(const Pylon::CPylonDataCon
     depth_map_msg.is_bigendian = depth_map_cv_img.toImageMsg()->is_bigendian;
     depth_map_msg.step = depth_map_cv_img.toImageMsg()->step;
     depth_map_msg.data = depth_map_cv_img.toImageMsg()->data;
+    // free memory
+    free(pdepth_data);
 
     // depth map color
     BGR* pdepth_data_color = new BGR[width * height];
@@ -575,6 +577,8 @@ bool PylonROS2BlazeCamera::processAndConvertBlazeData(const Pylon::CPylonDataCon
     depth_map_color_msg.is_bigendian = depth_map_color_cv_img.toImageMsg()->is_bigendian;
     depth_map_color_msg.step = depth_map_color_cv_img.toImageMsg()->step;
     depth_map_color_msg.data = depth_map_color_cv_img.toImageMsg()->data;
+    // free memory
+    free(pdepth_data_color);
 
     // confidence map
     cv::Mat confidence_map = cv::Mat(height, width, CV_16UC1, (void*) confidence_component.GetData());
@@ -657,7 +661,8 @@ void PylonROS2BlazeCamera::calculateDepthMap(const Pylon::CPylonDataComponent& p
             if (isValid(pPoint))
             {
                 // Calculate the radial distance.
-                double distance = sqrt(pPoint->x * pPoint->x + pPoint->y * pPoint->y + pPoint->z * pPoint->z);
+                //double distance = sqrt(pPoint->x * pPoint->x + pPoint->y * pPoint->y + pPoint->z * pPoint->z);
+                double distance = pPoint->z * this->blaze_cam_->Scan3dCoordinateScale.GetValue();
                 // Clip to [min_depth..MaxDept].
                 if (distance < min_depth)
                     distance = min_depth;

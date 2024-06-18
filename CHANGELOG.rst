@@ -2,7 +2,11 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-2.0.8 (2024-05-27)
+2.0.9 (2024-06-18)
+-------------------
+* Fix memory leak with blaze images
+
+2.0.8 (2024-05-11)
 -------------------
 * Fix issues and adjustment related to line selector, mode, and source setting. Beware that the line selector and source setting services' inputs have slightly changed. Refer to the documentation for more information.
 
