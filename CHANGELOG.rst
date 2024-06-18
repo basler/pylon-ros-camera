@@ -4,7 +4,8 @@ Changelog for package pylon_ros2_camera
 
 2.0.9 (2024-06-18)
 -------------------
-* Fix memory leak with blaze images
+* Fix memory leak with blaze images.
+* Changing blaze depth map encoding and not using radial distance anymore when computing it.
 
 2.0.8 (2024-05-11)
 -------------------

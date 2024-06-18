@@ -176,7 +176,7 @@ PylonROS2BlazeCamera::PylonROS2BlazeCamera(Pylon::IPylonDevice* device) :
     invalid_data_value_old_(0.0f)
 {
     // information logging severity mode
-    rcutils_ret_t __attribute__((unused)) res = rcutils_logging_set_logger_level(LOGGER_BLAZE.get_name(), RCUTILS_LOG_SEVERITY_DEBUG);
+    //rcutils_ret_t __attribute__((unused)) res = rcutils_logging_set_logger_level(LOGGER_BLAZE.get_name(), RCUTILS_LOG_SEVERITY_DEBUG);
     //RCUTILS_LOG_SEVERITY_DEBUG
     //RCUTILS_LOG_SEVERITY_INFO
     //RCUTILS_LOG_SEVERITY_WARN
@@ -662,6 +662,7 @@ void PylonROS2BlazeCamera::calculateDepthMap(const Pylon::CPylonDataComponent& p
             {
                 // Calculate the radial distance.
                 //double distance = sqrt(pPoint->x * pPoint->x + pPoint->y * pPoint->y + pPoint->z * pPoint->z);
+                // EDIT: the standard distance is enough in this context
                 double distance = pPoint->z * this->blaze_cam_->Scan3dCoordinateScale.GetValue();
                 // Clip to [min_depth..MaxDept].
                 if (distance < min_depth)
