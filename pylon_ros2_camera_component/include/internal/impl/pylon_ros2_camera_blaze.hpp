@@ -546,6 +546,7 @@ bool PylonROS2BlazeCamera::processAndConvertBlazeData(const Pylon::CPylonDataCon
     uint16_t* pdepth_data = new uint16_t[width * height];
     this->calculateDepthMap(range_component, min_depth, max_depth, pdepth_data);
     cv::Mat depth_map = cv::Mat(height, width, CV_16UC1, pdepth_data);
+    free(pdepth_data);
     // convert
     cv_bridge::CvImage depth_map_cv_img;
     depth_map_cv_img.encoding = sensor_msgs::image_encodings::TYPE_16UC1;
@@ -565,6 +566,7 @@ bool PylonROS2BlazeCamera::processAndConvertBlazeData(const Pylon::CPylonDataCon
     BGR* pdepth_data_color = new BGR[width * height];
     this->calculateDepthMapColor(range_component, min_depth, max_depth, pdepth_data_color);
     cv::Mat depth_map_color = cv::Mat(height, width, CV_8UC3, pdepth_data_color);
+    free(pdepth_data_color);
     // convert
     cv_bridge::CvImage depth_map_color_cv_img;
     depth_map_color_cv_img.encoding = sensor_msgs::image_encodings::BGR8;

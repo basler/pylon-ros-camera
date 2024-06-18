@@ -976,11 +976,11 @@ void PylonROS2CameraNode::spin()
   }
   else
   {
-    if (!this->isSleeping() && (this->count_subscribers(this->blaze_cloud_topic_name_) ||
-                                this->count_subscribers(this->blaze_intensity_topic_name_) ||
-                                this->count_subscribers(this->blaze_depth_map_topic_name_) ||
-                                this->count_subscribers(this->blaze_depth_map_color_topic_name_) ||
-                                this->count_subscribers(this->blaze_confidence_topic_name_)))
+    if (!this->isSleeping() && (this->blaze_cloud_pub_->get_subscription_count() ||
+                                this->blaze_intensity_pub_->get_subscription_count() ||
+                                this->blaze_depth_map_pub_->get_subscription_count() ||
+                                this->blaze_depth_map_color_pub_->get_subscription_count() ||
+                                this->blaze_cam_info_pub_->get_subscription_count()))
     {
       this->pylon_camera_->getInitialCameraInfo(this->blaze_cam_info_msg_);
 
