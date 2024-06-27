@@ -1,4 +1,4 @@
-# pylon-ROS-camera
+# pylon5-ROS1-camera
 
 The official pylon ROS driver for [Basler](http://www.baslerweb.com/) GigE Vision and USB3 Vision cameras
 
