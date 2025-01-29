@@ -1261,6 +1261,12 @@ public:
 
     virtual ~PylonROS2Camera();
 
+    /**
+     * Internal attributes
+     */
+    bool chunk_mode_active_{false};
+    bool bit_shift_active_{false};
+
 protected:
     /**
      * Protected default constructor.
