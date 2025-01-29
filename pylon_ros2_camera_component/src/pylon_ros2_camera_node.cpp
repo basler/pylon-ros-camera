@@ -1025,14 +1025,6 @@ void PylonROS2CameraNode::spin()
       }
     }
 
-    // Check if the image encoding changed , then save the new image encoding and restart the image grabbing to fix the ros sensor message type issue.
-    if (this->pylon_camera_parameter_set_.imageEncoding() != this->pylon_camera_->currentROSEncoding()) 
-    {
-      this->pylon_camera_parameter_set_.setimageEncodingParam(*this, this->pylon_camera_->currentROSEncoding());
-      this->grabbingStopping();
-      this->grabbingStarting();
-    }
-    
     if (this->pylon_camera_parameter_set_.enable_status_publisher_)
     {
       this->component_status_pub_->publish(this->cm_status_);
