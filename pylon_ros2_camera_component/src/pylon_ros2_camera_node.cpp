@@ -918,37 +918,6 @@ void PylonROS2CameraNode::spin()
     double start_time = rclcpp::Clock().now().seconds();
     double tdiff; // used to compute time difference during the grabbing process
 
-    // check if the camera is disconnected
-    // the call time cost to isCamRemoved() is unsignificant with respect to the grabbing frame rate
-    if (this->pylon_camera_->isCamRemoved())
-    {
-      RCLCPP_ERROR(LOGGER, "Camera is disconnected, trying now to reconnect");
-
-      this->cm_status_.status_id = pylon_ros2_camera_interfaces::msg::ComponentStatus::ERROR;
-      this->cm_status_.status_msg = "Camera is disconnected, trying now to reconnect";
-
-      if (this->pylon_camera_parameter_set_.enable_status_publisher_)
-      {
-        this->component_status_pub_->publish(this->cm_status_);
-      }
-
-      if (this->pylon_camera_ != nullptr)
-      {
-        this->pylon_camera_.reset();
-      }
-
-      // Possible issue here: ROS2 does not allow to shutdown services
-      // Services are shutdown in the ROS 1 pylon version at this level
-      this->set_user_output_srvs_.clear();
-
-      rclcpp::Rate r(0.5);
-      r.sleep();
-
-      this->init();
-
-      continue;
-    }
-
     // grab
     RCLCPP_DEBUG(LOGGER, ">>> New frame grabbing <<<");
 

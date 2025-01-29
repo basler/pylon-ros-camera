@@ -581,6 +581,10 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(Pylon::CBaslerUniversalGrabResultPtr
         if (cam_->IsCameraDeviceRemoved())
         {
             RCLCPP_ERROR(LOGGER_BASE, "Lost connection to the camera . . .");
+            cam_->StopGrabbing();
+            RCLCPP_ERROR(LOGGER_BASE, "Reconnect the camera and restart the node!");
+            rclcpp::shutdown();
+            exit(1);
         }
         else
         {
