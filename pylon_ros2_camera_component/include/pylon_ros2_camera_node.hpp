@@ -1828,6 +1828,9 @@ protected:
   // mutex
   std::recursive_mutex grab_mutex_;
 
+  // mask regions
+  std::vector<std::array<int, 4>> mask_regions_;
+
   // intern
   std::vector<std::size_t> sampling_indices_;
   std::array<float, 256> brightness_exp_lut_{};
