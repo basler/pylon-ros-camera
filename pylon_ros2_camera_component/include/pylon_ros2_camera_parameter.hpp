@@ -334,6 +334,11 @@ public:
     */
     int grab_strategy_;
 
+    /**
+     * Mask regions stored as arrays [x_start, y_start, x_end, y_end]
+     * For some reason using a vector of arrays did not work
+     */
+    std::string mask_points_;
 
 protected:
     /**

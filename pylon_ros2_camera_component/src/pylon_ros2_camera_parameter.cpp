@@ -74,6 +74,7 @@ PylonROS2CameraParameter::PylonROS2CameraParameter() :
     white_balance_ratio_green_(1.0),
     white_balance_ratio_blue_(1.0),
     grab_strategy_(0),
+    mask_points_(""),
     camera_frame_("pylon_camera"),
     device_user_id_(""),
     frame_rate_(5.0),
@@ -530,6 +531,16 @@ void PylonROS2CameraParameter::readFromRosParameterServer(rclcpp::Node& nh)
     }
     
     nh.get_parameter("grab_strategy", this->grab_strategy_);
+
+    // mask_points
+    RCLCPP_DEBUG(LOGGER, "---> mask_points");
+
+    if (!nh.has_parameter("mask_points"))
+    {
+        nh.declare_parameter<std::string>("mask_points", "");
+    }
+    
+    nh.get_parameter("mask_points", this->mask_points_);
 
     // validating parameters
     this->validateParameterSet(nh);
