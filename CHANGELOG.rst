@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.3 (2025-04-23)
+-------------------
+* Use generic "GenICam" alias globally
+
 3.0.2 (2024-12-12)
 -------------------
 * Fixing bug related to ExposureTime/ExposureTimeAbs variable ID problem

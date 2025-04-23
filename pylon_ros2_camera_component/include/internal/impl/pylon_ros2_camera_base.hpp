@@ -1482,7 +1482,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::setUserOutput(const int& output_id,
                 << ex.what());
         return false;
     }
-    catch (const GenICam_3_1_Basler_pylon::InvalidArgumentException& ex)
+    catch (const GenICam::InvalidArgumentException& ex)
     {
         RCLCPP_ERROR_STREAM(LOGGER_BASE, "Could not set user output "  << output_id << ": "
                 << ex.what());
