@@ -106,18 +106,8 @@ PylonROS2CameraNode::~PylonROS2CameraNode()
 
 void PylonROS2CameraNode::spinLoop()
 {
-  double frame_step = 1.0 / this->frameRate();
   while (this->keep_spinning_ && rclcpp::ok())
   {
-    // Wait for the next frame step at a fixed system time, 
-    // to allow a simple synchronization with other cameras
-    double now_time = rclcpp::Clock().now().seconds();
-    double tdiff = std::fmod(now_time, frame_step);
-    if (tdiff > 0){
-      double sleep_time = frame_step - tdiff;
-      std::this_thread::sleep_for(std::chrono::duration<double>(sleep_time));
-    }
-
     // Grab an image
     this->spin();
   }
@@ -1060,8 +1050,23 @@ bool PylonROS2CameraNode::grabImage()
   using namespace std::chrono_literals;
 
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
-  
-  if (!this->pylon_camera_->isBlaze())
+  bool use_default_branch = !this->pylon_camera_->isBlaze();
+
+  // While spinning, wait for the next frame step at a fixed system time,
+  // to allow a simple synchronization with other cameras
+  if (std::this_thread::get_id() == this->spin_thread_.get_id())
+  {
+    int64_t now_time = rclcpp::Clock().now().nanoseconds();
+    int64_t frame_step = 1000000000 / this->frameRate();
+    int64_t ns_diff = now_time % frame_step;
+    if (ns_diff > 0)
+    {
+      int64_t sleep_ns = frame_step - ns_diff;
+      std::this_thread::sleep_for(std::chrono::nanoseconds(sleep_ns));
+    }
+  }
+
+  if (use_default_branch)
   {
     // Store current time before the image is transmitted for a more accurate grab time estimation.
     // If chunk timestamp is enabled, grab will overwrite it with the acquisition timestamp.
