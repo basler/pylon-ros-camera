@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.4 (2025-07-08)
+-------------------
+* Include Boost (date_time component) as required when building
+
 3.0.3 (2025-04-23)
 -------------------
 * Use generic "GenICam" alias globally

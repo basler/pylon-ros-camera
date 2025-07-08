@@ -56,6 +56,7 @@ find_package(camera_info_manager REQUIRED)
 find_package(image_geometry REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(diagnostic_updater REQUIRED)
+find_package(Boost REQUIRED COMPONENTS date_time)
 
 set(PYLON_ROS2_CAMERA_DEPENDENCIES
 	pylon_ros2_camera_interfaces
