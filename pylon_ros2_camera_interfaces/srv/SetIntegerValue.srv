@@ -20,9 +20,7 @@
 # - set_grab_timeout (unit : ms)
 # - set_trigger_timeout (unit : ms)
 # - set_grabbing_strategy : set 0 = GrabStrategy_OneByOne,  set 1 = GrabStrategy_LatestImageOnly,  set 2 = GrabStrategy_LatestImages
-
-
-int32 value 		# value to be setted
+int64 value     # value to be setted
 ---
-bool success   # indicate successful run of triggered service
-string message # informational, e.g., for error messages
+bool success    # indicate successful run of triggered service
+string message  # informational, e.g., for error messages
