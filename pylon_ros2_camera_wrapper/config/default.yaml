@@ -42,6 +42,10 @@
     #  Default value is "" (empty) means default_shutter_mode
     # shutter_mode: ""
 
+    # Mask regions in the image which are replaced with a black box
+    # Format as json string: [[x1_start, y1_start, x1_end, y1_end], ...]
+    # mask_points: '[[100, 100, 200, 250], [400, 400, 700, 800]]'
+
     ##########################################################################
     ######################## Image Intensity Settings ########################
     ##########################################################################
