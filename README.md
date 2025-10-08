@@ -8,7 +8,7 @@ This driver provides many functionalities available through the Basler [pylon Ca
 This project is offered with no technical support by Basler AG.
 You are welcome to post any questions or issues on [GitHub](https://github.com/basler/pylon-ros-camera/issues)
 
-_The galactic version of the pylon driver is unfortunately not maintained anymore. Please use more recent version of the driver for getting access to the latest functionalities._
+_The galactic version of the pylon driver is unfortunately not maintained anymore. Please use more recent versions of the driver for getting access to the latest functionalities._
 
 ## Installation
 
