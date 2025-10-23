@@ -509,7 +509,7 @@ To increase performance and to minimize CPU usage when grabbing images, the foll
 
 ### Slow frame rate
 
-Please refer to the [dedicated chapter](https://github.com/basler/pylon-ros-camera/edit/kilted_beta/README.md#acquisition-mode-and-frame-rate) in this documentation for more information.
+Please refer to the dedicated chapter ("Acquisition mode and frame rate" in this documentation for more information.
 
 Beware as well that starting rviz2 or rqt before the driver may result in a slower frame rate. Start the driver starts followed by rqt or rviz2.
 
