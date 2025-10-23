@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.2.0 (2025-10-23)
+-------------------
+* The pylon driver is now compatible with ROS2 Kilted Kaiju. Dedicated branch has been created.
+
 3.1.1 (2025-09-30)
 -------------------
 * Few fixes and additional displayed information related to the ROI setting

@@ -1,6 +1,6 @@
 # ROS2-Driver for Basler Cameras
 
-The official pylon ROS2 driver for [Basler](http://www.baslerweb.com/) GigE Vision, Basler USB3 Vision and Basler blaze 3D cameras (Jazzy Jalisco)
+The official pylon ROS2 driver for [Basler](http://www.baslerweb.com/) GigE Vision, Basler USB3 Vision and Basler blaze 3D cameras (Kilted Kaiju)
 
 This driver provides many functionalities available through the Basler [pylon Camera Software Suite](https://www.baslerweb.com/en/products/software/basler-pylon-camera-software-suite/) C++ API.
 
@@ -14,8 +14,8 @@ You are welcome to post any questions or issues on [GitHub](https://github.com/b
 ### Prerequisites
 
 - From [Ubuntu 24.04 Noble Numbat](https://releases.ubuntu.com/noble/)
-- From [ROS2 Jazzy Jalisco](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html). Your ROS2 environment must be [configured](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools/Configuring-ROS2-Environment.html), your workspace [created](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace.html), and colcon, used to build the packages, [installed](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html).
-- [rosdep](https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Rosdep.html). rosdep must be installed as a debian package (`sudo apt update && sudo apt install python3-rosdep && sudo rosdep init && rosdep update`).
+- From [ROS2 Kilted Kaiju](https://docs.ros.org/en/kilted/Installation/Ubuntu-Install-Debs.html). Your ROS2 environment must be [configured](https://docs.ros.org/en/kilted/Tutorials/Beginner-CLI-Tools/Configuring-ROS2-Environment.html), your workspace [created](https://docs.ros.org/en/kilted/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace.html), and colcon, used to build the packages, [installed](https://docs.ros.org/en/kilted/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html).
+- [rosdep](https://docs.ros.org/en/kilted/Tutorials/Intermediate/Rosdep.html). rosdep must be installed as a debian package (`sudo apt update && sudo apt install python3-rosdep && sudo rosdep init && rosdep update`).
 - From [pylon Camera Software Suite](https://www2.baslerweb.com/en/downloads/software-downloads/) version 7.5.0 or newer. The latest APi libraries must be installed manually. Download and install the latest pylon Camera Software Suite Linux Debian Installer Package for your architecture. You may be experiencing some problems with the codemeter debian package installation. Just drop it for now and install only the pylon debian package in this case.
 - From [pylon Supplementary Package for blaze](https://www2.baslerweb.com/en/downloads/software-downloads/) version 1.6.0 or newer (compatibility with the installed pylon Camera Software Suite needs to be ensured, please refer to the documentation). The latest APi libraries must be installed manually. Download and install the latest pylon Supplementary Package for blaze Linux Debian Installer Package for your architecture.
 - [Git](https://git-scm.com/). Git must be installed as a debian package (`sudo apt update && sudo apt install git`).
@@ -25,21 +25,21 @@ You are welcome to post any questions or issues on [GitHub](https://github.com/b
 
 This repository including the pylon ROS2 packages must be cloned in your workspace (e.g., `dev_ws` for instance):  
 ```
-cd ~/dev_ws/src && git clone -b jazzy_beta https://github.com/basler/pylon-ros-camera pylon_ros2_camera
+cd ~/dev_ws/src && git clone -b kilted_beta https://github.com/basler/pylon-ros-camera pylon_ros2_camera
 ```  
 
 Install the ROS2 dependencies required by the pylon ROS2 packages:  
 ``cd ~/dev_ws && rosdep install --from-paths src --ignore-src -r -y``  
 You may experience some problems with the `diagnostic_updater` and `pcl_ros` dependencies. In this case, install them by executing the following commands:  
 ```
-sudo apt install ros-jazzy-diagnostic-updater
-sudo apt install ros-jazzy-pcl-ros
+sudo apt install ros-kilted-diagnostic-updater
+sudo apt install ros-kilted-pcl-ros
 ```
 
 Compile the workspace using `colcon`:  
 ``cd ~/dev_ws && colcon build``  
 
-**Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g., Python files or other not compiled resourced) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html)).
+**Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g., Python files or other not compiled resourced) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/kilted/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html)).
 
 **Note**: The packages are built in Release by default. The build type can be modfied by using the `--cmake-args` flag (for instance `colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Debug`).
 
@@ -69,7 +69,7 @@ The pylon node defines the different interface names according to the following 
 The camera and the node names can be set thanks respectively to the `camera_name` and `node_name` parameters.  
 
 Acquisition images are published through the `[Camera name]/[Node name]/[image_raw]` topic, only if a subscriber to this topic has been registered.  
-To visualize the images, [rqt](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools/Introducing-Turtlesim/Introducing-Turtlesim.html#install-rqt) can be used. Add an image viewer plugin through thanks to the contextual menu (Plugin -> Visualization -> Image View) and select the `[Camera name]/[Node name]/[image_raw]` topic to display the acquired and published images. Beware that if you are using rviz2 to visualize the acquired images, this tool is not able not vizualize correctly images encoded in Bayer.  
+To visualize the images, [rqt](https://docs.ros.org/en/kilted/Tutorials/Beginner-CLI-Tools/Introducing-Turtlesim/Introducing-Turtlesim.html#install-rqt) can be used. Add an image viewer plugin through thanks to the contextual menu (Plugin -> Visualization -> Image View) and select the `[Camera name]/[Node name]/[image_raw]` topic to display the acquired and published images. Beware that if you are using rviz2 to visualize the acquired images, this tool is not able not vizualize correctly images encoded in Bayer.  
 The 3d point clouds acquired by the blaze can be visualized thanks to [rviz2](https://index.ros.org/p/rviz2/).  
 
 For camera models other than the blaze, specific user set can be specified thanks to the `startup_user_set` parameter.  
@@ -104,7 +104,7 @@ More information about acquisition modes can be found [here](https://docs.basler
 Generally speaking, to increase the acquisition frame rate when using the driver, consider when possible and applicable:
 - Switch to free run.
 - Changing the image encoding to Bayer or Mono ones.
-- Setting a region of interest.
+- Setting a region of interest.git status
 - Decreasing the exposure time.
 - Decreasing the inter-packet delay and setting it to 0 if possible.
 - Setting the ``enable_current_params_publisher`` parameter to false (it is set to false by default).
@@ -165,7 +165,7 @@ USB cameras must be disconnected and then reconnected after setting a new device
 
 - **camera_frame**  
   The tf2 frame under which the images were published.  
-  ROS2 provides a library called [tf2](https://docs.ros.org/en/jazzy/Concepts/Intermediate/About-Tf2.html) (*TransForm* version 2) to manage the coordinate transformations between the different frames (coordinate systems) defined by the user and assigned to the components of a robotics system.
+  ROS2 provides a library called [tf2](https://docs.ros.org/en/kilted/Concepts/Intermediate/About-Tf2.html) (*TransForm* version 2) to manage the coordinate transformations between the different frames (coordinate systems) defined by the user and assigned to the components of a robotics system.
 
 - **device_user_id**  
   The DeviceUserID of the camera. If empty, the first camera found in the device list will be used.
@@ -486,6 +486,9 @@ The folder `pylon_ros2_camera_wrapper/test` includes different test programs. te
 
 ## Known issues
 
+### ament_target_dependencies() is now deprecated
+Since the ROS Kilted Kaiju release, the ament_target_dependencies() function is deprecated. This function is used in the CMakeLists files of the pylon_ros2_camera_component and pylon_ros2_camera_wrapper packages of the driver. It is still possible to compile and use the driver but this problem needs to be fixed in a near future.
+
 ### User input in terminal when starting node through launch files
 The ros2 launch mechanism doesn't allow to access stdin through a terminal (see [here](https://github.com/ros2/launch_ros/issues/165) and [here](https://answers.ros.org/question/343326/ros2-prefix-in-launch-file/)). This is solved in this implementation by installing and using `xterm` to emulate a terminal with possible user interaction.
 
@@ -506,7 +509,7 @@ To increase performance and to minimize CPU usage when grabbing images, the foll
 
 ### Slow frame rate
 
-Please refer to the [dedicated chapter](https://github.com/basler/pylon-ros-camera/edit/jazzy/README.md#acquisition-mode-and-frame-rate) in this documentation for more information.
+Please refer to the [dedicated chapter](https://github.com/basler/pylon-ros-camera/edit/kilted_beta/README.md#acquisition-mode-and-frame-rate) in this documentation for more information.
 
 Beware as well that starting rviz2 or rqt before the driver may result in a slower frame rate. Start the driver starts followed by rqt or rviz2.
 
