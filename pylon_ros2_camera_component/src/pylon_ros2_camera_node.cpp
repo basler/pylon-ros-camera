@@ -1076,14 +1076,15 @@ void PylonROS2CameraNode::spin()
 
     // compute real frame rate, taking into account grabbing and other processes
     double loop_it_time = rclcpp::Clock().now().seconds();
-    tdiff = loop_it_time - start_time;
-    double loop_frame_rate = 1.0 / tdiff;
-    RCLCPP_DEBUG_STREAM(LOGGER, "Actual spinning frame rate: " << loop_frame_rate);
+    double loop_frame_time = loop_it_time - start_time;
+    RCLCPP_DEBUG_STREAM(LOGGER, "Actual frame time: " << loop_frame_time);
 
     // the user has set a frame rate - wait accordingly to respect it
-    if (tdiff > 0)  // just in case of but should never happen
+    // and also bind the time to a fixed interval
+    double next_spin_time = loop_it_time - std::fmod(loop_it_time, frame_step) + frame_step;
+    double sleep_time = next_spin_time - loop_it_time;
+    if (sleep_time > 0)
     {
-      double sleep_time = frame_step - tdiff;
       std::this_thread::sleep_for(std::chrono::duration<double>(sleep_time));
     }
 
@@ -1091,7 +1092,7 @@ void PylonROS2CameraNode::spin()
     double check_loop_it_time = rclcpp::Clock().now().seconds();
     tdiff = check_loop_it_time - start_time;
     double check_frame_rate = 1.0 / tdiff;
-    RCLCPP_DEBUG_STREAM(LOGGER, "Spinning frame rate (to check): " << check_frame_rate);
+    RCLCPP_DEBUG_STREAM(LOGGER, "Spinning frame rate: " << check_frame_rate);
   }
 }
 
