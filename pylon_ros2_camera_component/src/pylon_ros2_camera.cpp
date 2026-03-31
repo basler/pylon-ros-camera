@@ -277,9 +277,9 @@ PylonROS2Camera::createFromSerial(const std::string &serial_number) {
       }
 
       if (found_desired_device) {
-        RCLCPP_INFO_STREAM(LOGGER, "Couldn't find the camera that matches the "
-                                       << "given Serial Number: " << serial_number << "! "
-                                       << "Either the ID is wrong or the cam is not yet connected");
+        RCLCPP_INFO_STREAM(LOGGER, "Found camera device!"
+                                       << " Device Model: " << it->GetModelName()
+                                       << " with Serial number: " << serial_number);
 
         PYLON_CAM_TYPE cam_type = detectPylonCamType(*it);
         return createFromDevice(cam_type, tl_factory.CreateDevice(*it));

@@ -9,7 +9,7 @@
     #  The DeviceUserID of the camera.
     device_user_id: ""
 
-    #  The DeviceSerial Number of the camera.
+    #  The DeviceSerial Number of the camera. #40214112
     device_serial_number: ""
 
     #  The CameraInfo URL (Uniform Resource Locator) where the optional intrinsic

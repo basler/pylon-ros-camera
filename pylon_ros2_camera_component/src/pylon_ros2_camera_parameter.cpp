@@ -516,9 +516,13 @@ void PylonROS2CameraParameter::validateParameterSet(rclcpp::Node &nh) {
     RCLCPP_INFO_STREAM(LOGGER,
                        "Trying to connect the camera device with the following device user id: "
                            << this->device_user_id_.c_str());
-  } else {
+  } else if (!this->device_serial_number_.empty()) {
     RCLCPP_INFO_STREAM(LOGGER,
-                       "No Device User ID set -> Will connect the first available camera device");
+                       "Trying to connect the camera device with the following serial number: "
+                           << this->device_serial_number_.c_str());
+  } else {
+    RCLCPP_INFO_STREAM(LOGGER, "No Device User ID or Serial Number set -> Will connect "
+                               "the first available camera device");
   }
 
   if (this->frame_rate_ < 0 && this->frame_rate_ != -1) {

@@ -705,8 +705,9 @@ bool PylonROS2CameraNode::initAndRegister() {
 
     RCLCPP_WARN_STREAM(
         LOGGER, "Failed to connect camera device with device user id: "
-                    << this->pylon_camera_parameter_set_.deviceUserID() << ". "
-                    << "Wait and retry to connect until the specified camera is available...");
+                    << this->pylon_camera_parameter_set_.deviceUserID()
+                    << ". And serial number: " << pylon_camera_parameter_set_.deviceSerialNumber()
+                    << " . Wait and retry to connect until the specified camera is available...");
 
     // wait and retry until a camera is present
     rclcpp::Time end = rclcpp::Node::now() + std::chrono::duration<double>(15);
@@ -715,16 +716,20 @@ bool PylonROS2CameraNode::initAndRegister() {
       if (!(pylon_camera_parameter_set_.deviceUserID().empty())) {
         this->pylon_camera_ =
             PylonROS2Camera::createFromUserID(this->pylon_camera_parameter_set_.deviceUserID());
+        RCLCPP_WARN_STREAM(LOGGER, "Failed to connect camera device with device user id: "
+                                       << this->pylon_camera_parameter_set_.deviceUserID() << ". "
+                                       << "Will try to use serial number...");
 
       } else {
         this->pylon_camera_ =
             PylonROS2Camera::createFromSerial(pylon_camera_parameter_set_.deviceSerialNumber());
+        RCLCPP_WARN_STREAM(LOGGER, "Failed to connect camera device with device serial number: "
+                                       << this->pylon_camera_parameter_set_.deviceSerialNumber()
+                                       << ".");
       }
 
       if (this->pylon_camera_ == nullptr) {
-        RCLCPP_WARN_STREAM(LOGGER, "Failed to connect camera device with device user id: "
-                                       << this->pylon_camera_parameter_set_.deviceUserID() << ". "
-                                       << "Trying again in a bit...");
+        RCLCPP_WARN_STREAM(LOGGER, "Failed to connect camera device. Trying again in a bit... ");
       }
 
       if (rclcpp::Node::now() > end) {
