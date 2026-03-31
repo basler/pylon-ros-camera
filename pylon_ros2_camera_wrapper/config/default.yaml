@@ -6,9 +6,11 @@
     #  The tf frame under which the images were published
     camera_frame: pylon_camera
 
-    #  The DeviceUserID of the camera. If empty, the first camera found in the
-    #  device list will be used
+    #  The DeviceUserID of the camera.
     device_user_id: ""
+
+    #  The DeviceSerial Number of the camera.
+    device_serial_number: ""
 
     #  The CameraInfo URL (Uniform Resource Locator) where the optional intrinsic
     #  camera calibration parameters are stored. This URL string will be parsed
@@ -28,14 +30,14 @@
     #  (width / binning_x) x (height / binning_y).
     #  The default values binning_x = binning_y = 0 are considered the same
     #  as binning_x = binning_y = 1 (no subsampling).
-    # binning_x: 1
-    # binning_y: 1
+    binning_x: 2
+    binning_y: 2
 
     #  The desired publisher frame rate if listening to the topics.
     #  This parameter can only be set once at startup.
     #  Calling the GrabImages-Action can result in a higher framerate.
     #  The maximum possible frame rate is displayed when starting the driver.
-    frame_rate: 500.0
+    frame_rate: 60.0
 
     #  Mode of camera's shutter.
     #  The supported modes are "rolling", "global" and "global_reset"
@@ -51,7 +53,7 @@
     ##########################################################################
 
     #  The exposure time in microseconds to be set after opening the camera.
-    # exposure: 1000.0
+    exposure: 500.0
 
     #  The target gain in percent of the maximal value the camera supports
     #  For USB cameras, the gain is in dB, for GigE cameras it is given in so
