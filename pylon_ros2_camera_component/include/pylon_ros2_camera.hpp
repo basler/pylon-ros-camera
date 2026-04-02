@@ -58,7 +58,7 @@ public:
    * Create a new PylonROS2Camera instance. It will return the first camera that could be found.
    * @return new PylonROS2Camera instance or NULL if no camera was found.
    */
-  static std::unique_ptr<PylonROS2Camera> create();
+  // static std::unique_ptr<PylonROS2Camera> create();
 
   /**
    * Create a new PylonROS2Camera instance based on the DeviceUserID of the camera.

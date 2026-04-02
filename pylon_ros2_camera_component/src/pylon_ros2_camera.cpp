@@ -231,8 +231,8 @@ PylonROS2Camera::createFromSerial(const std::string &serial_number) {
   try {
     // Before using any pylon methods, the pylon runtime must be initialized.
     Pylon::PylonInitialize();
-    Pylon::CTlFactory &tl_factory = Pylon::CTlFactory::GetInstance();
 
+    Pylon::CTlFactory      &tl_factory = Pylon::CTlFactory::GetInstance();
     Pylon::DeviceInfoList_t device_list;
 
     // EnumerateDevices() returns the number of devices found
@@ -265,7 +265,7 @@ PylonROS2Camera::createFromSerial(const std::string &serial_number) {
 
       bool found_desired_device = false;
       for (it = device_list.begin(); it != device_list.end(); ++it) {
-        std::string device_serial_num_found(it->GetUserDefinedName());
+        std::string device_serial_num_found(it->GetSerialNumber());
         if ((0 == serial_number.compare(device_serial_num_found)) ||
             (serial_number.length() < device_serial_num_found.length() &&
              (0 == device_serial_num_found.compare(device_serial_num_found.length() -
@@ -282,7 +282,7 @@ PylonROS2Camera::createFromSerial(const std::string &serial_number) {
                                        << " with Serial number: " << serial_number);
 
         PYLON_CAM_TYPE cam_type = detectPylonCamType(*it);
-        return createFromDevice(cam_type, tl_factory.CreateDevice(*it));
+        return std::move(createFromDevice(cam_type, tl_factory.CreateDevice(*it)));
       } else {
         RCLCPP_ERROR_STREAM(LOGGER,
                             "Couldn't find the camera that matches the "
