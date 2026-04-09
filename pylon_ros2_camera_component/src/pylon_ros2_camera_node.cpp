@@ -761,9 +761,10 @@ bool PylonROS2CameraNode::startGrabbing()
       if (this->camera_info_manager_->loadCameraInfo(this->pylon_camera_parameter_set_.cameraInfoURL()))
       {
         this->setupRectification();
-        // set the correct tf frame_id
+        // set the correct tf frame_id and current ROI from camera
         sensor_msgs::msg::CameraInfo cam_info = this->camera_info_manager_->getCameraInfo();
         cam_info.header.frame_id = this->img_raw_msg_.header.frame_id;
+        cam_info.roi = this->pylon_camera_->currentROI();
         this->camera_info_manager_->setCameraInfo(cam_info);
       }
       else

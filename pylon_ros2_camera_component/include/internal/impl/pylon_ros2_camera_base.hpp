@@ -687,8 +687,7 @@ void PylonROS2CameraImpl<CameraTraitT>::getInitialCameraInfo(sensor_msgs::msg::C
     // the same window of pixels on the camera sensor, regardless of binning
     // settings. The default setting of roi (all values 0) is considered the same
     // as full resolution (roi.width = width, roi.height = height).
-    cam_info_msg.roi.x_offset = cam_info_msg.roi.y_offset = 0;
-    cam_info_msg.roi.height = cam_info_msg.roi.width = 0;
+    cam_info_msg.roi = this->currentROI();
 }
 
 template <typename CameraTraitT>
