@@ -8,7 +8,7 @@
   
   <description>
   	Proprietary ROS2 Package for Basler Cameras using the the Pylon API.
-  	Supports DART, USB3 and GigE cameras.
+  	Supports DART, USB3, GigE and blaze cameras.
   </description>
     
   <maintainer email="fpi@teknologisk.dk">Francois Picard</maintainer>

@@ -486,9 +486,6 @@ The folder `pylon_ros2_camera_wrapper/test` includes different test programs. te
 
 ## Known issues
 
-### ament_target_dependencies() is now deprecated
-Since the ROS Kilted Kaiju release, the ament_target_dependencies() function is deprecated. This function is used in the CMakeLists files of the pylon_ros2_camera_component and pylon_ros2_camera_wrapper packages of the driver. It is still possible to compile and use the driver but this problem needs to be fixed in a near future.
-
 ### User input in terminal when starting node through launch files
 The ros2 launch mechanism doesn't allow to access stdin through a terminal (see [here](https://github.com/ros2/launch_ros/issues/165) and [here](https://answers.ros.org/question/343326/ros2-prefix-in-launch-file/)). This is solved in this implementation by installing and using `xterm` to emulate a terminal with possible user interaction.
 
