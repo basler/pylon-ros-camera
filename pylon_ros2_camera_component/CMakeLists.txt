@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.27)
 
+# Suppress CMP0144 warning from third-party CMake modules (e.g. PCL/FLANN)
+# that do not declare the policy themselves.
+set(CMAKE_POLICY_DEFAULT_CMP0144 NEW)
+
 project(pylon_ros2_camera_component)
 
 # Default to C++17
