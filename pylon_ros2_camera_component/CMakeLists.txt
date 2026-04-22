@@ -123,13 +123,12 @@ add_executable(ip_auto_config
 )
 
 target_include_directories(ip_auto_config
-	PUBLIC
+	PRIVATE
 		$<BUILD_INTERFACE:${Pylon_INCLUDE_DIRS}>
-    	$<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(ip_auto_config
-	${PYLON_ROS2_CAMERA_LIBRARIES}
+	PRIVATE ${PYLON_ROS2_CAMERA_LIBRARIES}
 )
 
 # set user id
@@ -138,22 +137,21 @@ add_executable(set_device_user_id
 )
 
 target_include_directories(set_device_user_id
-	PUBLIC
+	PRIVATE
 		$<BUILD_INTERFACE:${Pylon_INCLUDE_DIRS}>
-    	$<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(set_device_user_id
-	${PYLON_ROS2_CAMERA_LIBRARIES}
+	PRIVATE ${PYLON_ROS2_CAMERA_LIBRARIES}
 )
 
 ### installation
 
 install(
   TARGETS
-  	${PROJECT_NAME}
-	ip_auto_config
-	set_device_user_id
+    ${PROJECT_NAME}
+    ip_auto_config
+    set_device_user_id
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}

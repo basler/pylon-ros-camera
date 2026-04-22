@@ -35,26 +35,13 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(pylon_ros2_camera_component REQUIRED)
-find_package(cv_bridge REQUIRED)
-find_package(image_geometry REQUIRED)
 
 set(CAMERA_WRAPPER_DEPENDENCIES
 	rclcpp
 	rclcpp_components
 	rcutils
 	pylon_ros2_camera_component
-	cv_bridge
-	image_geometry
 )
-
-# we need to add these two checks to use the correct headers
-if(cv_bridge_VERSION VERSION_GREATER_EQUAL 3.3.0)
-    add_compile_definitions(cv_bridge_HPP)
-endif()
-
-if(image_geometry_VERSION VERSION_GREATER_EQUAL 3.3.0)
-    add_compile_definitions(image_geometry_HPP)
-endif()
 
 add_executable(${PROJECT_NAME}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/${PROJECT_NAME}.cpp
@@ -84,6 +71,23 @@ install(DIRECTORY launch
 
 if(BUILD_TESTING)
 
+  find_package(cv_bridge REQUIRED)
+  find_package(image_geometry REQUIRED)
+
+  if(cv_bridge_VERSION VERSION_GREATER_EQUAL 3.3.0)
+    add_compile_definitions(cv_bridge_HPP)
+  endif()
+
+  if(image_geometry_VERSION VERSION_GREATER_EQUAL 3.3.0)
+    add_compile_definitions(image_geometry_HPP)
+  endif()
+
+  set(CAMERA_TEST_DEPENDENCIES
+    ${CAMERA_WRAPPER_DEPENDENCIES}
+    cv_bridge
+    image_geometry
+  )
+
 ### test
 
   add_library(action_client_test_grab_images SHARED
@@ -94,7 +98,7 @@ if(BUILD_TESTING)
     PRIVATE "TEST_GRAB_IMAGES_ACTION_CLIENT_BUILDING_DLL")
 
   ament_target_dependencies(action_client_test_grab_images
-    ${CAMERA_WRAPPER_DEPENDENCIES}
+    ${CAMERA_TEST_DEPENDENCIES}
   )
 
   rclcpp_components_register_node(action_client_test_grab_images
@@ -110,7 +114,7 @@ if(BUILD_TESTING)
     PRIVATE "TEST_GRAB_BLAZE_DATA_ACTION_CLIENT_BUILDING_DLL")
 
   ament_target_dependencies(action_client_test_grab_blaze_data
-    ${CAMERA_WRAPPER_DEPENDENCIES}
+    ${CAMERA_TEST_DEPENDENCIES}
   )
 
   rclcpp_components_register_node(action_client_test_grab_blaze_data
@@ -126,7 +130,7 @@ if(BUILD_TESTING)
     PRIVATE "TEST_GRAB_IMAGE_ACTION_CLIENT_BUILDING_DLL")
 
   ament_target_dependencies(action_client_test_grab_image
-    ${CAMERA_WRAPPER_DEPENDENCIES}
+    ${CAMERA_TEST_DEPENDENCIES}
   )
 
   rclcpp_components_register_node(action_client_test_grab_image

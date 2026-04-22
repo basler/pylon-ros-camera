@@ -26,8 +26,8 @@
   <depend>rcutils</depend>
 
 <!-- For the test action client nodes -->
-  <depend>cv_bridge</depend>
-  <depend>image_geometry</depend>
+  <test_depend>cv_bridge</test_depend>
+  <test_depend>image_geometry</test_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
