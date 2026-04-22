@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.3.0 (2026-04-22)
+-------------------
+* Fixing CMake compilation warnings related to deprecation risks.
+
 3.2.0 (2025-10-23)
 -------------------
 * The pylon driver is now compatible with ROS2 Kilted Kaiju. Dedicated branch has been created.
