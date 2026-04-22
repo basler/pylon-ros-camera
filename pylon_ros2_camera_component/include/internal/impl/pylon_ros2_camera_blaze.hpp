@@ -563,7 +563,7 @@ bool PylonROS2BlazeCamera::processAndConvertBlazeData(const Pylon::CPylonDataCon
     depth_map_msg.step = depth_map_cv_img.toImageMsg()->step;
     depth_map_msg.data = depth_map_cv_img.toImageMsg()->data;
     // free memory
-    free(pdepth_data);
+    delete[] pdepth_data;
 
     // depth map color
     BGR* pdepth_data_color = new BGR[width * height];
@@ -582,7 +582,7 @@ bool PylonROS2BlazeCamera::processAndConvertBlazeData(const Pylon::CPylonDataCon
     depth_map_color_msg.step = depth_map_color_cv_img.toImageMsg()->step;
     depth_map_color_msg.data = depth_map_color_cv_img.toImageMsg()->data;
     // free memory
-    free(pdepth_data_color);
+    delete[] pdepth_data_color;
 
     // confidence map
     cv::Mat confidence_map = cv::Mat(height, width, CV_16UC1, (void*) confidence_component.GetData());

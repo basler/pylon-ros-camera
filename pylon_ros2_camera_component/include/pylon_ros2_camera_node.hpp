@@ -56,7 +56,6 @@
 #include "pylon_ros2_camera_interfaces/srv/set_roi.hpp"
 #include "pylon_ros2_camera_interfaces/srv/set_sleeping.hpp"
 #include "pylon_ros2_camera_interfaces/srv/set_white_balance.hpp"
-#include "pylon_ros2_camera_interfaces/srv/set_integer_value.hpp"
 #include "pylon_ros2_camera_interfaces/srv/set_float_value.hpp"
 #include "pylon_ros2_camera_interfaces/srv/set_string_value.hpp"
 #include "pylon_ros2_camera_interfaces/srv/set_action_trigger_configuration.hpp"

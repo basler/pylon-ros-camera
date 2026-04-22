@@ -28,12 +28,13 @@
 
 #pragma once
 
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #pragma GCC diagnostic ignored "-Wliteral-suffix"
-
 #include <pylon/BaslerUniversalGrabResultPtr.h>
 #include <pylon/PylonIncludes.h>
 #include <GenApi/IEnumEntry.h>
+#pragma GCC diagnostic pop
 #include <string>
 #include <vector>
 #include <map>

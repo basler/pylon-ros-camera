@@ -19,7 +19,7 @@ You are welcome to post any questions or issues on [GitHub](https://github.com/b
 - From [pylon Camera Software Suite](https://www2.baslerweb.com/en/downloads/software-downloads/) version 7.5.0 or newer. The latest APi libraries must be installed manually. Download and install the latest pylon Camera Software Suite Linux Debian Installer Package for your architecture. You may be experiencing some problems with the codemeter debian package installation. Just drop it for now and install only the pylon debian package in this case.
 - From [pylon Supplementary Package for blaze](https://www2.baslerweb.com/en/downloads/software-downloads/) version 1.6.0 or newer (compatibility with the installed pylon Camera Software Suite needs to be ensured, please refer to the documentation). The latest APi libraries must be installed manually. Download and install the latest pylon Supplementary Package for blaze Linux Debian Installer Package for your architecture.
 - [Git](https://git-scm.com/). Git must be installed as a debian package (`sudo apt update && sudo apt install git`).
-- [xterm](https://invisible-island.net/xterm/). The xterm terminal emulator must be installed (refer to the *Know Issues* section below) as a debian package (`sudo apt update && sudo apt install xterm`).
+- [xterm](https://invisible-island.net/xterm/). The xterm terminal emulator must be installed (refer to the *Known Issues* section below) as a debian package (`sudo apt update && sudo apt install xterm`).
 
 ### Install and build the packages
 
@@ -41,7 +41,7 @@ Compile the workspace using `colcon`:
 
 **Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g., Python files or other not compiled resourced) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/kilted/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html)).
 
-**Note**: The packages are built in Release by default. The build type can be modfied by using the `--cmake-args` flag (for instance `colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Debug`).
+**Note**: The packages are built in Release by default. The build type can be modified by using the `--cmake-args` flag (for instance `colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Debug`).
 
 Source the environment:  
 ``cd ~/dev_ws && . install/setup.bash``  
@@ -85,7 +85,7 @@ From version 3.1.0, the driver allows free run as well as sequentially triggered
 
 When starting the driver, the maximum acquisition frame rate that can be reached according to the current camera settings is displayed (for further information, please refer to the [Basler documentation](https://docs.baslerweb.com/resulting-acquisition-frame-rate)). If this frame rate is lower than the one specified in the driver configuration file, the latter is updated accordingly. Except for the blaze, it is not possible to change the acquisition frame rate when the driver is running.
 
-Free run acquisition is set when the driver starts and loads the `Default` user set. Otherwise, if another user set is loaded, including `CurrentSetting`, the driver does not modify any parameter related to the acqusition, keeping the ones defined by the user. Setting a specific user set can be specified in the driver launch file. By default, the driver load the `CurrentSetting` user set.
+Free run acquisition is set when the driver starts and loads the `Default` user set. Otherwise, if another user set is loaded, including `CurrentSetting`, the driver does not modify any parameter related to the acquisition, keeping the ones defined by the user. Setting a specific user set can be specified in the driver launch file. By default, the driver load the `CurrentSetting` user set.
 
 - Free run is enabled by setting the following parameters:
 ```

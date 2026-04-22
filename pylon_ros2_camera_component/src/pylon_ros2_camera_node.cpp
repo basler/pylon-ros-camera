@@ -4330,13 +4330,13 @@ void PylonROS2CameraNode::updateSyncFreeRunTimerCallback(const std::shared_ptr<T
   }
 }
 
-rclcpp_action::GoalResponse PylonROS2CameraNode::handleGrabRawImagesActionGoal(const rclcpp_action::GoalUUID & uuid __attribute((unused)), std::shared_ptr<const GrabImagesAction::Goal> goal __attribute((unused)))
+rclcpp_action::GoalResponse PylonROS2CameraNode::handleGrabRawImagesActionGoal([[maybe_unused]] const rclcpp_action::GoalUUID & uuid, [[maybe_unused]] std::shared_ptr<const GrabImagesAction::Goal> goal)
 {
   RCLCPP_DEBUG(LOGGER, "PylonROS2CameraNode::handleGrabRawImagesActionGoal -> Received goal request");
   return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 }
 
-rclcpp_action::CancelResponse PylonROS2CameraNode::handleGrabRawImagesActionGoalCancel(const std::shared_ptr<GrabImagesGoalHandle> goal_handle __attribute((unused)))
+rclcpp_action::CancelResponse PylonROS2CameraNode::handleGrabRawImagesActionGoalCancel([[maybe_unused]] const std::shared_ptr<GrabImagesGoalHandle> goal_handle)
 {
   RCLCPP_DEBUG(LOGGER, "PylonROS2CameraNode::handleGrabRawImagesActionGoalCancel -> Received request to cancel goal");
   return rclcpp_action::CancelResponse::ACCEPT;
@@ -4357,13 +4357,13 @@ void PylonROS2CameraNode::executeGrabRawImagesAction(const std::shared_ptr<GrabI
   goal_handle->succeed(result);
 }
 
-rclcpp_action::GoalResponse PylonROS2CameraNode::handleGrabRectImagesActionGoal(const rclcpp_action::GoalUUID & uuid __attribute((unused)), std::shared_ptr<const GrabImagesAction::Goal> goal __attribute((unused)))
+rclcpp_action::GoalResponse PylonROS2CameraNode::handleGrabRectImagesActionGoal([[maybe_unused]] const rclcpp_action::GoalUUID & uuid, [[maybe_unused]] std::shared_ptr<const GrabImagesAction::Goal> goal)
 {
   RCLCPP_DEBUG(LOGGER, "PylonROS2CameraNode::handleGrabRectImagesActionGoal -> Received goal request");
   return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 }
 
-rclcpp_action::CancelResponse PylonROS2CameraNode::handleGrabRectImagesActionGoalCancel(const std::shared_ptr<GrabImagesGoalHandle> goal_handle __attribute((unused)))
+rclcpp_action::CancelResponse PylonROS2CameraNode::handleGrabRectImagesActionGoalCancel([[maybe_unused]] const std::shared_ptr<GrabImagesGoalHandle> goal_handle)
 {
   RCLCPP_DEBUG(LOGGER, "PylonROS2CameraNode::handleGrabRectImagesActionGoalCancel -> Received request to cancel goal");
   return rclcpp_action::CancelResponse::ACCEPT;
@@ -4426,13 +4426,13 @@ void PylonROS2CameraNode::executeGrabRectImagesAction(const std::shared_ptr<Grab
   }
 }
 
-rclcpp_action::GoalResponse PylonROS2CameraNode::handleGrabBlazeDataActionGoal(const rclcpp_action::GoalUUID & uuid __attribute((unused)), std::shared_ptr<const GrabBlazeDataAction::Goal> goal __attribute((unused)))
+rclcpp_action::GoalResponse PylonROS2CameraNode::handleGrabBlazeDataActionGoal([[maybe_unused]] const rclcpp_action::GoalUUID & uuid, [[maybe_unused]] std::shared_ptr<const GrabBlazeDataAction::Goal> goal)
 {
   RCLCPP_DEBUG(LOGGER, "PylonROS2CameraNode::handleGrabBlazeDataActionGoal -> Received goal request");
   return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 }
 
-rclcpp_action::CancelResponse PylonROS2CameraNode::handleGrabBlazeDataActionGoalCancel(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle __attribute((unused)))
+rclcpp_action::CancelResponse PylonROS2CameraNode::handleGrabBlazeDataActionGoalCancel([[maybe_unused]] const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle)
 {
   RCLCPP_DEBUG(LOGGER, "PylonROS2CameraNode::handleGrabBlazeDataActionGoalCancel -> Received request to cancel goal");
   return rclcpp_action::CancelResponse::ACCEPT;
