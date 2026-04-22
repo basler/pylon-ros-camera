@@ -98,8 +98,11 @@ add_library(${PROJECT_NAME} SHARED
 target_include_directories(${PROJECT_NAME}
 	PUBLIC
     	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-		$<BUILD_INTERFACE:${Pylon_INCLUDE_DIRS}>
     	$<INSTALL_INTERFACE:include>
+)
+target_include_directories(${PROJECT_NAME} SYSTEM
+	PUBLIC
+		$<BUILD_INTERFACE:${Pylon_INCLUDE_DIRS}>
 )
 
 target_compile_definitions(${PROJECT_NAME}
@@ -126,7 +129,7 @@ add_executable(ip_auto_config
 	${CMAKE_CURRENT_SOURCE_DIR}/src/tools/ip_auto_config.cpp
 )
 
-target_include_directories(ip_auto_config
+target_include_directories(ip_auto_config SYSTEM
 	PRIVATE
 		$<BUILD_INTERFACE:${Pylon_INCLUDE_DIRS}>
 )
@@ -140,7 +143,7 @@ add_executable(set_device_user_id
 	${CMAKE_CURRENT_SOURCE_DIR}/src/tools/set_device_user_id.cpp
 )
 
-target_include_directories(set_device_user_id
+target_include_directories(set_device_user_id SYSTEM
 	PRIVATE
 		$<BUILD_INTERFACE:${Pylon_INCLUDE_DIRS}>
 )
