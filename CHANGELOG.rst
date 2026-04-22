@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.2.0 (2026-04-22)
+-------------------
+* Optimizing compilation of driver: compilation file adjustments, warning fixes, and code cleaning relatively to adjusted compilation process
+
 3.1.1 (2025-09-30)
 -------------------
 * Few fixes and additional displayed information related to the ROI setting
