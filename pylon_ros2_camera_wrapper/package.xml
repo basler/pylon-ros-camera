@@ -20,38 +20,17 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   
-  <build_depend>pylon_ros2_camera_component</build_depend>
-  <build_depend>rclcpp</build_depend>
-  <build_depend>rclcpp_components</build_depend>
-  <build_depend>rcutils</build_depend>
-  
-  <exec_depend>pylon_ros2_camera_component</exec_depend>
-  <exec_depend>rclcpp</exec_depend>
-  <exec_depend>rclcpp_components</exec_depend>
-  <exec_depend>rcutils</exec_depend>
+  <depend>pylon_ros2_camera_component</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
+  <depend>rcutils</depend>
 
-  <!-- For the tests -->
-  <build_depend>cv_bridge</build_depend>
-  <exec_depend>cv_bridge</exec_depend>
-  <build_depend>image_geometry</build_depend>
-  <exec_depend>image_geometry</exec_depend>
+<!-- For the test action client nodes -->
+  <depend>cv_bridge</depend>
+  <depend>image_geometry</depend>
 
-  <!-- The ability to run Python tests using pytest in the ament buildsystem in CMake. -->
-  <test_depend>ament_cmake_pytest</test_depend>
-  <!-- The auto-magic functions for ease to use of the ament linters in CMake. -->
   <test_depend>ament_lint_auto</test_depend>
-  <!-- The list of commonly used linters in the ament buildsytem in CMake. -->
   <test_depend>ament_lint_common</test_depend>
-  <!-- The ROS launch tool. -->
-  <test_depend>launch</test_depend>
-  <!-- A package to create tests which involve launch files and multiple processes. -->
-  <test_depend>launch_testing</test_depend>
-  <!-- A package providing utilities for writing ROS2 enabled launch tests. -->
-  <test_depend>launch_testing_ros</test_depend>
-  <!-- A package providing cmake functions for running launch tests from the build. -->
-  <test_depend>launch_testing_ament_cmake</test_depend>
-  <!-- CMake functions which can discover and enumerate available implementations. -->
-  <test_depend>rmw_implementation_cmake</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
