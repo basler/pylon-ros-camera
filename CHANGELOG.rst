@@ -2,6 +2,11 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.3.1 (2026-04-28)
+-------------------
+* Fix SIGSEGV on SIGINT with Blaze camera: detach shared IPylonDevice from base class before destroying blaze_cam_ to prevent double DestroyDevice().
+* Fix SIGABRT on SIGINT while in camera reconnect retry loop: add missing PylonTerminate() calls and guard rclcpp API calls with rclcpp::ok() checks.
+
 3.3.0 (2026-04-28)
 -------------------
 * Add pylon_ros2_camera_test integration test package for 2D and 3D cameras
