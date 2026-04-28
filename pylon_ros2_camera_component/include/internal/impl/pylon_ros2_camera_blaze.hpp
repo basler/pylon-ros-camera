@@ -222,6 +222,23 @@ PylonROS2BlazeCamera::~PylonROS2BlazeCamera()
 
     if (blaze_cam_)
     {
+        // The base class cam_ was constructed with the same IPylonDevice pointer as
+        // blaze_cam_.  blaze_cam_'s destructor will call DestroyDevice() on that
+        // shared pointer.  Detach the device from cam_ first (without destroying
+        // it) so the base class destructor does not call DestroyDevice() a second
+        // time, which would SIGSEGV inside libpylonbase.so.
+        try
+        {
+            if (cam_->IsPylonDeviceAttached())
+            {
+                cam_->DetachDevice();
+            }
+        }
+        catch (const GenICam::GenericException& e)
+        {
+            RCLCPP_DEBUG_STREAM(LOGGER_BLAZE, "Destructor (blaze): Failed to detach device from base cam: " << e.GetDescription());
+        }
+
         delete blaze_cam_;
         blaze_cam_ = nullptr;
     }

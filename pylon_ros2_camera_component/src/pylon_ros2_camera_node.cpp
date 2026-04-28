@@ -29,6 +29,8 @@
 #include <GenApi/GenApi.h>
 
 #include <rclcpp/logger.hpp>
+#include <signal.h>
+#include <pthread.h>
 
 //#include <functional>
 
@@ -77,6 +79,16 @@ PylonROS2CameraNode::PylonROS2CameraNode(const rclcpp::NodeOptions& options)
   RCLCPP_INFO_STREAM(LOGGER, "Start image grabbing if node connects to topic with a spinning rate of: " << this->frameRate() << " Hz");
   this->stop_spinning_ = false;
   this->spin_thread_ = std::thread(&PylonROS2CameraNode::spin, this);
+
+  // Signal the spin thread to stop when the rclcpp context is being torn down.
+  // We only set the flag here and do NOT join: joining inside an on_shutdown
+  // callback (which is called synchronously from rclcpp::shutdown()) would
+  // deadlock if the spin thread is currently blocked in a Pylon SDK call.
+  // The destructor performs the actual join after rclcpp::spin() has returned.
+  this->get_node_base_interface()->get_context()->add_on_shutdown_callback(
+    [this]() {
+      this->stop_spinning_ = true;
+    });
 }
 
 PylonROS2CameraNode::~PylonROS2CameraNode()
@@ -131,7 +143,7 @@ bool PylonROS2CameraNode::init()
   if (!this->initAndRegister())
   {
     RCLCPP_ERROR(LOGGER, "Error when trying to init and register. Shutting down now.");
-    rclcpp::shutdown();
+    if (rclcpp::ok()) rclcpp::shutdown();
     return false;
   }
 
@@ -139,7 +151,7 @@ bool PylonROS2CameraNode::init()
   if (!this->startGrabbing())
   {
     RCLCPP_ERROR(LOGGER, "Error when trying to start grabbing. Shutting down now.");
-    rclcpp::shutdown();
+    if (rclcpp::ok()) rclcpp::shutdown();
     return false;
   }
 
@@ -614,7 +626,16 @@ bool PylonROS2CameraNode::initAndRegister()
         end = rclcpp::Node::now() + std::chrono::duration<double>(15);
       }
 
-      r.sleep();
+      if (!rclcpp::ok())
+        break;
+      try
+      {
+        r.sleep();
+      }
+      catch (const std::exception &)
+      {
+        break;
+      }
     }
   }
 
@@ -911,10 +932,26 @@ bool PylonROS2CameraNode::startGrabbing()
 
 void PylonROS2CameraNode::spin()
 {
+  // Block SIGINT/SIGTERM in this thread so they are only delivered to the
+  // main thread's rclcpp signal handler. This prevents rclcpp/DDS API calls
+  // here from racing against context invalidation during shutdown.
+  sigset_t sigset;
+  sigemptyset(&sigset);
+  sigaddset(&sigset, SIGINT);
+  sigaddset(&sigset, SIGTERM);
+  pthread_sigmask(SIG_BLOCK, &sigset, nullptr);
+
   double frame_step = 1.0 / this->frameRate();
 
   while (!this->stop_spinning_ && rclcpp::ok())
   {
+    // Wrap the whole iteration in try/catch: if rclcpp::shutdown() races
+    // with any rclcpp API call in the body (Clock, publish,
+    // count_subscribers, ...) after the context is invalidated, the
+    // resulting std::runtime_error is caught here and we exit cleanly.
+    try
+    {
+
     double start_time = rclcpp::Clock().now().seconds();
     double tdiff; // used to compute time difference during the grabbing process
 
@@ -942,8 +979,12 @@ void PylonROS2CameraNode::spin()
       this->set_user_output_srvs_.clear();
 
       rclcpp::Rate r(0.5);
+      if (!rclcpp::ok())
+        return;
       r.sleep();
 
+      if (!rclcpp::ok())
+        return;
       this->init();
 
       continue;
@@ -956,6 +997,7 @@ void PylonROS2CameraNode::spin()
     {
       // connected camera is not blaze
 
+      if (!rclcpp::ok()) break;
       const bool any_subscriber = (this->img_raw_pub_.getNumSubscribers() != 0 || this->getNumSubscribersRectImagePub() != 0);
       if (!this->isSleeping() && any_subscriber)
       {
@@ -972,6 +1014,7 @@ void PylonROS2CameraNode::spin()
       RCLCPP_DEBUG_STREAM(LOGGER, "Frame grabbing rate: " << grab_frame_rate);
 
       // publish if subscribers
+      if (!rclcpp::ok()) break;
       if (this->img_raw_pub_.getNumSubscribers() > 0)
       {
         // get actual cam_info-object in every frame, because it might have
@@ -1017,6 +1060,7 @@ void PylonROS2CameraNode::spin()
     {
       // connected camera is blaze
 
+      if (!rclcpp::ok()) break;
       const bool any_subscriber = (this->count_subscribers(this->blaze_cloud_topic_name_) != 0 || 
                                   this->count_subscribers(this->blaze_intensity_topic_name_) != 0 ||
                                   this->count_subscribers(this->blaze_depth_map_topic_name_) != 0 ||
@@ -1047,6 +1091,7 @@ void PylonROS2CameraNode::spin()
         this->confidence_map_msg_.header.frame_id = cameraFrame();
         this->blaze_cam_info_msg_.header.frame_id = cameraFrame();
         
+        if (!rclcpp::ok()) break;
         this->blaze_cloud_pub_->publish(this->blaze_cloud_msg_);
         this->blaze_intensity_pub_->publish(this->intensity_map_msg_);
         this->blaze_depth_map_pub_->publish(this->depth_map_msg_);
@@ -1066,11 +1111,13 @@ void PylonROS2CameraNode::spin()
     
     if (this->pylon_camera_parameter_set_.enable_status_publisher_)
     {
+      if (!rclcpp::ok()) break;
       this->component_status_pub_->publish(this->cm_status_);
     }
 
     if (this->pylon_camera_parameter_set_.enable_current_params_publisher_)
     {
+      if (!rclcpp::ok()) break;
       this->publishCurrentParams();
     }
 
@@ -1092,6 +1139,15 @@ void PylonROS2CameraNode::spin()
     tdiff = check_loop_it_time - start_time;
     double check_frame_rate = 1.0 / tdiff;
     RCLCPP_DEBUG_STREAM(LOGGER, "Spinning frame rate (to check): " << check_frame_rate);
+
+    } // end try
+    catch (const std::exception& e)
+    {
+      // An rclcpp API was called after context invalidation during shutdown.
+      // Exit the loop cleanly instead of propagating the exception.
+      (void)e;
+      break;
+    }
   }
 }
 
