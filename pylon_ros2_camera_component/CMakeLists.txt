@@ -109,27 +109,12 @@ target_compile_definitions(${PROJECT_NAME}
 	PRIVATE "PYLON_ROS2_CAMERA_BUILDING_DLL"
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC
+target_link_libraries(${PROJECT_NAME}
 	${PYLON_ROS2_CAMERA_LIBRARIES}
-	${pylon_ros2_camera_interfaces_TARGETS}
-	${sensor_msgs_TARGETS}
-	camera_info_manager::camera_info_manager
-	cv_bridge::cv_bridge
-	diagnostic_updater::diagnostic_updater
-	image_geometry::image_geometry
-	image_transport::image_transport
-	pcl_ros::bag_to_pcd_lib
-	pcl_ros::combined_pointcloud_to_pcd_lib
-	pcl_ros::pcd_to_pointcloud_lib
-	pcl_ros::pcl_ros_filter
-	pcl_ros::pcl_ros_filters
-	pcl_ros::pcl_ros_tf
-	pcl_ros::pointcloud_to_pcd_lib
-	rclcpp::rclcpp
-	rclcpp_action::rclcpp_action
-	rclcpp_components::component
-	rclcpp_components::component_manager
-	rcutils::rcutils
+)
+
+ament_target_dependencies(${PROJECT_NAME}
+	${PYLON_ROS2_CAMERA_DEPENDENCIES}
 )
 
 rclcpp_components_register_node(${PROJECT_NAME}
