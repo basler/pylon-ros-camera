@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.4.0 (2026-04-28)
+-------------------
+* Add pylon_ros2_camera_test integration test package for 2D and 3D cameras
+
 3.3.0 (2026-04-22)
 -------------------
 * Fixing CMake compilation warnings related to deprecation risks.

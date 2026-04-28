@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+
+  <name>pylon_ros2_camera_test</name>
+
+  <version>1.0.0</version>
+
+  <description>
+    Integration tests for the pylon_ros2_camera driver.
+    Tests generic camera functionalities (common to all cameras) as well as
+    camera-type-specific features (2D and 3D).
+    Extend CameraTestGeneric for new generic tests, CameraTest2D or CameraTest3D
+    for type-specific tests, or subclass any of these for new camera families.
+  </description>
+
+  <maintainer email="fpi@teknologisk.dk">Francois Picard</maintainer>
+
+  <license>BSD</license>
+
+  <url type="repository">https://github.com/basler/pylon-ros-camera</url>
+  <url type="bugtracker">https://github.com/basler/pylon-ros-camera/issues</url>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>rclcpp_action</depend>
+  <depend>rclcpp_components</depend>
+  <depend>rcutils</depend>
+  <depend>pylon_ros2_camera_interfaces</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_srvs</depend>
+
+  <!-- Runtime dependency: the launch file starts pylon_ros2_camera_wrapper.
+       Declaring it here also lets colcon resolve the correct build order
+       when using the "packages-up-to" flag. -->
+  <exec_depend>pylon_ros2_camera_wrapper</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+
+</package>

@@ -484,6 +484,140 @@ The folder `pylon_ros2_camera_wrapper/test` includes different test programs. te
 - *test_grab_blaze_data_action_client*, *test_grab_image_action_client*, and *test_grab_images_action_client*: trigger the image or the 3d data set grabbing through the actions `/my_camera/pylon_ros2_camera_node/grab_images_raw` or `/my_camera/pylon_ros2_camera_node/grab_blaze_data`, depending on the camera model. Each grabbed image (only the intensity image for the blaze) is displayed in a dedicated popup window.  
 
 
+## Integration tests (`pylon_ros2_camera_test`)
+
+The `pylon_ros2_camera_test` package provides automated integration tests that cover the full driver stack for both 2D cameras (GigE, USB) and 3D cameras (Basler blaze). Each test run launches the driver, connects to the camera, executes all tests, prints a pass/fail summary, and shuts down automatically.
+
+### Building
+
+Build all packages for the first time, including the test package and its dependencies:
+
+```bash
+cd ~/dev_ws && colcon build --packages-up-to pylon_ros2_camera_test
+```
+
+After the initial build, rebuild only the test package when its source changes:
+
+```bash
+cd ~/dev_ws && colcon build --packages-select pylon_ros2_camera_test
+```
+
+Source the environment after building:
+
+```bash
+cd ~/dev_ws && . install/setup.bash
+```
+
+### Running the tests
+
+**Connect to the first available camera (auto-detect 2D or 3D):**
+
+```bash
+ros2 launch pylon_ros2_camera_test run_tests.launch.py
+```
+
+**Connect to a specific camera by Device User ID:**
+
+```bash
+ros2 launch pylon_ros2_camera_test run_tests.launch.py device_user_id:=<device_user_id>
+```
+
+Replace `<device_user_id>` with the Device User ID configured in the camera (e.g., `my_blaze`, `Dart`, `color_ptp`). The ROS namespace is set automatically to match the Device User ID.
+
+**Examples:**
+
+```bash
+# 2D GigE camera
+ros2 launch pylon_ros2_camera_test run_tests.launch.py device_user_id:=color_ptp
+
+# 2D USB camera
+ros2 launch pylon_ros2_camera_test run_tests.launch.py device_user_id:=Dart
+
+# 3D blaze camera
+ros2 launch pylon_ros2_camera_test run_tests.launch.py device_user_id:=my_blaze
+```
+
+The test node automatically detects the camera type and runs the appropriate test suite. When both 2D and 3D cameras are connected without specifying a `device_user_id`, the driver connects to the first available camera and only the matching test node runs; the other exits silently.
+
+### Test suites
+
+**Generic tests** (run for all camera types):
+
+| Test | Description |
+|---|---|
+| `test_status_topic` | Verifies the driver publishes its status topic |
+| `test_get_max_num_buffer` | Reads the maximum grab buffer count |
+| `test_set_exposure` | Sets exposure time and checks the reached value |
+| `test_set_gain` | Sets gain and checks the reached value |
+| `test_set_gamma` | Sets gamma and checks the reached value |
+| `test_sleeping_mode` | Puts the camera to sleep and wakes it back up |
+| `test_stop_start_grabbing` | Stops and restarts image grabbing |
+
+**2D-specific tests** (GigE, USB cameras):
+
+| Test | Description |
+|---|---|
+| `test_grab_images_raw` | Grabs a raw image via the `grab_images_raw` action |
+| `test_set_binning` | Sets 2×2 binning and restores 1×1 |
+| `test_set_roi` | Sets a region of interest and restores the full sensor |
+| `test_set_image_encoding` | Changes the pixel encoding |
+
+**3D-specific tests** (blaze cameras):
+
+| Test | Description |
+|---|---|
+| `test_grab_3d_data` | Grabs a point cloud via the `grab_blaze_data` action |
+| `test_set_depth_range` | Sets depth min/max and restores defaults |
+| `test_enable_spatial_filter` | Enables and disables the spatial filter |
+| `test_enable_temporal_filter` | Enables and disables the temporal filter |
+
+Some tests skip gracefully when a feature is not supported by the connected camera model (e.g., gamma on GigE `acA` series, gain on blaze). A skipped test is reported as `[ PASS ]` with a `[WARN]` note in the log.
+
+### Interpreting results
+
+A successful run ends with:
+
+```
+=========================================
+  RESULTS: 11 / 11 passed  (0 failed)
+=========================================
+  All tests PASSED.
+```
+
+### Actions to take when tests fail
+
+**`test_status_topic` fails**
+The driver did not publish its status topic within the timeout. Check that the driver started correctly and that the camera is accessible. Increase `camera_detection_timeout` if the network is slow:
+```bash
+ros2 launch pylon_ros2_camera_test run_tests.launch.py device_user_id:=<id> camera_detection_timeout:=30
+```
+
+**`test_get_max_num_buffer` fails**
+The driver is running but the camera hardware is not fully connected. Check the physical connection (cable, power, USB port) and retry.
+
+**`test_set_exposure` / `test_set_gain` / `test_set_gamma` fail**
+These can fail if the driver rejects the service call. Check the driver log for errors. If the camera model does not support the feature the test skips automatically; a genuine failure means the service returned an error.
+
+**`test_sleeping_mode` or `test_stop_start_grabbing` fail**
+These indicate the driver is not responding to control commands. Restart the driver and try again. If the issue is consistent, check for concurrent clients holding the camera open.
+
+**`test_grab_images_raw` or `test_grab_3d_data` fail**
+Image/point-cloud acquisition failed. Check that no other process is grabbing from the same camera. For the blaze, ensure the supplementary pylon package for blaze is installed and compatible with the installed pylon version.
+
+**`test_set_binning` fails**
+Not all camera models support hardware binning. The test skips automatically on such cameras. A genuine failure means the binning service returned an error unexpectedly.
+
+**Camera not detected — error message at startup:**
+```
+Camera with device_user_id '<id>' was not reachable within the detection timeout (10 s).
+```
+Verify that:
+1. The `device_user_id` is spelled correctly (it is case-sensitive).
+2. The camera is powered on and connected to the network or USB.
+3. No other process has the camera open exclusively.
+4. For GigE cameras, the MTU size is configured correctly (add `mtu_size:=8192` for jumbo frames).
+
+
 ## Known issues
 
 ### User input in terminal when starting node through launch files
