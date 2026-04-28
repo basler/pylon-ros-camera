@@ -254,7 +254,8 @@ std::unique_ptr<PylonROS2Camera> PylonROS2Camera::create(const std::string& devi
                 RCLCPP_ERROR_STREAM(LOGGER, "Couldn't find the camera that matches the "
                     << "specified Device User ID: " << device_user_id_to_open << "! "
                     << "Either the ID is wrong or the camera device is not connected (yet)");
-                
+
+                Pylon::PylonTerminate();
                 return nullptr;
             }
         }
@@ -265,6 +266,7 @@ std::unique_ptr<PylonROS2Camera> PylonROS2Camera::create(const std::string& devi
             << "with Device User ID: " << device_user_id_to_open << ": \r\n"
             << e.GetDescription());
 
+        Pylon::PylonTerminate();
         return nullptr;
     }
 }
