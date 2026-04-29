@@ -484,7 +484,7 @@ The folder `pylon_ros2_camera_wrapper/test` includes different test programs. te
 - *test_grab_blaze_data_action_client*, *test_grab_image_action_client*, and *test_grab_images_action_client*: trigger the image or the 3d data set grabbing through the actions `/my_camera/pylon_ros2_camera_node/grab_images_raw` or `/my_camera/pylon_ros2_camera_node/grab_blaze_data`, depending on the camera model. Each grabbed image (only the intensity image for the blaze) is displayed in a dedicated popup window.  
 
 
-## Integration tests (`pylon_ros2_camera_test`)
+## Integration tests
 
 The `pylon_ros2_camera_test` package provides automated integration tests that cover the full driver stack for both 2D cameras (GigE, USB) and 3D cameras (Basler blaze). Each test run launches the driver, connects to the camera, executes all tests, prints a pass/fail summary, and shuts down automatically.
 
@@ -522,22 +522,9 @@ ros2 launch pylon_ros2_camera_test run_tests.launch.py
 ros2 launch pylon_ros2_camera_test run_tests.launch.py device_user_id:=<device_user_id>
 ```
 
-Replace `<device_user_id>` with the Device User ID configured in the camera (e.g., `my_blaze`, `Dart`, `color_ptp`). The ROS namespace is set automatically to match the Device User ID.
+Replace `<device_user_id>` with the Device User ID configured in the camera. The ROS namespace is set automatically to match the Device User ID.
 
-**Examples:**
-
-```bash
-# 2D GigE camera
-ros2 launch pylon_ros2_camera_test run_tests.launch.py device_user_id:=color_ptp
-
-# 2D USB camera
-ros2 launch pylon_ros2_camera_test run_tests.launch.py device_user_id:=Dart
-
-# 3D blaze camera
-ros2 launch pylon_ros2_camera_test run_tests.launch.py device_user_id:=my_blaze
-```
-
-The test node automatically detects the camera type and runs the appropriate test suite. When both 2D and 3D cameras are connected without specifying a `device_user_id`, the driver connects to the first available camera and only the matching test node runs; the other exits silently.
+The test node automatically detects the camera type and runs the appropriate test suite. When both 2D and 3D cameras are connected without specifying a `device_user_id`, the driver connects to the first available camera and only the matching test node runs.
 
 ### Test suites
 
@@ -571,7 +558,7 @@ The test node automatically detects the camera type and runs the appropriate tes
 | `test_enable_spatial_filter` | Enables and disables the spatial filter |
 | `test_enable_temporal_filter` | Enables and disables the temporal filter |
 
-Some tests skip gracefully when a feature is not supported by the connected camera model (e.g., gamma on GigE `acA` series, gain on blaze). A skipped test is reported as `[ PASS ]` with a `[WARN]` note in the log.
+Some tests skip gracefully when a feature is not supported by the connected camera model. A skipped test is reported as `[ PASS ]` with a `[WARN]` note in the log.
 
 ### Interpreting results
 
@@ -587,7 +574,7 @@ A successful run ends with:
 ### Actions to take when tests fail
 
 **`test_status_topic` fails**
-The driver did not publish its status topic within the timeout. Check that the driver started correctly and that the camera is accessible. Increase `camera_detection_timeout` if the network is slow:
+The driver did not publish its status topic within the timeout. Check that the driver started correctly and that the camera is accessible. Increase `camera_detection_timeout` if the network is slow (by 30 for instance) with this command):
 ```bash
 ros2 launch pylon_ros2_camera_test run_tests.launch.py device_user_id:=<id> camera_detection_timeout:=30
 ```
