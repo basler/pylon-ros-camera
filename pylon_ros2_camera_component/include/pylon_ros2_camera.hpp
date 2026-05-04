@@ -1261,6 +1261,14 @@ public:
 
     virtual ~PylonROS2Camera();
 
+    /**
+     * Cached flags set once after grabbing starts to avoid per-frame overhead.
+     * chunk_mode_active_: true if chunk mode is enabled (read-only after init).
+     * bit_shift_active_: true if 12-bit left-shift is needed; reset when encoding changes.
+     */
+    bool chunk_mode_active_{false};
+    bool bit_shift_active_{false};
+
 protected:
     /**
      * Protected default constructor.

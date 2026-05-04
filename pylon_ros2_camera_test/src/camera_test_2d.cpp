@@ -269,17 +269,141 @@ bool CameraTest2D::test_set_roi()
   return ok;
 }
 
-// Set image encoding to "mono8" and verify the service responds with success.
+// Grab one frame via the GrabImages action and return its encoding.
+// Returns an empty string on any failure.
+std::string CameraTest2D::grab_current_encoding()
+{
+  auto goal = GrabImagesAction::Goal();
+  // A single gain entry tells the action server to grab exactly one image.
+  // Using gain_given rather than exposure_given avoids disturbing auto-exposure.
+  goal.gain_given = true;
+  goal.gain_values.push_back(0.5f);
+
+  auto result_promise =
+    std::make_shared<std::promise<GrabImagesGoalHdl::WrappedResult>>();
+  auto result_future = result_promise->get_future();
+
+  auto opts = rclcpp_action::Client<GrabImagesAction>::SendGoalOptions();
+  opts.result_callback =
+    [result_promise](const GrabImagesGoalHdl::WrappedResult & result) {
+      result_promise->set_value(result);
+    };
+
+  auto goal_handle_future =
+    grab_images_client_->async_send_goal(goal, opts);
+  if (goal_handle_future.wait_for(std::chrono::seconds(10)) !=
+      std::future_status::ready)
+  {
+    return "";
+  }
+  auto goal_handle = goal_handle_future.get();
+  if (!goal_handle) return "";
+
+  if (result_future.wait_for(std::chrono::seconds(30)) !=
+      std::future_status::ready)
+  {
+    return "";
+  }
+  auto wrapped = result_future.get();
+  if (wrapped.code != rclcpp_action::ResultCode::SUCCEEDED) return "";
+  if (!wrapped.result->success || wrapped.result->images.empty()) return "";
+
+  return wrapped.result->images.front().encoding;
+}
+
+// Switch encoding to "mono8", grab a frame and verify the image header
+// encoding matches.  Then try "bayer_rggb8" (skip gracefully if the camera
+// is monochrome), grab and verify, then restore "mono8" and verify again.
+// The restore+grab is the key regression check for the bit_shift_active_
+// caching optimisation: a stale cached flag would produce an image whose
+// pixel data is byte-shifted even though the encoding header says "mono8".
 bool CameraTest2D::test_set_image_encoding()
 {
-  auto req = std::make_shared<SetStringValue::Request>();
-  req->value = "mono8";
-  auto res = call_service<SetStringValue>(set_image_encoding_client_, req);
-  if (!res) {
-    return assert_true(false, "test_set_image_encoding", "service call failed");
+  // ── Step 1: switch to mono8 ───────────────────────────────────────────────
+  {
+    auto req = std::make_shared<SetStringValue::Request>();
+    req->value = "mono8";
+    auto res = call_service<SetStringValue>(set_image_encoding_client_, req);
+    if (!res) {
+      return assert_true(false, "test_set_image_encoding", "service call failed");
+    }
+    if (!assert_success(res->success, res->message,
+        "test_set_image_encoding/mono8")) {
+      return false;
+    }
   }
-  return assert_success(res->success, res->message,
-    "test_set_image_encoding/mono8");
+
+  // ── Step 2: grab and confirm the image header encoding is mono8 ───────────
+  {
+    std::string enc = grab_current_encoding();
+    if (!assert_true(!enc.empty(),
+        "test_set_image_encoding/grab_mono8", "grab failed")) {
+      return false;
+    }
+    if (!assert_true(enc == "mono8",
+        "test_set_image_encoding/encoding_mono8",
+        "expected mono8, got " + enc)) {
+      return false;
+    }
+  }
+
+  // ── Step 3: try switching to bayer_rggb8 (colour cameras only) ───────────
+  bool colour_supported = false;
+  {
+    auto req = std::make_shared<SetStringValue::Request>();
+    req->value = "bayer_rggb8";
+    auto res = call_service<SetStringValue>(set_image_encoding_client_, req);
+    if (!res) {
+      return assert_true(false, "test_set_image_encoding",
+        "service call failed on bayer_rggb8");
+    }
+    if (!res->success) {
+      RCLCPP_WARN(get_logger(),
+        "test_set_image_encoding: bayer_rggb8 not supported by this camera "
+        "(likely monochrome), skipping colour encoding sub-test.");
+    } else {
+      colour_supported = true;
+    }
+  }
+
+  // ── Step 4 (colour cameras): grab and verify the encoding changed ─────────
+  if (colour_supported) {
+    std::string enc = grab_current_encoding();
+    if (!assert_true(!enc.empty(),
+        "test_set_image_encoding/grab_bayer", "grab failed")) {
+      return false;
+    }
+    if (!assert_true(enc == "bayer_rggb8",
+        "test_set_image_encoding/encoding_bayer",
+        "expected bayer_rggb8, got " + enc)) {
+      return false;
+    }
+  }
+
+  // ── Step 5: restore mono8 and verify encoding resets correctly ────────────
+  // This is the critical regression check: a stale bit_shift_active_ flag
+  // would not be caught by the service response alone.
+  {
+    auto req = std::make_shared<SetStringValue::Request>();
+    req->value = "mono8";
+    auto res = call_service<SetStringValue>(set_image_encoding_client_, req);
+    if (!res) {
+      return assert_true(false, "test_set_image_encoding",
+        "service call failed on restore to mono8");
+    }
+    if (!assert_success(res->success, res->message,
+        "test_set_image_encoding/restore_mono8")) {
+      return false;
+    }
+    std::string enc = grab_current_encoding();
+    if (!assert_true(!enc.empty(),
+        "test_set_image_encoding/grab_restore", "grab failed")) {
+      return false;
+    }
+    return assert_true(enc == "mono8",
+      "test_set_image_encoding/encoding_restore",
+      "expected mono8 after restore, got " + enc);
+  }
 }
 
 }  // namespace pylon_ros2_camera_test
