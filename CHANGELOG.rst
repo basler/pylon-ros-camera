@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.5 (2026-05-04)
+-------------------
+* Make blaze camera support conditional on pylon Supplementary Package for blaze availability: blaze support is now automatically enabled or disabled at build time depending on whether pylon/BlazeInstantCamera.h is found. All other camera types (GigE, USB, DART) are unaffected when the blaze package is not installed.
+
 3.0.4 (2025-07-08)
 -------------------
 * Include Boost (date_time component) as required when building
