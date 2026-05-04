@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.3.2 (2026-05-04)
+-------------------
+* Make blaze camera support conditional on pylon Supplementary Package for blaze availability: blaze support is now automatically enabled or disabled at build time depending on whether pylon/BlazeInstantCamera.h is found. All other camera types (GigE, USB, DART) are unaffected when the blaze package is not installed.
+
 3.3.1 (2026-04-28)
 -------------------
 * Fix SIGSEGV on SIGINT with Blaze camera: detach shared IPylonDevice from base class before destroying blaze_cam_ to prevent double DestroyDevice().

@@ -477,4 +477,6 @@ protected:
 #include "internal/impl/pylon_ros2_camera_dart.hpp"
 #include "internal/impl/pylon_ros2_camera_gige.hpp"
 #include "internal/impl/pylon_ros2_camera_gige_ace2.hpp"
+#ifdef HAVE_PYLON_BLAZE
 #include "internal/impl/pylon_ros2_camera_blaze.hpp"
+#endif
