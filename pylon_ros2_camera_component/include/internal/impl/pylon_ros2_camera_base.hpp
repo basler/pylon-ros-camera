@@ -430,6 +430,12 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
 template <typename CameraTrait>
 bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp::Time &stamp)
 {
+    // If camera is not grabbing, don't grab
+    if (!cam_->IsGrabbing())
+    {
+        return false;
+    }
+
     Pylon::CBaslerUniversalGrabResultPtr ptr_grab_result;
     if (!this->grab(ptr_grab_result))
     {
