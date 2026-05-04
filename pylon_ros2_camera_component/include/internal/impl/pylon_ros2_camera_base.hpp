@@ -152,6 +152,15 @@ sensor_msgs::msg::RegionOfInterest PylonROS2CameraImpl<CameraTraitT>::currentROI
 }
 
 template <typename CameraTraitT>
+bool PylonROS2CameraImpl<CameraTraitT>::isROIActive()
+{
+    return cam_->OffsetX.GetValue() != 0 ||
+           cam_->OffsetY.GetValue() != 0 ||
+           cam_->Width.GetValue()  != cam_->WidthMax.GetValue() ||
+           cam_->Height.GetValue() != cam_->HeightMax.GetValue();
+}
+
+template <typename CameraTraitT>
 size_t PylonROS2CameraImpl<CameraTraitT>::currentBinningX()
 {
     if ( GenApi::IsAvailable(cam_->BinningHorizontal) )
@@ -685,8 +694,12 @@ void PylonROS2CameraImpl<CameraTraitT>::getInitialCameraInfo(sensor_msgs::msg::C
     // the same window of pixels on the camera sensor, regardless of binning
     // settings. The default setting of roi (all values 0) is considered the same
     // as full resolution (roi.width = width, roi.height = height).
-    cam_info_msg.roi.x_offset = cam_info_msg.roi.y_offset = 0;
-    cam_info_msg.roi.height = cam_info_msg.roi.width = 0;
+    // Only populate roi when the camera is actually cropped; leaving all fields
+    // at zero is the ROS convention for "full resolution".
+    if (this->isROIActive())
+    {
+        cam_info_msg.roi = this->currentROI();
+    }
 }
 
 template <typename CameraTraitT>

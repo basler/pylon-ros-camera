@@ -289,7 +289,14 @@ public:
      * @return the roi setting.
      */
     virtual sensor_msgs::msg::RegionOfInterest currentROI() = 0;
-    
+
+    /**
+     * Returns true if the camera is currently operating with a hardware ROI
+     * (i.e. not at full sensor resolution). When false, camera_info.roi should
+     * remain {0,0,0,0} which is the ROS convention for "full resolution".
+     */
+    virtual bool isROIActive() = 0;
+
     /**
      * Returns the current horizontal binning_x setting.
      * @return the horizontal binning_x setting.

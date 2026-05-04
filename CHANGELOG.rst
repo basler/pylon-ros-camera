@@ -8,6 +8,8 @@ Changelog for package pylon_ros2_camera
 * Disable status and current-params publishers by default: ``enable_status_publisher`` and ``enable_current_params_publisher`` launch arguments now default to ``false`` to reduce unnecessary CPU and network overhead when those topics are not needed.
 * Cache per-frame grab flags to reduce CPU overhead: ``chunk_mode_active_`` and ``bit_shift_active_`` are evaluated once after grabbing starts and after each encoding change, replacing repeated string comparisons and GenICam register reads on every grabbed frame.
 * Extend ``test_set_image_encoding`` integration test: the test now performs a full encoding round-trip (switch encoding, grab a frame, verify the image header encoding matches, restore), providing a regression check for the cached flag logic.
+* Fix ``camera_info.roi`` to follow the ROS convention: the ``roi`` field is now populated only when the sensor is actually cropped; at full resolution it is left as all-zeros (the ROS-standard way to signal "full frame"), matching the behaviour expected by ``image_proc``, ``camera_calibration``, and similar consumers.
+* Extend ``test_set_roi`` integration test: in addition to verifying the reached ROI dimensions, the test now checks ``camera_info.roi`` is all-zeros at full resolution, reflects the crop after ``set_roi``, and returns to all-zeros after restoring full resolution, providing a regression check for the camera_info ROI fix.
 
 3.4.1 (2026-04-28)
 -------------------

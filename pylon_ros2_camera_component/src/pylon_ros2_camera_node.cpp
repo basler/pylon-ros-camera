@@ -797,9 +797,13 @@ bool PylonROS2CameraNode::startGrabbing()
       if (this->camera_info_manager_->loadCameraInfo(this->pylon_camera_parameter_set_.cameraInfoURL()))
       {
         this->setupRectification();
-        // set the correct tf frame_id
+        // set the correct tf frame_id and current ROI from camera
         sensor_msgs::msg::CameraInfo cam_info = this->camera_info_manager_->getCameraInfo();
         cam_info.header.frame_id = this->img_raw_msg_.header.frame_id;
+        if (this->pylon_camera_->isROIActive())
+        {
+          cam_info.roi = this->pylon_camera_->currentROI();
+        }
         this->camera_info_manager_->setCameraInfo(cam_info);
       }
       else
@@ -1611,7 +1615,14 @@ bool PylonROS2CameraNode::setROI(const sensor_msgs::msg::RegionOfInterest target
   }
 
   sensor_msgs::msg::CameraInfo cam_info = this->camera_info_manager_->getCameraInfo();
-  cam_info.roi = this->pylon_camera_->currentROI();
+  if (this->pylon_camera_->isROIActive())
+  {
+    cam_info.roi = this->pylon_camera_->currentROI();
+  }
+  else
+  {
+    cam_info.roi = sensor_msgs::msg::RegionOfInterest();
+  }
   this->camera_info_manager_->setCameraInfo(cam_info);
   this->img_raw_msg_.height = this->pylon_camera_->imageRows();
   this->img_raw_msg_.width = this->pylon_camera_->imageCols();
