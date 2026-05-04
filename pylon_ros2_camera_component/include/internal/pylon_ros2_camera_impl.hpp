@@ -110,6 +110,8 @@ public:
     
     virtual sensor_msgs::msg::RegionOfInterest currentROI() override;
 
+    virtual bool isROIActive() override;
+
     virtual size_t currentBinningX() override;
 
     virtual size_t currentBinningY() override;

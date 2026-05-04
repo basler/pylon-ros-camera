@@ -37,7 +37,8 @@
 //
 //   test_grab_images_raw      – GrabImages action, gain_given=true
 //   test_set_binning          – set 2×2 binning, verify, restore 1×1
-//   test_set_roi              – set a small ROI, verify, restore full sensor
+//   test_set_roi              – set a small ROI, verify reached dimensions and
+//                               camera_info.roi field, restore full sensor
 //   test_set_image_encoding   – switch mono8↔bayer_rggb8, grab and verify
 //                               image header encoding after each switch
 //                               (regression test for the bit_shift_active_ cache)
@@ -62,6 +63,7 @@
 #include <pylon_ros2_camera_interfaces/srv/set_string_value.hpp>
 
 #include <rclcpp_action/rclcpp_action.hpp>
+#include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/region_of_interest.hpp>
 
 namespace pylon_ros2_camera_test
@@ -87,6 +89,11 @@ protected:
   // Grab one frame via the GrabImages action and return its encoding string.
   // Returns an empty string on any failure.
   std::string grab_current_encoding();
+
+  // Subscribe to camera_info and return the roi field from the next message.
+  // Returns a default-constructed (all-zeros) ROI on timeout.
+  sensor_msgs::msg::RegionOfInterest get_camera_info_roi(
+    std::chrono::seconds timeout = std::chrono::seconds(5));
 
   // ── Type aliases ───────────────────────────────────────────────────────────
 

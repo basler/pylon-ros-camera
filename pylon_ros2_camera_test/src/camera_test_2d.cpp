@@ -29,6 +29,7 @@
 #include "pylon_ros2_camera_test/camera_test_2d.hpp"
 
 #include <rclcpp_components/register_node_macro.hpp>
+#include <sensor_msgs/msg/camera_info.hpp>
 
 #include <future>
 #include <memory>
@@ -238,7 +239,17 @@ bool CameraTest2D::test_set_binning()
 // then restore the full sensor area.
 bool CameraTest2D::test_set_roi()
 {
-  // Set small ROI
+  // ── [1] camera_info.roi must be all-zeros at full resolution ──────────────
+  auto roi_initial = get_camera_info_roi();
+  bool ok = assert_true(
+    roi_initial.width == 0 && roi_initial.height == 0 &&
+    roi_initial.x_offset == 0 && roi_initial.y_offset == 0,
+    "test_set_roi/camera_info_roi_at_full_res",
+    "expected all-zero roi at full resolution (ROS convention), got "
+    "w=" + std::to_string(roi_initial.width) +
+    " h=" + std::to_string(roi_initial.height));
+
+  // ── [2] Set a small ROI ───────────────────────────────────────────────────
   auto req_small = std::make_shared<SetROI::Request>();
   req_small->target_roi.x_offset  = 0;
   req_small->target_roi.y_offset  = 0;
@@ -249,13 +260,20 @@ bool CameraTest2D::test_set_roi()
   if (!res_small) {
     return assert_true(false, "test_set_roi", "service call failed");
   }
-  bool ok = assert_success(res_small->success, "", "test_set_roi/set_small");
+  ok &= assert_success(res_small->success, "", "test_set_roi/set_small");
   ok &= assert_true(
     res_small->reached_roi.width > 0 && res_small->reached_roi.height > 0,
     "test_set_roi/reached_dimensions",
     "reached ROI has zero dimensions");
 
-  // Restore full sensor (driver clips large values to sensor max)
+  // ── [3] camera_info.roi must reflect the crop ─────────────────────────────
+  auto roi_cropped = get_camera_info_roi();
+  ok &= assert_true(
+    roi_cropped.width > 0 && roi_cropped.height > 0,
+    "test_set_roi/camera_info_roi_after_crop",
+    "camera_info.roi is still zero after setting a crop ROI");
+
+  // ── [4] Restore full sensor (driver clips large values to sensor max) ─────
   auto req_full = std::make_shared<SetROI::Request>();
   req_full->target_roi.x_offset  = 0;
   req_full->target_roi.y_offset  = 0;
@@ -265,8 +283,45 @@ bool CameraTest2D::test_set_roi()
   auto res_full = call_service<SetROI>(set_roi_client_, req_full);
   if (!res_full) {
     RCLCPP_WARN(get_logger(), "test_set_roi: could not restore full-sensor ROI");
+    return ok;
   }
+
+  // ── [5] camera_info.roi must return to all-zeros ──────────────────────────
+  auto roi_restored = get_camera_info_roi();
+  ok &= assert_true(
+    roi_restored.width == 0 && roi_restored.height == 0 &&
+    roi_restored.x_offset == 0 && roi_restored.y_offset == 0,
+    "test_set_roi/camera_info_roi_after_restore",
+    "camera_info.roi not cleared after returning to full resolution "
+    "(ROS convention: all-zeros = full sensor), got "
+    "w=" + std::to_string(roi_restored.width) +
+    " h=" + std::to_string(roi_restored.height));
+
   return ok;
+}
+
+sensor_msgs::msg::RegionOfInterest CameraTest2D::get_camera_info_roi(
+  std::chrono::seconds timeout)
+{
+  using CameraInfo = sensor_msgs::msg::CameraInfo;
+  sensor_msgs::msg::RegionOfInterest zero_roi;
+
+  auto promise = std::make_shared<std::promise<CameraInfo>>();
+  auto future  = promise->get_future();
+
+  auto sub = this->create_subscription<CameraInfo>(
+    camera_ns_ + "/camera_info", rclcpp::SensorDataQoS(),
+    [promise](CameraInfo::SharedPtr msg) {
+      try { promise->set_value(*msg); } catch (...) {}
+    });
+
+  if (future.wait_for(timeout) != std::future_status::ready) {
+    RCLCPP_WARN(get_logger(),
+      "get_camera_info_roi: timed out waiting for camera_info message");
+    return zero_roi;
+  }
+
+  return future.get().roi;
 }
 
 // Grab one frame via the GrabImages action and return its encoding.
