@@ -38,7 +38,9 @@
 //   test_grab_images_raw      – GrabImages action, gain_given=true
 //   test_set_binning          – set 2×2 binning, verify, restore 1×1
 //   test_set_roi              – set a small ROI, verify, restore full sensor
-//   test_set_image_encoding   – set encoding to "mono8", verify
+//   test_set_image_encoding   – switch mono8↔bayer_rggb8, grab and verify
+//                               image header encoding after each switch
+//                               (regression test for the bit_shift_active_ cache)
 //
 // Camera detection: waits for the grab_images_raw action server.
 //
@@ -79,6 +81,12 @@ protected:
   virtual bool test_set_binning();
   virtual bool test_set_roi();
   virtual bool test_set_image_encoding();
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  // Grab one frame via the GrabImages action and return its encoding string.
+  // Returns an empty string on any failure.
+  std::string grab_current_encoding();
 
   // ── Type aliases ───────────────────────────────────────────────────────────
 

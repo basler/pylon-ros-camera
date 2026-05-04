@@ -34,6 +34,7 @@
 
 //#include <functional>
 
+#include "encoding_conversions.hpp"
 #include "pylon_ros2_camera_node.hpp"
 
 
@@ -156,6 +157,18 @@ bool PylonROS2CameraNode::init()
       rclcpp::shutdown();
     return false;
   }
+
+  // cache flags to avoid per-frame string comparisons in the grab path
+  this->pylon_camera_->chunk_mode_active_ = (this->pylon_camera_->getChunkModeActive() == 1);
+  const std::string ros_enc = this->pylon_camera_->currentROSEncoding();
+  const std::string gen_api_enc = this->pylon_camera_->currentBaslerEncoding();
+  this->pylon_camera_->bit_shift_active_ = encodingconversions::is_12_bit_ros_enc(ros_enc) &&
+      (gen_api_enc == "BayerRG12" || gen_api_enc == "BayerBG12" || gen_api_enc == "BayerGB12" ||
+       gen_api_enc == "BayerGR12" || gen_api_enc == "Mono12");
+  if (this->pylon_camera_->chunk_mode_active_)
+    RCLCPP_INFO(LOGGER, "Activated chunk mode");
+  if (this->pylon_camera_->bit_shift_active_)
+    RCLCPP_INFO(LOGGER, "Activated bit shifting");
 
   return true;
 }
@@ -3837,7 +3850,13 @@ void PylonROS2CameraNode::setImageEncodingCallback(const std::shared_ptr<SetStri
       response->message = "Using this feature requires stopping image grabbing";
     }
   }
-  this->grabbingStarting(); // Start grabbing for better usser experience
+  this->grabbingStarting(); // Start grabbing for better user experience
+  // reset bit_shift_active_ since encoding may have changed
+  const std::string ros_enc = this->pylon_camera_->currentROSEncoding();
+  const std::string gen_api_enc = this->pylon_camera_->currentBaslerEncoding();
+  this->pylon_camera_->bit_shift_active_ = encodingconversions::is_12_bit_ros_enc(ros_enc) &&
+      (gen_api_enc == "BayerRG12" || gen_api_enc == "BayerBG12" || gen_api_enc == "BayerGB12" ||
+       gen_api_enc == "BayerGR12" || gen_api_enc == "Mono12");
 }
 
 void PylonROS2CameraNode::setReverseXCallback(const std::shared_ptr<SetBoolSrv::Request> request,

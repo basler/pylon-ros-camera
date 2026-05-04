@@ -434,9 +434,7 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp:
     // Bit shifting
     // ------------------------------------------------------------------------
     // In case of 12 bits we need to shift the image bits 4 positions to the left
-    const std::string ros_enc = this->currentROSEncoding();
-    const std::string gen_api_encoding(cam_->PixelFormat.ToString().c_str());
-    if (encodingconversions::is_12_bit_ros_enc(ros_enc) && (gen_api_encoding == "BayerRG12" || gen_api_encoding == "BayerBG12" || gen_api_encoding == "BayerGB12" || gen_api_encoding == "BayerGR12" || gen_api_encoding == "Mono12"))
+    if (this->bit_shift_active_)
     {
         std::vector<uint16_t> shift_array(img_size_byte_ / 2); // Dynamically allocated to avoid heap size error
         const uint16_t *convert_bits = reinterpret_cast<uint16_t*>(ptr_grab_result->GetBuffer());
@@ -451,15 +449,14 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp:
         image.assign(pImageBuffer, pImageBuffer + img_size_byte_);
     }
 
-    bool use_chunk_timestamp = false;
-    if (this->getChunkModeActive() == 1)
+    if (this->chunk_mode_active_)
     {
+    bool use_chunk_timestamp = false;
         const std::string success = this->setChunkSelector(29); // = ChunkSelector_Timestamp
         if (success.find("done") != std::string::npos && this->getChunkEnable() == 1)
         {
             use_chunk_timestamp = true;
         }
-    }
 
     if (use_chunk_timestamp)
     {
@@ -479,6 +476,7 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp:
             RCLCPP_WARN_STREAM(LOGGER_BASE, "An exception while getting the chunk timestamp occurred: " << e.GetDescription());
         }
     }
+    } // end chunk_mode_active_
 
     if (!is_ready_)
         is_ready_ = true;

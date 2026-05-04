@@ -5,6 +5,9 @@ Changelog for package pylon_ros2_camera
 3.3.2 (2026-05-04)
 -------------------
 * Make blaze camera support conditional on pylon Supplementary Package for blaze availability: blaze support is now automatically enabled or disabled at build time depending on whether pylon/BlazeInstantCamera.h is found. All other camera types (GigE, USB, DART) are unaffected when the blaze package is not installed.
+* Disable status and current-params publishers by default: ``enable_status_publisher`` and ``enable_current_params_publisher`` launch arguments now default to ``false`` to reduce unnecessary CPU and network overhead when those topics are not needed.
+* Cache per-frame grab flags to reduce CPU overhead: ``chunk_mode_active_`` and ``bit_shift_active_`` are evaluated once after grabbing starts and after each encoding change, replacing repeated string comparisons and GenICam register reads on every grabbed frame.
+* Extend ``test_set_image_encoding`` integration test: the test now performs a full encoding round-trip (switch encoding, grab a frame, verify the image header encoding matches, restore), providing a regression check for the cached flag logic.
 
 3.3.1 (2026-04-28)
 -------------------

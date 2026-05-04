@@ -547,7 +547,7 @@ The test node automatically detects the camera type and runs the appropriate tes
 | `test_grab_images_raw` | Grabs a raw image via the `grab_images_raw` action |
 | `test_set_binning` | Sets 2×2 binning and restores 1×1 |
 | `test_set_roi` | Sets a region of interest and restores the full sensor |
-| `test_set_image_encoding` | Changes the pixel encoding |
+| `test_set_image_encoding` | Switches pixel encoding (mono8 ↔ bayer_rggb8), grabs a frame after each switch, and verifies the image header encoding matches |
 
 **3D-specific tests** (blaze cameras):
 
