@@ -16,7 +16,7 @@ def _launch_node(context: LaunchContext):
     """Return the action to launch `pylon_ros2_camera_wrapper`.
     This is required to evaluate `respawn` as boolean.
     """
-    
+
     # adapt if needed
     debug = False
 
@@ -57,7 +57,7 @@ def _launch_node(context: LaunchContext):
                 parameters=[
                     config_file,
                     {
-                        'gige/mtu_size': mtu_size,
+                        'mtu_size': mtu_size,
                         'startup_user_set': startup_user_set,
                         'enable_status_publisher': enable_status_publisher,
                         'enable_current_params_publisher': enable_current_params_publisher
