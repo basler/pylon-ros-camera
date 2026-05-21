@@ -1,0 +1,6 @@
+# User-specific distro selection — not shared
+.env
+
+# pylon Camera Software Suite installer — downloaded manually by the user,
+# not committed to the repository (can be several hundred MB)
+*.deb

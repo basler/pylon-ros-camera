@@ -53,6 +53,16 @@ Start the driver:
 ``ros2 launch pylon_ros2_camera_wrapper my_blaze.launch.py``  to start the acquisition through the blaze.  
 
 
+## Docker
+
+Ready-to-use Docker images are available for **Humble**, **Jazzy**, and **Kilted**.  
+They bundle the driver and all its dependencies into a self-contained container,
+so no local ROS 2 installation is required.
+
+For build instructions, run options, and troubleshooting, refer to the
+[docker/README.md](docker/README.md).
+
+
 ## Usage in a nutshell
 
 Starting the *pylon_ros2_camera_node* starts the acquisition from a given Basler camera. The nodes allow as well to access many camera parameters and parameters related to the grabbing process itself.
