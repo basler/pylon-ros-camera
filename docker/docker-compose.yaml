@@ -1,0 +1,109 @@
+# =============================================================================
+# docker-compose.yaml – pylon_ros2_camera driver
+#
+# Default distro: kilted (this file lives on the kilted branch).
+# Override the distro by setting environment variables before the command:
+#
+#   PYLON_ROS_DISTRO=jazzy PYLON_REPO_BRANCH=jazzy docker compose build
+#   PYLON_ROS_DISTRO=jazzy docker compose up
+#
+# NOTE: PYLON_ROS_DISTRO is used instead of ROS_DISTRO to avoid conflicts
+# with the host's ROS environment (sourcing a ROS setup.bash sets ROS_DISTRO
+# in the shell, which would otherwise override the default here).
+#
+# Usage:
+#   # Build the image (see Dockerfile header for prerequisites):
+#   docker compose build
+#
+#   # Start the driver:
+#   docker compose up
+#
+#   # Start detached:
+#   docker compose up -d
+#
+#   # Stop:
+#   docker compose down
+# =============================================================================
+
+services:
+  pylon_ros2_camera:
+    build:
+      context: .
+      args:
+        # Filename of the pylon .deb placed in this docker/ directory.
+        # Download from: https://www2.baslerweb.com/en/downloads/software-downloads/
+        # Override with: PYLON_DEB=my_pylon.deb docker compose build
+        PYLON_DEB: ${PYLON_DEB:-pylon.deb}
+        # ROS 2 distro and matching repository branch.
+        # Defaults are set in the Dockerfile; override via environment variables
+        # or a .env file (use PYLON_ROS_DISTRO, not ROS_DISTRO, to avoid
+        # conflicts with a sourced ROS installation on the host):
+        #   PYLON_ROS_DISTRO=jazzy PYLON_REPO_BRANCH=jazzy docker compose build
+        ROS_DISTRO: ${PYLON_ROS_DISTRO:-kilted}
+        REPO_BRANCH: ${PYLON_REPO_BRANCH:-kilted}
+    image: pylon_ros2_camera:${PYLON_ROS_DISTRO:-kilted}
+
+    # -------------------------------------------------------------------------
+    # CRITICAL for GigE cameras: host networking
+    #
+    # GigE Vision uses UDP broadcast for camera discovery. Without host
+    # networking the container is on an isolated bridge and the broadcast
+    # packets never reach the camera (root cause of issues #222 and #236).
+    #
+    # With host networking the container shares the host's network interfaces
+    # directly, so `--network=host` gives the exact same view as the host OS.
+    # -------------------------------------------------------------------------
+    network_mode: "host"
+
+    # Network capabilities required by the pylon GigE transport layer
+    cap_add:
+      - NET_RAW    # raw-socket access for GigE Vision control channel
+      - NET_ADMIN  # needed if you want to adjust MTU from inside the container
+
+    environment:
+      # Must match the ROS_DOMAIN_ID of any external ROS2 nodes you want to
+      # communicate with (0 is the default).
+      - ROS_DOMAIN_ID=0
+
+      # Optional: restrict pylon to a specific network interface.
+      # List interface names on the host with: ip link show
+      # Example: eth0, enp3s0, enp0s31f6, …
+      # - PYLON_GIGE_FILTER_IF_NAME=eth0
+
+    # -------------------------------------------------------------------------
+    # Optional: override the default camera configuration.
+    # Uncomment and adjust the path to load your own config file.
+    # -------------------------------------------------------------------------
+    # volumes:
+    #   - ./my_camera.yaml:/ros2_ws/install/pylon_ros2_camera_wrapper/share/pylon_ros2_camera_wrapper/config/default.yaml:ro
+
+    # Default command – can be overridden here or on the CLI.
+    # Useful launch arguments:
+    #   startup_user_set:=Default   (load factory defaults on startup)
+    #   mtu_size:=9000              (enable jumbo frames – requires host NIC/switch support)
+    #   device_user_id:=<id>        (connect to a specific camera by its DeviceUserID)
+    command: >
+      ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py
+
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # USB3 Vision cameras (e.g. Basler dart, ace USB3)
+  # Uncomment this service and comment out the GigE one above if you use USB.
+  # ---------------------------------------------------------------------------
+  # pylon_ros2_camera_usb:
+  #   build:
+  #     context: .
+  #     args:
+  #       PYLON_DEB: pylon.deb
+  #   image: pylon_ros2_camera:jazzy
+  #   # USB cameras do NOT need host networking; map the USB bus instead:
+  #   devices:
+  #     - /dev/bus/usb:/dev/bus/usb
+  #   group_add:
+  #     - plugdev
+  #   environment:
+  #     - ROS_DOMAIN_ID=0
+  #   command: >
+  #     ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py
+  #   restart: unless-stopped
