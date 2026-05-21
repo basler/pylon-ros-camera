@@ -25,7 +25,7 @@ You are welcome to post any questions or issues on [GitHub](https://github.com/b
 
 This repository including the pylon ROS2 packages must be cloned in your workspace (e.g., `dev_ws` for instance):  
 ```
-cd ~/dev_ws/src && git clone -b kilted_beta https://github.com/basler/pylon-ros-camera pylon_ros2_camera
+cd ~/dev_ws/src && git clone -b kilted https://github.com/basler/pylon-ros-camera pylon_ros2_camera
 ```  
 
 Install the ROS2 dependencies required by the pylon ROS2 packages:  
@@ -51,6 +51,16 @@ Source the environment:
 Start the driver:  
 ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py``  or  
 ``ros2 launch pylon_ros2_camera_wrapper my_blaze.launch.py``  to start the acquisition through the blaze.  
+
+
+## Docker
+
+Ready-to-use Docker images are available for **Humble**, **Jazzy**, and **Kilted**.  
+They bundle the driver and all its dependencies into a self-contained container,
+so no local ROS 2 installation is required.
+
+For build instructions, run options, and troubleshooting, refer to the
+[docker/README.md](docker/README.md).
 
 
 ## Usage in a nutshell
