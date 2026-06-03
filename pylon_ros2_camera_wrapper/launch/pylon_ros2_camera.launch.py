@@ -57,7 +57,7 @@ def _launch_node(context: LaunchContext):
                 parameters=[
                     config_file,
                     {
-                        'gige/mtu_size': mtu_size,
+                        'mtu_size': mtu_size,
                         'startup_user_set': startup_user_set,
                         'enable_status_publisher': enable_status_publisher,
                         'enable_current_params_publisher': enable_current_params_publisher
