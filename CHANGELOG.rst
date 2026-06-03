@@ -5,6 +5,7 @@ Changelog for package pylon_ros2_camera
 3.3.4 (2026-06-03)
 -------------------
 * Fix build problem with Pylon SDK 26.05
+* Remove gige namespace for mtu_size parameter in launch file (#PR293)
 
 3.3.3 (2026-05-21)
 -------------------
