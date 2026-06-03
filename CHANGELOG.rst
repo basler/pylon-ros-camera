@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.3.4 (2026-06-03)
+-------------------
+* Fix build problem with Pylon SDK 26.05
+
 3.3.3 (2026-05-21)
 -------------------
 * Ready-to-use Docker images are available for Humble, Jazzy, and Kilted
