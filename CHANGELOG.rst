@@ -4,7 +4,7 @@ Changelog for package pylon_ros2_camera
 
 3.4.4 (2026-06-03)
 -------------------
-* Fix build failure with Pylon SDK 26.05 (internal version 12.0): replace removed GigE-specific headers (``pylon/gige/BaslerGigEInstantCamera.h``, ``pylon/gige/BaslerGigECamera.h``) and types (``CBaslerGigECamera``, ``CBaslerGigEDeviceInfo``) in ``ip_auto_config.cpp`` with the universal Pylon API (``CBaslerUniversalInstantCamera``, ``CDeviceInfo``). ``GigETransportLayer.h`` and all IP-configuration operations (``ForceIp``, ``RestartIpConfiguration``) are unaffected. The fix is backward compatible with older SDK versions.
+* Fix build problem with Pylon SDK 26.05 (internal version 12.0)
 
 3.4.3 (2026-05-21)
 -------------------
