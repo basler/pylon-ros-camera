@@ -27,10 +27,8 @@
  *****************************************************************************/
 
 #include <pylon/PylonIncludes.h>
-#include <pylon/gige/BaslerGigEInstantCamera.h>
+#include <pylon/BaslerUniversalInstantCamera.h>
 #include <pylon/gige/GigETransportLayer.h>
-#include <pylon/gige/BaslerGigEInstantCamera.h>
-#include <pylon/gige/BaslerGigECamera.h>
 
 #include <unistd.h>
 #include <fstream>
@@ -39,10 +37,10 @@
 
 using namespace Pylon;
 
-typedef Pylon::CBaslerGigECamera camera_t;
+typedef Pylon::CBaslerUniversalInstantCamera camera_t;
 std::vector<std::string> logs;
 
-std::string autoProbe(CBaslerGigEDeviceInfo &bdi, IGigETransportLayer* s_pTl);
+std::string autoProbe(CDeviceInfo &bdi, IGigETransportLayer* s_pTl);
 void enumurateNIC(std::vector<std::tuple <std::string, std::string>> *InterfaceList);
 void enumurateNIC();
 void displayCurrentStatus(DeviceInfoList_t &listDevices, IGigETransportLayer* s_pTl);
@@ -74,7 +72,7 @@ int main(int argc __attribute__((unused)), char** argv __attribute__((unused)))
         DeviceInfoList_t listReachableDevices;
         
         CTlFactory & theFactory(CTlFactory::GetInstance());
-        ITransportLayer * const pTemp(theFactory.CreateTl(CBaslerGigECamera::DeviceClass()));
+        ITransportLayer * const pTemp(theFactory.CreateTl(Pylon::BaslerGigEDeviceClass));
         IGigETransportLayer* s_pTl = dynamic_cast<IGigETransportLayer*> (pTemp);
         //IGigETransportLayer *pTl = (IGigETransportLayer*)theFactory.CreateTl(BaslerGigEDeviceClass);
 
@@ -97,7 +95,7 @@ int main(int argc __attribute__((unused)), char** argv __attribute__((unused)))
                 {
                     std::cout << x;
                     std::string InterfaceAdd = "";
-                    CBaslerGigEDeviceInfo &info = static_cast<CBaslerGigEDeviceInfo&> (listDevices[x]);
+                    CDeviceInfo &info = listDevices[x];
                     InterfaceAdd = info.GetInterface().c_str();
                     if(InterfaceAdd  == "255.255.255.255")
                     {
@@ -149,11 +147,11 @@ int main(int argc __attribute__((unused)), char** argv __attribute__((unused)))
                     std::cerr << "Your camera will get following setting" << std::endl;
                     std::cerr << "IP " << IP << " subnet : " << Subnet << std::endl;
 
-                    CBaslerGigEDeviceInfo &bdi = static_cast<CBaslerGigEDeviceInfo&> (listDevices[selection - 1]);
+                    CDeviceInfo &bdi = listDevices[selection - 1];
                     s_pTl->ForceIp(bdi.GetMacAddress(), IP, Subnet, "0.0.0.0");
                     std::cerr << "Thread will sleep for 1s in order to wait on updated ARP table" << std::endl;
                     sleep(2); // needed to get ARP Table be updated;
-                    CBaslerGigEDeviceInfo bdi_new(s_pTl->CreateDeviceInfo());
+                    CDeviceInfo bdi_new(s_pTl->CreateDeviceInfo());
                     bdi_new.SetIpAddress(IP);
 
                     s_pTl->EnumerateAllDevices(listDevices);
@@ -219,7 +217,7 @@ int main(int argc __attribute__((unused)), char** argv __attribute__((unused)))
     return exitCode;
 }
 
-std::string autoProbe(CBaslerGigEDeviceInfo &bdi, IGigETransportLayer* s_pTl)
+std::string autoProbe(CDeviceInfo &bdi, IGigETransportLayer* s_pTl)
 {
     String_t OriginalIP =  bdi.GetIpAddress();
     String_t OriginalSubnet = bdi.GetSubnetMask();  
@@ -242,7 +240,7 @@ std::string autoProbe(CBaslerGigEDeviceInfo &bdi, IGigETransportLayer* s_pTl)
         s_pTl->EnumerateDevices(devicelist);
         for(auto& di : devicelist)
         {
-            CBaslerGigEDeviceInfo &GigEdi = static_cast<CBaslerGigEDeviceInfo&>(di) ;
+            CDeviceInfo &GigEdi = di;
             if(GigEdi.GetMacAddress() == bdi.GetMacAddress())
             {
                 s_pTl->ForceIp(bdi.GetMacAddress(),OriginalIP,OriginalSubnet, "0.0.0.0");
@@ -316,7 +314,7 @@ void displayCurrentStatus(DeviceInfoList_t &listDevices, IGigETransportLayer* s_
             Pylon::EDeviceAccessiblityInfo isAccessable;
             //camera_t camera=s_pTl->CreateDevice(listDevices[x]);
             s_pTl->IsDeviceAccessible(listDevices[x], Control, &isAccessable);
-            CBaslerGigEDeviceInfo &bdi = static_cast<CBaslerGigEDeviceInfo&> (listDevices[x]);
+            CDeviceInfo &bdi = listDevices[x];
 
             std::string status = "";
             

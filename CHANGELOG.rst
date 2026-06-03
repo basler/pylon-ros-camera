@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.4.4 (2026-06-03)
+-------------------
+* Fix build failure with Pylon SDK 26.05 (internal version 12.0): replace removed GigE-specific headers (``pylon/gige/BaslerGigEInstantCamera.h``, ``pylon/gige/BaslerGigECamera.h``) and types (``CBaslerGigECamera``, ``CBaslerGigEDeviceInfo``) in ``ip_auto_config.cpp`` with the universal Pylon API (``CBaslerUniversalInstantCamera``, ``CDeviceInfo``). ``GigETransportLayer.h`` and all IP-configuration operations (``ForceIp``, ``RestartIpConfiguration``) are unaffected. The fix is backward compatible with older SDK versions.
+
 3.4.3 (2026-05-21)
 -------------------
 * Ready-to-use Docker images are available for Humble, Jazzy, and Kilted
@@ -24,11 +28,7 @@ Changelog for package pylon_ros2_camera
 -------------------
 * Add pylon_ros2_camera_test integration test package for 2D and 3D cameras
 
-3.3.0 (2026-04-22)
--------------------
-* Fixing CMake compilation warnings related to deprecation risks.
-
-3.2.0 (2025-10-23)
+3.2.0 (2026-04-22)
 -------------------
 * The pylon driver is now compatible with ROS2 Kilted Kaiju. Dedicated branch has been created.
 
