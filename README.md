@@ -205,10 +205,10 @@ USB cameras must be disconnected and then reconnected after setting a new device
   Camera white balance ratio.
 
 - **trigger_timeout (not for the blaze)**  
-  Camera trigger timeout in ms.
+  Timeout in ms. Only relevant when using software trigger mode. Limits how long the driver waits for the camera to become ready to accept the next software trigger command. This parameter has no effect for cameras driven by a hardware (external) trigger.
 
 - **grab_timeout**  
-  Camera grab timeout in ms.
+  Timeout in ms. Limits how long the driver waits for image data to arrive after a grab is initiated. In free-run mode, must be greater than the inter-frame period (e.g. >100 ms at 10 fps). For external (hardware) trigger mode, must be long enough to cover the maximum expected interval between trigger pulses. Increase this value if triggers arrive less frequently than once per 500 ms (the default), otherwise grab timeouts will occur.
 
 - **grab_strategy (not for the blaze)**  
   Camera grab strategy: 0 = GrabStrategy_OneByOne / 1 = GrabStrategy_LatestImageOnly / 2 = GrabStrategy_LatestImages
