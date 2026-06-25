@@ -1182,18 +1182,25 @@ bool PylonROS2CameraNode::grabImage()
   
   if (!this->pylon_camera_->isBlaze())
   {
-    // Store current time before the image is transmitted for a more accurate grab time estimation.
-    // If chunk timestamp is enabled, grab will overwrite it with the acquisition timestamp.
-    auto stamp = rclcpp::Node::now();
+    // grab() resets stamp to zero, then sets it to the hardware acquisition timestamp
+    // if chunk mode with timestamp chunk is enabled.
+    // If stamp is still zero after grab(), fall back to the current time (post-grab),
+    // which is closer to the actual acquisition than a pre-grab timestamp, and is
+    // especially important for external trigger cameras where grab() blocks until the
+    // trigger fires.
+    rclcpp::Time stamp;
     if (!this->pylon_camera_->grab(this->img_raw_msg_.data, stamp))
     {
       return false;
+    }
+    if (stamp.nanoseconds() == 0)
+    {
+      stamp = rclcpp::Node::now();
     }
     this->img_raw_msg_.header.stamp = stamp;
   }
   else
   {
-    auto grab_time = rclcpp::Node::now();
     if (!this->pylon_camera_->grabBlaze(this->blaze_cloud_msg_, 
                                         this->intensity_map_msg_, 
                                         this->depth_map_msg_, 
@@ -1204,7 +1211,9 @@ bool PylonROS2CameraNode::grabImage()
       return false;
     }
 
-    // acquisition time
+    // Use time captured after grabBlaze() returns, which is closer to the actual
+    // acquisition time (especially important for external trigger cameras).
+    auto grab_time = rclcpp::Node::now();
     this->blaze_cloud_msg_.header.stamp = grab_time;
     this->intensity_map_msg_.header.stamp = grab_time;
     this->depth_map_msg_.header.stamp = grab_time;
@@ -4624,7 +4633,6 @@ void PylonROS2CameraNode::executeGrabBlazeDataAction(const std::shared_ptr<GrabB
     sensor_msgs::msg::Image& depth_color_map = result->depth_color_maps[i];
     sensor_msgs::msg::Image& confidence_map = result->confidence_maps[i];
 
-    auto grab_time = rclcpp::Node::now();
     if (!this->pylon_camera_->grabBlaze(point_cloud, 
                                         intensity_map, 
                                         depth_map, 
@@ -4635,7 +4643,9 @@ void PylonROS2CameraNode::executeGrabBlazeDataAction(const std::shared_ptr<GrabB
       break;
     }
 
-    // acquisition time
+    // Use time captured after grabBlaze() returns, which is closer to the actual
+    // acquisition time (especially important for external trigger cameras).
+    auto grab_time = rclcpp::Node::now();
     point_cloud.header.stamp = grab_time;
     intensity_map.header.stamp = grab_time;
     depth_map.header.stamp = grab_time;
@@ -5076,15 +5086,23 @@ std::shared_ptr<GrabImagesAction::Result> PylonROS2CameraNode::grabRawImages(con
     // already contains the number of channels
     img.step = img.width * this->pylon_camera_->imagePixelDepth();
 
-    // Store current time before the image is transmitted for a more accurate grab time estimation.
-    // If chunk timestamp is enabled, grab will overwrite it with the acquisition timestamp.
-    auto stamp = rclcpp::Node::now();
     img.header.frame_id = cameraFrame();
 
+    // grab() resets stamp to zero, then sets it to the hardware acquisition timestamp
+    // if chunk mode with timestamp chunk is enabled.
+    // If stamp is still zero after grab(), fall back to the current time (post-grab),
+    // which is closer to the actual acquisition than a pre-grab timestamp, and is
+    // especially important for external trigger cameras where grab() blocks until the
+    // trigger fires.
+    rclcpp::Time stamp;
     if (!this->pylon_camera_->grab(img.data, stamp))
     {
       result->success = false;
       break;
+    }
+    if (stamp.nanoseconds() == 0)
+    {
+      stamp = rclcpp::Node::now();
     }
     img.header.stamp = stamp;
 
