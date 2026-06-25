@@ -461,7 +461,12 @@ void PylonROS2CameraParameter::readFromRosParameterServer(rclcpp::Node& nh)
 
     RCLCPP_INFO(LOGGER, "Autoflash: %i, line2: %i, line3: %i", this->auto_flash_, this->auto_flash_line_2_, this->auto_flash_line_3_);
 
-    // grab_timeout
+    // grab_timeout: timeout (ms) passed to RetrieveResult(). Limits how long the driver
+    // waits for image data to arrive after a grab is initiated.
+    // - Free-run mode: must be greater than the inter-frame period (e.g. >100 ms at 10 fps).
+    // - External (hardware) trigger mode: must be long enough to cover the maximum expected
+    //   interval between trigger pulses. Increase this value if trigger signals arrive less
+    //   frequently than once per 500 ms (the default), otherwise grab timeouts will occur.
     RCLCPP_DEBUG(LOGGER, "---> grab_timeout");
 
     if (!nh.has_parameter("grab_timeout"))
@@ -471,7 +476,10 @@ void PylonROS2CameraParameter::readFromRosParameterServer(rclcpp::Node& nh)
     
     nh.get_parameter("grab_timeout", this->grab_timeout_);
 
-    // trigger_timeout
+    // trigger_timeout: timeout (ms) passed to WaitForFrameTriggerReady(). Only relevant when
+    // using software trigger mode — limits how long the driver waits for the camera to become
+    // ready to accept the next software trigger command (i.e. to finish processing the previous
+    // frame). This parameter has no effect for cameras driven by a hardware (external) trigger.
     RCLCPP_DEBUG(LOGGER, "---> trigger_timeout");
     
     if (!nh.has_parameter("trigger_timeout"))

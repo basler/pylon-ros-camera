@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.8 (2026-06-25)
+-------------------
+* Clarify ``grab_timeout`` vs ``trigger_timeout`` parameter documentation: ``grab_timeout`` (default 500 ms) is the timeout for ``RetrieveResult()`` and must be increased for external trigger cameras whose trigger rate is below 2 Hz; ``trigger_timeout`` (default 5000 ms) is the timeout for ``WaitForFrameTriggerReady()`` and is only relevant in software trigger mode (issue #275).
+
 3.0.7 (2026-06-25)
 -------------------
 * Fix image header timestamp for external trigger cameras: use a post-grab timestamp instead of pre-grab when no hardware chunk timestamp is available, avoiding the large timing error caused by ``RetrieveResult()`` blocking until the trigger fires (issue #275).

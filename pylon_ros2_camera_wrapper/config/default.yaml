@@ -128,3 +128,18 @@
     #  start of image data transmissions from each camera.
     # gige:
     #  frame_transmission_delay: 0
+
+    #  Timeout in milliseconds passed to RetrieveResult(). Limits how long the driver waits
+    #  for image data to arrive after a grab is initiated.
+    #  - Free-run mode: must be greater than the inter-frame period
+    #    (e.g. at 10 fps the inter-frame period is 100 ms, so grab_timeout must be > 100 ms).
+    #  - External (hardware) trigger mode: must be long enough to cover the maximum expected
+    #    interval between trigger pulses. Increase this value if trigger signals arrive less
+    #    frequently than once per 500 ms (the default), otherwise grab timeouts will occur.
+    # grab_timeout: 500
+
+    #  Timeout in milliseconds passed to WaitForFrameTriggerReady(). Only relevant when using
+    #  software trigger mode — limits how long the driver waits for the camera to become ready
+    #  to accept the next software trigger command (i.e. to finish processing the previous
+    #  frame). This parameter has no effect for cameras driven by a hardware (external) trigger.
+    # trigger_timeout: 5000
