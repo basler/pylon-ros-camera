@@ -600,6 +600,11 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(Pylon::CBaslerUniversalGrabResultPtr
         {
             RCLCPP_ERROR(LOGGER_BASE, "Lost connection to the camera . . .");
         }
+        else if (!cam_->IsGrabbing())
+        {
+            // StopGrabbing() was called from another thread (e.g. during node
+            // shutdown) and interrupted RetrieveResult(). This is expected.
+        }
         else
         {
             if ((cam_->TriggerSource.GetValue() != TriggerSourceEnums::TriggerSource_Software) && (cam_->TriggerMode.GetValue() == TriggerModeEnums::TriggerMode_On))
@@ -620,9 +625,10 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(Pylon::CBaslerUniversalGrabResultPtr
         return false;
     }
 
-    if (!grab_result->GrabSucceeded())
+    if (!grab_result.IsValid() || !grab_result->GrabSucceeded())
     {
-        RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error: " << grab_result->GetErrorCode() << " " << grab_result->GetErrorDescription());
+        if (grab_result.IsValid())
+            RCLCPP_ERROR_STREAM(LOGGER_BASE, "Error: " << grab_result->GetErrorCode() << " " << grab_result->GetErrorDescription());
         return false;
     }
 

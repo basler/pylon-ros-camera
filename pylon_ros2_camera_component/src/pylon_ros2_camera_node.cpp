@@ -89,6 +89,14 @@ PylonROS2CameraNode::PylonROS2CameraNode(const rclcpp::NodeOptions& options)
   this->get_node_base_interface()->get_context()->add_on_shutdown_callback([this]()
   {
     this->stop_spinning_ = true;
+    // Unblock any RetrieveResult() call that is currently waiting in the spin
+    // thread, e.g. for an external trigger pulse to arrive. Without this,
+    // Ctrl-C hangs until the next trigger fires or grab_timeout_ expires
+    // (issue #275).
+    if (this->pylon_camera_ != nullptr)
+    {
+      this->pylon_camera_->grabbingStopping();
+    }
   });
 }
 
