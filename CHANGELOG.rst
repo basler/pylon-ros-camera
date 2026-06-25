@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.4.5 (2026-06-25)
+-------------------
+* Fix image header timestamp for external trigger cameras: use a post-grab timestamp instead of pre-grab when no hardware chunk timestamp is available, avoiding the large timing error caused by ``RetrieveResult()`` blocking until the trigger fires (issue #275).
+
 3.4.4 (2026-06-03)
 -------------------
 * Fix build problem with Pylon SDK 26.05 (internal version 12.0)
