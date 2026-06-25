@@ -420,6 +420,11 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
 template <typename CameraTrait>
 bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp::Time &stamp)
 {
+    // Reset stamp to zero. It will only be set to a non-zero value if a hardware
+    // acquisition timestamp is available via chunk data. The caller can test
+    // stamp.nanoseconds() == 0 to know whether a hardware timestamp was provided.
+    stamp = rclcpp::Time(0, 0, RCL_ROS_TIME);
+
     Pylon::CBaslerUniversalGrabResultPtr ptr_grab_result;
     if (!this->grab(ptr_grab_result))
     {

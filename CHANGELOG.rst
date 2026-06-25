@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.0.7 (2026-06-25)
+-------------------
+* Fix image header timestamp for external trigger cameras: use a post-grab timestamp instead of pre-grab when no hardware chunk timestamp is available, avoiding the large timing error caused by ``RetrieveResult()`` blocking until the trigger fires (issue #275).
+
 3.0.6 (2026-05-21)
 -------------------
 * Ready-to-use Docker images are available for Humble, Jazzy, and Kilted
