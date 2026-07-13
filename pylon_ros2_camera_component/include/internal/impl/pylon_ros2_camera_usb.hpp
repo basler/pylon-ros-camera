@@ -52,7 +52,6 @@ struct USBCameraTrait
     typedef Basler_UniversalCameraParams::PixelSizeEnums PixelSizeEnums;
     typedef GenApi::IFloat AutoTargetBrightnessType;
     typedef GenApi::IFloat GainType;
-    typedef double AutoTargetBrightnessValueType;
     typedef Basler_UniversalCameraParams::ShutterModeEnums ShutterModeEnums;
     typedef Basler_UniversalCameraParams::UserOutputSelectorEnums UserOutputSelectorEnums;
     typedef Basler_UniversalCameraParams::AcquisitionStatusSelectorEnums AcquisitionStatusSelectorEnums;
@@ -76,11 +75,6 @@ struct USBCameraTrait
     typedef Basler_UniversalCameraParams::BalanceRatioSelectorEnums BalanceRatioSelectorEnums;
     typedef Basler_UniversalCameraParams::TimerSelectorEnums TimerSelectorEnums;
     typedef Basler_UniversalCameraParams::TimerTriggerSourceEnums TimerTriggerSourceEnums;
-
-    static inline AutoTargetBrightnessValueType convertBrightness(const int& value)
-    {
-        return value / 255.0;
-    }
 };
 
 typedef PylonROS2CameraImpl<USBCameraTrait> PylonROS2USBCamera;
