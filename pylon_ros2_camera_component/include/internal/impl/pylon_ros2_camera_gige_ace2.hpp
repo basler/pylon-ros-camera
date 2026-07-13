@@ -179,10 +179,7 @@ bool PylonROS2GigEAce2Camera::applyCamSpecificStartupSettings(const PylonROS2Cam
                     << cam_->AutoTargetBrightness.GetMin() << " - "
                     << cam_->AutoTargetBrightness.GetMax()
                     << "] which is the average pixel intensity.");
-            } else {
-                RCLCPP_WARN(LOGGER_GIGE_ACE2, "Cam auto brightness not available, will keep the default (auto).");
             }
-
 
             if ( GenApi::IsAvailable(cam_->BinningHorizontal) &&
                     GenApi::IsAvailable(cam_->BinningVertical) )

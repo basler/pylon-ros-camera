@@ -1229,8 +1229,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::setBrightness(const int& target_brightne
         // if the target brightness is greater 255, limit it to 255
         // the brightness_to_set is a float value, regardless of the current
         // pixel data output format, i.e., 0.0 -> black, 1.0 -> white.
-        double brightness_to_set =
-            convertBrightness(std::min(255, target_brightness));
+        double brightness_to_set = convertBrightness(std::min(255, target_brightness));
 /**
 #if DEBUG
         std::cout << "br = " << current_brightness << ", gain = "
@@ -1393,8 +1392,7 @@ bool PylonROS2CameraImpl<CameraTraitT>::setExtendedBrightness(const int& target_
         return false;
     }
 
-    double brightness_to_set =
-        convertBrightness(target_brightness);
+    double brightness_to_set = convertBrightness(target_brightness);
 
     if ( !binary_exp_search_ )
     {

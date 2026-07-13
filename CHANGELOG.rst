@@ -2,6 +2,11 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.4.6 (2026-07-13)
+-------------------
+* Fix issue related to AutoTargetValue/AutoTargetBrightness access, checking if variable node exists beforehand and converting scale if needed (#PR297, #PR298).
+* Adjust test related to ROI setting: user set ROI are not into account for test.
+
 3.4.5 (2026-06-25)
 -------------------
 * Fix image header timestamp for external trigger cameras: use a post-grab timestamp instead of pre-grab when no hardware chunk timestamp is available, avoiding the large timing error caused by ``RetrieveResult()`` blocking until the trigger fires (issue #275).

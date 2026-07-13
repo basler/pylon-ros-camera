@@ -239,6 +239,19 @@ bool CameraTest2D::test_set_binning()
 // then restore the full sensor area.
 bool CameraTest2D::test_set_roi()
 {
+  // ── [0] Reset to full sensor first (camera may start with a user-defined
+  //        crop stored in its persistent UserSet / CurrentSetting) ────────────
+  auto req_reset = std::make_shared<SetROI::Request>();
+  req_reset->target_roi.x_offset  = 0;
+  req_reset->target_roi.y_offset  = 0;
+  req_reset->target_roi.width     = 65535;
+  req_reset->target_roi.height    = 65535;
+  req_reset->target_roi.do_rectify = false;
+  auto res_reset = call_service<SetROI>(set_roi_client_, req_reset);
+  if (!res_reset) {
+    return assert_true(false, "test_set_roi", "service call failed (reset to full res)");
+  }
+
   // ── [1] camera_info.roi must be all-zeros at full resolution ──────────────
   auto roi_initial = get_camera_info_roi();
   bool ok = assert_true(
