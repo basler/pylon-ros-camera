@@ -2,7 +2,11 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+<<<<<<< HEAD
 3.3.6 (2026-07-23)
+=======
+3.3.6 (unreleased)
+>>>>>>> 7f08581c06cb4c59515a91dfdd74c2550bdf243c
 -------------------
 * Fix auto-brightness startup parameters ignored when both ``exposure`` and ``gain`` are also set (issue #265).
 
