@@ -2,27 +2,27 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-3.3.6 (2026-07-23)
--------------------
+3.2.8 (2026-07-23)
+------------------
 * Fix auto-brightness startup parameters ignored when both ``exposure`` and ``gain`` are also set (issue #265).
 
-3.3.5 (2026-06-25)
--------------------
+3.2.7 (2026-06-25)
+------------------
 * Fix image header timestamp for external trigger cameras: use a post-grab timestamp instead of pre-grab when no hardware chunk timestamp is available, avoiding the large timing error caused by ``RetrieveResult()`` blocking until the trigger fires (issue #275).
 * Clarify ``grab_timeout`` vs ``trigger_timeout`` parameter documentation: ``grab_timeout`` (default 500 ms) is the timeout for ``RetrieveResult()`` and must be increased for external trigger cameras whose trigger rate is below 2 Hz; ``trigger_timeout`` (default 5000 ms) is the timeout for ``WaitForFrameTriggerReady()`` and is only relevant in software trigger mode (issue #275).
 * Fix Ctrl-C hang when using external trigger: call ``StopGrabbing()`` from the shutdown callback so any ``RetrieveResult()`` blocked waiting for a trigger pulse is immediately unblocked, allowing the node to exit without waiting for the next trigger (issue #275).
 
-3.3.4 (2026-06-03)
--------------------
+3.2.6 (2026-06-03)
+------------------
 * Fix build problem with Pylon SDK 26.05
 * Remove gige namespace for mtu_size parameter in launch file (#PR293)
 
-3.3.3 (2026-05-21)
--------------------
+3.2.5 (2026-05-21)
+------------------
 * Ready-to-use Docker images are available for Humble, Jazzy, and Kilted
 
-3.3.2 (2026-05-04)
--------------------
+3.2.4 (2026-05-04)
+------------------
 * Make blaze camera support conditional on pylon Supplementary Package for blaze availability: blaze support is now automatically enabled or disabled at build time depending on whether pylon/BlazeInstantCamera.h is found. All other camera types (GigE, USB, DART) are unaffected when the blaze package is not installed.
 * Disable status and current-params publishers by default: ``enable_status_publisher`` and ``enable_current_params_publisher`` launch arguments now default to ``false`` to reduce unnecessary CPU and network overhead when those topics are not needed.
 * Cache per-frame grab flags to reduce CPU overhead: ``chunk_mode_active_`` and ``bit_shift_active_`` are evaluated once after grabbing starts and after each encoding change, replacing repeated string comparisons and GenICam register reads on every grabbed frame.
@@ -30,18 +30,22 @@ Changelog for package pylon_ros2_camera
 * Fix ``camera_info.roi`` to follow the ROS convention: the ``roi`` field is now populated only when the sensor is actually cropped; at full resolution it is left as all-zeros (the ROS-standard way to signal "full frame"), matching the behaviour expected by ``image_proc``, ``camera_calibration``, and similar consumers.
 * Extend ``test_set_roi`` integration test: in addition to verifying the reached ROI dimensions, the test now checks ``camera_info.roi`` is all-zeros at full resolution, reflects the crop after ``set_roi``, and returns to all-zeros after restoring full resolution, providing a regression check for the camera_info ROI fix.
 
-3.3.1 (2026-04-28)
--------------------
+3.2.3 (2026-04-28)
+------------------
 * Fix SIGSEGV on SIGINT with Blaze camera: detach shared IPylonDevice from base class before destroying blaze_cam_ to prevent double DestroyDevice().
 * Fix SIGABRT on SIGINT while in camera reconnect retry loop: add missing PylonTerminate() calls and guard rclcpp API calls with rclcpp::ok() checks.
 
-3.3.0 (2026-04-28)
--------------------
+3.2.2 (2026-04-28)
+------------------
 * Add pylon_ros2_camera_test integration test package for 2D and 3D cameras
 
-3.2.0 (2026-04-22)
--------------------
+3.2.1 (2026-04-22)
+------------------
 * Optimizing compilation of driver: compilation file adjustments, warning fixes, and code cleaning relatively to adjusted compilation process
+
+3.2.0 (2025-10-23)
+------------------
+* The pylon driver is now compatible with ROS 2 Kilted Kaiju. Dedicated branch has been created.
 
 3.1.1 (2025-09-30)
 -------------------
