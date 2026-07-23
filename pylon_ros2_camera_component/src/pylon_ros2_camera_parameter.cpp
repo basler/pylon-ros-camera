@@ -302,11 +302,11 @@ void PylonROS2CameraParameter::readFromRosParameterServer(rclcpp::Node& nh)
     
     nh.get_parameter("brightness", this->brightness_);
 
-    if (this->gain_given_ && this->exposure_given_)
+    if (this->gain_given_ && this->exposure_given_ && !this->exposure_auto_ && !this->gain_auto_)
     {
-        RCLCPP_WARN_STREAM(LOGGER, "Gain and exposure are specified as startup parameters and hence assumed to be fixed! "
-            << "The specified brightness (" << this->brightness_ << ") can't be reached! "
-            << "Brightness is going to ignored by only setting gain and exposure.");
+        RCLCPP_WARN_STREAM(LOGGER, "Gain and exposure are specified as fixed startup parameters and auto is disabled. "
+            << "The specified brightness (" << this->brightness_ << ") can't be reached. "
+            << "Brightness will be ignored.");
         this->brightness_given_ = false;
     }
     else
