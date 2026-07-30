@@ -44,9 +44,9 @@ namespace pylon_ros2_camera_test
 CameraTest3D::CameraTest3D(const rclcpp::NodeOptions & options)
 : CameraTestGeneric("camera_test_3d", options)
 {
-  // The current driver action for 3D data is named grab_blaze_data.
-  grab_3d_client_ = rclcpp_action::create_client<GrabBlazeDataAction>(
-    this, camera_ns_ + "/grab_blaze_data");
+  // The current driver action for 3D data is named grab_3d_data.
+  grab_3d_client_ = rclcpp_action::create_client<Grab3DDataAction>(
+    this, camera_ns_ + "/grab_3d_data");
 
   set_depth_min_client_ =
     make_client<SetIntegerValue>("set_depth_min");
@@ -78,16 +78,16 @@ CameraTest3D::CameraTest3D(const rclcpp::NodeOptions & options)
 
 bool CameraTest3D::detect_camera()
 {
-  if (wait_for_action_server<GrabBlazeDataAction>(
+  if (wait_for_action_server<Grab3DDataAction>(
         grab_3d_client_,
         std::chrono::seconds(detection_timeout_)))
   {
-    return true;  // Blaze confirmed.
+    return true;  // 3D camera confirmed.
   }
 
   if (!rclcpp::ok()) return false;
 
-  // grab_blaze_data not found.  Probe whether a 2D camera is connected
+  // grab_3d_data not found.  Probe whether a 2D camera is connected
   // by calling get_max_num_buffer (succeeds only when hardware is live).
   // success  → a 2D camera is present; wrong type for this node, skip silently.
   // failure  → camera is genuinely unreachable.
@@ -99,7 +99,7 @@ bool CameraTest3D::detect_camera()
     std::chrono::seconds(3));
   if (res && res->success && res->value > 0) {
     RCLCPP_INFO(get_logger(),
-      "2D camera detected (no grab_blaze_data). Skipping 3D tests.");
+      "2D camera detected (no grab_3d_data). Skipping 3D tests.");
     is_wrong_camera_type_ = true;
   }
   return false;
@@ -109,23 +109,23 @@ bool CameraTest3D::detect_camera()
 // 3D test implementations
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Send a grab_blaze_data goal with exposure_given=true and verify that point
+// Send a grab_3d_data goal with exposure_given=true and verify that point
 // clouds and intensity maps are returned.
 bool CameraTest3D::test_grab_3d_data()
 {
-  auto goal = GrabBlazeDataAction::Goal();
+  auto goal = Grab3DDataAction::Goal();
   goal.exposure_given = true;
   goal.exposure_times.push_back(500.0f);
 
   auto result_promise =
-    std::make_shared<std::promise<GrabBlazeDataGoalHdl::WrappedResult>>();
+    std::make_shared<std::promise<Grab3DDataGoalHdl::WrappedResult>>();
   auto result_future = result_promise->get_future();
 
   auto send_goal_options =
-    rclcpp_action::Client<GrabBlazeDataAction>::SendGoalOptions();
+    rclcpp_action::Client<Grab3DDataAction>::SendGoalOptions();
 
   send_goal_options.result_callback =
-    [result_promise](const GrabBlazeDataGoalHdl::WrappedResult & result) {
+    [result_promise](const Grab3DDataGoalHdl::WrappedResult & result) {
       result_promise->set_value(result);
     };
 

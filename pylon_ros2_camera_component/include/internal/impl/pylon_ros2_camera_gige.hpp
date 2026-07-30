@@ -688,10 +688,6 @@ GigECameraTrait::AutoTargetBrightnessType& PylonROS2GigECamera::autoTargetBright
     {
         return cam_->AutoTargetValue;
     }
-    /**else if ( GenApi::IsAvailable(cam_->AutoTargetBrightness) )
-    {
-        return cam_->AutoTargetBrightness;
-    }**/
     else
     {
         throw std::runtime_error("Error while accessing AutoTargetValue/AutoTargetBrightness in PylonROS2GigECamera");

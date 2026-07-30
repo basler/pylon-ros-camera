@@ -134,20 +134,49 @@ public:
     virtual bool grab(uint8_t* image) = 0;
 
     /**
-     * Dedicated to blaze integration within the pylon driver - specify if the connected camera is a blaze
-     * @return true if a blaze is connected.
+     * Dedicated to 3D camera integration within the pylon driver - specify if the connected camera is a 3D camera
+     * @return true if a 3D camera is connected.
      */
-    virtual bool isBlaze() = 0;
+    virtual bool is3D() = 0;
 
     /**
-     * Dedicated to blaze integration within the pylon driver - grab data from blaze and return ros messages
+     * Dedicated to 3D camera integration within the pylon driver - grab data from a 3D camera and return ros messages
      * @return true if the process is successful.
      */
-    virtual bool grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
+    virtual bool grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
                            sensor_msgs::msg::Image& intensity_map_msg, 
                            sensor_msgs::msg::Image& depth_map_msg, 
                            sensor_msgs::msg::Image& depth_map_color_msg, 
                            sensor_msgs::msg::Image& confidence_map_msg) = 0;
+
+    /**
+     * Whether this 3D camera provides additional left/right intensity images
+     * (e.g. the Stereo mini left and right IR images from Source1/Source2).
+     * Returns false by default; overridden by cameras that support it.
+     */
+    virtual bool hasExtraIntensityImages() const { return false; }
+
+    /**
+     * Returns the last grabbed left extra intensity image (e.g. left IR for the
+     * Stereo mini). Valid only when hasExtraIntensityImages() returns true and
+     * after a successful grab3D() call.
+     */
+    virtual const sensor_msgs::msg::Image& extraIntensityLeft() const
+    {
+        static const sensor_msgs::msg::Image empty;
+        return empty;
+    }
+
+    /**
+     * Returns the last grabbed right extra intensity image (e.g. right IR for
+     * the Stereo mini). Valid only when hasExtraIntensityImages() returns true
+     * and after a successful grab3D() call.
+     */
+    virtual const sensor_msgs::msg::Image& extraIntensityRight() const
+    {
+        static const sensor_msgs::msg::Image empty;
+        return empty;
+    }
 
     /**
      * @brief sets shutter mode for the camera (rolling or global_reset)

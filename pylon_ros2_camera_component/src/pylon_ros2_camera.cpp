@@ -46,6 +46,8 @@ enum PYLON_CAM_TYPE
     DART = 3,
     GIGE2 = 4,
     BLAZE = 5,
+    STEREO_MINI = 6,
+    STEREO_ACE = 7,
     UNKNOWN = -1,
 };
 
@@ -140,6 +142,30 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
             return BLAZE;
         }
 #endif
+#ifdef HAVE_PYLON_STEREO_MINI
+        else if (device_class == "BaslerGTC/Basler/Stereo_mini")
+        {
+            if (device_info.IsModelNameAvailable())
+            {
+                std::string model_name(device_info.GetModelName());
+                //RCLCPP_INFO_STREAM(LOGGER, "Stereo mini model name: " << model_name);
+            }
+
+            return STEREO_MINI;
+        }
+#endif
+#ifdef HAVE_PYLON_STEREO_ACE
+        // TODO: The Stereo ace has no static device class string —
+        //   CStereoAceInstantCamera::DeviceClass() throws a LogicalErrorException.
+        //   The interface device class is BaslerGenTlStaDeviceClass = "BaslerGTC/Basler/basler_xw"
+        //   but it is not confirmed whether enumerated *devices* report this string via
+        //   device_info.GetDeviceClass(). Verify with Stereo ace hardware and replace the
+        //   placeholder device class string below with the actual value.
+        // else if (device_class == "TODO_STEREO_ACE_DEVICE_CLASS")
+        // {
+        //     return STEREO_ACE;
+        // }
+#endif
         else
         {
             RCLCPP_ERROR_STREAM(LOGGER, "The detected camera type is: " << device_class << ". "
@@ -174,6 +200,14 @@ std::unique_ptr<PylonROS2Camera> createFromDevice(PYLON_CAM_TYPE cam_type, Pylon
 #ifdef HAVE_PYLON_BLAZE
         case BLAZE:
             return std::make_unique<PylonROS2BlazeCamera>(device);
+#endif
+#ifdef HAVE_PYLON_STEREO_MINI
+        case STEREO_MINI:
+            return std::make_unique<PylonROS2StereoMiniCamera>(device);
+#endif
+#ifdef HAVE_PYLON_STEREO_ACE
+        case STEREO_ACE:
+            return std::make_unique<PylonROS2StereoAceCamera>(device);
 #endif
         case UNKNOWN:
         default:

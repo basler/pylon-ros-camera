@@ -546,13 +546,13 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(uint8_t* image)
 }
 
 template <typename CameraTrait>
-bool PylonROS2CameraImpl<CameraTrait>::grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg __attribute__((unused)),
+bool PylonROS2CameraImpl<CameraTrait>::grab3D(sensor_msgs::msg::PointCloud2& cloud_msg __attribute__((unused)),
                                                  sensor_msgs::msg::Image& intensity_map_msg __attribute__((unused)),
                                                  sensor_msgs::msg::Image& depth_map_msg __attribute__((unused)),
                                                  sensor_msgs::msg::Image& depth_map_color_msg __attribute__((unused)),
                                                  sensor_msgs::msg::Image& confidence_map_msg __attribute__((unused)))
 {
-    RCLCPP_WARN(LOGGER_BASE, "The connected camera is not a blaze, nothing is going to be grabbed!");
+    RCLCPP_WARN(LOGGER_BASE, "The connected camera is not a 3D camera, nothing is going to be grabbed!");
     return true;
 }
 
@@ -636,7 +636,7 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(Pylon::CBaslerUniversalGrabResultPtr
 }
 
 template <typename CameraTraitT>
-bool PylonROS2CameraImpl<CameraTraitT>::isBlaze()
+bool PylonROS2CameraImpl<CameraTraitT>::is3D()
 {
     return false;
 }

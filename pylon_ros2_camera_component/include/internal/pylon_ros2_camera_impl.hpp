@@ -361,11 +361,11 @@ public:
 
 
 
-    // blaze related functions
+    // 3D camera related functions
 
-    virtual bool isBlaze() override;
+    virtual bool is3D() override;
 
-    virtual bool grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
+    virtual bool grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
                            sensor_msgs::msg::Image& intensity_map_msg, 
                            sensor_msgs::msg::Image& depth_map_msg, 
                            sensor_msgs::msg::Image& depth_map_color_msg, 
@@ -481,4 +481,10 @@ protected:
 #include "internal/impl/pylon_ros2_camera_gige_ace2.hpp"
 #ifdef HAVE_PYLON_BLAZE
 #include "internal/impl/pylon_ros2_camera_blaze.hpp"
+#endif
+#ifdef HAVE_PYLON_STEREO_MINI
+#include "internal/impl/pylon_ros2_camera_stereo_mini.hpp"
+#endif
+#ifdef HAVE_PYLON_STEREO_ACE
+#include "internal/impl/pylon_ros2_camera_stereo_ace.hpp"
 #endif

@@ -110,20 +110,20 @@ if(BUILD_TESTING)
     EXECUTABLE test_grab_images_action_client
   )
 
-  add_library(action_client_test_grab_blaze_data SHARED
-    ${CMAKE_CURRENT_SOURCE_DIR}/test/test_grab_blaze_data_action_client.cpp
+  add_library(action_client_test_grab_3d_data SHARED
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/test_grab_3d_data_action_client.cpp
   )
 
-  target_compile_definitions(action_client_test_grab_blaze_data
-    PRIVATE "TEST_GRAB_BLAZE_DATA_ACTION_CLIENT_BUILDING_DLL")
+  target_compile_definitions(action_client_test_grab_3d_data
+    PRIVATE "TEST_GRAB_3D_DATA_ACTION_CLIENT_BUILDING_DLL")
 
-  ament_target_dependencies(action_client_test_grab_blaze_data
+  ament_target_dependencies(action_client_test_grab_3d_data
     ${CAMERA_TEST_DEPENDENCIES}
   )
 
-  rclcpp_components_register_node(action_client_test_grab_blaze_data
-    PLUGIN "pylon_ros2_camera::TestGrabBlazeDataActionClient"
-    EXECUTABLE test_grab_blaze_data_action_client
+  rclcpp_components_register_node(action_client_test_grab_3d_data
+    PLUGIN "pylon_ros2_camera::TestGrab3DDataActionClient"
+    EXECUTABLE test_grab_3d_data_action_client
   )
 
   add_library(action_client_test_grab_image SHARED
@@ -145,7 +145,7 @@ if(BUILD_TESTING)
   install(TARGETS
         action_client_test_grab_images
         action_client_test_grab_image
-        action_client_test_grab_blaze_data
+        action_client_test_grab_3d_data
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION lib/${PROJECT_NAME}
