@@ -30,7 +30,9 @@
 
 #include <rclcpp_components/register_node_macro.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
 
+#include <atomic>
 #include <future>
 #include <memory>
 #include <string>
@@ -76,10 +78,6 @@ CameraTest2D::CameraTest2D(const rclcpp::NodeOptions & options)
 
 bool CameraTest2D::detect_camera()
 {
-  // Record the overall detection deadline so both steps share the same budget.
-  auto deadline =
-    std::chrono::steady_clock::now() + std::chrono::seconds(detection_timeout_);
-
   // Step 1: Confirm that a driver is running at all.
   // grab_images_raw is created by the driver at node startup (before the
   // camera hardware connects), so it appears quickly after the process starts.
@@ -90,35 +88,51 @@ bool CameraTest2D::detect_camera()
     return false;  // No driver found within the timeout (or shutdown).
   }
 
-  // Step 2: Discriminate 2D vs 3D camera.
-  // grab_blaze_data is ONLY registered for Blaze (3D) cameras, and ONLY after
-  // the camera hardware connects (~4 s after driver start).
-  // Using the remaining budget from the overall deadline means this check
-  // never extends the total detection time beyond detection_timeout_.
-  auto remaining = deadline - std::chrono::steady_clock::now();
-  if (remaining > std::chrono::nanoseconds(0) &&
-      wait_for_action_server<GrabBlazeDataAction>(blaze_detect_client_, remaining))
+  // Step 2: Wait until the camera hardware is actually connected. grab_images_raw
+  // (step 1) is created before the hardware connects, so it does not prove a live
+  // camera. get_max_num_buffer reads a camera register and only succeeds once the
+  // camera is up. Poll until it succeeds or the detection timeout expires (a
+  // Blaze can take several seconds to connect through its GenTL producer).
   {
-    RCLCPP_INFO(get_logger(),
-      "3D camera detected (grab_blaze_data action available). Skipping 2D tests.");
-    is_wrong_camera_type_ = true;
-    return false;
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(detection_timeout_);
+    bool connected = false;
+    while (rclcpp::ok() && std::chrono::steady_clock::now() < deadline)
+    {
+      auto req = std::make_shared<GetIntegerValue::Request>();
+      auto res = call_service<GetIntegerValue>(
+        get_max_num_buffer_client_, req,
+        std::chrono::seconds(2), std::chrono::seconds(2), false);
+      if (res && res->success && res->value > 0) { connected = true; break; }
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+    if (!connected) {
+      return false;  // Driver running but camera not reachable within the timeout.
+    }
   }
   if (!rclcpp::ok()) return false;
 
-  // Step 3: Confirm the camera hardware is actually connected.
-  // grab_images_raw (step 1) is created by the driver before hardware
-  // connects, so its presence alone does not confirm a live camera.
-  // get_max_num_buffer reads a camera register and returns success=false
-  // when the hardware is not yet connected.
-  auto req = std::make_shared<GetIntegerValue::Request>();
-  auto res  = call_service<GetIntegerValue>(
-    get_max_num_buffer_client_,
-    req,
-    std::chrono::seconds(5),   // service availability timeout
-    std::chrono::seconds(5));  // response timeout
-  if (!res || !res->success || res->value <= 0) {
-    return false;  // Hardware not connected (driver running but no camera).
+  // Step 3: Discriminate 2D vs 3D camera. Now that the camera is connected, only
+  // a Blaze (3D) camera streams point-cloud data on blaze_cloud; a 2D camera
+  // never does. The blaze_* publishers exist on every camera, so their presence
+  // is not enough - the data flow is the reliable signal (more robust than the
+  // grab_blaze_data action, whose discovery can lag just after connection).
+  {
+    std::atomic<bool> got_cloud{false};
+    auto blaze_sub = this->create_subscription<sensor_msgs::msg::PointCloud2>(
+      camera_ns_ + "/blaze_cloud", rclcpp::QoS(rclcpp::KeepLast(1)),
+      [&got_cloud](const sensor_msgs::msg::PointCloud2::SharedPtr) { got_cloud = true; });
+    auto disc_deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (rclcpp::ok() && !got_cloud && std::chrono::steady_clock::now() < disc_deadline)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    if (got_cloud)
+    {
+      RCLCPP_INFO(get_logger(),
+        "3D camera detected (blaze_cloud is streaming). Skipping 2D tests.");
+      is_wrong_camera_type_ = true;
+      return false;
+    }
   }
 
   return true;
