@@ -45,8 +45,8 @@ namespace pylon_ros2_camera_test
 CameraTest2D::CameraTest2D(const rclcpp::NodeOptions & options)
 : CameraTestGeneric("camera_test_2d", options)
 {
-  blaze_detect_client_ = rclcpp_action::create_client<GrabBlazeDataAction>(
-    this, camera_ns_ + "/grab_blaze_data");
+  detect_3d_client_ = rclcpp_action::create_client<Grab3DDataAction>(
+    this, camera_ns_ + "/grab_3d_data");
 
   grab_images_client_ = rclcpp_action::create_client<GrabImagesAction>(
     this, camera_ns_ + "/grab_images_raw");
@@ -91,16 +91,16 @@ bool CameraTest2D::detect_camera()
   }
 
   // Step 2: Discriminate 2D vs 3D camera.
-  // grab_blaze_data is ONLY registered for Blaze (3D) cameras, and ONLY after
+  // grab_3d_data is ONLY registered for 3D cameras, and ONLY after
   // the camera hardware connects (~4 s after driver start).
   // Using the remaining budget from the overall deadline means this check
   // never extends the total detection time beyond detection_timeout_.
   auto remaining = deadline - std::chrono::steady_clock::now();
   if (remaining > std::chrono::nanoseconds(0) &&
-      wait_for_action_server<GrabBlazeDataAction>(blaze_detect_client_, remaining))
+      wait_for_action_server<Grab3DDataAction>(detect_3d_client_, remaining))
   {
     RCLCPP_INFO(get_logger(),
-      "3D camera detected (grab_blaze_data action available). Skipping 2D tests.");
+      "3D camera detected (grab_3d_data action available). Skipping 2D tests.");
     is_wrong_camera_type_ = true;
     return false;
   }
@@ -239,19 +239,6 @@ bool CameraTest2D::test_set_binning()
 // then restore the full sensor area.
 bool CameraTest2D::test_set_roi()
 {
-  // ── [0] Reset to full sensor first (camera may start with a user-defined
-  //        crop stored in its persistent UserSet / CurrentSetting) ────────────
-  auto req_reset = std::make_shared<SetROI::Request>();
-  req_reset->target_roi.x_offset  = 0;
-  req_reset->target_roi.y_offset  = 0;
-  req_reset->target_roi.width     = 65535;
-  req_reset->target_roi.height    = 65535;
-  req_reset->target_roi.do_rectify = false;
-  auto res_reset = call_service<SetROI>(set_roi_client_, req_reset);
-  if (!res_reset) {
-    return assert_true(false, "test_set_roi", "service call failed (reset to full res)");
-  }
-
   // ── [1] camera_info.roi must be all-zeros at full resolution ──────────────
   auto roi_initial = get_camera_info_roi();
   bool ok = assert_true(

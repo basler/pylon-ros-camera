@@ -40,7 +40,7 @@
 # With camera_type:=auto (default) both test nodes start.  Each one waits up
 # to camera_detection_timeout seconds for its action server:
 #   • grab_images_raw   → 2D camera present   → runs 2D tests
-#   • grab_blaze_data   → 3D camera present   → runs 3D tests
+#   • grab_3d_data      → 3D camera present   → runs 3D tests
 # The node that does not find its camera prints "not detected, skipping" and
 # exits cleanly – no failure, safe for CI without hardware.
 #

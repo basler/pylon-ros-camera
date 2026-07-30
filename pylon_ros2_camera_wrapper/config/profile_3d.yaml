@@ -1,0 +1,28 @@
+# 3D camera profile parameters
+# This profile is intended for 3D-capable camera families (starting with blaze).
+# Additional 3D camera models can be supported by extending this profile.
+
+/**:
+  ros__parameters:
+
+    # The tf frame under which images/point clouds are published
+    camera_frame: pylon_camera
+
+    # The DeviceUserID of the camera. If empty, the first camera found in the
+    # device list will be used
+    device_user_id: ""
+
+    # Desired publisher frame rate. This parameter can only be set at startup.
+    frame_rate: 20.0
+
+    ##########################################################################
+    ######################## Image Intensity Settings ########################
+    ##########################################################################
+
+    # The exposure time in microseconds to be set after opening the camera.
+    # exposure: 250.0
+
+    ##########################################################################
+
+    # Grab timeout in milliseconds
+    grab_timeout: 1000

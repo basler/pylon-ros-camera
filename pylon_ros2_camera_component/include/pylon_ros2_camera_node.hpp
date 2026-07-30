@@ -67,7 +67,7 @@
 
 // actions
 #include "pylon_ros2_camera_interfaces/action/grab_images.hpp"
-#include "pylon_ros2_camera_interfaces/action/grab_blaze_data.hpp"
+#include "pylon_ros2_camera_interfaces/action/grab3_d_data.hpp"
 
 // camera
 #include "pylon_ros2_camera.hpp"
@@ -129,8 +129,8 @@ using TriggerSrv                    = std_srvs::srv::Trigger;
 
 using GrabImagesAction              = pylon_ros2_camera_interfaces::action::GrabImages;
 using GrabImagesGoalHandle          = rclcpp_action::ServerGoalHandle<GrabImagesAction>;
-using GrabBlazeDataAction           = pylon_ros2_camera_interfaces::action::GrabBlazeData;
-using GrabBlazeDataGoalHandle       = rclcpp_action::ServerGoalHandle<GrabBlazeDataAction>;
+using Grab3DDataAction              = pylon_ros2_camera_interfaces::action::Grab3DData;
+using Grab3DDataGoalHandle          = rclcpp_action::ServerGoalHandle<Grab3DDataAction>;
 
 
 class PylonROS2CameraNode : public rclcpp::Node
@@ -536,7 +536,7 @@ protected:
   uint32_t getNumSubscribersRectImagePub() const;
 
   /**
-   * @brief Service callback for getting the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and blaze.
+   * @brief Service callback for getting the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and 3D cameras.
    * @param req request
    * @param res response
    */
@@ -544,7 +544,7 @@ protected:
                                std::shared_ptr<GetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for getting the GigE cameras: Number of frames received Other cameras: Number of buffers processed - Applies to: BCON, GigE, USB and blaze.
+   * @brief Service callback for getting the GigE cameras: Number of frames received Other cameras: Number of buffers processed - Applies to: BCON, GigE, USB and 3D cameras.
    * @param req request
    * @param res response
    */
@@ -560,7 +560,7 @@ protected:
                                              std::shared_ptr<GetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for getting the Number of frames lost because there were no buffers in the queue - Applies to: GigE and blaze.
+   * @brief Service callback for getting the Number of frames lost because there were no buffers in the queue - Applies to: GigE and 3D cameras.
    * @param req request
    * @param res response
    */
@@ -576,7 +576,7 @@ protected:
                                              std::shared_ptr<GetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for getting the Number of emitted packet resend commands sent - Applies to: GigE and blaze.
+   * @brief Service callback for getting the Number of emitted packet resend commands sent - Applies to: GigE and 3D cameras.
    * @param req request
    * @param res response
    */
@@ -936,7 +936,7 @@ protected:
                                   std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for setting the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and blaze.
+   * @brief Service callback for setting the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and 3D cameras.
    * @param req request
    * @param res response
    */
@@ -1520,29 +1520,29 @@ protected:
   void executeGrabRectImagesAction(const std::shared_ptr<GrabImagesGoalHandle> goal_handle);
 
   /**
-   * @brief Handle action goal relatively to blaze data grabbing
+   * @brief Handle action goal relatively to 3D data grabbing
    * @return goal response
    */
-  rclcpp_action::GoalResponse handleGrabBlazeDataActionGoal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const GrabBlazeDataAction::Goal> goal);
+  rclcpp_action::GoalResponse handleGrab3DDataActionGoal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const Grab3DDataAction::Goal> goal);
 
   /**
-   * @brief Handle action cancellation relatively to blaze data grabbing
+   * @brief Handle action cancellation relatively to 3D data grabbing
    * @param goal_handle Goal handle
    * @return Response of the action is cancelled 
    */
-  rclcpp_action::CancelResponse handleGrabBlazeDataActionGoalCancel(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
+  rclcpp_action::CancelResponse handleGrab3DDataActionGoalCancel(const std::shared_ptr<Grab3DDataGoalHandle> goal_handle);
 
   /**
-   * @brief Handle action if goal is accepted relatively to blaze data grabbing
+   * @brief Handle action if goal is accepted relatively to 3D data grabbing
    * @param goal_handle handle 
    */
-  void handleGrabBlazeDataActionGoalAccepted(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
+  void handleGrab3DDataActionGoalAccepted(const std::shared_ptr<Grab3DDataGoalHandle> goal_handle);
 
   /**
-   * @brief Grab blaze data through action
+   * @brief Grab 3D data through action
    * @param goal_handle 
    */
-  void executeGrabBlazeDataAction(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
+  void executeGrab3DDataAction(const std::shared_ptr<Grab3DDataGoalHandle> goal_handle);
 
   /**
    * @brief Create diagnostics
@@ -1657,9 +1657,9 @@ protected:
 
   cv_bridge::CvImage* cv_bridge_img_rect_;
 
-  sensor_msgs::msg::PointCloud2 blaze_cloud_msg_;
+  sensor_msgs::msg::PointCloud2 cloud_3d_msg_;
   sensor_msgs::msg::Image intensity_map_msg_, depth_map_msg_, depth_map_color_msg_, confidence_map_msg_;
-  sensor_msgs::msg::CameraInfo blaze_cam_info_msg_;
+  sensor_msgs::msg::CameraInfo cam_info_3d_msg_;
 
   // topics
   rclcpp::Publisher<pylon_ros2_camera_interfaces::msg::CurrentParams>::SharedPtr current_params_pub_;
@@ -1669,18 +1669,22 @@ protected:
   // image transport publishers
   image_transport::CameraPublisher img_raw_pub_;
   image_transport::Publisher* img_rect_pub_;
-  // blaze related topics
-  std::string blaze_cloud_topic_name_;
-  std::string blaze_intensity_topic_name_;
-  std::string blaze_depth_map_topic_name_;
-  std::string blaze_depth_map_color_topic_name_;
-  std::string blaze_confidence_topic_name_;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr blaze_cloud_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr blaze_intensity_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr blaze_depth_map_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr blaze_depth_map_color_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr blaze_confidence_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr blaze_cam_info_pub_;
+  // 3D related topics
+  std::string cloud_3d_topic_name_;
+  std::string intensity_3d_topic_name_;
+  std::string depth_map_3d_topic_name_;
+  std::string depth_map_color_3d_topic_name_;
+  std::string confidence_3d_topic_name_;
+  std::string intensity_left_3d_topic_name_;
+  std::string intensity_right_3d_topic_name_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr intensity_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr depth_map_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr depth_map_color_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr confidence_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr cam_info_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr intensity_left_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr intensity_right_3d_pub_;
 
   // services
   rclcpp::Service<GetIntegerSrv>::SharedPtr get_max_num_buffer_srv_;
@@ -1751,7 +1755,7 @@ protected:
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_ptp_uc_port_address_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_sync_free_run_timer_start_time_low_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_sync_free_run_timer_start_time_high_srv_;
-  // blaze related services
+  // 3D camera specific services
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_min_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_max_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_temporal_filter_strength_srv_;
@@ -1773,7 +1777,7 @@ protected:
   rclcpp::Service<SetFloatSrv>::SharedPtr set_periodic_signal_period_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_periodic_signal_delay_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_sync_free_run_timer_trigger_rate_abs_srv_;
-  // blaze related services
+  // 3D camera specific services
   rclcpp::Service<SetFloatSrv>::SharedPtr set_acquisition_frame_rate_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_scan_3d_calibration_offset_srv_;
 
@@ -1794,7 +1798,7 @@ protected:
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_two_step_operation_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_ptp_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_sync_free_run_timer_srv_;
-  // blaze related services
+  // 3D camera specific services
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_spatial_filter_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_temporal_filter_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_outlier_removal_srv_;
@@ -1818,8 +1822,8 @@ protected:
   // actions
   rclcpp_action::Server<GrabImagesAction>::SharedPtr grab_imgs_raw_as_;
   rclcpp_action::Server<GrabImagesAction>::SharedPtr grab_imgs_rect_as_;
-  // blaze related action
-  rclcpp_action::Server<GrabBlazeDataAction>::SharedPtr grab_blaze_data_as_;
+  // 3D related action
+  rclcpp_action::Server<Grab3DDataAction>::SharedPtr grab_3d_data_as_;
 
   // spinning thread
   std::thread spin_thread_;

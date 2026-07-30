@@ -56,7 +56,7 @@
 
 #include "pylon_ros2_camera_test/camera_test_generic.hpp"
 
-#include <pylon_ros2_camera_interfaces/action/grab_blaze_data.hpp>
+#include <pylon_ros2_camera_interfaces/action/grab3_d_data.hpp>
 #include <pylon_ros2_camera_interfaces/action/grab_images.hpp>
 #include <pylon_ros2_camera_interfaces/srv/set_binning.hpp>
 #include <pylon_ros2_camera_interfaces/srv/set_roi.hpp>
@@ -97,7 +97,7 @@ protected:
 
   // ── Type aliases ───────────────────────────────────────────────────────────
 
-  using GrabBlazeDataAction = pylon_ros2_camera_interfaces::action::GrabBlazeData;
+  using Grab3DDataAction = pylon_ros2_camera_interfaces::action::Grab3DData;
   using GrabImagesAction    = pylon_ros2_camera_interfaces::action::GrabImages;
   using GrabImagesGoalHdl   = rclcpp_action::ClientGoalHandle<GrabImagesAction>;
   using SetBinning          = pylon_ros2_camera_interfaces::srv::SetBinning;
@@ -106,7 +106,7 @@ protected:
 
   // ── Clients ────────────────────────────────────────────────────────────────
 
-  rclcpp_action::Client<GrabBlazeDataAction>::SharedPtr blaze_detect_client_;
+  rclcpp_action::Client<Grab3DDataAction>::SharedPtr detect_3d_client_;
   rclcpp_action::Client<GrabImagesAction>::SharedPtr grab_images_client_;
   rclcpp::Client<SetBinning>::SharedPtr set_binning_client_;
   rclcpp::Client<SetROI>::SharedPtr set_roi_client_;

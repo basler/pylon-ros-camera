@@ -31,7 +31,7 @@
 #include <string>
 #include <vector>
 
-#include "internal/impl/pylon_ros2_camera_gige.hpp"
+#include "internal/impl/pylon_ros2_camera_3d.hpp"
 
 #include <pylon/BlazeInstantCamera.h>
 
@@ -46,24 +46,6 @@
 
 #include "pcl_conversions/pcl_conversions.h"
 
-#pragma pack(push, 1)
-struct BGR 
-{
-    uint8_t b;
-    uint8_t g;
-    uint8_t r;
-};
-#pragma pack(pop)
-
-#pragma pack(push, 1)
-struct Point
-{
-    float x;
-    float y;
-    float z;
-};
-#pragma pack(pop)
-
 
 namespace pylon_ros2_camera
 {
@@ -72,25 +54,17 @@ namespace
 {
     static const rclcpp::Logger LOGGER_BLAZE = rclcpp::get_logger("basler.pylon.ros2.pylon_ros2_blaze_camera");
 
-    // value that identifies pixel with missing depth information
-    constexpr static double  s_invalid_data_value = std::numeric_limits<double>::quiet_NaN();
-
-    // Checks whether a given 3D point represents a valid coordinate.
-    // The Scan3dInvalidDataValue is used to identify a non-valid pixel.
-    static inline bool isValid(const Point* point)
-    {
-        static constexpr bool isInvalidValueNaN = s_invalid_data_value != s_invalid_data_value; // true, when s_invalid_data_value equals NaN
-        return isInvalidValueNaN ? !std::isnan(point->z) : point->z != s_invalid_data_value;
-    }
+    // The BGR and Point structs, the s_invalid_data_value marker and the isValid()
+    // helper are provided by the generic 3D camera profile
+    // (pylon_ros2_camera_3d.hpp) and shared across all 3D cameras.
 }
 
-class PylonROS2BlazeCamera : public PylonROS2GigECamera
+class PylonROS2BlazeCamera : public PylonROS23DCamera
 {
 public:
     explicit PylonROS2BlazeCamera(Pylon::IPylonDevice* device);
     virtual ~PylonROS2BlazeCamera();
 
-    virtual bool isBlaze() override;
     virtual bool registerCameraConfiguration() override;
     virtual bool openCamera() override;
     virtual bool applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters) override;
@@ -100,12 +74,12 @@ public:
     virtual std::string grabbingStopping() override;
     virtual bool isCamRemoved() override;
 
-    virtual bool grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
+    virtual bool grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
                            sensor_msgs::msg::Image& intensity_map_msg, 
                            sensor_msgs::msg::Image& depth_map_msg, 
                            sensor_msgs::msg::Image& depth_map_color_msg, 
                            sensor_msgs::msg::Image& confidence_map_msg);
-            bool grabBlaze(Pylon::CGrabResultPtr& grab_result);
+            bool grab3D(Pylon::CGrabResultPtr& grab_result);
 
             bool processAndConvertBlazeData(const Pylon::CPylonDataContainer& container,
                                             sensor_msgs::msg::PointCloud2& cloud_msg,
@@ -116,14 +90,9 @@ public:
             bool convertGrabResultToPointCloud(const Pylon::CPylonDataContainer& container,
                                                sensor_msgs::msg::PointCloud2& cloud_msg);
 
-            // Calculates a grayscale depth map from point cloud data sent from a blaze camera.
-            // The buffer that pDepthMap points to must be allocated accordingly before 
-            // passing it to the calculateDepthMap function.
-            void calculateDepthMap(const Pylon::CPylonDataComponent& pointCloud, int min_depth, int max_depth, uint16_t* pDepthMap);
-            // Calculates a color depth map from point cloud data sent from a blaze camera.
-            // The buffer that pDepthMap points to must be allocated accordingly before
-            // passing it to the calculateDepthMap function.
-            void calculateDepthMapColor(const Pylon::CPylonDataComponent& pointCloud, int min_depth, int max_depth, BGR* pDepthMap);
+            // Grayscale and false-color depth map computation from a Coord3D_ABC32f
+            // range component is provided by the generic 3D camera profile
+            // (PylonROS23DCamera::calculateDepthMap / calculateDepthMapColor).
     
     virtual void getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg);
     
@@ -173,7 +142,7 @@ public:
 };
 
 PylonROS2BlazeCamera::PylonROS2BlazeCamera(Pylon::IPylonDevice* device) :
-    PylonROS2GigECamera(device),
+    PylonROS23DCamera(device),
     blaze_cam_(new Pylon::CBlazeInstantCamera(device)),
     invalid_data_value_old_(0.0f)
 {
@@ -222,31 +191,14 @@ PylonROS2BlazeCamera::~PylonROS2BlazeCamera()
 
     if (blaze_cam_)
     {
-        // The base class cam_ was constructed with the same IPylonDevice pointer as
-        // blaze_cam_.  blaze_cam_'s destructor will call DestroyDevice() on that
-        // shared pointer.  Detach the device from cam_ first (without destroying
-        // it) so the base class destructor does not call DestroyDevice() a second
-        // time, which would SIGSEGV inside libpylonbase.so.
-        try
-        {
-            if (cam_->IsPylonDeviceAttached())
-            {
-                cam_->DetachDevice();
-            }
-        }
-        catch (const GenICam::GenericException& e)
-        {
-            RCLCPP_DEBUG_STREAM(LOGGER_BLAZE, "Destructor (blaze): Failed to detach device from base cam: " << e.GetDescription());
-        }
+        // blaze_cam_ and the inherited base cam_ wrap the same IPylonDevice.
+        // Detach the device from the base cam_ (without destroying it) before
+        // blaze_cam_ destroys it, to avoid a double DestroyDevice().
+        this->detachBaseDevice();
 
         delete blaze_cam_;
         blaze_cam_ = nullptr;
     }
-}
-
-bool PylonROS2BlazeCamera::isBlaze()
-{
-    return true;
 }
 
 bool PylonROS2BlazeCamera::registerCameraConfiguration()
@@ -375,7 +327,7 @@ bool PylonROS2BlazeCamera::startGrabbing(const PylonROS2CameraParameter& paramet
         RCLCPP_DEBUG_STREAM_ONCE(LOGGER_BLAZE, "Trigger timeout for blaze: " << trigger_timeout_);
 
         Pylon::CGrabResultPtr grab_result;
-        this->grabBlaze(grab_result);
+        this->grab3D(grab_result);
         
         if (grab_result.IsValid())
         {
@@ -431,14 +383,14 @@ bool PylonROS2BlazeCamera::isCamRemoved()
     return cam_->IsCameraDeviceRemoved();
 }
 
-bool PylonROS2BlazeCamera::grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
+bool PylonROS2BlazeCamera::grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
                                      sensor_msgs::msg::Image& intensity_map_msg, 
                                      sensor_msgs::msg::Image& depth_map_msg, 
                                      sensor_msgs::msg::Image& depth_map_color_msg, 
                                      sensor_msgs::msg::Image& confidence_map_msg)
 {
     Pylon::CGrabResultPtr ptr_grab_result;
-    if (!this->grabBlaze(ptr_grab_result))
+    if (!this->grab3D(ptr_grab_result))
     {   
         RCLCPP_ERROR(LOGGER_BLAZE, "Grabbing with blaze failed");
         return false;
@@ -451,7 +403,7 @@ bool PylonROS2BlazeCamera::grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
     return true;
 }
 
-bool PylonROS2BlazeCamera::grabBlaze(Pylon::CGrabResultPtr& grab_result)
+bool PylonROS2BlazeCamera::grab3D(Pylon::CGrabResultPtr& grab_result)
 {
     if (!blaze_cam_->IsGrabbing())
     {
@@ -565,7 +517,7 @@ bool PylonROS2BlazeCamera::processAndConvertBlazeData(const Pylon::CPylonDataCon
 
     // depth map
     uint16_t* pdepth_data = new uint16_t[width * height];
-    this->calculateDepthMap(range_component, min_depth, max_depth, pdepth_data);
+    this->calculateDepthMap(range_component, blaze_cam_->Scan3dCoordinateScale.GetValue(), min_depth, max_depth, pdepth_data);
     cv::Mat depth_map = cv::Mat(height, width, CV_16UC1, pdepth_data);
     // convert
     cv_bridge::CvImage depth_map_cv_img;
@@ -665,96 +617,6 @@ bool PylonROS2BlazeCamera::convertGrabResultToPointCloud(const Pylon::CPylonData
     pcl::toROSMsg(*ppoint_cloud, cloud_msg);
 
     return true;
-}
-
-void PylonROS2BlazeCamera::calculateDepthMap(const Pylon::CPylonDataComponent& pointCloud, int min_depth, int max_depth, uint16_t* pDepthMap)
-{
-    const int width = pointCloud.GetWidth();
-    const int height = pointCloud.GetHeight();
-    const Point *pPoint = reinterpret_cast<const Point*>(pointCloud.GetData());
-
-    const double scale = 65535.0 / (max_depth - min_depth);
-
-    for (int row = 0; row < height; ++row)
-    {
-        for (int col = 0; col < width; ++col, ++pPoint, ++pDepthMap)
-        {
-            if (isValid(pPoint))
-            {
-                // Calculate the radial distance.
-                //double distance = sqrt(pPoint->x * pPoint->x + pPoint->y * pPoint->y + pPoint->z * pPoint->z);
-                // EDIT: the standard distance is enough in this context
-                double distance = pPoint->z * this->blaze_cam_->Scan3dCoordinateScale.GetValue();
-                // Clip to [min_depth..MaxDept].
-                if (distance < min_depth)
-                    distance = min_depth;
-                else if (distance > max_depth)
-                    distance = max_depth;
-                *pDepthMap = (uint16_t) ( ( distance - min_depth ) * scale );
-            }
-            else
-            {
-                // No depth information available for this pixel. Zero it.
-                *pDepthMap = 0;
-            }
-        }
-    }
-}
-
-void PylonROS2BlazeCamera::calculateDepthMapColor(const Pylon::CPylonDataComponent& pointCloud, int min_depth, int max_depth, BGR* pDepthMap)
-{
-    const int width = pointCloud.GetWidth();
-    const int height = pointCloud.GetHeight();
-    const Point *pPoint = reinterpret_cast<const Point*>(pointCloud.GetData());
-
-    const double scale = 65535.0 / (max_depth - min_depth);
-
-    for (int row = 0; row < height; ++row)
-    {
-        for (int col = 0; col < width; ++col, ++pPoint, ++pDepthMap)
-        {
-            if (isValid(pPoint))
-            {
-                // Calculate the radial distance.
-                double distance = sqrt(pPoint->x * pPoint->x + pPoint->y * pPoint->y + pPoint->z * pPoint->z);
-
-                // Clip to [min_depth..MaxDept].
-                if (distance < min_depth)
-                    distance = min_depth;
-                else if (distance > max_depth)
-                    distance = max_depth;
-                
-                // Calculate the color.
-                BGR bgr;
-                const uint16_t g = (uint16_t)((distance - min_depth) * scale);
-                const uint16_t val = g >> 6 & 0xff;
-                const uint16_t sel = g >> 14;
-                uint32_t res = val << 8 | 0xff;
-                if (sel & 0x01)
-                {
-                    res = (~res) >> 8 & 0xffff;
-                }
-                if (sel & 0x02)
-                {
-                    res = res << 8;
-                }
-                bgr.r = res & 0xff;
-                res = res >> 8;
-                bgr.g = res & 0xff;
-                res = res >> 8;
-                bgr.b = res & 0xff;
-
-                *pDepthMap = bgr;
-            }
-            else
-            {
-                // No depth information available for this pixel. Set it to black.
-                BGR bgr;
-                bgr.r = bgr.g = bgr.b = 0;
-                *pDepthMap = bgr;
-            }
-        }
-    }
 }
 
 void PylonROS2BlazeCamera::getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg)

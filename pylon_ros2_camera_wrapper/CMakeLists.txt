@@ -40,20 +40,19 @@ find_package(rclcpp_components REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(pylon_ros2_camera_component REQUIRED)
 
+set(CAMERA_WRAPPER_DEPENDENCIES
+	rclcpp
+	rclcpp_components
+	rcutils
+	pylon_ros2_camera_component
+)
+
 add_executable(${PROJECT_NAME}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/${PROJECT_NAME}.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
-	${pylon_ros2_camera_component_INCLUDE_DIRS}
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-	${pylon_ros2_camera_component_LIBRARIES}
-	rclcpp::rclcpp
-	rclcpp_components::component
-	rclcpp_components::component_manager
-	rcutils::rcutils
+ament_target_dependencies(${PROJECT_NAME}
+	${CAMERA_WRAPPER_DEPENDENCIES}
 )
 
 ### installation
@@ -87,6 +86,12 @@ if(BUILD_TESTING)
     add_compile_definitions(image_geometry_HPP)
   endif()
 
+  set(CAMERA_TEST_DEPENDENCIES
+    ${CAMERA_WRAPPER_DEPENDENCIES}
+    cv_bridge
+    image_geometry
+  )
+
 ### test
 
   add_library(action_client_test_grab_images SHARED
@@ -96,18 +101,8 @@ if(BUILD_TESTING)
   target_compile_definitions(action_client_test_grab_images
     PRIVATE "TEST_GRAB_IMAGES_ACTION_CLIENT_BUILDING_DLL")
 
-  target_include_directories(action_client_test_grab_images PRIVATE
-    ${pylon_ros2_camera_component_INCLUDE_DIRS}
-  )
-
-  target_link_libraries(action_client_test_grab_images PRIVATE
-    ${pylon_ros2_camera_component_LIBRARIES}
-    cv_bridge::cv_bridge
-    image_geometry::image_geometry
-    rclcpp::rclcpp
-    rclcpp_components::component
-    rclcpp_components::component_manager
-    rcutils::rcutils
+  ament_target_dependencies(action_client_test_grab_images
+    ${CAMERA_TEST_DEPENDENCIES}
   )
 
   rclcpp_components_register_node(action_client_test_grab_images
@@ -115,30 +110,20 @@ if(BUILD_TESTING)
     EXECUTABLE test_grab_images_action_client
   )
 
-  add_library(action_client_test_grab_blaze_data SHARED
-    ${CMAKE_CURRENT_SOURCE_DIR}/test/test_grab_blaze_data_action_client.cpp
+  add_library(action_client_test_grab_3d_data SHARED
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/test_grab_3d_data_action_client.cpp
   )
 
-  target_compile_definitions(action_client_test_grab_blaze_data
-    PRIVATE "TEST_GRAB_BLAZE_DATA_ACTION_CLIENT_BUILDING_DLL")
+  target_compile_definitions(action_client_test_grab_3d_data
+    PRIVATE "TEST_GRAB_3D_DATA_ACTION_CLIENT_BUILDING_DLL")
 
-  target_include_directories(action_client_test_grab_blaze_data PRIVATE
-    ${pylon_ros2_camera_component_INCLUDE_DIRS}
+  ament_target_dependencies(action_client_test_grab_3d_data
+    ${CAMERA_TEST_DEPENDENCIES}
   )
 
-  target_link_libraries(action_client_test_grab_blaze_data PRIVATE
-    ${pylon_ros2_camera_component_LIBRARIES}
-    cv_bridge::cv_bridge
-    image_geometry::image_geometry
-    rclcpp::rclcpp
-    rclcpp_components::component
-    rclcpp_components::component_manager
-    rcutils::rcutils
-  )
-
-  rclcpp_components_register_node(action_client_test_grab_blaze_data
-    PLUGIN "pylon_ros2_camera::TestGrabBlazeDataActionClient"
-    EXECUTABLE test_grab_blaze_data_action_client
+  rclcpp_components_register_node(action_client_test_grab_3d_data
+    PLUGIN "pylon_ros2_camera::TestGrab3DDataActionClient"
+    EXECUTABLE test_grab_3d_data_action_client
   )
 
   add_library(action_client_test_grab_image SHARED
@@ -148,18 +133,8 @@ if(BUILD_TESTING)
   target_compile_definitions(action_client_test_grab_image
     PRIVATE "TEST_GRAB_IMAGE_ACTION_CLIENT_BUILDING_DLL")
 
-  target_include_directories(action_client_test_grab_image PRIVATE
-    ${pylon_ros2_camera_component_INCLUDE_DIRS}
-  )
-
-  target_link_libraries(action_client_test_grab_image PRIVATE
-    ${pylon_ros2_camera_component_LIBRARIES}
-    cv_bridge::cv_bridge
-    image_geometry::image_geometry
-    rclcpp::rclcpp
-    rclcpp_components::component
-    rclcpp_components::component_manager
-    rcutils::rcutils
+  ament_target_dependencies(action_client_test_grab_image
+    ${CAMERA_TEST_DEPENDENCIES}
   )
 
   rclcpp_components_register_node(action_client_test_grab_image
@@ -170,7 +145,7 @@ if(BUILD_TESTING)
   install(TARGETS
         action_client_test_grab_images
         action_client_test_grab_image
-        action_client_test_grab_blaze_data
+        action_client_test_grab_3d_data
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION lib/${PROJECT_NAME}

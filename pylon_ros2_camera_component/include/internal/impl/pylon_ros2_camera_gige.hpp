@@ -59,6 +59,7 @@ struct GigECameraTrait
     // Therefore now both of them will use floats and convert at the end to integer when necessary
     typedef GenApi::IInteger GainType; 
 
+    typedef int64_t AutoTargetBrightnessValueType;
     typedef Basler_UniversalCameraParams::ShutterModeEnums ShutterModeEnums;
     typedef Basler_UniversalCameraParams::UserOutputSelectorEnums UserOutputSelectorEnums;
     typedef Basler_UniversalCameraParams::LineSelectorEnums LineSelectorEnums;
@@ -83,6 +84,11 @@ struct GigECameraTrait
     typedef Basler_UniversalCameraParams::BalanceRatioSelectorEnums BalanceRatioSelectorEnums;
     typedef Basler_UniversalCameraParams::TimerSelectorEnums TimerSelectorEnums;
     typedef Basler_UniversalCameraParams::TimerTriggerSourceEnums TimerTriggerSourceEnums;
+
+    static inline AutoTargetBrightnessValueType convertBrightness(const int& value)
+    {
+        return value;
+    }
 };
 
 typedef PylonROS2CameraImpl<GigECameraTrait> PylonROS2GigECamera;

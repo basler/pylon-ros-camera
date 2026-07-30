@@ -36,13 +36,13 @@
 // Inherits and auto-registers all generic tests from CameraTestGeneric, then
 // adds:
 //
-//   test_grab_3d_data          – GrabBlazeData action, exposure_given=true
+//   test_grab_3d_data          – Grab3DData action, exposure_given=true
 //   test_set_depth_range       – set depth_min + depth_max, verify, restore
 //   test_enable_spatial_filter – enable / disable round-trip
 //   test_enable_temporal_filter – enable / disable round-trip
 //
-// Camera detection: waits for the grab_blaze_data action server.
-// Note: "grab_blaze_data" is the current driver action name; the test class
+// Camera detection: waits for the grab_3d_data action server.
+// Note: "grab_3d_data" is the current driver action name; the test class
 //       is intentionally named CameraTest3D to stay model-agnostic.
 //
 // Adding a new 3D test:
@@ -56,7 +56,7 @@
 
 #include "pylon_ros2_camera_test/camera_test_generic.hpp"
 
-#include <pylon_ros2_camera_interfaces/action/grab_blaze_data.hpp>
+#include <pylon_ros2_camera_interfaces/action/grab3_d_data.hpp>
 #include <pylon_ros2_camera_interfaces/srv/set_integer_value.hpp>
 
 #include <rclcpp_action/rclcpp_action.hpp>
@@ -82,15 +82,15 @@ protected:
 
   // ── Type aliases ───────────────────────────────────────────────────────────
 
-  using GrabBlazeDataAction  = pylon_ros2_camera_interfaces::action::GrabBlazeData;
-  using GrabBlazeDataGoalHdl =
-    rclcpp_action::ClientGoalHandle<GrabBlazeDataAction>;
+  using Grab3DDataAction  = pylon_ros2_camera_interfaces::action::Grab3DData;
+  using Grab3DDataGoalHdl =
+    rclcpp_action::ClientGoalHandle<Grab3DDataAction>;
   using SetIntegerValue      = pylon_ros2_camera_interfaces::srv::SetIntegerValue;
   using SetBool              = std_srvs::srv::SetBool;
 
   // ── Clients ────────────────────────────────────────────────────────────────
 
-  rclcpp_action::Client<GrabBlazeDataAction>::SharedPtr grab_3d_client_;
+  rclcpp_action::Client<Grab3DDataAction>::SharedPtr grab_3d_client_;
   rclcpp::Client<SetIntegerValue>::SharedPtr set_depth_min_client_;
   rclcpp::Client<SetIntegerValue>::SharedPtr set_depth_max_client_;
   rclcpp::Client<SetBool>::SharedPtr enable_spatial_filter_client_;

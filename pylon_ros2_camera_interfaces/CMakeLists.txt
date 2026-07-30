@@ -45,7 +45,7 @@ set(SRV_FILES
 
 set(ACTION_FILES
   "action/GrabImages.action"
-  "action/GrabBlazeData.action"
+  "action/Grab3DData.action"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}
