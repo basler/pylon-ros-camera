@@ -155,16 +155,10 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
         }
 #endif
 #ifdef HAVE_PYLON_STEREO_ACE
-        // TODO: The Stereo ace has no static device class string —
-        //   CStereoAceInstantCamera::DeviceClass() throws a LogicalErrorException.
-        //   The interface device class is BaslerGenTlStaDeviceClass = "BaslerGTC/Basler/basler_xw"
-        //   but it is not confirmed whether enumerated *devices* report this string via
-        //   device_info.GetDeviceClass(). Verify with Stereo ace hardware and replace the
-        //   placeholder device class string below with the actual value.
-        // else if (device_class == "TODO_STEREO_ACE_DEVICE_CLASS")
-        // {
-        //     return STEREO_ACE;
-        // }
+        else if (device_class == "BaslerGTC/Basler/basler_xw")
+        {
+            return STEREO_ACE;
+        }
 #endif
         else
         {
