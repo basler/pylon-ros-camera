@@ -49,6 +49,9 @@ def _launch_node(context: LaunchContext):
     resolved_config_file = resolve_profile_config(
         config_file.perform(context), profile.perform(context))
 
+    device_user_id = LaunchConfiguration('device_user_id')
+    device_user_id_str = device_user_id.perform(context)
+
     mtu_size = LaunchConfiguration('mtu_size')
     startup_user_set = LaunchConfiguration('startup_user_set')
     enable_status_publisher = LaunchConfiguration('enable_status_publisher')
@@ -83,7 +86,8 @@ def _launch_node(context: LaunchContext):
                         'mtu_size': mtu_size,
                         'startup_user_set': startup_user_set,
                         'enable_status_publisher': enable_status_publisher,
-                        'enable_current_params_publisher': enable_current_params_publisher
+                        'enable_current_params_publisher': enable_current_params_publisher,
+                        **({'device_user_id': device_user_id_str} if device_user_id_str else {}),
                     }
                 ]
             ),
@@ -117,6 +121,14 @@ def generate_launch_description():
         description='Camera profile used to pick a default config file when '
                     '"config_file" is empty: "2d" -> default.yaml, '
                     '"3d" -> profile_3d.yaml.'
+    )
+
+    declare_device_user_id_cmd = DeclareLaunchArgument(
+        'device_user_id',
+        default_value='',
+        description='DeviceUserID of the camera to connect to. If empty, the '
+                    'first available camera is used (or the value from the '
+                    'config YAML file).'
     )
 
     declare_mtu_size_cmd = DeclareLaunchArgument(
@@ -158,6 +170,7 @@ def generate_launch_description():
 
     ld.add_action(declare_config_file_cmd)
     ld.add_action(declare_profile_cmd)
+    ld.add_action(declare_device_user_id_cmd)
     ld.add_action(declare_mtu_size_cmd)
     ld.add_action(declare_startup_user_set_cmd)
     ld.add_action(declare_enable_status_publisher_cmd)
