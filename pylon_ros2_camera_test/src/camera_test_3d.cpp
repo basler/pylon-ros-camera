@@ -29,7 +29,9 @@
 #include "pylon_ros2_camera_test/camera_test_3d.hpp"
 
 #include <rclcpp_components/register_node_macro.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
 
+#include <atomic>
 #include <future>
 #include <memory>
 #include <string>
@@ -78,30 +80,48 @@ CameraTest3D::CameraTest3D(const rclcpp::NodeOptions & options)
 
 bool CameraTest3D::detect_camera()
 {
-  if (wait_for_action_server<Grab3DDataAction>(
-        grab_3d_client_,
-        std::chrono::seconds(detection_timeout_)))
+  // Step 1: Wait until the camera hardware is connected. get_max_num_buffer
+  // succeeds only when the camera is up (and implies the driver is running).
+  // A blaze can take several seconds to connect through its GenTL producer.
   {
-    return true;  // 3D camera confirmed.
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(detection_timeout_);
+    bool connected = false;
+    while (rclcpp::ok() && std::chrono::steady_clock::now() < deadline)
+    {
+      auto req = std::make_shared<GetIntegerValue::Request>();
+      auto res = call_service<GetIntegerValue>(
+        get_max_num_buffer_client_, req,
+        std::chrono::seconds(2), std::chrono::seconds(2), false);
+      if (res && res->success && res->value > 0) { connected = true; break; }
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+    if (!connected) return false;  // No reachable camera within the timeout.
   }
-
   if (!rclcpp::ok()) return false;
 
-  // grab_3d_data not found.  Probe whether a 2D camera is connected
-  // by calling get_max_num_buffer (succeeds only when hardware is live).
-  // success  → a 2D camera is present; wrong type for this node, skip silently.
-  // failure  → camera is genuinely unreachable.
-  auto req = std::make_shared<GetIntegerValue::Request>();
-  auto res  = call_service<GetIntegerValue>(
-    get_max_num_buffer_client_,
-    req,
-    std::chrono::seconds(3),
-    std::chrono::seconds(3));
-  if (res && res->success && res->value > 0) {
-    RCLCPP_INFO(get_logger(),
-      "2D camera detected (no grab_3d_data). Skipping 3D tests.");
-    is_wrong_camera_type_ = true;
+  // Step 2: A 3D camera streams point-cloud data on cloud_3d; a 2D camera
+  // never does. Data flow is the reliable 3D signal (more robust than the
+  // grab_3d_data action, whose discovery can lag just after connection).
+  {
+    std::atomic<bool> got_cloud{false};
+    auto cloud_sub = this->create_subscription<sensor_msgs::msg::PointCloud2>(
+      camera_ns_ + "/cloud_3d", rclcpp::QoS(rclcpp::KeepLast(1)),
+      [&got_cloud](const sensor_msgs::msg::PointCloud2::SharedPtr) { got_cloud = true; });
+    auto disc_deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (rclcpp::ok() && !got_cloud && std::chrono::steady_clock::now() < disc_deadline)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    if (got_cloud)
+    {
+      return true;  // 3D camera confirmed -> run 3D tests.
+    }
   }
+
+  // Connected but no point-cloud stream -> 2D camera, wrong type for this node.
+  RCLCPP_INFO(get_logger(),
+    "2D camera detected (no point-cloud stream). Skipping 3D tests.");
+  is_wrong_camera_type_ = true;
   return false;
 }
 

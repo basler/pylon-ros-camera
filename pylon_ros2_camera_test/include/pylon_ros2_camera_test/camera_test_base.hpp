@@ -226,7 +226,8 @@ protected:
     typename rclcpp::Client<SrvT>::SharedPtr & client,
     std::shared_ptr<typename SrvT::Request> request,
     std::chrono::seconds availability_timeout = std::chrono::seconds(10),
-    std::chrono::seconds response_timeout = std::chrono::seconds(15))
+    std::chrono::seconds response_timeout = std::chrono::seconds(15),
+    bool log_errors = true)
   {
     // Poll wait_for_service in short increments so SIGINT can interrupt it.
     {
@@ -240,7 +241,7 @@ protected:
         if (client->wait_for_service(poll)) { available = true; break; }
       }
       if (!available) {
-        if (rclcpp::ok()) {
+        if (rclcpp::ok() && log_errors) {
           RCLCPP_ERROR_STREAM(get_logger(),
             "Service not available: " << client->get_service_name());
         }
@@ -256,8 +257,10 @@ protected:
       while (rclcpp::ok()) {
         auto remaining = deadline - std::chrono::steady_clock::now();
         if (remaining <= std::chrono::nanoseconds(0)) {
-          RCLCPP_ERROR_STREAM(get_logger(),
-            "Service call timed out: " << client->get_service_name());
+          if (log_errors) {
+            RCLCPP_ERROR_STREAM(get_logger(),
+              "Service call timed out: " << client->get_service_name());
+          }
           return nullptr;
         }
         auto poll = std::min(remaining,

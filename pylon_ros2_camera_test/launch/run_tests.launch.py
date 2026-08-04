@@ -296,8 +296,9 @@ def generate_launch_description():
     )
     declare_detection_timeout = DeclareLaunchArgument(
         'camera_detection_timeout',
-        default_value='10',
-        description='Seconds to wait for the camera action server before skipping.',
+        default_value='15',
+        description='Seconds to wait for the camera to connect before skipping '
+                    '(a blaze can take several seconds through its GenTL producer).',
     )
 
     # ── Common parameters forwarded to every test node ────────────────────────
