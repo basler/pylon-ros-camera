@@ -112,6 +112,10 @@ public:
     virtual int imagePixelDepth() const override;
     virtual float maxPossibleFramerate() override;
 
+    virtual bool hasExtraIntensityImages() const override { return true; }
+    virtual const sensor_msgs::msg::Image& extraIntensityLeft()  const override { return intensity_left_msg_; }
+    virtual const sensor_msgs::msg::Image& extraIntensityRight() const override { return intensity_right_msg_; }
+
 public:
     Pylon::CStereoAceInstantCamera* stereo_ace_cam_;
 
@@ -123,6 +127,10 @@ private:
     float sta_focal_length_{0.0f}; // pixels
     float sta_cx_{0.0f};           // Scan3dPrincipalPointU
     float sta_cy_{0.0f};           // Scan3dPrincipalPointV
+
+    // Extra intensity images (left / right, from IntensityCombined, top/bottom halves)
+    sensor_msgs::msg::Image intensity_left_msg_;
+    sensor_msgs::msg::Image intensity_right_msg_;
 };
 
 PylonROS2StereoAceCamera::PylonROS2StereoAceCamera(Pylon::IPylonDevice* device) :
@@ -180,13 +188,23 @@ bool PylonROS2StereoAceCamera::applyCamSpecificStartupSettings(const PylonROS2Ca
         RCLCPP_DEBUG_STREAM(LOGGER_STEREO_ACE, "-> Model name: " << stereo_ace_cam_->GetDeviceInfo().GetModelName().c_str());
         RCLCPP_DEBUG_STREAM(LOGGER_STEREO_ACE, "-> Serial number: " << stereo_ace_cam_->GetDeviceInfo().GetSerialNumber().c_str());
 
-        // Enable intensity output (left camera, RGB8).
+        // Disable Intensity -- IntensityCombined delivers both left and right
+        // rectified images stacked vertically in one buffer; using it avoids
+        // transmitting a redundant third stream.
         stereo_ace_cam_->ComponentSelector.FromString("Intensity");
+        stereo_ace_cam_->ComponentEnable.SetValue(false);
+
+        // Enable IntensityCombined (top half = left, bottom half = right, RGB8).
+        stereo_ace_cam_->ComponentSelector.FromString("IntensityCombined");
         stereo_ace_cam_->ComponentEnable.SetValue(true);
         stereo_ace_cam_->PixelFormat.TrySetValue("RGB8");
 
         // Enable disparity output (raw uint16 disparity, Coord3D_C16).
         stereo_ace_cam_->ComponentSelector.FromString("Disparity");
+        stereo_ace_cam_->ComponentEnable.SetValue(true);
+
+        // Enable confidence map (Confidence8).
+        stereo_ace_cam_->ComponentSelector.FromString("Confidence");
         stereo_ace_cam_->ComponentEnable.SetValue(true);
 
         // AlternateActive: alternates exposures with/without the IR projector so the
@@ -196,6 +214,7 @@ bool PylonROS2StereoAceCamera::applyCamSpecificStartupSettings(const PylonROS2Ca
 
         // Read Scan3D reconstruction parameters from the Disparity component.
         // ComponentSelector must be set to Disparity before reading these nodes.
+        stereo_ace_cam_->ComponentSelector.FromString("Disparity");
         sta_coordinate_scale_  = static_cast<float>(stereo_ace_cam_->Scan3dCoordinateScale.GetValue());
         sta_coordinate_offset_ = static_cast<float>(stereo_ace_cam_->Scan3dCoordinateOffset.GetValue());
         sta_baseline_          = static_cast<float>(stereo_ace_cam_->Scan3dBaseline.GetValue());
@@ -204,8 +223,8 @@ bool PylonROS2StereoAceCamera::applyCamSpecificStartupSettings(const PylonROS2Ca
         sta_cy_                = static_cast<float>(stereo_ace_cam_->Scan3dPrincipalPointV.GetValue());
 
         RCLCPP_INFO_STREAM(LOGGER_STEREO_ACE,
-            "Stereo ace configured: Intensity=RGB8, Disparity=Coord3D_C16, "
-            "BslIlluminationMode=AlternateActive. "
+            "Stereo ace configured: IntensityCombined=RGB8 (left/right), "
+            "Disparity=Coord3D_C16, Confidence8, BslIlluminationMode=AlternateActive. "
             "Reconstruction params: focal=" << sta_focal_length_
             << " baseline=" << sta_baseline_ << " m"
             << " scale=" << sta_coordinate_scale_
@@ -232,14 +251,16 @@ bool PylonROS2StereoAceCamera::startGrabbing(const PylonROS2CameraParameter& par
         Pylon::CGrabResultPtr grab_result;
         if (this->grab3D(grab_result) && grab_result.IsValid())
         {
-            // Use the intensity component dimensions for image size (disparity may differ).
+            // Use the IntensityCombined component for image size.
+            // IntensityCombined stacks left and right vertically: each individual
+            // image is width × (combined_height / 2).
             for (int idx = 0; idx < (int)grab_result->GetDataComponentCount(); ++idx)
             {
                 const auto c = grab_result->GetDataComponent(idx);
-                if (c.GetComponentType() == Pylon::ComponentType_Intensity)
+                if (c.GetComponentType() == static_cast<Pylon::EComponentType>(0xFF01)) // IntensityCombined_STA
                 {
                     img_cols_ = static_cast<size_t>(c.GetWidth());
-                    img_rows_ = static_cast<size_t>(c.GetHeight());
+                    img_rows_ = static_cast<size_t>(c.GetHeight()) / 2; // each individual image
                     img_size_byte_ = img_cols_ * img_rows_ * imagePixelDepth();
                     is_ready_ = true;
                     break;
@@ -247,7 +268,7 @@ bool PylonROS2StereoAceCamera::startGrabbing(const PylonROS2CameraParameter& par
             }
             if (!is_ready_)
             {
-                RCLCPP_ERROR(LOGGER_STEREO_ACE, "Initial grab returned no Intensity component");
+                RCLCPP_ERROR(LOGGER_STEREO_ACE, "Initial grab returned no IntensityCombined component");
             }
         }
         else
@@ -331,7 +352,7 @@ bool PylonROS2StereoAceCamera::grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
                                       sensor_msgs::msg::Image& intensity_map_msg,
                                       sensor_msgs::msg::Image& depth_map_msg,
                                       sensor_msgs::msg::Image& depth_map_color_msg,
-                                      sensor_msgs::msg::Image& confidence_map_msg __attribute__((unused)))
+                                      sensor_msgs::msg::Image& confidence_map_msg)
 {
     Pylon::CGrabResultPtr ptr_grab_result;
     if (!this->grab3D(ptr_grab_result))
@@ -340,18 +361,55 @@ bool PylonROS2StereoAceCamera::grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
         return false;
     }
 
-    // Locate Intensity and Disparity components.
-    int idxIntensity = -1, idxDisparity = -1;
+    // Locate IntensityCombined, Disparity, and Confidence components.
+    int idxCombined = -1, idxDisparity = -1, idxConfidence = -1;
     for (int i = 0; i < (int)ptr_grab_result->GetDataComponentCount(); ++i)
     {
         const auto type = ptr_grab_result->GetDataComponent(i).GetComponentType();
-        if (type == Pylon::ComponentType_Intensity) idxIntensity = i;
-        else if (type == Pylon::ComponentType_Disparity) idxDisparity = i;
+        if (type == static_cast<Pylon::EComponentType>(0xFF01)) idxCombined  = i; // IntensityCombined_STA
+        else if (type == Pylon::ComponentType_Disparity)         idxDisparity = i;
+        else if (type == Pylon::ComponentType_Confidence)        idxConfidence = i;
     }
 
-    // --- Intensity image (left camera, RGB8) ---
-    if (idxIntensity >= 0)
-        this->buildIntensityImage(ptr_grab_result->GetDataComponent(idxIntensity), intensity_map_msg);
+    // --- IntensityCombined → intensity_3d (left) + intensity_left_3d + intensity_right_3d ---
+    const uint8_t* left_data = nullptr;
+    const uint8_t* int_data = nullptr; // pointer into the left half, used for point cloud coloring
+    int iw = 0, ih = 0; // individual half dimensions
+    if (idxCombined >= 0)
+    {
+        const auto comb = ptr_grab_result->GetDataComponent(idxCombined);
+        const int cw  = static_cast<int>(comb.GetWidth());
+        const int ch  = static_cast<int>(comb.GetHeight());
+        const int half_h = ch / 2;
+        const uint8_t* src = static_cast<const uint8_t*>(comb.GetData());
+        const size_t row_bytes = static_cast<size_t>(cw) * 3u;
+        left_data = src;                                   // top half = left
+        const uint8_t* right_data = src + half_h * row_bytes; // bottom half = right
+        iw = cw; ih = half_h;
+
+        // intensity_3d = left image
+        intensity_map_msg.encoding = sensor_msgs::image_encodings::RGB8;
+        intensity_map_msg.height   = static_cast<uint32_t>(half_h);
+        intensity_map_msg.width    = static_cast<uint32_t>(cw);
+        intensity_map_msg.step     = static_cast<uint32_t>(cw * 3);
+        intensity_map_msg.is_bigendian = false;
+        intensity_map_msg.data.assign(left_data, left_data + half_h * row_bytes);
+
+        // intensity_left_3d (same as intensity_3d)
+        intensity_left_msg_ = intensity_map_msg;
+
+        // intensity_right_3d = right image
+        intensity_right_msg_.encoding = sensor_msgs::image_encodings::RGB8;
+        intensity_right_msg_.height   = static_cast<uint32_t>(half_h);
+        intensity_right_msg_.width    = static_cast<uint32_t>(cw);
+        intensity_right_msg_.step     = static_cast<uint32_t>(cw * 3);
+        intensity_right_msg_.is_bigendian = false;
+        intensity_right_msg_.data.assign(right_data, right_data + half_h * row_bytes);
+
+        // Expose left data for point cloud coloring below.
+        int_data = left_data;
+        iw = cw; ih = half_h;
+    }
 
     // --- Disparity → point cloud + depth maps ---
     if (idxDisparity < 0)
@@ -362,8 +420,8 @@ bool PylonROS2StereoAceCamera::grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
     }
 
     const auto disp_comp = ptr_grab_result->GetDataComponent(idxDisparity);
-    const int dw = static_cast<int>(disp_comp.GetWidth());
-    const int dh = static_cast<int>(disp_comp.GetHeight());
+    const int dw = static_cast<int>(disp_comp.GetWidth());   // 1224
+    const int dh = static_cast<int>(disp_comp.GetHeight());  // 1024
     const uint16_t* disp = static_cast<const uint16_t*>(disp_comp.GetData());
 
     // Compute Z buffer in millimetres (0 = invalid pixel).
@@ -381,17 +439,6 @@ bool PylonROS2StereoAceCamera::grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
             if (d <= 0.0f) continue;
             z_buf[v * dw + u] = 1000.0f * sta_baseline_ * sta_focal_length_ / d;
         }
-    }
-
-    // Intensity buffer for point cloud colouring (RGB8: r=c[0], g=c[1], b=c[2]).
-    const uint8_t* int_data = nullptr;
-    int iw = 0, ih = 0;
-    if (idxIntensity >= 0)
-    {
-        const auto int_comp = ptr_grab_result->GetDataComponent(idxIntensity);
-        int_data = static_cast<const uint8_t*>(int_comp.GetData());
-        iw = static_cast<int>(int_comp.GetWidth());
-        ih = static_cast<int>(int_comp.GetHeight());
     }
 
     // --- PointCloud2 (XYZ in metres + RGBA colour) ---
@@ -480,7 +527,10 @@ bool PylonROS2StereoAceCamera::grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
         }
     }
 
-    // Stereo ace has no Confidence component — confidence_map_msg remains empty.
+    // --- Confidence map ---
+    if (idxConfidence >= 0)
+        this->buildConfidenceImage(ptr_grab_result->GetDataComponent(idxConfidence), confidence_map_msg);
+
     return true;
 }
 
