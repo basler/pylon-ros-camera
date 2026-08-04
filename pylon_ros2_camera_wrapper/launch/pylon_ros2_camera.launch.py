@@ -12,6 +12,26 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
+def resolve_profile_config(config_file, profile):
+    """Resolve the camera configuration file for a given profile.
+
+    An explicit, non-empty ``config_file`` always takes precedence. Otherwise
+    the file is selected from the profile: ``3d`` (case-insensitive) uses
+    ``profile_3d.yaml`` and any other value (including ``2d`` and unknown
+    profiles) falls back to ``default.yaml``.
+    """
+    if config_file:
+        return config_file
+
+    config_dir = os.path.join(
+        get_package_share_directory('pylon_ros2_camera_wrapper'),
+        'config'
+    )
+    if (profile or '').strip().lower() == '3d':
+        return os.path.join(config_dir, 'profile_3d.yaml')
+    return os.path.join(config_dir, 'default.yaml')
+
+
 def _launch_node(context: LaunchContext):
     """Return the action to launch `pylon_ros2_camera_wrapper`.
     This is required to evaluate `respawn` as boolean.
@@ -25,6 +45,9 @@ def _launch_node(context: LaunchContext):
     camera_id = LaunchConfiguration('camera_id')
 
     config_file = LaunchConfiguration('config_file')
+    profile = LaunchConfiguration('profile')
+    resolved_config_file = resolve_profile_config(
+        config_file.perform(context), profile.perform(context))
 
     mtu_size = LaunchConfiguration('mtu_size')
     startup_user_set = LaunchConfiguration('startup_user_set')
@@ -55,7 +78,7 @@ def _launch_node(context: LaunchContext):
                 emulate_tty=True,
                 prefix=launch_prefix,
                 parameters=[
-                    config_file,
+                    resolved_config_file,
                     {
                         'mtu_size': mtu_size,
                         'startup_user_set': startup_user_set,
@@ -67,12 +90,6 @@ def _launch_node(context: LaunchContext):
         ]
 
 def generate_launch_description():
-
-    default_config_file = os.path.join(
-        get_package_share_directory('pylon_ros2_camera_wrapper'),
-        'config',
-        'default.yaml'
-    )
 
     # launch arguments
     declare_node_name_cmd = DeclareLaunchArgument(
@@ -89,8 +106,17 @@ def generate_launch_description():
 
     declare_config_file_cmd = DeclareLaunchArgument(
         'config_file',
-        default_value=default_config_file,
-        description='Camera parameters structured in a .yaml file.'
+        default_value='',
+        description='Camera parameters structured in a .yaml file. If left '
+                    'empty, the file is selected from the "profile" argument.'
+    )
+
+    declare_profile_cmd = DeclareLaunchArgument(
+        'profile',
+        default_value='2d',
+        description='Camera profile used to pick a default config file when '
+                    '"config_file" is empty: "2d" -> default.yaml, '
+                    '"3d" -> profile_3d.yaml.'
     )
 
     declare_mtu_size_cmd = DeclareLaunchArgument(
@@ -131,6 +157,7 @@ def generate_launch_description():
     ld.add_action(declare_camera_id_cmd)
 
     ld.add_action(declare_config_file_cmd)
+    ld.add_action(declare_profile_cmd)
     ld.add_action(declare_mtu_size_cmd)
     ld.add_action(declare_startup_user_set_cmd)
     ld.add_action(declare_enable_status_publisher_cmd)

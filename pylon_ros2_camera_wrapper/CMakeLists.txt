@@ -151,6 +151,11 @@ if(BUILD_TESTING)
     RUNTIME DESTINATION lib/${PROJECT_NAME}
   )
 
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(test_launch_profiles
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/test_launch_profiles.py
+  )
+
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 endif()
