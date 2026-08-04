@@ -207,10 +207,13 @@ bool PylonROS2StereoAceCamera::applyCamSpecificStartupSettings(const PylonROS2Ca
         stereo_ace_cam_->ComponentSelector.FromString("Confidence");
         stereo_ace_cam_->ComponentEnable.SetValue(true);
 
-        // AlternateActive: alternates exposures with/without the IR projector so the
-        // intensity image is captured without the IR dot pattern. Halves effective
-        // frame rate but gives clean colour images alongside the depth data.
-        stereo_ace_cam_->BslIlluminationMode.FromString("AlternateActive");
+        // Illumination mode: configurable via 'stereo_ace_illumination_mode' ROS parameter
+        // (set in profile_3d.yaml or as a launch argument).
+        // AlternateActive (default): clean intensity images, frame rate halved.
+        // AlwaysActive: full frame rate, IR pattern visible in intensity images.
+        const std::string illum_mode = parameters.stereo_ace_illumination_mode_.empty()
+            ? "AlternateActive" : parameters.stereo_ace_illumination_mode_;
+        stereo_ace_cam_->BslIlluminationMode.FromString(illum_mode.c_str());
 
         // Read Scan3D reconstruction parameters from the Disparity component.
         // ComponentSelector must be set to Disparity before reading these nodes.
@@ -224,7 +227,7 @@ bool PylonROS2StereoAceCamera::applyCamSpecificStartupSettings(const PylonROS2Ca
 
         RCLCPP_INFO_STREAM(LOGGER_STEREO_ACE,
             "Stereo ace configured: IntensityCombined=RGB8 (left/right), "
-            "Disparity=Coord3D_C16, Confidence8, BslIlluminationMode=AlternateActive. "
+            "Disparity=Coord3D_C16, Confidence8, BslIlluminationMode=" << illum_mode << ". "
             "Reconstruction params: focal=" << sta_focal_length_
             << " baseline=" << sta_baseline_ << " m"
             << " scale=" << sta_coordinate_scale_

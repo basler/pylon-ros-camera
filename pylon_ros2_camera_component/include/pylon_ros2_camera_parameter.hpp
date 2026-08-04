@@ -263,6 +263,19 @@ public:
     std::string startup_user_set_;
 
     /**
+     * Illumination mode for the Basler Stereo ace camera.
+     * Controls whether the IR projector runs during acquisition:
+     *   AlternateActive (default) - alternates projector on/off each frame;
+     *                               intensity images are free of the IR dot
+     *                               pattern, but effective frame rate is halved.
+     *   AlwaysActive              - projector always on; full native frame rate,
+     *                               but IR pattern visible in intensity images.
+     *   Off                       - projector disabled; passive stereo only.
+     * Ignored by blaze and Stereo mini.
+     */
+    std::string stereo_ace_illumination_mode_;
+
+    /**
      * the inter-packet delay in ticks to prevent frame loss, support the network bandwith priorisation
      * generally needs to modified if more than one cameras is involved or if hardware is not performing well
      * raise inter-packet delay (GevSCPD) for solving error: 'the buffer was incompletely grabbed'
