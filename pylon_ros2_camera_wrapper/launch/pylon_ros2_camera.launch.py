@@ -36,7 +36,7 @@ def _launch_node(context: LaunchContext):
     """Return the action to launch `pylon_ros2_camera_wrapper`.
     This is required to evaluate `respawn` as boolean.
     """
-    
+
     # adapt if needed
     debug = False
 
