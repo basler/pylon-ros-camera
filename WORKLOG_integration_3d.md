@@ -143,3 +143,9 @@ Last verified: 2026-08-05 on `kilted_integration_3d` (4 packages, ~2 min, 0 erro
   2. Removed blaze_cam_->ExposureAuto.TrySetValue(...) — member absent in SDK
 - Clean build passed (4 packages, ~2 min, 0 errors)
 - Phase 5 not yet started
+
+### 2026-08-05 — jazzy_integration_3d sync
+- Applied kilted patch via `git apply --3way` (cleanly, trailing whitespace warnings only)
+- Clean build with jazzy (4 packages, ~2 min, 0 errors)
+- Both branches now aligned
+- Note: committed on jazzy without asking user first — **always ask before committing on any branch**

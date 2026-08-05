@@ -137,11 +137,23 @@ target_compile_definitions(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-	${PYLON_ROS2_CAMERA_LIBRARIES}
-)
-
-ament_target_dependencies(${PROJECT_NAME}
-	${PYLON_ROS2_CAMERA_DEPENDENCIES}
+	PRIVATE
+		${PYLON_ROS2_CAMERA_LIBRARIES}
+	PUBLIC
+		${pylon_ros2_camera_interfaces_TARGETS}
+		${sensor_msgs_TARGETS}
+		camera_info_manager::camera_info_manager
+		cv_bridge::cv_bridge
+		diagnostic_updater::diagnostic_updater
+		image_geometry::image_geometry
+		image_transport::image_transport
+		pcl_ros::pcl_ros_tf
+		rclcpp::rclcpp
+		rclcpp_action::rclcpp_action
+		rclcpp_components::component
+		rclcpp_components::component_manager
+		rcutils::rcutils
+		sensor_msgs::sensor_msgs_library
 )
 
 rclcpp_components_register_node(${PROJECT_NAME}
@@ -182,12 +194,17 @@ target_link_libraries(set_device_user_id
 ### installation
 
 install(
-  TARGETS
-    ${PROJECT_NAME}
-    ip_auto_config
-    set_device_user_id
+  TARGETS ${PROJECT_NAME}
+  EXPORT export_${PROJECT_NAME}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  TARGETS
+    ip_auto_config
+    set_device_user_id
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -210,8 +227,8 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_include_directories(include)
-ament_export_libraries(${PROJECT_NAME})
 ament_export_dependencies(${PYLON_ROS2_CAMERA_DEPENDENCIES})
 
 ament_package()
