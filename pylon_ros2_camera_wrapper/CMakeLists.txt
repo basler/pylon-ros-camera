@@ -44,12 +44,8 @@ add_executable(${PROJECT_NAME}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/${PROJECT_NAME}.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
-	${pylon_ros2_camera_component_INCLUDE_DIRS}
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-	${pylon_ros2_camera_component_LIBRARIES}
+target_link_libraries(${PROJECT_NAME} PUBLIC
+	${pylon_ros2_camera_component_TARGETS}
 	rclcpp::rclcpp
 	rclcpp_components::component
 	rclcpp_components::component_manager
