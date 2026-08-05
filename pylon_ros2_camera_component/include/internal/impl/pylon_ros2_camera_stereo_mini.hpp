@@ -481,15 +481,15 @@ float PylonROS2StereoMiniCamera::maxPossibleFramerate()
 
 bool PylonROS2StereoMiniCamera::setExposure(const float& target_exposure, float& reached_exposure)
 {
-    // The Stereo mini stops delivering grab results when ExposureTime is
-    // changed while continuously grabbing — RetrieveResult() blocks
-    // indefinitely after the change. Stopping and restarting the grab cycle
-    // around the parameter change works around this camera behaviour.
+    // SourceSelector must be Source3 (color sensor) before changing ExposureTime.
+    // Changing the stereo-pair sources (Source1/Source2) while grabbing blocks
+    // RetrieveResult() indefinitely — confirmed with Basler support.
+    // SourceSelector is intentionally left on Source3 after this call.
+    // TODO: expose SourceSelector as a user-accessible service parameter.
     try
     {
-        const bool was_grabbing = stereo_mini_cam_->IsGrabbing();
-        if (was_grabbing)
-            stereo_mini_cam_->StopGrabbing();
+        stereo_mini_cam_->SourceSelector.SetValue(
+            Pylon::StereoMiniCameraParams_Params::SourceSelectorEnums::SourceSelector_Source3);
 
         stereo_mini_cam_->ExposureAuto.TrySetValue(
             Pylon::StereoMiniCameraParams_Params::ExposureAutoEnums::ExposureAuto_Off);
@@ -513,9 +513,6 @@ bool PylonROS2StereoMiniCamera::setExposure(const float& target_exposure, float&
 
         stereo_mini_cam_->ExposureTime.SetValue(exposure_to_set);
         reached_exposure = static_cast<float>(stereo_mini_cam_->ExposureTime.GetValue());
-
-        if (was_grabbing)
-            stereo_mini_cam_->StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
     }
     catch (const GenICam::GenericException& e)
     {
