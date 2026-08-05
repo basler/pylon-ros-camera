@@ -53,10 +53,6 @@ namespace pylon_ros2_camera
 namespace
 {
     static const rclcpp::Logger LOGGER_BLAZE = rclcpp::get_logger("basler.pylon.ros2.pylon_ros2_blaze_camera");
-
-    // The BGR and Point structs, the s_invalid_data_value marker and the isValid()
-    // helper are provided by the generic 3D camera profile
-    // (pylon_ros2_camera_3d.hpp) and shared across all 3D cameras.
 }
 
 class PylonROS2BlazeCamera : public PylonROS23DCamera
@@ -73,12 +69,13 @@ public:
     virtual std::string grabbingStarting();
     virtual std::string grabbingStopping() override;
     virtual bool isCamRemoved() override;
+    virtual bool setExposure(const float& target_exposure, float& reached_exposure) override;
 
     virtual bool grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
-                           sensor_msgs::msg::Image& intensity_map_msg, 
-                           sensor_msgs::msg::Image& depth_map_msg, 
-                           sensor_msgs::msg::Image& depth_map_color_msg, 
-                           sensor_msgs::msg::Image& confidence_map_msg);
+                        sensor_msgs::msg::Image& intensity_map_msg, 
+                        sensor_msgs::msg::Image& depth_map_msg, 
+                        sensor_msgs::msg::Image& depth_map_color_msg, 
+                        sensor_msgs::msg::Image& confidence_map_msg) override;
             bool grab3D(Pylon::CGrabResultPtr& grab_result);
 
             bool processAndConvertBlazeData(const Pylon::CPylonDataContainer& container,
@@ -90,9 +87,8 @@ public:
             bool convertGrabResultToPointCloud(const Pylon::CPylonDataContainer& container,
                                                sensor_msgs::msg::PointCloud2& cloud_msg);
 
-            // Grayscale and false-color depth map computation from a Coord3D_ABC32f
-            // range component is provided by the generic 3D camera profile
-            // (PylonROS23DCamera::calculateDepthMap / calculateDepthMapColor).
+            // uses blaze_cam_->Scan3dCoordinateScale; unlike the base which takes scale as a parameter
+            void calculateDepthMap(const Pylon::CPylonDataComponent& pointCloud, int min_depth, int max_depth, uint16_t* pDepthMap);
     
     virtual void getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg);
     
@@ -191,11 +187,7 @@ PylonROS2BlazeCamera::~PylonROS2BlazeCamera()
 
     if (blaze_cam_)
     {
-        // blaze_cam_ and the inherited base cam_ wrap the same IPylonDevice.
-        // Detach the device from the base cam_ (without destroying it) before
-        // blaze_cam_ destroys it, to avoid a double DestroyDevice().
-        this->detachBaseDevice();
-
+        detachBaseDevice();
         delete blaze_cam_;
         blaze_cam_ = nullptr;
     }
@@ -383,11 +375,55 @@ bool PylonROS2BlazeCamera::isCamRemoved()
     return cam_->IsCameraDeviceRemoved();
 }
 
+bool PylonROS2BlazeCamera::setExposure(const float& target_exposure, float& reached_exposure)
+{
+    // Changing ExposureTime while blaze_cam_ is grabbing causes RetrieveResult()
+    // to block indefinitely. Stop grabbing, change the exposure on the typed
+    // camera handle, then restart.
+    try
+    {
+        const bool was_grabbing = blaze_cam_->IsGrabbing();
+        if (was_grabbing)
+            blaze_cam_->StopGrabbing();
+
+        float exposure_to_set = target_exposure;
+        const float min_exp = static_cast<float>(blaze_cam_->ExposureTime.GetMin());
+        const float max_exp = static_cast<float>(blaze_cam_->ExposureTime.GetMax());
+
+        if (exposure_to_set < min_exp)
+        {
+            RCLCPP_WARN_STREAM(LOGGER_BLAZE, "Desired exposure (" << exposure_to_set
+                << ") unreachable! Setting to lower limit: " << min_exp);
+            exposure_to_set = min_exp;
+        }
+        else if (exposure_to_set > max_exp)
+        {
+            RCLCPP_WARN_STREAM(LOGGER_BLAZE, "Desired exposure (" << exposure_to_set
+                << ") unreachable! Setting to upper limit: " << max_exp);
+            exposure_to_set = max_exp;
+        }
+
+        blaze_cam_->ExposureTime.SetValue(exposure_to_set);
+        reached_exposure = static_cast<float>(blaze_cam_->ExposureTime.GetValue());
+
+        if (was_grabbing)
+            blaze_cam_->StartGrabbing();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "An exception while setting target exposure to "
+            << target_exposure << " occurred: " << e.GetDescription());
+        reached_exposure = target_exposure;
+        return false;
+    }
+    return true;
+}
+
 bool PylonROS2BlazeCamera::grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
-                                     sensor_msgs::msg::Image& intensity_map_msg, 
-                                     sensor_msgs::msg::Image& depth_map_msg, 
-                                     sensor_msgs::msg::Image& depth_map_color_msg, 
-                                     sensor_msgs::msg::Image& confidence_map_msg)
+                                   sensor_msgs::msg::Image& intensity_map_msg, 
+                                   sensor_msgs::msg::Image& depth_map_msg, 
+                                   sensor_msgs::msg::Image& depth_map_color_msg, 
+                                   sensor_msgs::msg::Image& confidence_map_msg)
 {
     Pylon::CGrabResultPtr ptr_grab_result;
     if (!this->grab3D(ptr_grab_result))
@@ -517,7 +553,7 @@ bool PylonROS2BlazeCamera::processAndConvertBlazeData(const Pylon::CPylonDataCon
 
     // depth map
     uint16_t* pdepth_data = new uint16_t[width * height];
-    this->calculateDepthMap(range_component, blaze_cam_->Scan3dCoordinateScale.GetValue(), min_depth, max_depth, pdepth_data);
+    this->calculateDepthMap(range_component, min_depth, max_depth, pdepth_data);
     cv::Mat depth_map = cv::Mat(height, width, CV_16UC1, pdepth_data);
     // convert
     cv_bridge::CvImage depth_map_cv_img;
@@ -617,6 +653,40 @@ bool PylonROS2BlazeCamera::convertGrabResultToPointCloud(const Pylon::CPylonData
     pcl::toROSMsg(*ppoint_cloud, cloud_msg);
 
     return true;
+}
+
+void PylonROS2BlazeCamera::calculateDepthMap(const Pylon::CPylonDataComponent& pointCloud, int min_depth, int max_depth, uint16_t* pDepthMap)
+{
+    const int width = pointCloud.GetWidth();
+    const int height = pointCloud.GetHeight();
+    const Point *pPoint = reinterpret_cast<const Point*>(pointCloud.GetData());
+
+    const double scale = 65535.0 / (max_depth - min_depth);
+
+    for (int row = 0; row < height; ++row)
+    {
+        for (int col = 0; col < width; ++col, ++pPoint, ++pDepthMap)
+        {
+            if (isValid(pPoint))
+            {
+                // Calculate the radial distance.
+                //double distance = sqrt(pPoint->x * pPoint->x + pPoint->y * pPoint->y + pPoint->z * pPoint->z);
+                // EDIT: the standard distance is enough in this context
+                double distance = pPoint->z * this->blaze_cam_->Scan3dCoordinateScale.GetValue();
+                // Clip to [min_depth..MaxDept].
+                if (distance < min_depth)
+                    distance = min_depth;
+                else if (distance > max_depth)
+                    distance = max_depth;
+                *pDepthMap = (uint16_t) ( ( distance - min_depth ) * scale );
+            }
+            else
+            {
+                // No depth information available for this pixel. Zero it.
+                *pDepthMap = 0;
+            }
+        }
+    }
 }
 
 void PylonROS2BlazeCamera::getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg)
