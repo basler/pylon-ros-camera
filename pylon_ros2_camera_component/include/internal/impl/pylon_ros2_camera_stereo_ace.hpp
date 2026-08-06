@@ -49,42 +49,29 @@ namespace
 }
 
 /**
- * Basler Stereo ace integration scaffold.
+ * Basler Stereo ace integration.
  *
- * STATUS: SCAFFOLD — compiles but is NOT hardware-verified.
- *         The following MUST be resolved before this class can be used:
+ * The Stereo ace delivers raw disparity (Coord3D_C16) together with an RGB8
+ * IntensityCombined image (left stacked over right) and a Confidence8 map.
+ * This class enables those components at startup, reconstructs an organized XYZ
+ * point cloud host-side from the disparity and the Scan3d* calibration, and
+ * exposes the left/right intensity images separately.
  *
- *   (a) DETECTION (pylon_ros2_camera.cpp):
- *       The Stereo ace has no static device class string (calling
- *       CStereoAceInstantCamera::DeviceClass() throws). The interface device
- *       class is BaslerGenTlStaDeviceClass = "BaslerGTC/Basler/basler_xw", but
- *       it is not confirmed whether enumerated devices report this string via
- *       device_info.GetDeviceClass(). The detection branch in detectPylonCamType()
- *       is currently commented out with a placeholder. Verify with hardware and
- *       fill in the actual device class string.
+ * Detection: enumerated devices report device class
+ * "BaslerGTC/Basler/basler_xw" (see detectPylonCamType()).
  *
- *   (b) DISPARITY-TO-XYZ RECONSTRUCTION (extractPointCloudXYZ):
- *       Unlike the blaze and Stereo mini, the Stereo ace delivers raw disparity
- *       (Coord16) instead of direct XYZ coordinates. Point cloud generation
- *       requires a host-side triangulation:
- *           calibrated_d = disp_raw * Scan3dCoordinateScale + Scan3dCoordinateOffset
- *           Z = 1000 * Scan3dBaseline * Scan3dFocalLength / calibrated_d
- *           X = (u - Scan3dPrincipalPointU) * Z / Scan3dFocalLength
- *           Y = (v - Scan3dPrincipalPointV) * Z / Scan3dFocalLength
- *       The sign conventions and exact parameter semantics (in particular whether
- *       Z comes out in mm or m, and whether baseline is in mm or m) must be
- *       confirmed with the Stereo ace hardware before uncommenting the
- *       implementation in grab3D() below.
+ * Disparity-to-XYZ reconstruction (grab3D()):
+ *     calibrated_d = disp_raw * Scan3dCoordinateScale + Scan3dCoordinateOffset
+ *     Z = 1000 * Scan3dBaseline * Scan3dFocalLength / calibrated_d
+ *     X = (u - Scan3dPrincipalPointU) * Z / Scan3dFocalLength
+ *     Y = (v - Scan3dPrincipalPointV) * Z / Scan3dFocalLength
  *
- *   (c) ILLUMINATION MODE:
- *       BslIlluminationMode (AlternateActive / AlwaysActive / Off) controls
- *       whether the IR projector runs. AlternateActive provides clean intensity
- *       images without the IR pattern but halves the frame rate. The current
- *       value used during startup should be confirmed with the user/Basler.
+ * Illumination: BslIlluminationMode (AlternateActive / AlwaysActive / Off) is
+ * set from the 'stereo_ace_illumination_mode' parameter (default AlternateActive).
  *
- *   (d) NO CONFIDENCE MAP:
- *       The Stereo ace does not provide a Confidence component. The confidence
- *       output of grab3D() will always be an empty message.
+ * Pending hardware validation: the disparity sign/scale conventions and the
+ * depth unit (mm vs m for Scan3dBaseline and the working depth range) still
+ * need to be confirmed on a physical Stereo ace.
  */
 class PylonROS2StereoAceCamera : public PylonROS23DCamera
 {
@@ -383,7 +370,7 @@ bool PylonROS2StereoAceCamera::startGrabbing(const PylonROS2CameraParameter& par
             for (int idx = 0; idx < (int)grab_result->GetDataComponentCount(); ++idx)
             {
                 const auto c = grab_result->GetDataComponent(idx);
-                if (c.GetComponentType() == static_cast<Pylon::EComponentType>(0xFF01)) // IntensityCombined_STA
+                if (c.GetComponentType() == Pylon::ComponentType_IntensityCombined_STA)
                 {
                     img_cols_ = static_cast<size_t>(c.GetWidth());
                     img_rows_ = static_cast<size_t>(c.GetHeight()) / 2; // each individual image
@@ -459,7 +446,7 @@ bool PylonROS2StereoAceCamera::grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
     for (int i = 0; i < (int)ptr_grab_result->GetDataComponentCount(); ++i)
     {
         const auto type = ptr_grab_result->GetDataComponent(i).GetComponentType();
-        if (type == static_cast<Pylon::EComponentType>(0xFF01)) idxCombined  = i; // IntensityCombined_STA
+        if (type == Pylon::ComponentType_IntensityCombined_STA) idxCombined  = i;
         else if (type == Pylon::ComponentType_Disparity)         idxDisparity = i;
         else if (type == Pylon::ComponentType_Confidence)        idxConfidence = i;
     }
@@ -1522,7 +1509,7 @@ void PylonROS2StereoAceCamera::relearnImageDimensions()
         for (int idx = 0; idx < (int)grab_result->GetDataComponentCount(); ++idx)
         {
             const auto component = grab_result->GetDataComponent(idx);
-            if (component.GetComponentType() == static_cast<Pylon::EComponentType>(0xFF01)) // IntensityCombined
+            if (component.GetComponentType() == Pylon::ComponentType_IntensityCombined_STA)
             {
                 img_cols_ = static_cast<size_t>(component.GetWidth());
                 img_rows_ = static_cast<size_t>(component.GetHeight()) / 2;
