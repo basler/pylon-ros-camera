@@ -1332,9 +1332,18 @@ bool PylonROS2CameraNode::setBrightness(const int& target_brightness,
 {
   if (this->pylon_camera_->is3D())
   {
-    RCLCPP_WARN(LOGGER, "Trying to set brightness: there's no brightness parameter with a 3D camera - returning -9999");
-    reached_brightness = -9999;
-    return false;
+    // 3D sensors expose a direct analog brightness control and have no 2D
+    // image-based auto-brightness search. Delegate to the camera override once;
+    // a camera that supports it (e.g. Stereo mini) sets the value and returns true,
+    // one without support returns false via the profile default.
+    std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
+    float dummy_current_brightness = 0.0f;
+    const bool ok = this->pylon_camera_->setBrightness(target_brightness,
+                                                       dummy_current_brightness,
+                                                       exposure_auto,
+                                                       gain_auto);
+    reached_brightness = ok ? target_brightness : -1;
+    return ok;
   }
 
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
@@ -1552,13 +1561,6 @@ bool PylonROS2CameraNode::setBrightness(const int& target_brightness,
 
 bool PylonROS2CameraNode::setGain(const float& target_gain, float& reached_gain)
 {
-  if (this->pylon_camera_->is3D())
-  {
-    RCLCPP_WARN(LOGGER, "Trying to set gain: there's no gain parameter with a 3D camera - returning -9999.0");
-    reached_gain = -9999.0;
-    return false;
-  }
-
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1572,6 +1574,12 @@ bool PylonROS2CameraNode::setGain(const float& target_gain, float& reached_gain)
   }
   else  // retry till timeout
   {
+    // A 3D camera that supports gain succeeds on the first attempt; a false here means unsupported.
+    if (this->pylon_camera_->is3D())
+    {
+      RCLCPP_WARN(LOGGER, "Trying to set gain: not available on this 3D camera");
+      return false;
+    }
     // wait for max 10s till the cam has updated the exposure
     rclcpp::Rate r(10.0);
     rclcpp::Time timeout(rclcpp::Node::now() + std::chrono::duration<double>(5));
@@ -1596,13 +1604,6 @@ bool PylonROS2CameraNode::setGain(const float& target_gain, float& reached_gain)
 
 bool PylonROS2CameraNode::setGamma(const float& target_gamma, float& reached_gamma)
 {
-  if (this->pylon_camera_->is3D())
-  {
-    RCLCPP_WARN(LOGGER, "Trying to set gamma: there's no gamma parameter with a 3D camera - returning -9999.0");
-    reached_gamma = -9999.0;
-    return false;
-  }
-
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -1616,6 +1617,12 @@ bool PylonROS2CameraNode::setGamma(const float& target_gamma, float& reached_gam
   }
   else  // retry till timeout
   {
+    // A 3D camera that supports gamma succeeds on the first attempt; a false here means unsupported.
+    if (this->pylon_camera_->is3D())
+    {
+      RCLCPP_WARN(LOGGER, "Trying to set gamma: not available on this 3D camera");
+      return false;
+    }
     // wait for max 10s till the cam has updated the gamma value
     rclcpp::Rate r(10.0);
     rclcpp::Time timeout(rclcpp::Node::now() + std::chrono::duration<double>(5));
@@ -1709,6 +1716,13 @@ bool PylonROS2CameraNode::setROI(const sensor_msgs::msg::RegionOfInterest target
 bool PylonROS2CameraNode::setBinningX(const std::size_t& target_binning_x,
                                       std::size_t& reached_binning_x)
 {
+  if (this->pylon_camera_->is3D())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set binning x: there's no binning with a 3D camera");
+    reached_binning_x = 0;
+    return false;
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->setBinningX(target_binning_x, reached_binning_x))
   {
@@ -1758,6 +1772,13 @@ bool PylonROS2CameraNode::setBinningX(const std::size_t& target_binning_x,
 bool PylonROS2CameraNode::setBinningY(const std::size_t& target_binning_y,
                                       std::size_t& reached_binning_y)
 {
+  if (this->pylon_camera_->is3D())
+  {
+    RCLCPP_WARN(LOGGER, "Trying to set binning y: there's no binning with a 3D camera");
+    reached_binning_y = 0;
+    return false;
+  }
+
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->setBinningY(target_binning_y, reached_binning_y))
   {
@@ -1956,12 +1977,6 @@ std::string PylonROS2CameraNode::setLightSourcePreset(const int& mode)
 
 std::string PylonROS2CameraNode::setWhiteBalanceAuto(const int& mode)
 {
-  if (this->pylon_camera_->is3D())
-  {
-    RCLCPP_WARN(LOGGER, "Trying to set white balance auto: there's no white balance auto with a 3D camera");
-    return "No white balance auto with a 3D camera";
-  }
-
   // mode 0 = Off
   // mode 1 = Once
   // mode 2 = Continuous
@@ -1997,12 +2012,6 @@ std::string PylonROS2CameraNode::setSensorReadoutMode(const int& mode)
 
 std::string PylonROS2CameraNode::setAcquisitionFrameCount(const int& frameCount)
 {
-  if (this->pylon_camera_->is3D())
-  {
-    RCLCPP_WARN(LOGGER, "Trying to set acquisition frame count: there's no acquisition frame count parameter with a 3D camera");
-    return "No acquisition frame count parameter with a 3D camera";
-  }
-
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -2845,7 +2854,7 @@ void PylonROS2CameraNode::getChunkExposureTimeCallback(const std::shared_ptr<Get
 void PylonROS2CameraNode::setBinningCallback(const std::shared_ptr<SetBinningSrv::Request> request,
                                              std::shared_ptr<SetBinningSrv::Response> response)
 {
-  std::size_t reached_binning_x, reached_binning_y;
+  std::size_t reached_binning_x = 0, reached_binning_y = 0;
   const bool success_x = this->setBinningX(request->target_binning_x,
                                      reached_binning_x);
   const bool success_y = this->setBinningY(request->target_binning_y,
@@ -2875,15 +2884,10 @@ void PylonROS2CameraNode::setBrightnessCallback(const std::shared_ptr<SetBrightn
   }
 
   response->reached_exposure_time = this->pylon_camera_->currentExposure();
-  if (!this->pylon_camera_->is3D())
-  {
-    response->reached_gain_value = this->pylon_camera_->currentGain();
-  }
-  else
-  {
-    RCLCPP_WARN(LOGGER, "Trying to get gain: there's no gain parameter with a 3D camera - returning -9999.0");
-    response->reached_gain_value = -9999.0;
-  }
+  // currentGain() works for every camera type: 2D cameras read their Gain node,
+  // 3D cameras return the value where supported and -1.0 otherwise, so no 3D
+  // special case is needed here.
+  response->reached_gain_value = this->pylon_camera_->currentGain();
 }
 
 void PylonROS2CameraNode::setExposureCallback(const std::shared_ptr<SetExposureSrv::Request> request,
@@ -5273,60 +5277,20 @@ void PylonROS2CameraNode::publishCurrentParams()
   {
     try
     {
-      this->current_params_.black_level = this->pylon_camera_->getBlackLevel();
-      this->current_params_.reverse_x =  this->pylon_camera_->getReverseXY(true);
-      this->current_params_.reverse_y =  this->pylon_camera_->getReverseXY(false);
-      this->current_params_.offset_x = static_cast<uint32_t>(this->pylon_camera_->currentOffsetX());
-      this->current_params_.offset_y = static_cast<uint32_t>(this->pylon_camera_->currentOffsetY());
-      this->current_params_.pgi_mode = this->pylon_camera_->getPGIMode();
-      this->current_params_.demosaicing_mode = this->pylon_camera_->getDemosaicingMode();
-      this->current_params_.noise_reduction = this->pylon_camera_->getNoiseReduction();
-      this->current_params_.sharpness_enhancement = this->pylon_camera_->getSharpnessEnhancement();
-      this->current_params_.light_source_preset = this->pylon_camera_->getLightSourcePreset();
+      // --- Parameters common to 2D and 3D cameras ---------------------------
+      this->current_params_.is_sleeping = this->isSleeping();
+      this->current_params_.exposure = this->pylon_camera_->currentExposure();
+      this->current_params_.gain = this->pylon_camera_->currentGain();
+      this->current_params_.gamma = this->pylon_camera_->currentGamma();
       this->current_params_.balance_white_auto = this->pylon_camera_->getBalanceWhiteAuto();
-      this->current_params_.sensor_readout_mode = this->pylon_camera_->getSensorReadoutMode();
       this->current_params_.acquisition_frame_count = this->pylon_camera_->getAcquisitionFrameCount();
       this->current_params_.trigger_selector = this->pylon_camera_->getTriggerSelector();
       this->current_params_.trigger_mode = this->pylon_camera_->getTriggerMode();
       this->current_params_.trigger_source = this->pylon_camera_->getTriggerSource();
       this->current_params_.trigger_activation = this->pylon_camera_->getTriggerActivation();
       this->current_params_.trigger_delay = this->pylon_camera_->getTriggerDelay();
-      this->current_params_.user_set_selector = this->pylon_camera_->getUserSetSelector();
-      this->current_params_.user_set_default_selector = this->pylon_camera_->getUserSetDefaultSelector();
-      this->current_params_.is_sleeping = this->isSleeping();
-      if (!this->pylon_camera_->is3D())
-      {
-        this->current_params_.brightness = this->calcCurrentBrightness();
-      }
-      else
-      {
-        this->current_params_.brightness = -9999;
-      }
-      this->current_params_.exposure = this->pylon_camera_->currentExposure();
-      if (!this->pylon_camera_->is3D())
-      {
-        this->current_params_.gain = this->pylon_camera_->currentGain();
-      }
-      else
-      {
-        this->current_params_.gain = -9999.0;
-      }
-      if (!this->pylon_camera_->is3D())
-      {
-        this->current_params_.gamma = this->pylon_camera_->currentGamma();
-      }
-      else
-      {
-        this->current_params_.gamma = -9999.0;
-      }
-      this->current_params_.binning_x = static_cast<uint32_t>(this->pylon_camera_->currentBinningX());
-      this->current_params_.binning_y = static_cast<uint32_t>(this->pylon_camera_->currentBinningY());
-      this->current_params_.roi = this->pylon_camera_->currentROI();
-      this->current_params_.available_image_encoding = this->pylon_camera_->detectAvailableImageEncodings(false);
-      this->current_params_.current_image_encoding = this->pylon_camera_->currentBaslerEncoding();
-      this->current_params_.current_image_ros_encoding = this->pylon_camera_->currentROSEncoding();
-      this->current_params_.temperature = this->pylon_camera_->getTemperature();
       this->current_params_.max_num_buffer = this->pylon_camera_->getMaxNumBuffer();
+      this->current_params_.temperature = this->pylon_camera_->getTemperature();
 
       int64_t offset_from_master = 0;
       std::string status = "UNKNOWN";
@@ -5340,11 +5304,89 @@ void PylonROS2CameraNode::publishCurrentParams()
         this->current_params_.ptp_offset = offset_from_master;
       }
 
+      // --- 3D read-back parameters ------------------------------------------
+      // The getters return the sentinel -1 (or -1.0) on cameras that do not
+      // support a given feature (every 2D camera, and 3D cameras without the
+      // node), so they are safe to query unconditionally.
+      this->current_params_.depth_min = this->pylon_camera_->getDepthMin();
+      this->current_params_.depth_max = this->pylon_camera_->getDepthMax();
+      this->current_params_.operating_mode = this->pylon_camera_->getOperatingMode();
+      this->current_params_.hdr_mode = this->pylon_camera_->getHDRMode();
+      this->current_params_.fast_mode = this->pylon_camera_->getFastMode();
+      this->current_params_.spatial_filter = this->pylon_camera_->getSpatialFilter();
+      this->current_params_.temporal_filter = this->pylon_camera_->getTemporalFilter();
+      this->current_params_.outlier_removal = this->pylon_camera_->getOutlierRemoval();
+      this->current_params_.ambiguity_filter = this->pylon_camera_->getAmbiguityFilter();
+      this->current_params_.confidence_threshold = this->pylon_camera_->getConfidenceThreshold();
+
+      if (!this->pylon_camera_->is3D())
+      {
+        // --- 2D-only parameters ---------------------------------------------
+        this->current_params_.black_level = this->pylon_camera_->getBlackLevel();
+        this->current_params_.reverse_x = this->pylon_camera_->getReverseXY(true);
+        this->current_params_.reverse_y = this->pylon_camera_->getReverseXY(false);
+        this->current_params_.offset_x = static_cast<uint32_t>(this->pylon_camera_->currentOffsetX());
+        this->current_params_.offset_y = static_cast<uint32_t>(this->pylon_camera_->currentOffsetY());
+        this->current_params_.pgi_mode = this->pylon_camera_->getPGIMode();
+        this->current_params_.demosaicing_mode = this->pylon_camera_->getDemosaicingMode();
+        this->current_params_.noise_reduction = this->pylon_camera_->getNoiseReduction();
+        this->current_params_.sharpness_enhancement = this->pylon_camera_->getSharpnessEnhancement();
+        this->current_params_.light_source_preset = this->pylon_camera_->getLightSourcePreset();
+        this->current_params_.sensor_readout_mode = this->pylon_camera_->getSensorReadoutMode();
+        this->current_params_.user_set_selector = this->pylon_camera_->getUserSetSelector();
+        this->current_params_.user_set_default_selector = this->pylon_camera_->getUserSetDefaultSelector();
+        this->current_params_.brightness = this->calcCurrentBrightness();
+        this->current_params_.binning_x = static_cast<uint32_t>(this->pylon_camera_->currentBinningX());
+        this->current_params_.binning_y = static_cast<uint32_t>(this->pylon_camera_->currentBinningY());
+        this->current_params_.roi = this->pylon_camera_->currentROI();
+        this->current_params_.available_image_encoding = this->pylon_camera_->detectAvailableImageEncodings(false);
+        this->current_params_.current_image_encoding = this->pylon_camera_->currentBaslerEncoding();
+        this->current_params_.current_image_ros_encoding = this->pylon_camera_->currentROSEncoding();
+      }
+      else
+      {
+        // --- 3D camera: 2D image parameters are not applicable ---------------
+        // Report clear "not available" sentinels instead of reading the
+        // never-opened 2D camera object. currentROSEncoding() in particular
+        // must not be called here: it stops/restarts the shared stream grabber
+        // and floods the log because the 3D range pixel format has no ROS
+        // encoding equivalent.
+        this->current_params_.black_level = -10000;
+        this->current_params_.reverse_x = false;
+        this->current_params_.reverse_y = false;
+        this->current_params_.offset_x = 0;
+        this->current_params_.offset_y = 0;
+        this->current_params_.pgi_mode = -1;
+        this->current_params_.demosaicing_mode = -1;
+        this->current_params_.noise_reduction = -10000.0;
+        this->current_params_.sharpness_enhancement = -10000.0;
+        this->current_params_.light_source_preset = -1;
+        this->current_params_.sensor_readout_mode = -1;
+        this->current_params_.user_set_selector = -1;
+        this->current_params_.user_set_default_selector = -1;
+        this->current_params_.brightness = -1.0;
+        this->current_params_.binning_x = 1;
+        this->current_params_.binning_y = 1;
+        this->current_params_.roi = sensor_msgs::msg::RegionOfInterest();
+        this->current_params_.available_image_encoding.clear();
+        this->current_params_.current_image_encoding = "";
+        this->current_params_.current_image_ros_encoding = "";
+      }
+
       this->current_params_.success = true;
     }
     catch (const GenICam::GenericException &e)
     {
       RCLCPP_ERROR_STREAM(LOGGER, "An exception while getting the camera current params occurred: " << e.GetDescription());
+      this->current_params_.success = false;
+      this->current_params_.message = "An exception while getting the camera current parameters occurred";
+    }
+    catch (const std::exception &e)
+    {
+      // Some getters (e.g. currentGain/currentGamma) throw std::runtime_error rather
+      // than a GenICam exception when a node is unavailable. Catch them here so a
+      // single unreadable feature never propagates out of the publishing spin loop.
+      RCLCPP_ERROR_STREAM(LOGGER, "An exception while getting the camera current params occurred: " << e.what());
       this->current_params_.success = false;
       this->current_params_.message = "An exception while getting the camera current parameters occurred";
     }

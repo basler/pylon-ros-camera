@@ -66,9 +66,6 @@ public:
     virtual bool applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters) override;
 
     virtual bool startGrabbing(const PylonROS2CameraParameter& parameters) override;
-    virtual std::string grabbingStarting();
-    virtual std::string grabbingStopping() override;
-    virtual bool isCamRemoved() override;
     virtual bool setExposure(const float& target_exposure, float& reached_exposure) override;
 
     virtual bool grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
@@ -130,11 +127,27 @@ public:
     virtual std::string enableHDRMode(const bool& enable) override;
     virtual std::string enableFastMode(const bool& enable) override;
 
+    // 3D read-back getters: read-only reflections of the blaze settings above,
+    // published in current_params. Return -1 when the node is not readable.
+    virtual int getOperatingMode() override;
+    virtual int getHDRMode() override;
+    virtual int getFastMode() override;
+    virtual int getSpatialFilter() override;
+    virtual int getTemporalFilter() override;
+    virtual int getOutlierRemoval() override;
+    virtual int getAmbiguityFilter() override;
+    virtual float getConfidenceThreshold() override;
+
 public:
     Pylon::CBlazeInstantCamera* blaze_cam_;
 
     // remember current setting in order to restore it when node is shut down
     double invalid_data_value_old_;
+
+protected:
+    // The blaze grabs through blaze_cam_; the profile uses this for acquisition
+    // start/stop and device-removal detection.
+    Pylon::CInstantCamera& activeCamera() const override { return *blaze_cam_; }
 };
 
 PylonROS2BlazeCamera::PylonROS2BlazeCamera(Pylon::IPylonDevice* device) :
@@ -338,41 +351,6 @@ bool PylonROS2BlazeCamera::startGrabbing(const PylonROS2CameraParameter& paramet
     }
 
     return true;
-}
-
-std::string PylonROS2BlazeCamera::grabbingStarting()
-{
-    try
-    {
-        blaze_cam_->StartGrabbing();
-    }
-    catch (const GenICam::GenericException &e)
-    {
-        RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "An exception occurred while starting image grabbing:" << e.GetDescription());
-        return e.GetDescription();
-    }
-
-    return "done";
-}
-
-std::string PylonROS2BlazeCamera::grabbingStopping()
-{
-    try
-    {
-        blaze_cam_->StopGrabbing();
-    }
-    catch (const GenICam::GenericException &e)
-    {
-        RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "An exception occurred while stopping image grabbing:" << e.GetDescription());
-        return e.GetDescription();
-    }
-
-    return "done";
-}
-
-bool PylonROS2BlazeCamera::isCamRemoved()
-{
-    return cam_->IsCameraDeviceRemoved();
 }
 
 bool PylonROS2BlazeCamera::setExposure(const float& target_exposure, float& reached_exposure)
@@ -1377,6 +1355,97 @@ std::string PylonROS2BlazeCamera::enableFastMode(const bool& enable)
     }
 
     return "done";
+}
+
+int PylonROS2BlazeCamera::getOperatingMode()
+{
+    try
+    {
+        if (GenApi::IsReadable(blaze_cam_->OperatingMode))
+        {
+            return (blaze_cam_->OperatingMode.GetValue() ==
+                    Pylon::BlazeCameraParams_Params::OperatingMode_LongRange) ? 1 : 0;
+        }
+    }
+    catch (const GenICam::GenericException&) {}
+    return -1;
+}
+
+int PylonROS2BlazeCamera::getHDRMode()
+{
+    try
+    {
+        if (GenApi::IsReadable(blaze_cam_->HDRMode))
+            return blaze_cam_->HDRMode.GetValue() ? 1 : 0;
+    }
+    catch (const GenICam::GenericException&) {}
+    return -1;
+}
+
+int PylonROS2BlazeCamera::getFastMode()
+{
+    try
+    {
+        if (GenApi::IsReadable(blaze_cam_->FastMode))
+            return blaze_cam_->FastMode.GetValue() ? 1 : 0;
+    }
+    catch (const GenICam::GenericException&) {}
+    return -1;
+}
+
+int PylonROS2BlazeCamera::getSpatialFilter()
+{
+    try
+    {
+        if (GenApi::IsReadable(blaze_cam_->SpatialFilter))
+            return blaze_cam_->SpatialFilter.GetValue() ? 1 : 0;
+    }
+    catch (const GenICam::GenericException&) {}
+    return -1;
+}
+
+int PylonROS2BlazeCamera::getTemporalFilter()
+{
+    try
+    {
+        if (GenApi::IsReadable(blaze_cam_->TemporalFilter))
+            return blaze_cam_->TemporalFilter.GetValue() ? 1 : 0;
+    }
+    catch (const GenICam::GenericException&) {}
+    return -1;
+}
+
+int PylonROS2BlazeCamera::getOutlierRemoval()
+{
+    try
+    {
+        if (GenApi::IsReadable(blaze_cam_->OutlierRemoval))
+            return blaze_cam_->OutlierRemoval.GetValue() ? 1 : 0;
+    }
+    catch (const GenICam::GenericException&) {}
+    return -1;
+}
+
+int PylonROS2BlazeCamera::getAmbiguityFilter()
+{
+    try
+    {
+        if (GenApi::IsReadable(blaze_cam_->AmbiguityFilter))
+            return blaze_cam_->AmbiguityFilter.GetValue() ? 1 : 0;
+    }
+    catch (const GenICam::GenericException&) {}
+    return -1;
+}
+
+float PylonROS2BlazeCamera::getConfidenceThreshold()
+{
+    try
+    {
+        if (GenApi::IsReadable(blaze_cam_->ConfidenceThreshold))
+            return static_cast<float>(blaze_cam_->ConfidenceThreshold.GetValue());
+    }
+    catch (const GenICam::GenericException&) {}
+    return -1.0f;
 }
 
 }  // namespace pylon_ros2_camera

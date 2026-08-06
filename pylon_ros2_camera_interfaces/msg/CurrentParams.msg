@@ -42,6 +42,18 @@ string ptp_status           # latched state of the PTP clock, see https://ja.doc
 string ptp_servo_status     # latched state of the clock servo, see https://docs.baslerweb.com/pylonapi/net/T_Basler_Pylon_PLCamera_PtpServoStatusEnum
 int64 ptp_offset            # ptp offset from master in ticks [ns]
 
+# 3D-only parameters (populated when a 3D camera is connected; -1 otherwise).
+int32 depth_min             # working depth range minimum in mm. -1 = not available
+int32 depth_max             # working depth range maximum in mm. -1 = not available
+int32 operating_mode        # -1 = not available, 0 = ShortRange, 1 = LongRange (blaze)
+int32 hdr_mode              # -1 = not available, 0 = Off, 1 = On (blaze)
+int32 fast_mode             # -1 = not available, 0 = Off, 1 = On (blaze)
+int32 spatial_filter        # -1 = not available, 0 = Off, 1 = On (blaze)
+int32 temporal_filter       # -1 = not available, 0 = Off, 1 = On (blaze)
+int32 outlier_removal       # -1 = not available, 0 = Off, 1 = On (blaze)
+int32 ambiguity_filter      # -1 = not available, 0 = Off, 1 = On (blaze)
+float32 confidence_threshold # -1.0 = not available (blaze)
+
 bool success
 string message
 

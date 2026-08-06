@@ -1295,6 +1295,63 @@ public:
      */
     virtual std::string enableFastMode(const bool& enable) = 0;
 
+    // --- 3D read-back getters -------------------------------------------------
+    // Read-only reflections of already-existing 3D settings, published in
+    // current_params. They are NOT pure virtual: cameras that do not support a
+    // given feature keep the sentinel default (-1). getDepthMin/getDepthMax are
+    // implemented once in the 3D profile; the blaze-specific getters are
+    // overridden in the blaze camera only.
+
+    /**
+     * Working depth range minimum in mm. -1 if not available.
+     */
+    virtual int getDepthMin() { return -1; }
+
+    /**
+     * Working depth range maximum in mm. -1 if not available.
+     */
+    virtual int getDepthMax() { return -1; }
+
+    /**
+     * Operating mode - Applies to: blaze. -1 = n/a, 0 = ShortRange, 1 = LongRange.
+     */
+    virtual int getOperatingMode() { return -1; }
+
+    /**
+     * HDR mode - Applies to: blaze. -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getHDRMode() { return -1; }
+
+    /**
+     * Fast mode - Applies to: blaze. -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getFastMode() { return -1; }
+
+    /**
+     * Spatial filter enabled - Applies to: blaze. -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getSpatialFilter() { return -1; }
+
+    /**
+     * Temporal filter enabled - Applies to: blaze. -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getTemporalFilter() { return -1; }
+
+    /**
+     * Outlier removal enabled - Applies to: blaze. -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getOutlierRemoval() { return -1; }
+
+    /**
+     * Ambiguity filter enabled - Applies to: blaze. -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getAmbiguityFilter() { return -1; }
+
+    /**
+     * Confidence threshold - Applies to: blaze. -1.0 if not available.
+     */
+    virtual float getConfidenceThreshold() { return -1.0f; }
+
     virtual ~PylonROS2Camera();
 
     /**
@@ -1367,7 +1424,7 @@ protected:
      * 1 = GrabStrategy_LatestImageOnly
      * 2 = GrabStrategy_LatestImages
      */
-    int grab_strategy_;
+    int grab_strategy_ = 0;
 
     /**
      * True if the extended binary exposure search is running.

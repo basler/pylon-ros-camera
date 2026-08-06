@@ -95,9 +95,6 @@ public:
     virtual bool applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters) override;
 
     virtual bool startGrabbing(const PylonROS2CameraParameter& parameters) override;
-    virtual std::string grabbingStarting();
-    virtual std::string grabbingStopping() override;
-    virtual bool isCamRemoved() override;
     virtual bool setExposure(const float& target_exposure, float& reached_exposure) override;
 
     virtual bool grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
@@ -110,11 +107,15 @@ public:
     virtual void getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg) override;
 
     virtual int imagePixelDepth() const override;
-    virtual float maxPossibleFramerate() override;
 
     virtual bool hasExtraIntensityImages() const override { return true; }
     virtual const sensor_msgs::msg::Image& extraIntensityLeft()  const override { return intensity_left_msg_; }
     virtual const sensor_msgs::msg::Image& extraIntensityRight() const override { return intensity_right_msg_; }
+
+protected:
+    // The stereo ace grabs through stereo_ace_cam_; the profile uses this for
+    // acquisition start/stop and device-removal detection.
+    Pylon::CInstantCamera& activeCamera() const override { return *stereo_ace_cam_; }
 
 public:
     Pylon::CStereoAceInstantCamera* stereo_ace_cam_;
@@ -137,6 +138,10 @@ PylonROS2StereoAceCamera::PylonROS2StereoAceCamera(Pylon::IPylonDevice* device) 
     PylonROS23DCamera(device),
     stereo_ace_cam_(new Pylon::CStereoAceInstantCamera(device))
 {
+    // Keep only the latest frame by default (matches the previous fixed
+    // GrabStrategy_LatestImageOnly behavior); user-changeable via
+    // set_grabbing_strategy.
+    grab_strategy_ = 1;
 }
 
 PylonROS2StereoAceCamera::~PylonROS2StereoAceCamera()
@@ -285,39 +290,6 @@ bool PylonROS2StereoAceCamera::startGrabbing(const PylonROS2CameraParameter& par
         return false;
     }
     return true;
-}
-
-std::string PylonROS2StereoAceCamera::grabbingStarting()
-{
-    try
-    {
-        stereo_ace_cam_->StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
-    }
-    catch (const GenICam::GenericException& e)
-    {
-        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while starting grabbing: " << e.GetDescription());
-        return e.GetDescription();
-    }
-    return "done";
-}
-
-std::string PylonROS2StereoAceCamera::grabbingStopping()
-{
-    try
-    {
-        stereo_ace_cam_->StopGrabbing();
-    }
-    catch (const GenICam::GenericException& e)
-    {
-        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while stopping grabbing: " << e.GetDescription());
-        return e.GetDescription();
-    }
-    return "done";
-}
-
-bool PylonROS2StereoAceCamera::isCamRemoved()
-{
-    return cam_->IsCameraDeviceRemoved();
 }
 
 bool PylonROS2StereoAceCamera::grab3D(Pylon::CGrabResultPtr& grab_result)
@@ -550,21 +522,6 @@ void PylonROS2StereoAceCamera::getInitialCameraInfo(sensor_msgs::msg::CameraInfo
 int PylonROS2StereoAceCamera::imagePixelDepth() const
 {
     return 3; // RGB8 intensity
-}
-
-float PylonROS2StereoAceCamera::maxPossibleFramerate()
-{
-    try
-    {
-        GenApi::CFloatPtr frame_rate(stereo_ace_cam_->GetNodeMap().GetNode("AcquisitionFrameRate"));
-        if (frame_rate.IsValid() && GenApi::IsReadable(frame_rate))
-            return static_cast<float>(frame_rate->GetValue());
-    }
-    catch (const GenICam::GenericException& e)
-    {
-        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_ACE, "maxPossibleFramerate: " << e.GetDescription());
-    }
-    return 30.0f;
 }
 
 bool PylonROS2StereoAceCamera::setExposure(const float& target_exposure, float& reached_exposure)

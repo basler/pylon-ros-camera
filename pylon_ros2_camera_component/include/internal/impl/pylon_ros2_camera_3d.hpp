@@ -97,8 +97,14 @@ namespace
  * (blaze, Stereo mini, Stereo ace, ...). It centralizes the parts that are common
  * to every 3D camera:
  *   - the is3D() marker used by the node to branch on 3D behavior,
+ *   - acquisition start/stop and device-removal detection routed to the
+ *     device-specific camera object (activeCamera()),
+ *   - common 3D state (depth range, gain, gamma) that stays safely accessible on a
+ *     3D device,
+ *   - default 3D camera-info (Scan3d intrinsics) and max-framerate behavior,
  *   - reusable conversion primitives operating on a Coord3D_ABC32f range component
- *     (grayscale depth map, false-color depth map),
+ *     (grayscale depth map, false-color depth map, point cloud, intensity,
+ *     confidence),
  *   - the device-detach helper needed by the dual-wrapper pattern (a generic
  *     universal instant camera plus a device-specific instant camera wrapping the
  *     same physical device).
@@ -107,14 +113,10 @@ namespace
  * generic parameter access provided by PylonROS2CameraImpl (through the inherited
  * universal instant camera cam_) remains available unchanged. This couples the
  * profile to the GigE trait even though some 3D cameras (e.g. the Stereo mini) may
- * also appear on USB. This is a known, deliberate compromise tracked as tech debt
- * and to be revisited later.
- *
- * The generic grab orchestration (a common grab3D() built on device-specific
- * hooks) is intentionally NOT introduced yet: with a single concrete 3D camera
- * (blaze) there is nothing to generalize against. The shared hooks will be
- * extracted once a second concrete 3D camera (Stereo mini) provides a real second
- * implementation to generalize from.
+ * also appear on USB. This is a known, deliberate and tracked compromise to be revisited later. typeName() is intentionally left as the inherited
+ * "GigE": it denotes the transport (and gates a GigE-vs-USB quirk in
+ * detectAndCountNumUserOutputs()), not the sensor model, so a concrete 3D camera
+ * class must not override it to its marketing name.
  */
 class PylonROS23DCamera : public PylonROS2GigECamera
 {
@@ -125,7 +127,96 @@ public:
     // Every camera deriving from this profile is a 3D camera.
     virtual bool is3D() override;
 
+    // Acquisition start/stop and device-removal detection. A 3D camera grabs
+    // through its device-specific camera object (activeCamera()); the inherited
+    // universal cam_ is never opened for grabbing. Implementing these here makes
+    // them correct for every 3D camera and fixes the base implementations that
+    // would (wrongly) act on the never-opened cam_.
+    // grabbingStarting() is const to match the base signature so it overrides
+    // correctly when called through a PylonROS2Camera* (e.g. the start_grabbing
+    // service): otherwise a non-const override in a derived class does not override
+    // and the base cam_->StartGrabbing() runs on the shared, already-open stream grabber.
+    virtual std::string grabbingStarting() const override;
+    virtual std::string grabbingStopping() override;
+    virtual bool isCamRemoved() override;
+
+    // Returns the working depth range (mm) by reading the DepthMin/DepthMax nodes
+    // from the device node map; returns -1 when the nodes are not available.
+    virtual int getDepthMin() override;
+    virtual int getDepthMax() override;
+
+    // Returns the current gain/gamma by reading the device node map of the active
+    // camera; returns -1 when the node is missing or the read fails. The base
+    // implementations throw when the Gain/Gamma node is absent on the universal
+    // cam_, which would let an exception escape publishCurrentParams().
+    virtual float currentGain() override;
+    virtual float currentGamma() override;
+
+    // Default 3D camera info: intrinsics read from the device Scan3d nodes of the
+    // active camera. A camera whose intrinsics live elsewhere (e.g. blaze reads them
+    // manually, the Stereo ace must first select the Disparity component) overrides
+    // this; a camera whose intrinsics match this default (e.g. Stereo mini) reuses it.
+    virtual void getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg) override;
+
+    // Default maximum frame rate: the AcquisitionFrameRate node of the active
+    // camera, falling back to 30 fps when the node is not readable. A camera with a
+    // different notion of "max" (e.g. blaze uses AcquisitionFrameRate.GetMax())
+    // overrides this.
+    virtual float maxPossibleFramerate() override;
+
+    // 2D-oriented controls. These features use sensor nodes that a 3D device does
+    // not expose. A camera that supports one (e.g. the Stereo mini has analog Gain,
+    // Gamma, Brightness, white balance and an acquisition frame count) overrides
+    // it; a camera without support inherits the version here, which returns failure
+    // without touching the never-opened universal cam_.
+    virtual bool setGain(const float& target_gain, float& reached_gain) override;
+    virtual bool setGamma(const float& target_gamma, float& reached_gamma) override;
+    virtual bool setBrightness(const int& target_brightness,
+                               const float& current_brightness,
+                               const bool& exposure_auto,
+                               const bool& gain_auto) override;
+    virtual std::string setBalanceWhiteAuto(const int& mode) override;
+    virtual std::string setAcquisitionFrameCount(const int& frameCount) override;
+
+    // 2D image-sensor controls (sensor offset/mirror, black level,
+    // PGI/demosaicing/denoise/sharpness/light-source presets, sensor readout mode,
+    // gamma selector, pixel-format encoding, shutter mode, ROI, binning, sequencer)
+    // exist only on 2D area-scan sensors and are absent on every 3D depth device.
+    // Implementing them once here keeps every 3D camera from falling through to the
+    // base implementations, which would act on the never-opened universal cam_.
+    // Device-level GigE features (PTP, action commands, statistics, line I/O,
+    // device-link throughput, ...) are NOT handled here: a GigE 3D camera may
+    // support them through the base class, so they stay with the base and each
+    // camera class.
+    virtual std::string setOffsetXY(const int& offsetValue, bool xAxis) override;
+    virtual std::string reverseXY(const bool& data, bool around_x) override;
+    virtual std::string setBlackLevel(const int& data) override;
+    virtual std::string setPGIMode(const bool& on) override;
+    virtual std::string setDemosaicingMode(const int& mode) override;
+    virtual std::string setNoiseReduction(const float& value) override;
+    virtual std::string setSharpnessEnhancement(const float& value) override;
+    virtual std::string setLightSourcePreset(const int& mode) override;
+    virtual std::string setSensorReadoutMode(const int& mode) override;
+    virtual std::string setGammaSelector(const int& gammaSelector) override;
+    virtual std::string setImageEncoding(const std::string& target_ros_encoding) const override;
+    virtual bool setShutterMode(const pylon_ros2_camera::SHUTTER_MODE& mode) override;
+    virtual bool setROI(const sensor_msgs::msg::RegionOfInterest target_roi,
+                        sensor_msgs::msg::RegionOfInterest& reached_roi) override;
+    virtual bool setBinningX(const size_t& target_binning_x, size_t& reached_binning_x) override;
+    virtual bool setBinningY(const size_t& target_binning_y, size_t& reached_binning_y) override;
+    virtual bool setupSequencer(const std::vector<float>& exposure_times) override;
+
 protected:
+    /**
+     * Returns the device-specific instant camera object (blaze_cam_ /
+     * stereo_mini_cam_ / stereo_ace_cam_) that actually wraps and grabs from the
+     * physical device. Every 3D camera class owns such an object; the inherited universal
+     * cam_ is only used for generic parameter access and is never opened for
+     * grabbing. Centralizing access here lets the profile implement the shared
+     * acquisition/lifetime behavior once, independently of the concrete type.
+     */
+    virtual Pylon::CInstantCamera& activeCamera() const = 0;
+
     /**
      * Detaches the physical device from the inherited universal instant camera
      * (base class cam_) without destroying it.
@@ -235,6 +326,265 @@ PylonROS23DCamera::PylonROS23DCamera(Pylon::IPylonDevice* device) :
 bool PylonROS23DCamera::is3D()
 {
     return true;
+}
+
+std::string PylonROS23DCamera::grabbingStarting() const
+{
+    try
+    {
+        // The device-specific camera is already grabbing right after startup, so a
+        // repeated start_grabbing returns success instead of raising "Grabbing has
+        // already been started".
+        if (activeCamera().IsGrabbing())
+        {
+            return "done";
+        }
+
+        // Grab strategy is user-selectable (set_grabbing_strategy); each camera class sets
+        // its own default in its constructor (OneByOne for blaze, LatestImageOnly
+        // for the stereo cameras).
+        Pylon::EGrabStrategy strategy = Pylon::GrabStrategy_OneByOne;
+        if (grab_strategy_ == 1)
+            strategy = Pylon::GrabStrategy_LatestImageOnly;
+        else if (grab_strategy_ == 2)
+            strategy = Pylon::GrabStrategy_LatestImages;
+
+        activeCamera().StartGrabbing(strategy);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_3D, "An exception occurred while starting image grabbing: " << e.GetDescription());
+        return e.GetDescription();
+    }
+
+    return "done";
+}
+
+std::string PylonROS23DCamera::grabbingStopping()
+{
+    try
+    {
+        activeCamera().StopGrabbing();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_3D, "An exception occurred while stopping image grabbing: " << e.GetDescription());
+        return e.GetDescription();
+    }
+
+    return "done";
+}
+
+bool PylonROS23DCamera::isCamRemoved()
+{
+    try
+    {
+        return activeCamera().IsCameraDeviceRemoved();
+    }
+    catch (const GenICam::GenericException&)
+    {
+        return false;
+    }
+}
+
+int PylonROS23DCamera::getDepthMin()
+{
+    int min_depth = -1, max_depth = -1;
+    try
+    {
+        this->readDepthRange(activeCamera().GetNodeMap(), -1, -1, min_depth, max_depth);
+    }
+    catch (const GenICam::GenericException&)
+    {
+        return -1;
+    }
+    return min_depth;
+}
+
+int PylonROS23DCamera::getDepthMax()
+{
+    int min_depth = -1, max_depth = -1;
+    try
+    {
+        this->readDepthRange(activeCamera().GetNodeMap(), -1, -1, min_depth, max_depth);
+    }
+    catch (const GenICam::GenericException&)
+    {
+        return -1;
+    }
+    return max_depth;
+}
+
+float PylonROS23DCamera::currentGain()
+{
+    try
+    {
+        GenApi::CFloatPtr gain_node(activeCamera().GetNodeMap().GetNode("Gain"));
+        if (gain_node.IsValid() && GenApi::IsReadable(gain_node))
+        {
+            return static_cast<float>(gain_node->GetValue());
+        }
+    }
+    catch (const GenICam::GenericException&) {}
+    return -1.0f;
+}
+
+float PylonROS23DCamera::currentGamma()
+{
+    try
+    {
+        GenApi::CFloatPtr gamma_node(activeCamera().GetNodeMap().GetNode("Gamma"));
+        if (gamma_node.IsValid() && GenApi::IsReadable(gamma_node))
+        {
+            return static_cast<float>(gamma_node->GetValue());
+        }
+    }
+    catch (const GenICam::GenericException&) {}
+    return -1.0f;
+}
+
+void PylonROS23DCamera::getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg)
+{
+    this->populateCameraInfoFromScan3d(activeCamera().GetNodeMap(),
+                                       static_cast<int>(this->imageCols()),
+                                       static_cast<int>(this->imageRows()),
+                                       cam_info_msg);
+}
+
+float PylonROS23DCamera::maxPossibleFramerate()
+{
+    try
+    {
+        GenApi::CFloatPtr frame_rate(activeCamera().GetNodeMap().GetNode("AcquisitionFrameRate"));
+        if (frame_rate.IsValid() && GenApi::IsReadable(frame_rate))
+        {
+            return static_cast<float>(frame_rate->GetValue());
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_DEBUG_STREAM(LOGGER_3D, "maxPossibleFramerate: could not read AcquisitionFrameRate: " << e.GetDescription());
+    }
+    return 30.0f;
+}
+
+// --- 2D-oriented controls ---------------------------------------------------
+// A camera that supports the feature overrides these; a camera without support
+// inherits the version here, which returns failure instead of touching the
+// never-opened universal cam_.
+
+bool PylonROS23DCamera::setGain(const float& /*target_gain*/, float& reached_gain)
+{
+    reached_gain = -1.0f;
+    return false;
+}
+
+bool PylonROS23DCamera::setGamma(const float& /*target_gamma*/, float& reached_gamma)
+{
+    reached_gamma = -1.0f;
+    return false;
+}
+
+bool PylonROS23DCamera::setBrightness(const int& /*target_brightness*/,
+                                      const float& /*current_brightness*/,
+                                      const bool& /*exposure_auto*/,
+                                      const bool& /*gain_auto*/)
+{
+    return false;
+}
+
+std::string PylonROS23DCamera::setBalanceWhiteAuto(const int& /*mode*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS23DCamera::setAcquisitionFrameCount(const int& /*frameCount*/)
+{
+    return "Feature not available for this camera type";
+}
+
+// --- 2D image-sensor controls -----------------------------------------------
+// Absent on every 3D depth device, so these return "not available" here.
+
+std::string PylonROS23DCamera::setOffsetXY(const int& /*offsetValue*/, bool /*xAxis*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS23DCamera::reverseXY(const bool& /*data*/, bool /*around_x*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS23DCamera::setBlackLevel(const int& /*data*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS23DCamera::setPGIMode(const bool& /*on*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS23DCamera::setDemosaicingMode(const int& /*mode*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS23DCamera::setNoiseReduction(const float& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS23DCamera::setSharpnessEnhancement(const float& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS23DCamera::setLightSourcePreset(const int& /*mode*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS23DCamera::setSensorReadoutMode(const int& /*mode*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS23DCamera::setGammaSelector(const int& /*gammaSelector*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS23DCamera::setImageEncoding(const std::string& /*target_ros_encoding*/) const
+{
+    return "Feature not available for this camera type";
+}
+
+bool PylonROS23DCamera::setShutterMode(const pylon_ros2_camera::SHUTTER_MODE& /*mode*/)
+{
+    return false;
+}
+
+bool PylonROS23DCamera::setROI(const sensor_msgs::msg::RegionOfInterest /*target_roi*/,
+                               sensor_msgs::msg::RegionOfInterest& /*reached_roi*/)
+{
+    return false;
+}
+
+bool PylonROS23DCamera::setBinningX(const size_t& /*target_binning_x*/, size_t& /*reached_binning_x*/)
+{
+    return false;
+}
+
+bool PylonROS23DCamera::setBinningY(const size_t& /*target_binning_y*/, size_t& /*reached_binning_y*/)
+{
+    return false;
+}
+
+bool PylonROS23DCamera::setupSequencer(const std::vector<float>& /*exposure_times*/)
+{
+    return false;
 }
 
 void PylonROS23DCamera::detachBaseDevice()
