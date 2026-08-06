@@ -69,9 +69,8 @@ namespace
  * Illumination: BslIlluminationMode (AlternateActive / AlwaysActive / Off) is
  * set from the 'stereo_ace_illumination_mode' parameter (default AlternateActive).
  *
- * Pending hardware validation: the disparity sign/scale conventions and the
- * depth unit (mm vs m for Scan3dBaseline and the working depth range) still
- * need to be confirmed on a physical Stereo ace.
+ * Hardware-validated: Scan3dBaseline is in meters (~0.100 m), depth range is in
+ * meters [0.1, 100], and the reconstruction formula above matches measured output.
  */
 class PylonROS2StereoAceCamera : public PylonROS23DCamera
 {
@@ -319,8 +318,9 @@ bool PylonROS2StereoAceCamera::applyCamSpecificStartupSettings(const PylonROS2Ca
 
         // Illumination mode: configurable via 'stereo_ace_illumination_mode' ROS parameter
         // (set in profile_3d.yaml or as a launch argument).
-        // AlternateActive (default): clean intensity images, frame rate halved.
-        // AlwaysActive: full frame rate, IR pattern visible in intensity images.
+        // AlternateActive (default): clean intensity images (projector alternates exposures).
+        // AlwaysActive: IR pattern visible in intensity images.
+        // Measured: no ROS output-rate difference between modes (pipeline capped ~2 Hz host-side).
         const std::string illum_mode = parameters.stereo_ace_illumination_mode_.empty()
             ? "AlternateActive" : parameters.stereo_ace_illumination_mode_;
         stereo_ace_cam_->BslIlluminationMode.FromString(illum_mode.c_str());

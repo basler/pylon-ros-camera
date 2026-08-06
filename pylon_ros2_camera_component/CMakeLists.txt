@@ -191,6 +191,20 @@ target_link_libraries(set_device_user_id
 	PRIVATE ${PYLON_ROS2_CAMERA_LIBRARIES}
 )
 
+# stereo ace probe (read-only node diagnostic)
+add_executable(stereo_ace_probe
+	${CMAKE_CURRENT_SOURCE_DIR}/src/tools/stereo_ace_probe.cpp
+)
+
+target_include_directories(stereo_ace_probe SYSTEM
+	PRIVATE
+		$<BUILD_INTERFACE:${Pylon_INCLUDE_DIRS}>
+)
+
+target_link_libraries(stereo_ace_probe
+	PRIVATE ${PYLON_ROS2_CAMERA_LIBRARIES}
+)
+
 ### installation
 
 install(
@@ -205,6 +219,7 @@ install(
   TARGETS
     ip_auto_config
     set_device_user_id
+    stereo_ace_probe
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 

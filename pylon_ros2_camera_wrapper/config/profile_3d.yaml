@@ -34,10 +34,10 @@
     # Illumination mode for the Stereo ace IR projector.
     # Controls the trade-off between image quality and frame rate:
     #   AlternateActive (default) - alternates exposures with/without projector;
-    #                               intensity images are free of the IR dot pattern,
-    #                               but effective frame rate is halved (~2 Hz at 4 Hz native).
-    #   AlwaysActive              - projector always on; full native frame rate,
+    #                               intensity images are free of the IR dot pattern.
+    #   AlwaysActive              - projector always on;
     #                               IR dot pattern visible in intensity images.
+    #   (Measured: no ROS output-rate difference between modes; pipeline capped ~2 Hz host-side.)
     #   Off                       - projector disabled; passive stereo, no IR.
     # Has no effect on the blaze or Stereo mini.
     stereo_ace_illumination_mode: "AlternateActive"
