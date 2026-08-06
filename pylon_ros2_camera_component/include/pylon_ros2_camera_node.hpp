@@ -1028,14 +1028,14 @@ protected:
    * @param req request
    * @param res response
    */
-  void setDepthMinCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+  void setDepthMinCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response);
 
   /**
    * @brief Service callback for setting depth max - Applies to: blaze.
    * @param req request
    * @param res response
    */
-  void setDepthMaxCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+  void setDepthMaxCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response);
 
   /**
    * @brief Service callback for setting temporal filter strength - Applies to: blaze.
@@ -1756,8 +1756,8 @@ protected:
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_sync_free_run_timer_start_time_low_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_sync_free_run_timer_start_time_high_srv_;
   // 3D camera specific services
-  rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_min_srv_;
-  rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_max_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_depth_min_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_depth_max_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_temporal_filter_strength_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_outlier_removal_threshold_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_outlier_removal_tolerance_srv_;

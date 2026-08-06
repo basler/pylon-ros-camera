@@ -58,6 +58,7 @@
 
 #include <pylon_ros2_camera_interfaces/action/grab3_d_data.hpp>
 #include <pylon_ros2_camera_interfaces/srv/set_integer_value.hpp>
+#include <pylon_ros2_camera_interfaces/srv/set_float_value.hpp>
 
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <std_srvs/srv/set_bool.hpp>
@@ -86,13 +87,14 @@ protected:
   using Grab3DDataGoalHdl =
     rclcpp_action::ClientGoalHandle<Grab3DDataAction>;
   using SetIntegerValue      = pylon_ros2_camera_interfaces::srv::SetIntegerValue;
+  using SetFloatValue        = pylon_ros2_camera_interfaces::srv::SetFloatValue;
   using SetBool              = std_srvs::srv::SetBool;
 
   // ── Clients ────────────────────────────────────────────────────────────────
 
   rclcpp_action::Client<Grab3DDataAction>::SharedPtr grab_3d_client_;
-  rclcpp::Client<SetIntegerValue>::SharedPtr set_depth_min_client_;
-  rclcpp::Client<SetIntegerValue>::SharedPtr set_depth_max_client_;
+  rclcpp::Client<SetFloatValue>::SharedPtr set_depth_min_client_;
+  rclcpp::Client<SetFloatValue>::SharedPtr set_depth_max_client_;
   rclcpp::Client<SetBool>::SharedPtr enable_spatial_filter_client_;
   rclcpp::Client<SetBool>::SharedPtr enable_temporal_filter_client_;
 };

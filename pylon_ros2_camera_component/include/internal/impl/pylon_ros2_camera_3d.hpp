@@ -142,8 +142,8 @@ public:
 
     // Returns the working depth range (mm) by reading the DepthMin/DepthMax nodes
     // from the device node map; returns -1 when the nodes are not available.
-    virtual int getDepthMin() override;
-    virtual int getDepthMax() override;
+    virtual double getDepthMin() override;
+    virtual double getDepthMax() override;
 
     // Returns the current gain/gamma by reading the device node map of the active
     // camera; returns -1 when the node is missing or the read fails. The base
@@ -387,7 +387,7 @@ bool PylonROS23DCamera::isCamRemoved()
     }
 }
 
-int PylonROS23DCamera::getDepthMin()
+double PylonROS23DCamera::getDepthMin()
 {
     int min_depth = -1, max_depth = -1;
     try
@@ -396,12 +396,12 @@ int PylonROS23DCamera::getDepthMin()
     }
     catch (const GenICam::GenericException&)
     {
-        return -1;
+        return -1.0;
     }
-    return min_depth;
+    return static_cast<double>(min_depth);
 }
 
-int PylonROS23DCamera::getDepthMax()
+double PylonROS23DCamera::getDepthMax()
 {
     int min_depth = -1, max_depth = -1;
     try
@@ -410,9 +410,9 @@ int PylonROS23DCamera::getDepthMax()
     }
     catch (const GenICam::GenericException&)
     {
-        return -1;
+        return -1.0;
     }
-    return max_depth;
+    return static_cast<double>(max_depth);
 }
 
 float PylonROS23DCamera::currentGain()

@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -104,8 +105,8 @@ public:
     virtual std::string setDeviceLinkThroughputLimit(const int& limit) override;
 
     // blaze specific
-    virtual std::string setDepthMin(const int& depth_min) override;
-    virtual std::string setDepthMax(const int& depth_max) override;
+    virtual std::string setDepthMin(const double& depth_min) override;
+    virtual std::string setDepthMax(const double& depth_max) override;
     virtual std::string setTemporalFilterStrength(const int& strength) override;
     virtual std::string setOutlierRemovalThreshold(const int& threshold) override;
     virtual std::string setOutlierRemovalTolerance(const int& tolerance) override;
@@ -920,11 +921,12 @@ std::string PylonROS2BlazeCamera::setDeviceLinkThroughputLimit(const int& limit)
     return "done";
 }
 
-std::string PylonROS2BlazeCamera::setDepthMin(const int& depth_min)
+std::string PylonROS2BlazeCamera::setDepthMin(const double& depth_min)
 {
     try
     {
-        blaze_cam_->DepthMin.SetValue(depth_min);
+        // The blaze DepthMin node is an integer in mm; round the requested value.
+        blaze_cam_->DepthMin.SetValue(static_cast<int64_t>(std::llround(depth_min)));
         RCLCPP_DEBUG_STREAM(LOGGER_BLAZE, "Depth min set to " << depth_min);
     }
     catch (const GenICam::GenericException &e)
@@ -936,11 +938,12 @@ std::string PylonROS2BlazeCamera::setDepthMin(const int& depth_min)
     return "done";
 }
 
-std::string PylonROS2BlazeCamera::setDepthMax(const int& depth_max)
+std::string PylonROS2BlazeCamera::setDepthMax(const double& depth_max)
 {
     try
     {
-        blaze_cam_->DepthMax.SetValue(depth_max);
+        // The blaze DepthMax node is an integer in mm; round the requested value.
+        blaze_cam_->DepthMax.SetValue(static_cast<int64_t>(std::llround(depth_max)));
         RCLCPP_DEBUG_STREAM(LOGGER_BLAZE, "Depth max set to " << depth_max);
     }
     catch (const GenICam::GenericException &e)

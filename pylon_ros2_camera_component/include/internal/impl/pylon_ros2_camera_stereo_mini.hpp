@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -107,8 +108,8 @@ public:
     virtual std::string setTriggerSource(const int& source) override;
     virtual std::string setTriggerMode(const bool& value) override;
     virtual std::string executeSoftwareTrigger() override;
-    virtual std::string setDepthMin(const int& depth_min) override;
-    virtual std::string setDepthMax(const int& depth_max) override;
+    virtual std::string setDepthMin(const double& depth_min) override;
+    virtual std::string setDepthMax(const double& depth_max) override;
 
     // Overrides for features the stereo mini hardware actually supports. The
     // inherited base implementations use the (never-opened) cam_ device and
@@ -774,11 +775,12 @@ std::string PylonROS2StereoMiniCamera::executeSoftwareTrigger()
     return "done";
 }
 
-std::string PylonROS2StereoMiniCamera::setDepthMin(const int& depth_min)
+std::string PylonROS2StereoMiniCamera::setDepthMin(const double& depth_min)
 {
     try
     {
-        stereo_mini_cam_->DepthMin.SetValue(depth_min);
+        // The stereo mini DepthMin node is an integer in mm; round the requested value.
+        stereo_mini_cam_->DepthMin.SetValue(static_cast<int64_t>(std::llround(depth_min)));
         RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Depth min set to " << depth_min);
     }
     catch (const GenICam::GenericException& e)
@@ -789,11 +791,12 @@ std::string PylonROS2StereoMiniCamera::setDepthMin(const int& depth_min)
     return "done";
 }
 
-std::string PylonROS2StereoMiniCamera::setDepthMax(const int& depth_max)
+std::string PylonROS2StereoMiniCamera::setDepthMax(const double& depth_max)
 {
     try
     {
-        stereo_mini_cam_->DepthMax.SetValue(depth_max);
+        // The stereo mini DepthMax node is an integer in mm; round the requested value.
+        stereo_mini_cam_->DepthMax.SetValue(static_cast<int64_t>(std::llround(depth_max)));
         RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Depth max set to " << depth_max);
     }
     catch (const GenICam::GenericException& e)

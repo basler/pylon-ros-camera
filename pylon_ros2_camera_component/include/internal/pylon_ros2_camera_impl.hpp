@@ -371,9 +371,9 @@ public:
                            sensor_msgs::msg::Image& depth_map_color_msg, 
                            sensor_msgs::msg::Image& confidence_map_msg) override;
     
-    virtual std::string setDepthMin(const int& depth_min) override;
+    virtual std::string setDepthMin(const double& depth_min) override;
 
-    virtual std::string setDepthMax(const int& depth_max) override;
+    virtual std::string setDepthMax(const double& depth_max) override;
 
     virtual std::string setTemporalFilterStrength(const int& strength) override;
 

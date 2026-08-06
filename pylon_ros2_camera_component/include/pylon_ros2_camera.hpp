@@ -1167,13 +1167,13 @@ public:
      * Set depth min - Applies to: blaze.
      * @return error message if an error occurred or done message otherwise.
      */
-    virtual std::string setDepthMin(const int& depth_min) = 0;
+    virtual std::string setDepthMin(const double& depth_min) = 0;
 
     /**
      * Set depth max - Applies to: blaze.
      * @return error message if an error occurred or done message otherwise.
      */
-    virtual std::string setDepthMax(const int& depth_max) = 0;
+    virtual std::string setDepthMax(const double& depth_max) = 0;
 
     /**
      * Set temporal filter strength - Applies to: blaze.
@@ -1303,14 +1303,14 @@ public:
     // overridden in the blaze camera only.
 
     /**
-     * Working depth range minimum in mm. -1 if not available.
+     * Working depth range minimum, camera-native units (mm: blaze/mini, m: stereo ace). -1 if not available.
      */
-    virtual int getDepthMin() { return -1; }
+    virtual double getDepthMin() { return -1.0; }
 
     /**
-     * Working depth range maximum in mm. -1 if not available.
+     * Working depth range maximum, camera-native units (mm: blaze/mini, m: stereo ace). -1 if not available.
      */
-    virtual int getDepthMax() { return -1; }
+    virtual double getDepthMax() { return -1.0; }
 
     /**
      * Operating mode - Applies to: blaze. -1 = n/a, 0 = ShortRange, 1 = LongRange.

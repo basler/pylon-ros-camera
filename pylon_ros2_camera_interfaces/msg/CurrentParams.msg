@@ -43,8 +43,8 @@ string ptp_servo_status     # latched state of the clock servo, see https://docs
 int64 ptp_offset            # ptp offset from master in ticks [ns]
 
 # 3D-only parameters (populated when a 3D camera is connected; -1 otherwise).
-int32 depth_min             # working depth range minimum in mm. -1 = not available
-int32 depth_max             # working depth range maximum in mm. -1 = not available
+float32 depth_min           # working depth range minimum, camera-native units (mm: blaze/mini, m: stereo ace). -1 = not available
+float32 depth_max           # working depth range maximum, camera-native units (mm: blaze/mini, m: stereo ace). -1 = not available
 int32 operating_mode        # -1 = not available, 0 = ShortRange, 1 = LongRange (blaze)
 int32 hdr_mode              # -1 = not available, 0 = Off, 1 = On (blaze)
 int32 fast_mode             # -1 = not available, 0 = Off, 1 = On (blaze)

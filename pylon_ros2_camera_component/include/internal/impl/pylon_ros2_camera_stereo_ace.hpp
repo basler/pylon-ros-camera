@@ -153,10 +153,10 @@ public:
     virtual std::string setChunkExposureTime(const float& value) override;
 
     // Working depth range maps to BslDepthMinDepth / BslDepthMaxDepth.
-    virtual std::string setDepthMin(const int& depth_min) override;
-    virtual std::string setDepthMax(const int& depth_max) override;
-    virtual int getDepthMin() override;
-    virtual int getDepthMax() override;
+    virtual std::string setDepthMin(const double& depth_min) override;
+    virtual std::string setDepthMax(const double& depth_max) override;
+    virtual double getDepthMin() override;
+    virtual double getDepthMax() override;
 
     // Feature persistence (pfs) via the Stereo ace node map.
     virtual std::pair<std::string, std::string> getPfs() override;
@@ -1256,13 +1256,13 @@ std::string PylonROS2StereoAceCamera::setChunkExposureTime(const float& value)
 
 // --- Working depth range ----------------------------------------------------
 
-std::string PylonROS2StereoAceCamera::setDepthMin(const int& depth_min)
+std::string PylonROS2StereoAceCamera::setDepthMin(const double& depth_min)
 {
-    // The Stereo ace clamps working depth via BslDepthMinDepth/BslDepthMaxDepth;
-    // units (mm vs m) to be confirmed on hardware.
+    // The Stereo ace clamps working depth via BslDepthMinDepth/BslDepthMaxDepth
+    // (float nodes in meters, range [0, 100]).
     try
     {
-        stereo_ace_cam_->BslDepthMinDepth.SetValue(static_cast<double>(depth_min));
+        stereo_ace_cam_->BslDepthMinDepth.SetValue(depth_min);
     }
     catch (const GenICam::GenericException& e)
     {
@@ -1272,11 +1272,11 @@ std::string PylonROS2StereoAceCamera::setDepthMin(const int& depth_min)
     return "done";
 }
 
-std::string PylonROS2StereoAceCamera::setDepthMax(const int& depth_max)
+std::string PylonROS2StereoAceCamera::setDepthMax(const double& depth_max)
 {
     try
     {
-        stereo_ace_cam_->BslDepthMaxDepth.SetValue(static_cast<double>(depth_max));
+        stereo_ace_cam_->BslDepthMaxDepth.SetValue(depth_max);
     }
     catch (const GenICam::GenericException& e)
     {
@@ -1286,26 +1286,26 @@ std::string PylonROS2StereoAceCamera::setDepthMax(const int& depth_max)
     return "done";
 }
 
-int PylonROS2StereoAceCamera::getDepthMin()
+double PylonROS2StereoAceCamera::getDepthMin()
 {
     try
     {
         if (stereo_ace_cam_->BslDepthMinDepth.IsReadable())
-            return static_cast<int>(stereo_ace_cam_->BslDepthMinDepth.GetValue());
+            return stereo_ace_cam_->BslDepthMinDepth.GetValue();
     }
     catch (const GenICam::GenericException&) {}
-    return -1;
+    return -1.0;
 }
 
-int PylonROS2StereoAceCamera::getDepthMax()
+double PylonROS2StereoAceCamera::getDepthMax()
 {
     try
     {
         if (stereo_ace_cam_->BslDepthMaxDepth.IsReadable())
-            return static_cast<int>(stereo_ace_cam_->BslDepthMaxDepth.GetValue());
+            return stereo_ace_cam_->BslDepthMaxDepth.GetValue();
     }
     catch (const GenICam::GenericException&) {}
-    return -1;
+    return -1.0;
 }
 
 // --- Feature persistence (pfs) ----------------------------------------------

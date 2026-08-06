@@ -30,6 +30,7 @@ set -uo pipefail
 
 NS="${NS:-/stm/pylon_ros2_camera_node}"
 INT_SRV="pylon_ros2_camera_interfaces/srv/SetIntegerValue"
+FLOAT_SRV="pylon_ros2_camera_interfaces/srv/SetFloatValue"
 
 call() {
   echo "+ ros2 service call ${NS}/$*"
@@ -40,6 +41,7 @@ call() {
 
 trig() { ros2 service call "${NS}/$1" std_srvs/srv/Trigger "{}"; }
 setint() { ros2 service call "${NS}/$1" "${INT_SRV}" "{value: $2}"; }
+setfloat() { ros2 service call "${NS}/$1" "${FLOAT_SRV}" "{value: $2}"; }
 setbool() { ros2 service call "${NS}/$1" std_srvs/srv/SetBool "{data: $2}"; }
 
 banner() { echo; echo "==== $* ===="; echo; }
@@ -134,12 +136,12 @@ reset_to_continuous() {
 # ---------------------------------------------------------------------------
 depth_range() {
   banner "Scenario: DEPTH RANGE sweep"
-  setint set_depth_min 200
-  setint set_depth_max 3000
+  setfloat set_depth_min 200
+  setfloat set_depth_max 3000
   echo "Depth clamped to 200..3000 mm. Inspect depth/image_raw for the new range."
   echo "Restoring full range 0..16000 mm:"
-  setint set_depth_min 0
-  setint set_depth_max 16000
+  setfloat set_depth_min 0
+  setfloat set_depth_max 16000
 }
 
 # ---------------------------------------------------------------------------

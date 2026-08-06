@@ -222,10 +222,10 @@ void PylonROS2CameraNode::initServices()
   this->set_sync_free_run_timer_start_time_high_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setSyncFreeRunTimerStartTimeHighCallback, this, _1, _2));
 
   srv_name = srv_prefix + "set_depth_min";
-  this->set_depth_min_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setDepthMinCallback, this, _1, _2));
+  this->set_depth_min_srv_ = this->create_service<SetFloatSrv>(srv_name, std::bind(&PylonROS2CameraNode::setDepthMinCallback, this, _1, _2));
 
   srv_name = srv_prefix + "set_depth_max";
-  this->set_depth_max_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setDepthMaxCallback, this, _1, _2));
+  this->set_depth_max_srv_ = this->create_service<SetFloatSrv>(srv_name, std::bind(&PylonROS2CameraNode::setDepthMaxCallback, this, _1, _2));
 
   srv_name = srv_prefix + "set_temporal_filter_strength";
   this->set_temporal_filter_strength_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setTemporalFilterStrengthCallback, this, _1, _2));

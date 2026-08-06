@@ -4954,14 +4954,14 @@ std::string PylonROS2CameraImpl<CameraTraitT>::issueScheduledActionCommand(const
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMin(const int& depth_min __attribute__((unused)))
+std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMin(const double& depth_min __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
     return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMax(const int& depth_max __attribute__((unused)))
+std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMax(const double& depth_max __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
     return "Feature not available for this camera type";

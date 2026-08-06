@@ -51,9 +51,9 @@ CameraTest3D::CameraTest3D(const rclcpp::NodeOptions & options)
     this, camera_ns_ + "/grab_3d_data");
 
   set_depth_min_client_ =
-    make_client<SetIntegerValue>("set_depth_min");
+    make_client<SetFloatValue>("set_depth_min");
   set_depth_max_client_ =
-    make_client<SetIntegerValue>("set_depth_max");
+    make_client<SetFloatValue>("set_depth_max");
   enable_spatial_filter_client_ =
     make_client<SetBool>("enable_spatial_filter");
   enable_temporal_filter_client_ =
@@ -194,13 +194,14 @@ bool CameraTest3D::test_grab_3d_data()
 }
 
 // Set depth_min=200 mm and depth_max=2000 mm, verify both calls succeed,
-// then restore to default range (0 – 7500 mm).
+// then restore to default range (0 – 7500 mm). Values are for blaze/mini (mm);
+// the stereo ace uses meters, so this test targets the integer-mm cameras.
 bool CameraTest3D::test_set_depth_range()
 {
   // Set depth_min
-  auto req_min = std::make_shared<SetIntegerValue::Request>();
+  auto req_min = std::make_shared<SetFloatValue::Request>();
   req_min->value = 200;
-  auto res_min = call_service<SetIntegerValue>(set_depth_min_client_, req_min);
+  auto res_min = call_service<SetFloatValue>(set_depth_min_client_, req_min);
   if (!res_min) {
     return assert_true(false, "test_set_depth_range",
       "set_depth_min service call failed");
@@ -209,9 +210,9 @@ bool CameraTest3D::test_set_depth_range()
     "test_set_depth_range/depth_min");
 
   // Set depth_max
-  auto req_max = std::make_shared<SetIntegerValue::Request>();
+  auto req_max = std::make_shared<SetFloatValue::Request>();
   req_max->value = 2000;
-  auto res_max = call_service<SetIntegerValue>(set_depth_max_client_, req_max);
+  auto res_max = call_service<SetFloatValue>(set_depth_max_client_, req_max);
   if (!res_max) {
     return assert_true(false, "test_set_depth_range",
       "set_depth_max service call failed");
@@ -220,13 +221,13 @@ bool CameraTest3D::test_set_depth_range()
     "test_set_depth_range/depth_max");
 
   // Restore defaults
-  auto req_min_restore = std::make_shared<SetIntegerValue::Request>();
+  auto req_min_restore = std::make_shared<SetFloatValue::Request>();
   req_min_restore->value = 0;
-  call_service<SetIntegerValue>(set_depth_min_client_, req_min_restore);
+  call_service<SetFloatValue>(set_depth_min_client_, req_min_restore);
 
-  auto req_max_restore = std::make_shared<SetIntegerValue::Request>();
+  auto req_max_restore = std::make_shared<SetFloatValue::Request>();
   req_max_restore->value = 7500;
-  call_service<SetIntegerValue>(set_depth_max_client_, req_max_restore);
+  call_service<SetFloatValue>(set_depth_max_client_, req_max_restore);
 
   return ok;
 }
