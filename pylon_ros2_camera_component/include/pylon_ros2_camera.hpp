@@ -1200,10 +1200,10 @@ public:
     virtual std::string setAmbiguityFilterThreshold(const int& threshold) = 0;
 
     /**
-     * Set confidence threshold - Applies to: blaze.
+     * Set confidence threshold - Applies to: blaze, Stereo ace.
      * @return error message if an error occurred or done message otherwise.
      */
-    virtual std::string setConfidenceThreshold(const int& threshold) = 0;
+    virtual std::string setConfidenceThreshold(const double& threshold) = 0;
 
     /**
      * Set intensity calculation - Applies to: blaze.

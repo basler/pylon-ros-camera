@@ -157,6 +157,10 @@ public:
     virtual double getDepthMin() override;
     virtual double getDepthMax() override;
 
+    // Confidence threshold maps to BslDepthMinConf (float node, range [0, 1]).
+    virtual std::string setConfidenceThreshold(const double& threshold) override;
+    virtual float getConfidenceThreshold() override;
+
     // Feature persistence (pfs) via the Stereo ace node map.
     virtual std::pair<std::string, std::string> getPfs() override;
     virtual std::string savePfs(const std::string& fileName) override;
@@ -1306,6 +1310,35 @@ double PylonROS2StereoAceCamera::getDepthMax()
     }
     catch (const GenICam::GenericException&) {}
     return -1.0;
+}
+
+// --- Confidence threshold ---------------------------------------------------
+
+std::string PylonROS2StereoAceCamera::setConfidenceThreshold(const double& threshold)
+{
+    // The Stereo ace exposes the confidence threshold via BslDepthMinConf
+    // (float node, normalized range [0, 1]).
+    try
+    {
+        stereo_ace_cam_->BslDepthMinConf.SetValue(threshold);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the confidence threshold occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+float PylonROS2StereoAceCamera::getConfidenceThreshold()
+{
+    try
+    {
+        if (stereo_ace_cam_->BslDepthMinConf.IsReadable())
+            return static_cast<float>(stereo_ace_cam_->BslDepthMinConf.GetValue());
+    }
+    catch (const GenICam::GenericException&) {}
+    return -1.0f;
 }
 
 // --- Feature persistence (pfs) ----------------------------------------------

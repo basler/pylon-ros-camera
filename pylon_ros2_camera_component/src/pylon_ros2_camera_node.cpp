@@ -444,7 +444,7 @@ void PylonROS2CameraNode::initServices()
   this->set_ambiguity_filter_threshold_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setAmbiguityFilterThresholdCallback, this, _1, _2));
   
   srv_name = srv_prefix + "set_confidence_threshold";
-  this->set_confidence_threshold_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setConfidenceThresholdCallback, this, _1, _2));
+  this->set_confidence_threshold_srv_ = this->create_service<SetFloatSrv>(srv_name, std::bind(&PylonROS2CameraNode::setConfidenceThresholdCallback, this, _1, _2));
   
   srv_name = srv_prefix + "set_intensity_calculation";
   this->set_intensity_calculation_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setIntensityCalculationCallback, this, _1, _2));
@@ -3679,7 +3679,7 @@ void PylonROS2CameraNode::setAmbiguityFilterThresholdCallback(const std::shared_
   }
 }
 
-void PylonROS2CameraNode::setConfidenceThresholdCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+void PylonROS2CameraNode::setConfidenceThresholdCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response)
 {
   response->message = this->pylon_camera_->setConfidenceThreshold(request->value);
   if (response->message.find("done") != std::string::npos)

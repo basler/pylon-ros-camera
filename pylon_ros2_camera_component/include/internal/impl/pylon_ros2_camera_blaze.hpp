@@ -111,7 +111,7 @@ public:
     virtual std::string setOutlierRemovalThreshold(const int& threshold) override;
     virtual std::string setOutlierRemovalTolerance(const int& tolerance) override;
     virtual std::string setAmbiguityFilterThreshold(const int& threshold) override;
-    virtual std::string setConfidenceThreshold(const int& threshold) override;
+    virtual std::string setConfidenceThreshold(const double& threshold) override;
     virtual std::string setIntensityCalculation(const int& calculation) override;
     virtual std::string setExposureTimeSelector(const int& selector) override;
     virtual std::string setOperatingMode(const int& mode) override;
@@ -1019,11 +1019,12 @@ std::string PylonROS2BlazeCamera::setAmbiguityFilterThreshold(const int& thresho
     return "done";
 }
 
-std::string PylonROS2BlazeCamera::setConfidenceThreshold(const int& threshold)
+std::string PylonROS2BlazeCamera::setConfidenceThreshold(const double& threshold)
 {
     try
     {
-        blaze_cam_->ConfidenceThreshold.SetValue(threshold);
+        // The blaze ConfidenceThreshold node is an integer; round the requested value.
+        blaze_cam_->ConfidenceThreshold.SetValue(static_cast<int64_t>(std::llround(threshold)));
         RCLCPP_DEBUG_STREAM(LOGGER_BLAZE, "Confidence threshold set to " << threshold);
     }
     catch (const GenICam::GenericException &e)

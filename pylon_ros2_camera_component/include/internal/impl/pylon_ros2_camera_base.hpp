@@ -4996,7 +4996,7 @@ std::string PylonROS2CameraImpl<CameraTraitT>::setAmbiguityFilterThreshold(const
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setConfidenceThreshold(const int& threshold __attribute__((unused)))
+std::string PylonROS2CameraImpl<CameraTraitT>::setConfidenceThreshold(const double& threshold __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
     return "Feature not available for this camera type";

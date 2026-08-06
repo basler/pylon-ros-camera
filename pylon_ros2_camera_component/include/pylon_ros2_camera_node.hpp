@@ -1066,11 +1066,11 @@ protected:
   void setAmbiguityFilterThresholdCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for setting confidence threshold - Applies to: blaze.
+   * @brief Service callback for setting confidence threshold - Applies to: blaze, Stereo ace.
    * @param req request
    * @param res response
    */
-  void setConfidenceThresholdCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+  void setConfidenceThresholdCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response);
 
   /**
    * @brief Service callback for setting intensity calculation - Applies to: blaze.
@@ -1762,7 +1762,7 @@ protected:
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_outlier_removal_threshold_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_outlier_removal_tolerance_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_ambiguity_filter_threshold_srv_;
-  rclcpp::Service<SetIntegerSrv>::SharedPtr set_confidence_threshold_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_confidence_threshold_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_intensity_calculation_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_exposure_time_selector_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_operating_mode_srv_;

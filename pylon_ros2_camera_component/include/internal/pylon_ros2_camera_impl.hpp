@@ -383,7 +383,7 @@ public:
 
     virtual std::string setAmbiguityFilterThreshold(const int& threshold) override;
 
-    virtual std::string setConfidenceThreshold(const int& threshold) override;
+    virtual std::string setConfidenceThreshold(const double& threshold) override;
 
     virtual std::string setIntensityCalculation(const int& calculation) override;
 
