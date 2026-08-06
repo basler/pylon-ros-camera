@@ -1164,13 +1164,15 @@ public:
     virtual std::string issueScheduledActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const int64_t& action_time_ns_from_current_timestamp, const std::string& broadcast_address) = 0;
 
     /**
-     * Set depth min - Applies to: blaze.
+     * Set depth min - Applies to: blaze, stereo mini, stereo ace.
+     * depth_min is in camera-native units: mm (blaze/mini, integer node), meters (stereo ace, float node).
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setDepthMin(const double& depth_min) = 0;
 
     /**
-     * Set depth max - Applies to: blaze.
+     * Set depth max - Applies to: blaze, stereo mini, stereo ace.
+     * depth_max is in camera-native units: mm (blaze/mini, integer node), meters (stereo ace, float node).
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string setDepthMax(const double& depth_max) = 0;

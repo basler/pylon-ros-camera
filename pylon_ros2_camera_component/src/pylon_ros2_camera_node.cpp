@@ -3603,6 +3603,7 @@ void PylonROS2CameraNode::setSyncFreeRunTimerStartTimeHighCallback(const std::sh
 
 void PylonROS2CameraNode::setDepthMinCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response)
 {
+  // request->value units are camera-native: mm (blaze/mini), meters (stereo ace).
   response->message = this->pylon_camera_->setDepthMin(request->value);
   if (response->message.find("done") != std::string::npos)
   {
@@ -3616,6 +3617,7 @@ void PylonROS2CameraNode::setDepthMinCallback(const std::shared_ptr<SetFloatSrv:
 
 void PylonROS2CameraNode::setDepthMaxCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response)
 {
+  // request->value units are camera-native: mm (blaze/mini), meters (stereo ace).
   response->message = this->pylon_camera_->setDepthMax(request->value);
   if (response->message.find("done") != std::string::npos)
   {
