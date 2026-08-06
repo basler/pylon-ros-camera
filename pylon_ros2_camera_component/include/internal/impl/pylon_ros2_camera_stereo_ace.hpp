@@ -30,7 +30,9 @@
 
 #include <cstring>
 #include <limits>
+#include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "internal/impl/pylon_ros2_camera_3d.hpp"
@@ -112,6 +114,116 @@ public:
     virtual const sensor_msgs::msg::Image& extraIntensityLeft()  const override { return intensity_left_msg_; }
     virtual const sensor_msgs::msg::Image& extraIntensityRight() const override { return intensity_right_msg_; }
 
+    // --- Option B service interface -----------------------------------------
+    // The inherited base/profile implementations act on the never-opened
+    // universal cam_ (or return "not available"); the following retarget every
+    // feature the Stereo ace hardware actually supports to stereo_ace_cam_ and
+    // return clear stubs for the nodes it does not expose.
+
+    // 2D image controls the profile neutralizes but the Stereo ace supports.
+    virtual bool setGain(const float& target_gain, float& reached_gain) override;
+    virtual bool setGamma(const float& target_gamma, float& reached_gamma) override;
+    virtual bool setBrightness(const int& target_brightness,
+                               const float& current_brightness,
+                               const bool& exposure_auto,
+                               const bool& gain_auto) override;
+    virtual std::string setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue) override;
+    virtual std::string setBalanceWhiteAuto(const int& mode) override;
+    virtual std::string setAcquisitionFrameRate(const float& framerate) override;
+    virtual std::string enableAcquisitionFrameRate(const bool& enable) override;
+    virtual std::string setAcquisitionFrameCount(const int& frameCount) override;
+
+    // Real ROI / binning (Width/Height/Offset/Binning exist on the Stereo ace).
+    virtual bool setROI(const sensor_msgs::msg::RegionOfInterest target_roi,
+                        sensor_msgs::msg::RegionOfInterest& reached_roi) override;
+    virtual bool setBinningX(const size_t& target_binning_x, size_t& reached_binning_x) override;
+    virtual bool setBinningY(const size_t& target_binning_y, size_t& reached_binning_y) override;
+    virtual std::string setOffsetXY(const int& offsetValue, bool xAxis) override;
+
+    // Trigger controls.
+    virtual std::string setTriggerSelector(const int& mode) override;
+    virtual std::string setTriggerSource(const int& source) override;
+    virtual std::string setTriggerMode(const bool& value) override;
+    virtual std::string setTriggerActivation(const int& value) override;
+    virtual std::string setTriggerDelay(const float& delayValue) override;
+    virtual std::string executeSoftwareTrigger() override;
+    virtual std::string triggerDeviceReset() override;
+
+    // Digital I/O lines.
+    virtual std::string setLineSelector(const int& value) override;
+    virtual std::string setLineMode(const int& value) override;
+    virtual std::string setLineSource(const int& value) override;
+    virtual std::string setLineInverter(const bool& value) override;
+
+    // Device link throughput.
+    virtual std::string setDeviceLinkThroughputLimitMode(const bool& turnOn) override;
+    virtual std::string setDeviceLinkThroughputLimit(const int& limit) override;
+
+    // ace-style chunk data.
+    virtual std::string setChunkModeActive(const bool& enable) override;
+    virtual std::string setChunkSelector(const int& value) override;
+    virtual std::string setChunkEnable(const bool& enable) override;
+    virtual std::string setChunkExposureTime(const float& value) override;
+
+    // Working depth range maps to BslDepthMinDepth / BslDepthMaxDepth.
+    virtual std::string setDepthMin(const int& depth_min) override;
+    virtual std::string setDepthMax(const int& depth_max) override;
+    virtual int getDepthMin() override;
+    virtual int getDepthMax() override;
+
+    // Feature persistence (pfs) via the Stereo ace node map.
+    virtual std::pair<std::string, std::string> getPfs() override;
+    virtual std::string savePfs(const std::string& fileName) override;
+    virtual std::string loadPfs(const std::string& fileName) override;
+
+    // PTP (the ace exposes PtpEnable / PtpStatus / PtpServoStatus).
+    virtual std::string enablePTP(const bool& value) override;
+    virtual std::string getPTPStatus(int64_t& offset_from_master, std::string& status, std::string& servo_status) override;
+
+    // Buffer / statistics retargeted to stereo_ace_cam_.
+    virtual std::string setMaxNumBuffer(const int& size) override;
+    virtual std::string setOutputQueueSize(const int& size) override;
+    virtual int getMaxNumBuffer() override;
+    virtual int getStatisticTotalBufferCount() override;
+    virtual int getStatisticFailedBufferCount() override;
+    virtual int getStatisticBufferUnderrunCount() override;
+    virtual int getStatisticFailedPacketCount() override;
+    virtual int getStatisticResendRequestCount() override;
+    virtual int getStatisticMissedFrameCount() override;
+    virtual int getStatisticResynchronizationCount() override;
+
+    // Stubs for features the Stereo ace SDK does not expose.
+    virtual std::string setLineDebouncerTime(const float& value) override;
+    virtual std::string gammaEnable(const bool& enable) override;
+    virtual std::string setUserSetSelector(const int& set) override;
+    virtual std::string saveUserSet() override;
+    virtual std::string loadUserSet() override;
+    virtual std::string setUserSetDefaultSelector(const int& set) override;
+    virtual std::string setTimerSelector(const int& selector) override;
+    virtual std::string setTimerTriggerSource(const int& source) override;
+    virtual std::string setTimerDuration(const float& duration) override;
+    virtual std::string setMaxTransferSize(const int& maxTransferSize) override;
+    virtual std::string setPTPPriority(const int& value) override;
+    virtual std::string setPTPProfile(const int& value) override;
+    virtual std::string setPTPNetworkMode(const int& value) override;
+    virtual std::string setPTPUCPortAddressIndex(const int& value) override;
+    virtual std::string setPTPUCPortAddress(const int& value) override;
+    virtual std::string enablePTPManagementProtocol(const bool& value) override;
+    virtual std::string enablePTPTwoStepOperation(const bool& value) override;
+    virtual std::string setPeriodicSignalPeriod(const float& value) override;
+    virtual std::string setPeriodicSignalDelay(const float& value) override;
+    virtual std::string setSyncFreeRunTimerStartTimeLow(const int& value) override;
+    virtual std::string setSyncFreeRunTimerStartTimeHigh(const int& value) override;
+    virtual std::string setSyncFreeRunTimerTriggerRateAbs(const float& value) override;
+    virtual std::string enableSyncFreeRunTimer(const bool& value) override;
+    virtual std::string updateSyncFreeRunTimer() override;
+    virtual std::string setActionTriggerConfiguration(const int& action_device_key, const int& action_group_key, const unsigned int& action_group_mask,
+                                                      const int& registration_mode, const int& cleanup) override;
+    virtual std::string issueActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const std::string& broadcast_address) override;
+    virtual std::string issueScheduledActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const int64_t& action_time_ns_from_current_timestamp, const std::string& broadcast_address) override;
+    virtual bool setAutoflash(const std::map<int, bool> flash_on_lines) override;
+    virtual bool setUserOutput(const int& output_id, const bool& value) override;
+
 protected:
     // The stereo ace grabs through stereo_ace_cam_; the profile uses this for
     // acquisition start/stop and device-removal detection.
@@ -132,6 +244,12 @@ private:
     // Extra intensity images (left / right, from IntensityCombined, top/bottom halves)
     sensor_msgs::msg::Image intensity_left_msg_;
     sensor_msgs::msg::Image intensity_right_msg_;
+
+    // Re-reads img_cols_/img_rows_ from the IntensityCombined component after a
+    // resolution-changing setting (ROI / binning).
+    void relearnImageDimensions();
+    // Reads an integer statistics counter from the camera node map; -1 if absent.
+    int readStatisticCounter(const char* node_name);
 };
 
 PylonROS2StereoAceCamera::PylonROS2StereoAceCamera(Pylon::IPylonDevice* device) :
@@ -576,6 +694,843 @@ bool PylonROS2StereoAceCamera::setExposure(const float& target_exposure, float& 
         return false;
     }
     return true;
+}
+
+// Shorthand for the Stereo ace enumeration tokens.
+namespace StaParams = Pylon::StereoAceCameraParams_Params;
+
+// --- Image controls the Stereo ace supports --------------------------------
+
+bool PylonROS2StereoAceCamera::setGain(const float& target_gain, float& reached_gain)
+{
+    // The Stereo ace has no GainAuto; Gain is always manual. target_gain is a
+    // fraction [0.0 - 1.0] mapped onto the Gain range selected by GainSelector.
+    try
+    {
+        stereo_ace_cam_->GainSelector.TrySetValue(StaParams::GainSelector_All);
+
+        float truncated_gain = target_gain;
+        if (truncated_gain < 0.0f) truncated_gain = 0.0f;
+        else if (truncated_gain > 1.0f) truncated_gain = 1.0f;
+
+        const float min_gain = static_cast<float>(stereo_ace_cam_->Gain.GetMin());
+        const float max_gain = static_cast<float>(stereo_ace_cam_->Gain.GetMax());
+        stereo_ace_cam_->Gain.SetValue(min_gain + truncated_gain * (max_gain - min_gain));
+
+        const float reached_abs = static_cast<float>(stereo_ace_cam_->Gain.GetValue());
+        reached_gain = (max_gain > min_gain) ? (reached_abs - min_gain) / (max_gain - min_gain) : 0.0f;
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting target gain to "
+            << target_gain << " occurred: " << e.GetDescription());
+        return false;
+    }
+    return true;
+}
+
+bool PylonROS2StereoAceCamera::setGamma(const float& target_gamma, float& reached_gamma)
+{
+    try
+    {
+        float gamma_to_set = target_gamma;
+        const float min_gamma = static_cast<float>(stereo_ace_cam_->Gamma.GetMin());
+        const float max_gamma = static_cast<float>(stereo_ace_cam_->Gamma.GetMax());
+        if (gamma_to_set < min_gamma) gamma_to_set = min_gamma;
+        else if (gamma_to_set > max_gamma) gamma_to_set = max_gamma;
+        stereo_ace_cam_->Gamma.SetValue(gamma_to_set);
+        reached_gamma = static_cast<float>(stereo_ace_cam_->Gamma.GetValue());
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting target gamma to "
+            << target_gamma << " occurred: " << e.GetDescription());
+        return false;
+    }
+    return true;
+}
+
+bool PylonROS2StereoAceCamera::setBrightness(const int& target_brightness,
+                                             const float& current_brightness __attribute__((unused)),
+                                             const bool& exposure_auto,
+                                             const bool& gain_auto __attribute__((unused)))
+{
+    // Direct analog BslBrightness control; target_brightness [1..255] mapped
+    // linearly onto the BslBrightness range.
+    try
+    {
+        if (exposure_auto)
+            stereo_ace_cam_->ExposureAuto.TrySetValue(StaParams::ExposureAuto_Continuous);
+
+        const float clamped = static_cast<float>(std::min(255, std::max(1, target_brightness)));
+        const float min_b = static_cast<float>(stereo_ace_cam_->BslBrightness.GetMin());
+        const float max_b = static_cast<float>(stereo_ace_cam_->BslBrightness.GetMax());
+        stereo_ace_cam_->BslBrightness.SetValue(min_b + (clamped - 1.0f) / 254.0f * (max_b - min_b));
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting brightness occurred: " << e.GetDescription());
+        return false;
+    }
+    return true;
+}
+
+std::string PylonROS2StereoAceCamera::setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue)
+{
+    try
+    {
+        stereo_ace_cam_->BalanceWhiteAuto.TrySetValue(StaParams::BalanceWhiteAuto_Off);
+
+        stereo_ace_cam_->BalanceRatioSelector.SetValue(StaParams::BalanceRatioSelector_Red);
+        stereo_ace_cam_->BalanceRatio.SetValue(redValue);
+        stereo_ace_cam_->BalanceRatioSelector.SetValue(StaParams::BalanceRatioSelector_Green);
+        stereo_ace_cam_->BalanceRatio.SetValue(greenValue);
+        stereo_ace_cam_->BalanceRatioSelector.SetValue(StaParams::BalanceRatioSelector_Blue);
+        stereo_ace_cam_->BalanceRatio.SetValue(blueValue);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the white balance occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setBalanceWhiteAuto(const int& mode)
+{
+    try
+    {
+        switch (mode)
+        {
+            case 0: stereo_ace_cam_->BalanceWhiteAuto.SetValue(StaParams::BalanceWhiteAuto_Off); break;
+            case 1: stereo_ace_cam_->BalanceWhiteAuto.SetValue(StaParams::BalanceWhiteAuto_Once); break;
+            case 2: stereo_ace_cam_->BalanceWhiteAuto.SetValue(StaParams::BalanceWhiteAuto_Continuous); break;
+            default: return "Error: unknown value (0=Off, 1=Once, 2=Continuous)";
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while changing the balance white auto occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setAcquisitionFrameRate(const float& framerate)
+{
+    try
+    {
+        if (stereo_ace_cam_->AcquisitionFrameRateEnable.GetValue())
+            stereo_ace_cam_->AcquisitionFrameRate.SetValue(framerate);
+        else
+            return "To change the acquisition frame rate, it must first be enabled";
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while changing the acquisition frame rate occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::enableAcquisitionFrameRate(const bool& enable)
+{
+    try
+    {
+        stereo_ace_cam_->AcquisitionFrameRateEnable.SetValue(enable);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while enabling/disabling the acquisition frame rate occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setAcquisitionFrameCount(const int& frameCount)
+{
+    try
+    {
+        // AcquisitionFrameCount is locked while grabbing; stop and restart around the change.
+        this->grabbingStopping();
+        stereo_ace_cam_->AcquisitionFrameCount.SetValue(frameCount);
+        this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the acquisition frame count occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+// --- ROI / binning ----------------------------------------------------------
+
+bool PylonROS2StereoAceCamera::setROI(const sensor_msgs::msg::RegionOfInterest target_roi,
+                                      sensor_msgs::msg::RegionOfInterest& reached_roi)
+{
+    try
+    {
+        this->grabbingStopping();
+
+        const int64_t max_w = stereo_ace_cam_->Width.GetMax();
+        const int64_t min_w = stereo_ace_cam_->Width.GetMin();
+        const int64_t max_h = stereo_ace_cam_->Height.GetMax();
+        const int64_t min_h = stereo_ace_cam_->Height.GetMin();
+        const int64_t w_inc = std::max<int64_t>(1, stereo_ace_cam_->Width.GetInc());
+        const int64_t h_inc = std::max<int64_t>(1, stereo_ace_cam_->Height.GetInc());
+
+        // Reset offsets before resizing to avoid range conflicts.
+        stereo_ace_cam_->OffsetX.TrySetValue(0);
+        stereo_ace_cam_->OffsetY.TrySetValue(0);
+
+        int64_t width_to_set    = std::min(max_w, std::max(min_w, static_cast<int64_t>(target_roi.width)));
+        int64_t height_to_set   = std::min(max_h, std::max(min_h, static_cast<int64_t>(target_roi.height)));
+        int64_t offset_x_to_set = static_cast<int64_t>(target_roi.x_offset);
+        int64_t offset_y_to_set = static_cast<int64_t>(target_roi.y_offset);
+        offset_x_to_set -= offset_x_to_set % w_inc;
+        offset_y_to_set -= offset_y_to_set % h_inc;
+        if (width_to_set + offset_x_to_set > max_w)   offset_x_to_set = max_w - width_to_set;
+        if (height_to_set + offset_y_to_set > max_h)  offset_y_to_set = max_h - height_to_set;
+
+        stereo_ace_cam_->Width.SetValue(width_to_set);
+        stereo_ace_cam_->Height.SetValue(height_to_set);
+        stereo_ace_cam_->OffsetX.SetValue(offset_x_to_set);
+        stereo_ace_cam_->OffsetY.SetValue(offset_y_to_set);
+
+        reached_roi.width    = static_cast<uint32_t>(stereo_ace_cam_->Width.GetValue());
+        reached_roi.height   = static_cast<uint32_t>(stereo_ace_cam_->Height.GetValue());
+        reached_roi.x_offset = static_cast<uint32_t>(stereo_ace_cam_->OffsetX.GetValue());
+        reached_roi.y_offset = static_cast<uint32_t>(stereo_ace_cam_->OffsetY.GetValue());
+
+        this->grabbingStarting();
+        this->relearnImageDimensions();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the ROI occurred: " << e.GetDescription());
+        return false;
+    }
+    return true;
+}
+
+bool PylonROS2StereoAceCamera::setBinningX(const size_t& target_binning_x, size_t& reached_binning_x)
+{
+    try
+    {
+        this->grabbingStopping();
+        int64_t v = std::min(stereo_ace_cam_->BinningHorizontal.GetMax(),
+                             std::max(stereo_ace_cam_->BinningHorizontal.GetMin(), static_cast<int64_t>(target_binning_x)));
+        stereo_ace_cam_->BinningHorizontal.SetValue(v);
+        reached_binning_x = static_cast<size_t>(stereo_ace_cam_->BinningHorizontal.GetValue());
+        this->grabbingStarting();
+        this->relearnImageDimensions();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the horizontal binning occurred: " << e.GetDescription());
+        return false;
+    }
+    return true;
+}
+
+bool PylonROS2StereoAceCamera::setBinningY(const size_t& target_binning_y, size_t& reached_binning_y)
+{
+    try
+    {
+        this->grabbingStopping();
+        int64_t v = std::min(stereo_ace_cam_->BinningVertical.GetMax(),
+                             std::max(stereo_ace_cam_->BinningVertical.GetMin(), static_cast<int64_t>(target_binning_y)));
+        stereo_ace_cam_->BinningVertical.SetValue(v);
+        reached_binning_y = static_cast<size_t>(stereo_ace_cam_->BinningVertical.GetValue());
+        this->grabbingStarting();
+        this->relearnImageDimensions();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the vertical binning occurred: " << e.GetDescription());
+        return false;
+    }
+    return true;
+}
+
+std::string PylonROS2StereoAceCamera::setOffsetXY(const int& offsetValue, bool xAxis)
+{
+    try
+    {
+        if (xAxis) stereo_ace_cam_->OffsetX.SetValue(offsetValue);
+        else       stereo_ace_cam_->OffsetY.SetValue(offsetValue);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the offset occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+// --- Trigger controls -------------------------------------------------------
+
+std::string PylonROS2StereoAceCamera::setTriggerSelector(const int& mode)
+{
+    try
+    {
+        if (mode == 0)
+        {
+            stereo_ace_cam_->TriggerSelector.SetValue(StaParams::TriggerSelector_FrameStart);
+            return "done";
+        }
+        return "Error: the Stereo ace only supports trigger selector 0 (FrameStart)";
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the trigger selector occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+}
+
+std::string PylonROS2StereoAceCamera::setTriggerSource(const int& source)
+{
+    try
+    {
+        switch (source)
+        {
+            case 0: stereo_ace_cam_->TriggerSource.SetValue(StaParams::TriggerSource_Software); break;
+            case 1: stereo_ace_cam_->TriggerSource.SetValue(StaParams::TriggerSource_In1); break;
+            default: return "Error: the Stereo ace supports trigger source 0 (Software) or 1 (In1)";
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the trigger source occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setTriggerMode(const bool& value)
+{
+    try
+    {
+        stereo_ace_cam_->TriggerMode.SetValue(value ? StaParams::TriggerMode_On : StaParams::TriggerMode_Off);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the trigger mode occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setTriggerActivation(const int& value)
+{
+    try
+    {
+        switch (value)
+        {
+            case 0: stereo_ace_cam_->TriggerActivation.SetValue(StaParams::TriggerActivation_RisingEdge); break;
+            case 1: stereo_ace_cam_->TriggerActivation.SetValue(StaParams::TriggerActivation_FallingEdge); break;
+            case 2: stereo_ace_cam_->TriggerActivation.SetValue(StaParams::TriggerActivation_AnyEdge); break;
+            default: return "Error: unknown value (0=RisingEdge, 1=FallingEdge, 2=AnyEdge)";
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the trigger activation occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setTriggerDelay(const float& delayValue)
+{
+    try
+    {
+        stereo_ace_cam_->TriggerDelay.SetValue(delayValue);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the trigger delay occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::executeSoftwareTrigger()
+{
+    try
+    {
+        if (!stereo_ace_cam_->CanWaitForFrameTriggerReady())
+        {
+            stereo_ace_cam_->ExecuteSoftwareTrigger();
+        }
+        else if (stereo_ace_cam_->WaitForFrameTriggerReady(grab_timeout_, Pylon::TimeoutHandling_Return))
+        {
+            stereo_ace_cam_->ExecuteSoftwareTrigger();
+        }
+        else
+        {
+            return "Camera not ready to accept a software trigger";
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while executing the software trigger occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::triggerDeviceReset()
+{
+    try
+    {
+        stereo_ace_cam_->DeviceReset.Execute();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while triggering the device reset occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+// --- Digital I/O lines ------------------------------------------------------
+
+std::string PylonROS2StereoAceCamera::setLineSelector(const int& value)
+{
+    // The Stereo ace exposes In1..In4 and Out1..Out4: 1-4 select inputs, 5-8 outputs.
+    try
+    {
+        switch (value)
+        {
+            case 1: stereo_ace_cam_->LineSelector.SetValue(StaParams::LineSelector_In1); break;
+            case 2: stereo_ace_cam_->LineSelector.SetValue(StaParams::LineSelector_In2); break;
+            case 3: stereo_ace_cam_->LineSelector.SetValue(StaParams::LineSelector_In3); break;
+            case 4: stereo_ace_cam_->LineSelector.SetValue(StaParams::LineSelector_In4); break;
+            case 5: stereo_ace_cam_->LineSelector.SetValue(StaParams::LineSelector_Out1); break;
+            case 6: stereo_ace_cam_->LineSelector.SetValue(StaParams::LineSelector_Out2); break;
+            case 7: stereo_ace_cam_->LineSelector.SetValue(StaParams::LineSelector_Out3); break;
+            case 8: stereo_ace_cam_->LineSelector.SetValue(StaParams::LineSelector_Out4); break;
+            default: return "Error: unknown value (1-4=In1-In4, 5-8=Out1-Out4)";
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the line selector occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setLineMode(const int& value)
+{
+    try
+    {
+        stereo_ace_cam_->LineMode.SetValue(value == 0 ? StaParams::LineMode_Input : StaParams::LineMode_Output);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the line mode occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setLineSource(const int& value)
+{
+    try
+    {
+        switch (value)
+        {
+            case 0: stereo_ace_cam_->LineSource.SetValue(StaParams::LineSource_ExposureActive); break;
+            case 1: stereo_ace_cam_->LineSource.SetValue(StaParams::LineSource_ExposureAlternateActive); break;
+            case 2: stereo_ace_cam_->LineSource.SetValue(StaParams::LineSource_High); break;
+            case 3: stereo_ace_cam_->LineSource.SetValue(StaParams::LineSource_Low); break;
+            default: return "Error: unknown value (0=ExposureActive, 1=ExposureAlternateActive, 2=High, 3=Low)";
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the line source occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setLineInverter(const bool& value)
+{
+    try
+    {
+        stereo_ace_cam_->LineInverter.SetValue(value);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the line inverter occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+// --- Device link throughput -------------------------------------------------
+
+std::string PylonROS2StereoAceCamera::setDeviceLinkThroughputLimitMode(const bool& turnOn)
+{
+    try
+    {
+        stereo_ace_cam_->DeviceLinkThroughputLimitMode.FromString(turnOn ? "On" : "Off");
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while changing the device link throughput limit mode occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setDeviceLinkThroughputLimit(const int& limit)
+{
+    try
+    {
+        stereo_ace_cam_->DeviceLinkThroughputLimit.SetValue(limit);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while changing the device link throughput limit occurred (throughput limit mode must be On): " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+// --- Chunk data -------------------------------------------------------------
+
+std::string PylonROS2StereoAceCamera::setChunkModeActive(const bool& enable)
+{
+    try
+    {
+        stereo_ace_cam_->ChunkModeActive.SetValue(enable);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting chunk mode active occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setChunkSelector(const int& value)
+{
+    // The driver-internal timestamp workflow calls setChunkSelector(29); map that
+    // and FrameID to the Stereo ace ChunkSelector entries.
+    try
+    {
+        switch (value)
+        {
+            case 29: stereo_ace_cam_->ChunkSelector.SetValue(StaParams::ChunkSelector_Timestamp); break;
+            case 7:  stereo_ace_cam_->ChunkSelector.SetValue(StaParams::ChunkSelector_FrameID); break;
+            default: return "Error: unsupported chunk selector for the Stereo ace (7=FrameID, 29=Timestamp)";
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the chunk selector occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setChunkEnable(const bool& enable)
+{
+    try
+    {
+        stereo_ace_cam_->ChunkEnable.SetValue(enable);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting chunk enable occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setChunkExposureTime(const float& value)
+{
+    try
+    {
+        stereo_ace_cam_->ChunkExposureTime.SetValue(value);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the chunk exposure time occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+// --- Working depth range ----------------------------------------------------
+
+std::string PylonROS2StereoAceCamera::setDepthMin(const int& depth_min)
+{
+    // The Stereo ace clamps working depth via BslDepthMinDepth/BslDepthMaxDepth;
+    // units (mm vs m) to be confirmed on hardware.
+    try
+    {
+        stereo_ace_cam_->BslDepthMinDepth.SetValue(static_cast<double>(depth_min));
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the minimum depth occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setDepthMax(const int& depth_max)
+{
+    try
+    {
+        stereo_ace_cam_->BslDepthMaxDepth.SetValue(static_cast<double>(depth_max));
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the maximum depth occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+int PylonROS2StereoAceCamera::getDepthMin()
+{
+    try
+    {
+        if (stereo_ace_cam_->BslDepthMinDepth.IsReadable())
+            return static_cast<int>(stereo_ace_cam_->BslDepthMinDepth.GetValue());
+    }
+    catch (const GenICam::GenericException&) {}
+    return -1;
+}
+
+int PylonROS2StereoAceCamera::getDepthMax()
+{
+    try
+    {
+        if (stereo_ace_cam_->BslDepthMaxDepth.IsReadable())
+            return static_cast<int>(stereo_ace_cam_->BslDepthMaxDepth.GetValue());
+    }
+    catch (const GenICam::GenericException&) {}
+    return -1;
+}
+
+// --- Feature persistence (pfs) ----------------------------------------------
+
+std::pair<std::string, std::string> PylonROS2StereoAceCamera::getPfs()
+{
+    std::pair<std::string, std::string> result;
+    try
+    {
+        this->grabbingStopping();
+        Pylon::String_t pfs;
+        Pylon::CFeaturePersistence::SaveToString(pfs, &stereo_ace_cam_->GetNodeMap());
+        result.second = pfs;
+        this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while getting the camera configuration as pfs occurred: " << e.GetDescription());
+        result.first = e.GetDescription();
+        return result;
+    }
+    result.first = "done";
+    return result;
+}
+
+std::string PylonROS2StereoAceCamera::savePfs(const std::string& fileName)
+{
+    try
+    {
+        this->grabbingStopping();
+        Pylon::CFeaturePersistence::Save(fileName.c_str(), &stereo_ace_cam_->GetNodeMap());
+        this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while saving the pfs file occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::loadPfs(const std::string& fileName)
+{
+    try
+    {
+        this->grabbingStopping();
+        Pylon::CFeaturePersistence::Load(fileName.c_str(), &stereo_ace_cam_->GetNodeMap(), true);
+        this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while loading the pfs file occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+// --- PTP --------------------------------------------------------------------
+
+std::string PylonROS2StereoAceCamera::enablePTP(const bool& value)
+{
+    try
+    {
+        stereo_ace_cam_->PtpEnable.SetValue(value);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while enabling/disabling PTP occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::getPTPStatus(int64_t& offset_from_master, std::string& status, std::string& servo_status)
+{
+    offset_from_master = -1;
+    status = "no_status";
+    servo_status = "no_servo_status";
+    try
+    {
+        stereo_ace_cam_->PtpDataSetLatch.Execute();
+        offset_from_master = stereo_ace_cam_->PtpOffsetFromMaster.GetValue();
+        status = stereo_ace_cam_->PtpStatus.ToString().c_str();
+        servo_status = stereo_ace_cam_->PtpServoStatus.ToString().c_str();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while getting the PTP status occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+// --- Buffers / statistics ---------------------------------------------------
+
+std::string PylonROS2StereoAceCamera::setMaxNumBuffer(const int& size)
+{
+    try
+    {
+        this->grabbingStopping();
+        stereo_ace_cam_->MaxNumBuffer.SetValue(size);
+        this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the maximum number of buffers occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setOutputQueueSize(const int& size)
+{
+    try
+    {
+        const int max_num_buffer = static_cast<int>(stereo_ace_cam_->MaxNumBuffer.GetValue());
+        if (size < 0 || size > max_num_buffer)
+            return "The requested output queue size is outside the limits of : 0-" + std::to_string(max_num_buffer);
+        stereo_ace_cam_->OutputQueueSize.SetValue(size);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the output queue size occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+int PylonROS2StereoAceCamera::getMaxNumBuffer()
+{
+    try
+    {
+        return static_cast<int>(stereo_ace_cam_->MaxNumBuffer.GetValue());
+    }
+    catch (const GenICam::GenericException&)
+    {
+        return -2;
+    }
+}
+
+int PylonROS2StereoAceCamera::readStatisticCounter(const char* node_name)
+{
+    try
+    {
+        GenApi::CIntegerPtr node(stereo_ace_cam_->GetNodeMap().GetNode(node_name));
+        if (node.IsValid() && GenApi::IsReadable(node))
+            return static_cast<int>(node->GetValue());
+    }
+    catch (const GenICam::GenericException&) {}
+    return -1;
+}
+
+int PylonROS2StereoAceCamera::getStatisticTotalBufferCount()       { return readStatisticCounter("Statistic_Total_Buffer_Count"); }
+int PylonROS2StereoAceCamera::getStatisticFailedBufferCount()      { return readStatisticCounter("Statistic_Failed_Buffer_Count"); }
+int PylonROS2StereoAceCamera::getStatisticBufferUnderrunCount()    { return readStatisticCounter("Statistic_Buffer_Underrun_Count"); }
+int PylonROS2StereoAceCamera::getStatisticFailedPacketCount()      { return readStatisticCounter("Statistic_Failed_Packet_Count"); }
+int PylonROS2StereoAceCamera::getStatisticResendRequestCount()     { return readStatisticCounter("Statistic_Resend_Request_Count"); }
+int PylonROS2StereoAceCamera::getStatisticMissedFrameCount()       { return -1; } // not exposed by the Stereo ace
+int PylonROS2StereoAceCamera::getStatisticResynchronizationCount() { return -1; } // not exposed by the Stereo ace
+
+// --- Stubs for features the Stereo ace SDK does not expose -------------------
+
+std::string PylonROS2StereoAceCamera::setLineDebouncerTime(const float& /*value*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::gammaEnable(const bool& /*enable*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setUserSetSelector(const int& /*set*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::saveUserSet() { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::loadUserSet() { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setUserSetDefaultSelector(const int& /*set*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setTimerSelector(const int& /*selector*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setTimerTriggerSource(const int& /*source*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setTimerDuration(const float& /*duration*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setMaxTransferSize(const int& /*maxTransferSize*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setPTPPriority(const int& /*value*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setPTPProfile(const int& /*value*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setPTPNetworkMode(const int& /*value*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setPTPUCPortAddressIndex(const int& /*value*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setPTPUCPortAddress(const int& /*value*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::enablePTPManagementProtocol(const bool& /*value*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::enablePTPTwoStepOperation(const bool& /*value*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setPeriodicSignalPeriod(const float& /*value*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setPeriodicSignalDelay(const float& /*value*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setSyncFreeRunTimerStartTimeLow(const int& /*value*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setSyncFreeRunTimerStartTimeHigh(const int& /*value*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setSyncFreeRunTimerTriggerRateAbs(const float& /*value*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::enableSyncFreeRunTimer(const bool& /*value*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::updateSyncFreeRunTimer() { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::setActionTriggerConfiguration(const int& /*action_device_key*/, const int& /*action_group_key*/, const unsigned int& /*action_group_mask*/,
+                                                                    const int& /*registration_mode*/, const int& /*cleanup*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::issueActionCommand(const int& /*device_key*/, const int& /*group_key*/, const unsigned int& /*group_mask*/, const std::string& /*broadcast_address*/) { return "Feature not available for this camera type"; }
+std::string PylonROS2StereoAceCamera::issueScheduledActionCommand(const int& /*device_key*/, const int& /*group_key*/, const unsigned int& /*group_mask*/, const int64_t& /*action_time_ns_from_current_timestamp*/, const std::string& /*broadcast_address*/) { return "Feature not available for this camera type"; }
+bool PylonROS2StereoAceCamera::setAutoflash(const std::map<int, bool> /*flash_on_lines*/) { return false; }
+bool PylonROS2StereoAceCamera::setUserOutput(const int& /*output_id*/, const bool& /*value*/) { return false; }
+
+// --- Helpers ----------------------------------------------------------------
+
+void PylonROS2StereoAceCamera::relearnImageDimensions()
+{
+    Pylon::CGrabResultPtr grab_result;
+    if (this->grab3D(grab_result) && grab_result.IsValid())
+    {
+        for (int idx = 0; idx < (int)grab_result->GetDataComponentCount(); ++idx)
+        {
+            const auto component = grab_result->GetDataComponent(idx);
+            if (component.GetComponentType() == static_cast<Pylon::EComponentType>(0xFF01)) // IntensityCombined
+            {
+                img_cols_ = static_cast<size_t>(component.GetWidth());
+                img_rows_ = static_cast<size_t>(component.GetHeight()) / 2;
+                img_size_byte_ = img_cols_ * img_rows_ * imagePixelDepth();
+                break;
+            }
+        }
+    }
 }
 
 } // namespace pylon_ros2_camera

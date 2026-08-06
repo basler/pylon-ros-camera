@@ -558,6 +558,10 @@ std::string PylonROS23DCamera::setGammaSelector(const int& /*gammaSelector*/)
 
 std::string PylonROS23DCamera::setImageEncoding(const std::string& /*target_ros_encoding*/) const
 {
+    // 3D cameras fix a PixelFormat per output component (range/intensity/confidence)
+    // at startup, so there is no single 2D encoding to switch: blaze intensity is
+    // Mono16, the stereo mini formats are fixed by its multi-source pipeline, and
+    // the stereo ace intensity (RGB8) is chosen at startup.
     return "Feature not available for this camera type";
 }
 
