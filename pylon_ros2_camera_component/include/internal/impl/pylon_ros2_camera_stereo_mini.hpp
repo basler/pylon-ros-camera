@@ -116,6 +116,8 @@ public:
     virtual std::string enableProjector(const bool& enable) override;
     // Sets the pattern projector power level (BslLaserLevel), clamped to the reported range.
     virtual std::string setProjectorLevel(const int& level) override;
+    // Turns HDR on or off (BslHDREnable); the node is only writable while acquisition is stopped.
+    virtual std::string enableHDRMode(const bool& enable) override;
 
     // Overrides for features the stereo mini hardware actually supports. The
     // inherited base implementations use the (never-opened) cam_ device and
@@ -918,6 +920,41 @@ std::string PylonROS2StereoMiniCamera::setProjectorLevel(const int& level)
     catch (const GenICam::GenericException& e)
     {
         RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the projector level occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::enableHDRMode(const bool& enable)
+{
+    // HDR is controlled by BslHDREnable, which is not part of the typed parameter class, so reach it
+    // through the generic node map by name. The node is only writable while an IR source (Source1/Source2)
+    // is selected; it is read-only under the color source (Source3) the startup config leaves selected.
+    // Select each IR source, write the value, then restore Source3. The node is locked while grabbing,
+    // so stop/start around the write.
+    try
+    {
+        GenApi::CBooleanPtr hdr_enable(stereo_mini_cam_->GetNodeMap().GetNode("BslHDREnable"));
+        if (!hdr_enable.IsValid())
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_MINI, "BslHDREnable is not available on this camera");
+            return "BslHDREnable is not available on this camera";
+        }
+
+        this->grabbingStopping();
+        stereo_mini_cam_->SourceSelector.FromString("Source1");
+        hdr_enable->SetValue(enable);
+        stereo_mini_cam_->SourceSelector.FromString("Source2");
+        hdr_enable->SetValue(enable);
+        stereo_mini_cam_->SourceSelector.FromString("Source3");
+        this->grabbingStarting();
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "HDR mode " << (enable ? "enabled" : "disabled"));
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the HDR mode occurred: " << e.GetDescription());
+        try { stereo_mini_cam_->SourceSelector.FromString("Source3"); } catch (const GenICam::GenericException&) {}
+        this->grabbingStarting();
         return e.GetDescription();
     }
     return "done";
