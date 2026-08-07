@@ -67,7 +67,7 @@ namespace
  *     Y = (v - Scan3dPrincipalPointV) * Z / Scan3dFocalLength
  *
  * Illumination: BslIlluminationMode (AlternateActive / AlwaysActive / Off) is
- * set from the 'stereo_ace_illumination_mode' parameter (default AlternateActive).
+ * set from the 'stereo_ace_illumination_mode' parameter (default AlwaysActive).
  *
  * Hardware-validated: Scan3dBaseline is in meters (~0.100 m), depth range is in
  * meters [0.1, 100], and the reconstruction formula above matches measured output.
@@ -228,12 +228,14 @@ public:
 
 private:
     // Scan3D reconstruction parameters (read at startup with ComponentSelector=Disparity)
+    // Re-read these if a resolution-affecting setting (binning/ROI/decimation/mode) is ever changed at runtime.
     float sta_coordinate_scale_{0.0625f};
     float sta_coordinate_offset_{0.0f};
     float sta_baseline_{0.0f};     // meters
     float sta_focal_length_{0.0f}; // pixels
     float sta_cx_{0.0f};           // Scan3dPrincipalPointU
     float sta_cy_{0.0f};           // Scan3dPrincipalPointV
+    float sta_invalid_data_value_{0.0f}; // raw disparity value marking an invalid pixel (Scan3dInvalidDataValue)
 
     // Extra intensity images (left / right, from IntensityCombined, top/bottom halves)
     sensor_msgs::msg::Image intensity_left_msg_;
@@ -326,11 +328,11 @@ bool PylonROS2StereoAceCamera::applyCamSpecificStartupSettings(const PylonROS2Ca
 
         // Illumination mode: configurable via 'stereo_ace_illumination_mode' ROS parameter
         // (set in profile_3d.yaml or as a launch argument).
-        // AlternateActive (default): clean intensity images (projector alternates exposures).
-        // AlwaysActive: IR pattern visible in intensity images.
+        // AlwaysActive (default): projector always on; Basler-recommended for depth quality (IR pattern visible in intensity).
+        // AlternateActive: clean intensity images (projector alternates exposures), extra exposure per result.
         // Measured: no ROS output-rate difference between modes (pipeline capped ~2 Hz host-side).
         const std::string illum_mode = parameters.stereo_ace_illumination_mode_.empty()
-            ? "AlternateActive" : parameters.stereo_ace_illumination_mode_;
+            ? "AlwaysActive" : parameters.stereo_ace_illumination_mode_;
         stereo_ace_cam_->BslIlluminationMode.FromString(illum_mode.c_str());
 
         // Read Scan3D reconstruction parameters from the Disparity component.
@@ -343,13 +345,18 @@ bool PylonROS2StereoAceCamera::applyCamSpecificStartupSettings(const PylonROS2Ca
         sta_cx_                = static_cast<float>(stereo_ace_cam_->Scan3dPrincipalPointU.GetValue());
         sta_cy_                = static_cast<float>(stereo_ace_cam_->Scan3dPrincipalPointV.GetValue());
 
+        // Query the invalid-pixel sentinel instead of assuming 0 (Basler: check nodes at runtime).
+        if (stereo_ace_cam_->Scan3dInvalidDataValue.IsReadable())
+            sta_invalid_data_value_ = static_cast<float>(stereo_ace_cam_->Scan3dInvalidDataValue.GetValue());
+
         RCLCPP_INFO_STREAM(LOGGER_STEREO_ACE,
             "Stereo ace configured: IntensityCombined=RGB8 (left/right), "
             "Disparity=Coord3D_C16, Confidence8, BslIlluminationMode=" << illum_mode << ". "
             "Reconstruction params: focal=" << sta_focal_length_
             << " baseline=" << sta_baseline_ << " m"
             << " scale=" << sta_coordinate_scale_
-            << " cx=" << sta_cx_ << " cy=" << sta_cy_);
+            << " cx=" << sta_cx_ << " cy=" << sta_cy_
+            << " invalid=" << sta_invalid_data_value_);
     }
     catch (const GenICam::GenericException& e)
     {
@@ -516,13 +523,14 @@ bool PylonROS2StereoAceCamera::grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
     // Formula from Basler sample (SavePointcloud.cpp):
     //   calibrated_d = raw * Scan3dCoordinateScale + Scan3dCoordinateOffset
     //   Z [mm] = 1000 * Scan3dBaseline[m] * Scan3dFocalLength[px] / calibrated_d[px]
+    const uint16_t invalid_raw = static_cast<uint16_t>(sta_invalid_data_value_);
     std::vector<float> z_buf(dw * dh, 0.0f);
     for (int v = 0; v < dh; ++v)
     {
         for (int u = 0; u < dw; ++u)
         {
             const uint16_t raw = disp[v * dw + u];
-            if (raw == 0) continue; // invalid
+            if (raw == invalid_raw) continue; // invalid pixel (Scan3dInvalidDataValue)
             const float d = raw * sta_coordinate_scale_ + sta_coordinate_offset_;
             if (d <= 0.0f) continue;
             z_buf[v * dw + u] = 1000.0f * sta_baseline_ * sta_focal_length_ / d;
@@ -1350,13 +1358,19 @@ float PylonROS2StereoAceCamera::getConfidenceThreshold()
 std::string PylonROS2StereoAceCamera::enableHDRMode(const bool& enable)
 {
     // The Stereo ace exposes HDR via the BslHdrEnable enum (Off/On).
+    // BslHdrEnable is a static (not-while-grabbing) node, so stop/start around the write.
+    // Note: a complete HDR setup on the supported STA-200 variant also requires configuring
+    // the sub-exposure sequence; this bare toggle only flips the enable node.
     try
     {
+        this->grabbingStopping();
         stereo_ace_cam_->BslHdrEnable.FromString(enable ? "On" : "Off");
+        this->grabbingStarting();
     }
     catch (const GenICam::GenericException& e)
     {
         RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while enabling/disabling HDR mode occurred: " << e.GetDescription());
+        this->grabbingStarting();
         return e.GetDescription();
     }
     return "done";

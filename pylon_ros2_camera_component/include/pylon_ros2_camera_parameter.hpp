@@ -265,11 +265,11 @@ public:
     /**
      * Illumination mode for the Basler Stereo ace camera.
      * Controls whether the IR projector runs during acquisition:
-     *   AlternateActive (default) - alternates projector on/off each frame;
-     *                               intensity images are free of the IR dot
-     *                               pattern, but effective frame rate is halved.
-     *   AlwaysActive              - projector always on; full native frame rate,
-     *                               but IR pattern visible in intensity images.
+     *   AlwaysActive (default)    - projector always on; recommended by Basler for
+     *                               depth quality, but IR pattern visible in intensity images.
+     *   AlternateActive           - alternates projector on/off each frame; intensity
+     *                               images are free of the IR dot pattern, at the cost of
+     *                               an extra exposure per result.
      *   Off                       - projector disabled; passive stereo only.
      * Ignored by blaze and Stereo mini.
      */

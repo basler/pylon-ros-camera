@@ -61,7 +61,7 @@ PylonROS2CameraParameter::PylonROS2CameraParameter() :
     enable_status_publisher_(false),
     enable_current_params_publisher_(false),
     startup_user_set_(""),
-    stereo_ace_illumination_mode_("AlternateActive"),
+    stereo_ace_illumination_mode_("AlwaysActive"),
     inter_pkg_delay_(0),
     frame_transmission_delay_(0),
     shutter_mode_(SM_DEFAULT),
@@ -389,7 +389,7 @@ void PylonROS2CameraParameter::readFromRosParameterServer(rclcpp::Node& nh)
 
     if (!nh.has_parameter("stereo_ace_illumination_mode"))
     {
-        nh.declare_parameter<std::string>("stereo_ace_illumination_mode", "AlternateActive");
+        nh.declare_parameter<std::string>("stereo_ace_illumination_mode", "AlwaysActive");
     }
 
     nh.get_parameter("stereo_ace_illumination_mode", this->stereo_ace_illumination_mode_);

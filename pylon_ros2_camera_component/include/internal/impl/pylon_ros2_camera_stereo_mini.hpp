@@ -110,6 +110,8 @@ public:
     virtual std::string executeSoftwareTrigger() override;
     virtual std::string setDepthMin(const double& depth_min) override;
     virtual std::string setDepthMax(const double& depth_max) override;
+    // Selects a BslDepthPreset by index into the entries the camera reports as available at runtime.
+    virtual std::string setOperatingMode(const int& mode) override;
 
     // Overrides for features the stereo mini hardware actually supports. The
     // inherited base implementations use the (never-opened) cam_ device and
@@ -802,6 +804,62 @@ std::string PylonROS2StereoMiniCamera::setDepthMax(const double& depth_max)
     catch (const GenICam::GenericException& e)
     {
         RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting depth max occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setOperatingMode(const int& mode)
+{
+    // The stereo mini exposes depth tuning through the BslDepthPreset enum. The set of
+    // presets depends on model/firmware, so enumerate the available entries at runtime and
+    // select by index rather than relying on a fixed enum mapping. BslDepthPreset is locked
+    // while grabbing, so stop/start around the write.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslDepthPreset))
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_MINI, "BslDepthPreset is not available on this camera");
+            return "BslDepthPreset is not available on this camera";
+        }
+
+        GenApi::NodeList_t entries;
+        stereo_mini_cam_->BslDepthPreset.GetEntries(entries);
+        std::vector<std::string> available;
+        for (GenApi::NodeList_t::iterator it = entries.begin(); it != entries.end(); ++it)
+        {
+            if (!GenApi::IsAvailable(*it))
+                continue;
+            GenApi::CEnumEntryPtr entry(*it);
+            if (entry.IsValid())
+                available.push_back(std::string(entry->GetSymbolic().c_str()));
+        }
+
+        if (available.empty())
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_MINI, "No BslDepthPreset entries are available on this camera");
+            return "No BslDepthPreset entries are available on this camera";
+        }
+
+        if (mode < 0 || mode >= static_cast<int>(available.size()))
+        {
+            std::ostringstream ss;
+            ss << "Depth preset index " << mode << " is out of range. Available presets (" << available.size() << "): ";
+            for (size_t i = 0; i < available.size(); ++i)
+                ss << i << "=" << available[i] << (i + 1 < available.size() ? ", " : "");
+            RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, ss.str());
+            return ss.str();
+        }
+
+        this->grabbingStopping();
+        stereo_mini_cam_->BslDepthPreset.FromString(available[mode].c_str());
+        this->grabbingStarting();
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Depth preset set to " << available[mode]);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the depth preset occurred: " << e.GetDescription());
+        this->grabbingStarting();
         return e.GetDescription();
     }
     return "done";
