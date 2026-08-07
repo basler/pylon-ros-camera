@@ -464,6 +464,15 @@ void PylonROS2CameraNode::initServices()
   srv_name = srv_prefix + "set_projector_level";
   this->set_projector_level_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setProjectorLevelCallback, this, _1, _2));
   
+  srv_name = srv_prefix + "get_projector_enable";
+  this->get_projector_enable_srv_ = this->create_service<GetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::getProjectorEnableCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "get_projector_level";
+  this->get_projector_level_srv_ = this->create_service<GetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::getProjectorLevelCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "get_depth_preset";
+  this->get_depth_preset_srv_ = this->create_service<GetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::getDepthPresetCallback, this, _1, _2));
+  
   srv_name = srv_prefix + "set_multi_camera_channel";
   this->set_multi_camera_channel_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setMultiCameraChannelCallback, this, _1, _2));
   
@@ -4387,6 +4396,54 @@ void PylonROS2CameraNode::setProjectorLevelCallback(const std::shared_ptr<SetInt
   else
   {
     response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::getProjectorEnableCallback(const std::shared_ptr<GetIntegerSrv::Request> request, std::shared_ptr<GetIntegerSrv::Response> response)
+{
+  (void)request;
+  int value = this->pylon_camera_->getProjectorEnable();
+  if (value == -1)
+  {
+    response->success = false;
+    response->message = "The connected camera does not support this feature";
+  }
+  else
+  {
+    response->success = true;
+    response->value = value;
+  }
+}
+
+void PylonROS2CameraNode::getProjectorLevelCallback(const std::shared_ptr<GetIntegerSrv::Request> request, std::shared_ptr<GetIntegerSrv::Response> response)
+{
+  (void)request;
+  int value = this->pylon_camera_->getProjectorLevel();
+  if (value == -1)
+  {
+    response->success = false;
+    response->message = "The connected camera does not support this feature";
+  }
+  else
+  {
+    response->success = true;
+    response->value = value;
+  }
+}
+
+void PylonROS2CameraNode::getDepthPresetCallback(const std::shared_ptr<GetIntegerSrv::Request> request, std::shared_ptr<GetIntegerSrv::Response> response)
+{
+  (void)request;
+  int value = this->pylon_camera_->getDepthPreset();
+  if (value == -1)
+  {
+    response->success = false;
+    response->message = "The connected camera does not support this feature";
+  }
+  else
+  {
+    response->success = true;
+    response->value = value;
   }
 }
 

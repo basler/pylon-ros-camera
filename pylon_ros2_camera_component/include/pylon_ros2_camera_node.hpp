@@ -1418,6 +1418,27 @@ protected:
   void setProjectorLevelCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
+   * @brief Service callback for getting the pattern projector state - Applies to: Stereo mini.
+   * @param req request
+   * @param res response
+   */
+  void getProjectorEnableCallback(const std::shared_ptr<GetIntegerSrv::Request> request, std::shared_ptr<GetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for getting the pattern projector power level - Applies to: Stereo mini.
+   * @param req request
+   * @param res response
+   */
+  void getProjectorLevelCallback(const std::shared_ptr<GetIntegerSrv::Request> request, std::shared_ptr<GetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for getting the depth preset index - Applies to: Stereo mini.
+   * @param req request
+   * @param res response
+   */
+  void getDepthPresetCallback(const std::shared_ptr<GetIntegerSrv::Request> request, std::shared_ptr<GetIntegerSrv::Response> response);
+
+  /**
    * @brief Service callback for enabling/disabling fast mode - Applies to: blaze.
    * @param req request
    * @param res response
@@ -1805,6 +1826,9 @@ protected:
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_illumination_mode_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_quality_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_projector_level_srv_;
+  rclcpp::Service<GetIntegerSrv>::SharedPtr get_projector_enable_srv_;
+  rclcpp::Service<GetIntegerSrv>::SharedPtr get_projector_level_srv_;
+  rclcpp::Service<GetIntegerSrv>::SharedPtr get_depth_preset_srv_;
 
   rclcpp::Service<SetFloatSrv>::SharedPtr set_noise_reduction_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_sharpness_enhancement_srv_;

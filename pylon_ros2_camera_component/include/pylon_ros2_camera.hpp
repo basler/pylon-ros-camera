@@ -1387,6 +1387,21 @@ public:
      */
     virtual float getConfidenceThreshold() { return -1.0f; }
 
+    /**
+     * Projector enabled - Applies to: Stereo mini (BslLaserEnable). -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getProjectorEnable() { return -1; }
+
+    /**
+     * Projector power level - Applies to: Stereo mini (BslLaserLevel). -1 if not available.
+     */
+    virtual int getProjectorLevel() { return -1; }
+
+    /**
+     * Depth preset index into the entries the camera reports at runtime - Applies to: Stereo mini (BslDepthPreset). -1 if not available.
+     */
+    virtual int getDepthPreset() { return -1; }
+
     virtual ~PylonROS2Camera();
 
     /**

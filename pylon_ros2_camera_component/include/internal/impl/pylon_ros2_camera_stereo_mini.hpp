@@ -116,6 +116,12 @@ public:
     virtual std::string enableProjector(const bool& enable) override;
     // Sets the pattern projector power level (BslLaserLevel), clamped to the reported range.
     virtual std::string setProjectorLevel(const int& level) override;
+    // Reads the current pattern projector state (BslLaserEnable).
+    virtual int getProjectorEnable() override;
+    // Reads the current pattern projector power level (BslLaserLevel).
+    virtual int getProjectorLevel() override;
+    // Reads the current BslDepthPreset as an index into the reported entries.
+    virtual int getDepthPreset() override;
     // Turns HDR on or off (BslHDREnable); the node is only writable while acquisition is stopped.
     virtual std::string enableHDRMode(const bool& enable) override;
 
@@ -923,6 +929,69 @@ std::string PylonROS2StereoMiniCamera::setProjectorLevel(const int& level)
         return e.GetDescription();
     }
     return "done";
+}
+
+int PylonROS2StereoMiniCamera::getProjectorEnable()
+{
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslLaserEnable))
+            return -1;
+        return stereo_mini_cam_->BslLaserEnable.GetValue() ? 1 : 0;
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while reading the projector state occurred: " << e.GetDescription());
+        return -1;
+    }
+}
+
+int PylonROS2StereoMiniCamera::getProjectorLevel()
+{
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslLaserLevel))
+            return -1;
+        return static_cast<int>(stereo_mini_cam_->BslLaserLevel.GetValue());
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while reading the projector level occurred: " << e.GetDescription());
+        return -1;
+    }
+}
+
+int PylonROS2StereoMiniCamera::getDepthPreset()
+{
+    // Mirror setOperatingMode's runtime enumeration so the returned index matches the setter.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslDepthPreset))
+            return -1;
+
+        GenApi::NodeList_t entries;
+        stereo_mini_cam_->BslDepthPreset.GetEntries(entries);
+        const std::string current(stereo_mini_cam_->BslDepthPreset.ToString().c_str());
+        int index = 0;
+        for (GenApi::NodeList_t::iterator it = entries.begin(); it != entries.end(); ++it)
+        {
+            if (!GenApi::IsAvailable(*it))
+                continue;
+            GenApi::CEnumEntryPtr entry(*it);
+            if (entry.IsValid())
+            {
+                if (std::string(entry->GetSymbolic().c_str()) == current)
+                    return index;
+                ++index;
+            }
+        }
+        return -1;
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while reading the depth preset occurred: " << e.GetDescription());
+        return -1;
+    }
 }
 
 std::string PylonROS2StereoMiniCamera::enableHDRMode(const bool& enable)
