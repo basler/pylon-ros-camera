@@ -161,6 +161,10 @@ public:
     virtual std::string setConfidenceThreshold(const double& threshold) override;
     virtual float getConfidenceThreshold() override;
 
+    // HDR maps to BslHdrEnable (enum Off/On).
+    virtual std::string enableHDRMode(const bool& enable) override;
+    virtual int getHDRMode() override;
+
     // Feature persistence (pfs) via the Stereo ace node map.
     virtual std::pair<std::string, std::string> getPfs() override;
     virtual std::string savePfs(const std::string& fileName) override;
@@ -1339,6 +1343,34 @@ float PylonROS2StereoAceCamera::getConfidenceThreshold()
     }
     catch (const GenICam::GenericException&) {}
     return -1.0f;
+}
+
+// --- HDR mode ---------------------------------------------------------------
+
+std::string PylonROS2StereoAceCamera::enableHDRMode(const bool& enable)
+{
+    // The Stereo ace exposes HDR via the BslHdrEnable enum (Off/On).
+    try
+    {
+        stereo_ace_cam_->BslHdrEnable.FromString(enable ? "On" : "Off");
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while enabling/disabling HDR mode occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+int PylonROS2StereoAceCamera::getHDRMode()
+{
+    try
+    {
+        if (stereo_ace_cam_->BslHdrEnable.IsReadable())
+            return (std::string(stereo_ace_cam_->BslHdrEnable.ToString().c_str()) == "On") ? 1 : 0;
+    }
+    catch (const GenICam::GenericException&) {}
+    return -1;
 }
 
 // --- Feature persistence (pfs) ----------------------------------------------
