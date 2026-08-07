@@ -205,6 +205,20 @@ target_link_libraries(stereo_ace_probe
 	PRIVATE ${PYLON_ROS2_CAMERA_LIBRARIES}
 )
 
+# stereo mini probe (read-only node diagnostic)
+add_executable(stereo_mini_probe
+	${CMAKE_CURRENT_SOURCE_DIR}/src/tools/stereo_mini_probe.cpp
+)
+
+target_include_directories(stereo_mini_probe SYSTEM
+	PRIVATE
+		$<BUILD_INTERFACE:${Pylon_INCLUDE_DIRS}>
+)
+
+target_link_libraries(stereo_mini_probe
+	PRIVATE ${PYLON_ROS2_CAMERA_LIBRARIES}
+)
+
 ### installation
 
 install(
@@ -220,6 +234,7 @@ install(
     ip_auto_config
     set_device_user_id
     stereo_ace_probe
+    stereo_mini_probe
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 

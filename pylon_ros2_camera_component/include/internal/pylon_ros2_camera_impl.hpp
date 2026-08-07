@@ -397,6 +397,10 @@ public:
 
     virtual std::string enableStaticScene(const bool& enable) override;
 
+    virtual std::string enableProjector(const bool& enable) override;
+
+    virtual std::string setProjectorLevel(const int& level) override;
+
     virtual std::string setMultiCameraChannel(const int& channel) override;
 
     virtual std::string setAcquisitionFrameRate(const float& framerate) override;

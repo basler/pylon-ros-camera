@@ -461,6 +461,9 @@ void PylonROS2CameraNode::initServices()
   srv_name = srv_prefix + "set_depth_quality";
   this->set_depth_quality_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setDepthQualityCallback, this, _1, _2));
   
+  srv_name = srv_prefix + "set_projector_level";
+  this->set_projector_level_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setProjectorLevelCallback, this, _1, _2));
+  
   srv_name = srv_prefix + "set_multi_camera_channel";
   this->set_multi_camera_channel_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setMultiCameraChannelCallback, this, _1, _2));
   
@@ -568,6 +571,9 @@ void PylonROS2CameraNode::initServices()
 
   srv_name = srv_prefix + "enable_static_scene";
   this->enable_static_scene_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableStaticSceneCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_projector";
+  this->enable_projector_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableProjectorCallback, this, _1, _2));
 
   srv_name = srv_prefix + "enable_fast_mode";
   this->enable_fast_mode_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableFastModeCallback, this, _1, _2));
@@ -4348,6 +4354,32 @@ void PylonROS2CameraNode::setDepthQualityCallback(const std::shared_ptr<SetInteg
 void PylonROS2CameraNode::enableStaticSceneCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
 {
   response->message = this->pylon_camera_->enableStaticScene(request->data);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::enableProjectorCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enableProjector(request->data);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setProjectorLevelCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setProjectorLevel(request->value);
   if (response->message.find("done") != std::string::npos)
   {
     response->success = true;

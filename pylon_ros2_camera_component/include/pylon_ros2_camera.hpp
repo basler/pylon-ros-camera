@@ -1317,6 +1317,19 @@ public:
      */
     virtual std::string enableStaticScene(const bool& enable) = 0;
 
+    /**
+     * Enable/Disable the pattern projector - Applies to: Stereo mini (BslLaserEnable).
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableProjector(const bool& enable) = 0;
+
+    /**
+     * Set the pattern projector power level - Applies to: Stereo mini (BslLaserLevel).
+     * The value is clamped to the range the camera reports at runtime.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setProjectorLevel(const int& level) = 0;
+
     // --- 3D read-back getters -------------------------------------------------
     // Read-only reflections of already-existing 3D settings, published in
     // current_params. They are NOT pure virtual: cameras that do not support a

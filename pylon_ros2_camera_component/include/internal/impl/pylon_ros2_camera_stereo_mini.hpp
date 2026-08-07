@@ -112,6 +112,10 @@ public:
     virtual std::string setDepthMax(const double& depth_max) override;
     // Selects a BslDepthPreset by index into the entries the camera reports as available at runtime.
     virtual std::string setOperatingMode(const int& mode) override;
+    // Turns the pattern projector on or off (BslLaserEnable), writable while grabbing.
+    virtual std::string enableProjector(const bool& enable) override;
+    // Sets the pattern projector power level (BslLaserLevel), clamped to the reported range.
+    virtual std::string setProjectorLevel(const int& level) override;
 
     // Overrides for features the stereo mini hardware actually supports. The
     // inherited base implementations use the (never-opened) cam_ device and
@@ -860,6 +864,60 @@ std::string PylonROS2StereoMiniCamera::setOperatingMode(const int& mode)
     {
         RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the depth preset occurred: " << e.GetDescription());
         this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::enableProjector(const bool& enable)
+{
+    // The stereo mini pattern projector is controlled by BslLaserEnable, which the camera
+    // reports as writable while grabbing, so no stop/start is needed.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslLaserEnable))
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_MINI, "BslLaserEnable is not available on this camera");
+            return "BslLaserEnable is not available on this camera";
+        }
+
+        stereo_mini_cam_->BslLaserEnable.SetValue(enable);
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Projector " << (enable ? "enabled" : "disabled"));
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while enabling the projector occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setProjectorLevel(const int& level)
+{
+    // The projector power is set through BslLaserLevel, which the camera reports as writable
+    // while grabbing. Clamp the request to the range the camera reports at runtime.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslLaserLevel))
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_MINI, "BslLaserLevel is not available on this camera");
+            return "BslLaserLevel is not available on this camera";
+        }
+
+        const int64_t min_level = stereo_mini_cam_->BslLaserLevel.GetMin();
+        const int64_t max_level = stereo_mini_cam_->BslLaserLevel.GetMax();
+        int64_t target = static_cast<int64_t>(level);
+        if (target < min_level)
+            target = min_level;
+        else if (target > max_level)
+            target = max_level;
+
+        stereo_mini_cam_->BslLaserLevel.SetValue(target);
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Projector level set to " << target);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the projector level occurred: " << e.GetDescription());
         return e.GetDescription();
     }
     return "done";

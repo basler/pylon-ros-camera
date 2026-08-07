@@ -5045,6 +5045,20 @@ std::string PylonROS2CameraImpl<CameraTraitT>::enableStaticScene(const bool& ena
 }
 
 template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableProjector(const bool& enable __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setProjectorLevel(const int& level __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setMultiCameraChannel(const int& channel __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
