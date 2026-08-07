@@ -391,6 +391,12 @@ public:
 
     virtual std::string setOperatingMode(const int& mode) override;
 
+    virtual std::string setIlluminationMode(const int& mode) override;
+
+    virtual std::string setDepthQuality(const int& quality) override;
+
+    virtual std::string enableStaticScene(const bool& enable) override;
+
     virtual std::string setMultiCameraChannel(const int& channel) override;
 
     virtual std::string setAcquisitionFrameRate(const float& framerate) override;

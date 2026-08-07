@@ -455,6 +455,12 @@ void PylonROS2CameraNode::initServices()
   srv_name = srv_prefix + "set_operating_mode";
   this->set_operating_mode_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setOperatingModeCallback, this, _1, _2));
   
+  srv_name = srv_prefix + "set_illumination_mode";
+  this->set_illumination_mode_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setIlluminationModeCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_depth_quality";
+  this->set_depth_quality_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setDepthQualityCallback, this, _1, _2));
+  
   srv_name = srv_prefix + "set_multi_camera_channel";
   this->set_multi_camera_channel_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setMultiCameraChannelCallback, this, _1, _2));
   
@@ -559,6 +565,9 @@ void PylonROS2CameraNode::initServices()
 
   srv_name = srv_prefix + "enable_hdr_mode";
   this->enable_hdr_mode_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableHDRModeCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_static_scene";
+  this->enable_static_scene_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableStaticSceneCallback, this, _1, _2));
 
   srv_name = srv_prefix + "enable_fast_mode";
   this->enable_fast_mode_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableFastModeCallback, this, _1, _2));
@@ -4300,6 +4309,45 @@ void PylonROS2CameraNode::enableAcquisitionFrameRateCallback(const std::shared_p
 void PylonROS2CameraNode::enableHDRModeCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
 {
   response->message = this->pylon_camera_->enableHDRMode(request->data);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setIlluminationModeCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setIlluminationMode(request->value);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setDepthQualityCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setDepthQuality(request->value);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::enableStaticSceneCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enableStaticScene(request->data);
   if (response->message.find("done") != std::string::npos)
   {
     response->success = true;

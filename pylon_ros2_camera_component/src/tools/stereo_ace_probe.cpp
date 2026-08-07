@@ -141,6 +141,32 @@ void probeEnum(GenApi::INodeMap& node_map, const char* name)
     std::cout << std::endl;
 }
 
+void probeBool(GenApi::INodeMap& node_map, const char* name)
+{
+    GenApi::CBooleanPtr node(node_map.GetNode(name));
+    if (!node.IsValid())
+    {
+        std::cout << "  " << name << ": <node absent>" << std::endl;
+        return;
+    }
+    std::cout << "  " << name << " [IBoolean, " << accessModeToString(node->GetAccessMode()) << "]";
+    if (GenApi::IsReadable(node))
+    {
+        std::cout << " value=" << (node->GetValue() ? "true" : "false");
+    }
+    std::cout << std::endl;
+}
+
+// Print only the access mode of a node, and whether it can be written while grabbing.
+void printAccess(GenApi::INodeMap& node_map, const char* name)
+{
+    GenApi::CNodePtr node(node_map.GetNode(name));
+    const std::string state = node.IsValid() ? accessModeToString(node->GetAccessMode()) : "absent";
+    std::cout << "  " << name << " access=" << state
+              << " => " << ((state == "ReadWrite") ? "WRITABLE WHILE GRABBING" : "NOT WRITABLE WHILE GRABBING")
+              << std::endl;
+}
+
 // Select a Stereo ace stream component (Intensity / Disparity / Confidence).
 bool selectComponent(GenApi::INodeMap& node_map, const char* component)
 {
@@ -216,6 +242,28 @@ void probeCamera(Pylon::CInstantCamera& cam)
     else
     {
         std::cout << "  <ComponentSelector=Intensity not settable>" << std::endl;
+    }
+
+    std::cout << "\n[Phase1] Runtime tuning nodes (camera stopped):" << std::endl;
+    probeEnum(node_map, "BslIlluminationMode");
+    probeEnum(node_map, "BslDepthQuality");
+    probeBool(node_map, "BslDepthStaticScene");
+
+    std::cout << "\n[Phase1] Same nodes while grabbing:" << std::endl;
+    try
+    {
+        cam.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
+        Pylon::CGrabResultPtr result;
+        cam.RetrieveResult(5000, result, Pylon::TimeoutHandling_Return);  // warm up one frame
+        printAccess(node_map, "BslIlluminationMode");
+        printAccess(node_map, "BslDepthQuality");
+        printAccess(node_map, "BslDepthStaticScene");
+        cam.StopGrabbing();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        std::cout << "  grabbing test skipped (" << e.GetDescription() << ")" << std::endl;
+        if (cam.IsGrabbing()) cam.StopGrabbing();
     }
 
     cam.Close();

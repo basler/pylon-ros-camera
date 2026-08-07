@@ -1297,6 +1297,26 @@ public:
      */
     virtual std::string enableFastMode(const bool& enable) = 0;
 
+    /**
+     * Set illumination mode - Applies to: Stereo ace (BslIlluminationMode). The index selects
+     * one of the modes the camera reports at runtime.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setIlluminationMode(const int& mode) = 0;
+
+    /**
+     * Set depth quality - Applies to: Stereo ace (BslDepthQuality). The index selects one of
+     * the depth quality settings the camera reports at runtime.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setDepthQuality(const int& quality) = 0;
+
+    /**
+     * Enable/Disable static scene mode - Applies to: Stereo ace (BslDepthStaticScene).
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableStaticScene(const bool& enable) = 0;
+
     // --- 3D read-back getters -------------------------------------------------
     // Read-only reflections of already-existing 3D settings, published in
     // current_params. They are NOT pure virtual: cameras that do not support a

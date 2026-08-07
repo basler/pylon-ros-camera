@@ -5024,6 +5024,27 @@ std::string PylonROS2CameraImpl<CameraTraitT>::setOperatingMode(const int& mode 
 }
 
 template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setIlluminationMode(const int& mode __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setDepthQuality(const int& quality __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableStaticScene(const bool& enable __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setMultiCameraChannel(const int& channel __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");

@@ -1383,6 +1383,27 @@ protected:
   void enableHDRModeCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
 
   /**
+   * @brief Service callback for setting illumination mode - Applies to: Stereo ace.
+   * @param req request
+   * @param res response
+   */
+  void setIlluminationModeCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting depth quality - Applies to: Stereo ace.
+   * @param req request
+   * @param res response
+   */
+  void setDepthQualityCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling static scene mode - Applies to: Stereo ace.
+   * @param req request
+   * @param res response
+   */
+  void enableStaticSceneCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
    * @brief Service callback for enabling/disabling fast mode - Applies to: blaze.
    * @param req request
    * @param res response
@@ -1767,6 +1788,8 @@ protected:
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_exposure_time_selector_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_operating_mode_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_multi_camera_channel_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_illumination_mode_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_quality_srv_;
 
   rclcpp::Service<SetFloatSrv>::SharedPtr set_noise_reduction_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_sharpness_enhancement_srv_;
@@ -1808,6 +1831,7 @@ protected:
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_acquisition_frame_rate_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_hdr_mode_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_fast_mode_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_static_scene_srv_;
  
   rclcpp::Service<TriggerSrv>::SharedPtr execute_software_trigger_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr save_user_set_srv_;

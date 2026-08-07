@@ -165,6 +165,13 @@ public:
     virtual std::string enableHDRMode(const bool& enable) override;
     virtual int getHDRMode() override;
 
+    // Illumination (BslIlluminationMode) and depth quality (BslDepthQuality) are enum nodes;
+    // the index picks one of the entries the camera reports at runtime. Static scene
+    // (BslDepthStaticScene) is a bool node. All three can be written while grabbing.
+    virtual std::string setIlluminationMode(const int& mode) override;
+    virtual std::string setDepthQuality(const int& quality) override;
+    virtual std::string enableStaticScene(const bool& enable) override;
+
     // Feature persistence (pfs) via the Stereo ace node map.
     virtual std::pair<std::string, std::string> getPfs() override;
     virtual std::string savePfs(const std::string& fileName) override;
@@ -1385,6 +1392,117 @@ int PylonROS2StereoAceCamera::getHDRMode()
     }
     catch (const GenICam::GenericException&) {}
     return -1;
+}
+
+// --- Runtime depth tuning ---------------------------------------------------
+
+std::string PylonROS2StereoAceCamera::setIlluminationMode(const int& mode)
+{
+    // BslIlluminationMode is an enum whose entries depend on the model/firmware, so read the
+    // available entries at runtime and select by index. The node accepts writes while grabbing.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_ace_cam_->BslIlluminationMode))
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_ACE, "BslIlluminationMode is not available on this camera");
+            return "BslIlluminationMode is not available on this camera";
+        }
+
+        GenApi::NodeList_t entries;
+        stereo_ace_cam_->BslIlluminationMode.GetEntries(entries);
+        std::vector<std::string> available;
+        for (GenApi::NodeList_t::iterator it = entries.begin(); it != entries.end(); ++it)
+        {
+            if (!GenApi::IsAvailable(*it))
+                continue;
+            GenApi::CEnumEntryPtr entry(*it);
+            if (entry.IsValid())
+                available.push_back(std::string(entry->GetSymbolic().c_str()));
+        }
+
+        if (mode < 0 || mode >= static_cast<int>(available.size()))
+        {
+            std::string msg = "Illumination mode index " + std::to_string(mode) + " is out of range. Available modes: ";
+            for (size_t i = 0; i < available.size(); ++i)
+                msg += std::to_string(i) + "=" + available[i] + (i + 1 < available.size() ? ", " : "");
+            RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, msg);
+            return msg;
+        }
+
+        stereo_ace_cam_->BslIlluminationMode.FromString(available[mode].c_str());
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_ACE, "Illumination mode set to " << available[mode]);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the illumination mode occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setDepthQuality(const int& quality)
+{
+    // BslDepthQuality is an enum whose entries depend on the model/firmware, so read the
+    // available entries at runtime and select by index. The node accepts writes while grabbing.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_ace_cam_->BslDepthQuality))
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_ACE, "BslDepthQuality is not available on this camera");
+            return "BslDepthQuality is not available on this camera";
+        }
+
+        GenApi::NodeList_t entries;
+        stereo_ace_cam_->BslDepthQuality.GetEntries(entries);
+        std::vector<std::string> available;
+        for (GenApi::NodeList_t::iterator it = entries.begin(); it != entries.end(); ++it)
+        {
+            if (!GenApi::IsAvailable(*it))
+                continue;
+            GenApi::CEnumEntryPtr entry(*it);
+            if (entry.IsValid())
+                available.push_back(std::string(entry->GetSymbolic().c_str()));
+        }
+
+        if (quality < 0 || quality >= static_cast<int>(available.size()))
+        {
+            std::string msg = "Depth quality index " + std::to_string(quality) + " is out of range. Available settings: ";
+            for (size_t i = 0; i < available.size(); ++i)
+                msg += std::to_string(i) + "=" + available[i] + (i + 1 < available.size() ? ", " : "");
+            RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, msg);
+            return msg;
+        }
+
+        stereo_ace_cam_->BslDepthQuality.FromString(available[quality].c_str());
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_ACE, "Depth quality set to " << available[quality]);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the depth quality occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::enableStaticScene(const bool& enable)
+{
+    // BslDepthStaticScene combines several frames to lower depth noise on a motionless scene.
+    // The node accepts writes while grabbing.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_ace_cam_->BslDepthStaticScene))
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_ACE, "BslDepthStaticScene is not available on this camera");
+            return "BslDepthStaticScene is not available on this camera";
+        }
+        stereo_ace_cam_->BslDepthStaticScene.SetValue(enable);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the static scene mode occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
 }
 
 // --- Feature persistence (pfs) ----------------------------------------------
