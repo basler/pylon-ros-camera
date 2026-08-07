@@ -124,6 +124,8 @@ public:
     virtual int getDepthPreset() override;
     // Turns HDR on or off (BslHDREnable); the node is only writable while acquisition is stopped.
     virtual std::string enableHDRMode(const bool& enable) override;
+    // Reads the current HDR state (BslHDREnable) under the IR source.
+    virtual int getHDRMode() override;
 
     // Overrides for features the stereo mini hardware actually supports. The
     // inherited base implementations use the (never-opened) cam_ device and
@@ -1027,6 +1029,30 @@ std::string PylonROS2StereoMiniCamera::enableHDRMode(const bool& enable)
         return e.GetDescription();
     }
     return "done";
+}
+
+int PylonROS2StereoMiniCamera::getHDRMode()
+{
+    // BslHDREnable is a per-source node set on the IR sources; read it under Source1 and restore the
+    // previously selected source. Reading is not locked while grabbing, so no stop/start is needed.
+    try
+    {
+        GenApi::CBooleanPtr hdr_enable(stereo_mini_cam_->GetNodeMap().GetNode("BslHDREnable"));
+        if (!hdr_enable.IsValid())
+            return -1;
+
+        const GenICam::gcstring previous_source = stereo_mini_cam_->SourceSelector.ToString();
+        stereo_mini_cam_->SourceSelector.FromString("Source1");
+        const bool value = hdr_enable->GetValue();
+        stereo_mini_cam_->SourceSelector.FromString(previous_source);
+        return value ? 1 : 0;
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while reading the HDR mode occurred: " << e.GetDescription());
+        try { stereo_mini_cam_->SourceSelector.FromString("Source3"); } catch (const GenICam::GenericException&) {}
+        return -1;
+    }
 }
 
 bool PylonROS2StereoMiniCamera::setGain(const float& target_gain, float& reached_gain)

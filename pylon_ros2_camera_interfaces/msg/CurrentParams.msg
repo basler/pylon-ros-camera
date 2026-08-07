@@ -53,6 +53,12 @@ int32 temporal_filter       # -1 = not available, 0 = Off, 1 = On (blaze)
 int32 outlier_removal       # -1 = not available, 0 = Off, 1 = On (blaze)
 int32 ambiguity_filter      # -1 = not available, 0 = Off, 1 = On (blaze)
 float32 confidence_threshold # -1.0 = not available (blaze)
+int32 projector_enable      # -1 = not available, 0 = Off, 1 = On (stereo mini)
+int32 projector_level       # -1 = not available, pattern projector power level (stereo mini)
+int32 depth_preset          # -1 = not available, BslDepthPreset index (stereo mini)
+int32 illumination_mode     # -1 = not available, BslIlluminationMode index (stereo ace)
+int32 depth_quality         # -1 = not available, BslDepthQuality index (stereo ace)
+int32 static_scene          # -1 = not available, 0 = Off, 1 = On (stereo ace)
 
 bool success
 string message

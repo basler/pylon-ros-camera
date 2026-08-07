@@ -171,6 +171,9 @@ public:
     virtual std::string setIlluminationMode(const int& mode) override;
     virtual std::string setDepthQuality(const int& quality) override;
     virtual std::string enableStaticScene(const bool& enable) override;
+    virtual int getIlluminationMode() override;
+    virtual int getDepthQuality() override;
+    virtual int getStaticScene() override;
 
     // Feature persistence (pfs) via the Stereo ace node map.
     virtual std::pair<std::string, std::string> getPfs() override;
@@ -1503,6 +1506,87 @@ std::string PylonROS2StereoAceCamera::enableStaticScene(const bool& enable)
         return e.GetDescription();
     }
     return "done";
+}
+
+int PylonROS2StereoAceCamera::getIlluminationMode()
+{
+    // Mirror setIlluminationMode's runtime enumeration so the returned index matches the setter.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_ace_cam_->BslIlluminationMode))
+            return -1;
+
+        GenApi::NodeList_t entries;
+        stereo_ace_cam_->BslIlluminationMode.GetEntries(entries);
+        const std::string current(stereo_ace_cam_->BslIlluminationMode.ToString().c_str());
+        int index = 0;
+        for (GenApi::NodeList_t::iterator it = entries.begin(); it != entries.end(); ++it)
+        {
+            if (!GenApi::IsAvailable(*it))
+                continue;
+            GenApi::CEnumEntryPtr entry(*it);
+            if (entry.IsValid())
+            {
+                if (std::string(entry->GetSymbolic().c_str()) == current)
+                    return index;
+                ++index;
+            }
+        }
+        return -1;
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while reading the illumination mode occurred: " << e.GetDescription());
+        return -1;
+    }
+}
+
+int PylonROS2StereoAceCamera::getDepthQuality()
+{
+    // Mirror setDepthQuality's runtime enumeration so the returned index matches the setter.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_ace_cam_->BslDepthQuality))
+            return -1;
+
+        GenApi::NodeList_t entries;
+        stereo_ace_cam_->BslDepthQuality.GetEntries(entries);
+        const std::string current(stereo_ace_cam_->BslDepthQuality.ToString().c_str());
+        int index = 0;
+        for (GenApi::NodeList_t::iterator it = entries.begin(); it != entries.end(); ++it)
+        {
+            if (!GenApi::IsAvailable(*it))
+                continue;
+            GenApi::CEnumEntryPtr entry(*it);
+            if (entry.IsValid())
+            {
+                if (std::string(entry->GetSymbolic().c_str()) == current)
+                    return index;
+                ++index;
+            }
+        }
+        return -1;
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while reading the depth quality occurred: " << e.GetDescription());
+        return -1;
+    }
+}
+
+int PylonROS2StereoAceCamera::getStaticScene()
+{
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_ace_cam_->BslDepthStaticScene))
+            return -1;
+        return stereo_ace_cam_->BslDepthStaticScene.GetValue() ? 1 : 0;
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while reading the static scene mode occurred: " << e.GetDescription());
+        return -1;
+    }
 }
 
 // --- Feature persistence (pfs) ----------------------------------------------

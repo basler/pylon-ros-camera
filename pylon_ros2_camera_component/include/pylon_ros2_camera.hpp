@@ -1402,6 +1402,21 @@ public:
      */
     virtual int getDepthPreset() { return -1; }
 
+    /**
+     * Illumination mode index into the entries the camera reports at runtime - Applies to: Stereo ace (BslIlluminationMode). -1 if not available.
+     */
+    virtual int getIlluminationMode() { return -1; }
+
+    /**
+     * Depth quality index into the entries the camera reports at runtime - Applies to: Stereo ace (BslDepthQuality). -1 if not available.
+     */
+    virtual int getDepthQuality() { return -1; }
+
+    /**
+     * Static scene mode - Applies to: Stereo ace (BslDepthStaticScene). -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getStaticScene() { return -1; }
+
     virtual ~PylonROS2Camera();
 
     /**
