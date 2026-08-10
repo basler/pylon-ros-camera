@@ -41,9 +41,6 @@
 #else
     #include <cv_bridge/cv_bridge.h>
 #endif
-#include <opencv2/highgui/highgui.hpp>
-
-//#include <boost/make_shared.hpp>
 
 #include "pcl_conversions/pcl_conversions.h"
 
@@ -93,7 +90,6 @@ public:
     virtual int imagePixelDepth() const;
     virtual float maxPossibleFramerate();
     
-    //virtual bool setExposure(const float& target_exposure, float& reached_exposure);
     virtual std::string gammaEnable(const bool& enable) override;
 
     virtual std::string setTriggerSelector(const int& mode) override;
@@ -128,8 +124,8 @@ public:
     virtual std::string enableHDRMode(const bool& enable) override;
     virtual std::string enableFastMode(const bool& enable) override;
 
-    // 3D read-back getters: read-only reflections of the blaze settings above,
-    // published in current_params. Return -1 when the node is not readable.
+    // Getters for the blaze 3D settings above, published in current_params.
+    // Return -1 when the node is not readable.
     virtual int getOperatingMode() override;
     virtual int getHDRMode() override;
     virtual int getFastMode() override;
@@ -156,13 +152,6 @@ PylonROS2BlazeCamera::PylonROS2BlazeCamera(Pylon::IPylonDevice* device) :
     blaze_cam_(new Pylon::CBlazeInstantCamera(device)),
     invalid_data_value_old_(0.0f)
 {
-    // information logging severity mode
-    //rcutils_ret_t __attribute__((unused)) res = rcutils_logging_set_logger_level(LOGGER_BLAZE.get_name(), RCUTILS_LOG_SEVERITY_DEBUG);
-    //RCUTILS_LOG_SEVERITY_DEBUG
-    //RCUTILS_LOG_SEVERITY_INFO
-    //RCUTILS_LOG_SEVERITY_WARN
-    //RCUTILS_LOG_SEVERITY_ERROR
-    //RCUTILS_LOG_SEVERITY_FATAL
 }
 
 PylonROS2BlazeCamera::~PylonROS2BlazeCamera()
@@ -648,9 +637,7 @@ void PylonROS2BlazeCamera::calculateDepthMap(const Pylon::CPylonDataComponent& p
         {
             if (isValid(pPoint))
             {
-                // Calculate the radial distance.
-                //double distance = sqrt(pPoint->x * pPoint->x + pPoint->y * pPoint->y + pPoint->z * pPoint->z);
-                // EDIT: the standard distance is enough in this context
+                // Depth along the optical axis (Z).
                 double distance = pPoint->z * this->blaze_cam_->Scan3dCoordinateScale.GetValue();
                 // Clip to [min_depth..MaxDept].
                 if (distance < min_depth)
@@ -784,7 +771,7 @@ std::string PylonROS2BlazeCamera::setTriggerSelector(const int& mode)
         else 
         {
              RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Error while trying to change the Acquisition frame count. The connected Camera not supporting this feature");
-             return "The connected Camera not supporting this feature";
+             return "Feature not available for this camera type";
         }
 
     }
@@ -808,12 +795,7 @@ std::string PylonROS2BlazeCamera::setTriggerSource(const int& source)
                     blaze_cam_->TriggerSource.SetValue(Pylon::BlazeCameraParams_Params::TriggerSource_Software);
                     RCLCPP_INFO_STREAM(LOGGER_BLAZE, "Trigger source: Software");
                     break;
-                //case 1:
-                //    blaze_cam_->TriggerSource.SetValue(Pylon::BlazeCameraParams_Params::TriggerSource_Line0);
-                //    RCLCPP_INFO_STREAM(LOGGER_BLAZE, "Trigger source: Line 0");
-                //    break;
                 default:
-                    //RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Trigger source value is invalid! Please choose between 0 -> Trigger Software / 1 -> Line 0");
                     RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Trigger source value is invalid! Please choose 0 -> Trigger Software");
                     return "Error: unknown value for trigger source";
             }
@@ -821,7 +803,7 @@ std::string PylonROS2BlazeCamera::setTriggerSource(const int& source)
         else 
         {
             RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Error while trying to change the trigger source. The connected camera does not support this feature");
-            return "The connected camera does not support this feature";
+            return "Feature not available for this camera type";
         }
 
     }
@@ -855,7 +837,7 @@ std::string PylonROS2BlazeCamera::setLineSelector(const int& value)
         else 
         {
             RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Error while trying to set the line selector. The connected Camera not supporting this feature");
-            return "The connected Camera not supporting this feature";
+            return "Feature not available for this camera type";
         }
     }
     catch ( const GenICam::GenericException &e )
@@ -885,7 +867,7 @@ std::string PylonROS2BlazeCamera::setDeviceLinkThroughputLimitMode(const bool& t
         else 
         {
              RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Error while trying to change the device link throughput limit mode. The connected Camera not supporting this feature");
-             return "The connected Camera not supporting this feature";
+             return "Feature not available for this camera type";
         }
 
     }
@@ -909,7 +891,7 @@ std::string PylonROS2BlazeCamera::setDeviceLinkThroughputLimit(const int& limit)
         else 
         {
             RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Error while trying to change the device link throughput limit. The connected Camera not supporting this feature");
-            return "The connected Camera not supporting this feature";
+            return "Feature not available for this camera type";
         }
     }
     catch (const GenICam::GenericException &e)

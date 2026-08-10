@@ -50,6 +50,9 @@
 #include "pcl_conversions/pcl_conversions.h"
 
 
+namespace pylon_ros2_camera
+{
+
 // Interleaved BGR triplet used for false-color depth maps.
 #pragma pack(push, 1)
 struct BGR
@@ -71,12 +74,18 @@ struct Point
 #pragma pack(pop)
 
 
-namespace pylon_ros2_camera
-{
-
 namespace
 {
     static const rclcpp::Logger LOGGER_3D = rclcpp::get_logger("basler.pylon.ros2.pylon_ros2_3d_camera");
+
+    // Millimeters to meters.
+    static constexpr float MM_TO_M = 0.001f;
+
+    // Full value range of a 16-bit (mono16) depth map.
+    static constexpr double DEPTH16_MAX = 65535.0;
+
+    // Minimum grab timeout in milliseconds; the configured timeout is floored to this.
+    static constexpr int MIN_GRAB_TIMEOUT_MS = 5000;
 
     // Value that identifies a pixel with missing depth information.
     constexpr static double s_invalid_data_value = std::numeric_limits<double>::quiet_NaN();
@@ -113,8 +122,8 @@ namespace
  * generic parameter access provided by PylonROS2CameraImpl (through the inherited
  * universal instant camera cam_) remains available unchanged. This couples the
  * profile to the GigE trait even though some 3D cameras (e.g. the Stereo mini) may
- * also appear on USB. This is a known, deliberate and tracked compromise to be revisited later. typeName() is intentionally left as the inherited
- * "GigE": it denotes the transport (and gates a GigE-vs-USB quirk in
+ * also appear on USB. typeName() is left as the inherited
+ * "GigE": it denotes the transport (and gates a GigE-vs-USB branch in
  * detectAndCountNumUserOutputs()), not the sensor model, so a concrete 3D camera
  * class must not override it to its marketing name.
  */
@@ -621,7 +630,7 @@ void PylonROS23DCamera::calculateDepthMap(const Pylon::CPylonDataComponent& rang
     const int height = range_component.GetHeight();
     const Point* pPoint = reinterpret_cast<const Point*>(range_component.GetData());
 
-    const double scale = 65535.0 / (max_depth - min_depth);
+    const double scale = DEPTH16_MAX / (max_depth - min_depth);
 
     for (int row = 0; row < height; ++row)
     {
@@ -629,9 +638,7 @@ void PylonROS23DCamera::calculateDepthMap(const Pylon::CPylonDataComponent& rang
         {
             if (isValid(pPoint))
             {
-                // Calculate the radial distance.
-                //double distance = sqrt(pPoint->x * pPoint->x + pPoint->y * pPoint->y + pPoint->z * pPoint->z);
-                // EDIT: the standard distance is enough in this context
+                // Depth along the optical axis (Z).
                 double distance = pPoint->z * coordinate_scale;
                 // Clip to [min_depth..MaxDept].
                 if (distance < min_depth)
@@ -658,7 +665,7 @@ void PylonROS23DCamera::calculateDepthMapColor(const Pylon::CPylonDataComponent&
     const int height = range_component.GetHeight();
     const Point* pPoint = reinterpret_cast<const Point*>(range_component.GetData());
 
-    const double scale = 65535.0 / (max_depth - min_depth);
+    const double scale = DEPTH16_MAX / (max_depth - min_depth);
 
     for (int row = 0; row < height; ++row)
     {
@@ -745,9 +752,9 @@ void PylonROS23DCamera::buildPointCloud(const Pylon::CPylonDataComponent& range_
         pcl::PointXYZRGB& dst_point = ppoint_cloud->points[i];
 
         // Convert from millimeters to meters.
-        dst_point.x = psrc_point[i].x * 0.001f;
-        dst_point.y = psrc_point[i].y * 0.001f;
-        dst_point.z = psrc_point[i].z * 0.001f;
+        dst_point.x = psrc_point[i].x * MM_TO_M;
+        dst_point.y = psrc_point[i].y * MM_TO_M;
+        dst_point.z = psrc_point[i].z * MM_TO_M;
 
         uint8_t r = 0, g = 0, b = 0;
         switch (intensity_type)

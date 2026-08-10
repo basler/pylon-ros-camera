@@ -4805,9 +4805,7 @@ void PylonROS2CameraNode::executeGrab3DDataAction(const std::shared_ptr<Grab3DDa
     confidence_map.header.frame_id = cameraFrame();
 
     feedback->curr_nr_data_acquired = i + 1;
-    //RCLCPP_DEBUG_STREAM(LOGGER, "Publishing feedback...");
     goal_handle->publish_feedback(feedback);
-    //RCLCPP_DEBUG_STREAM(LOGGER, "Feedback is published!");
   }
 
   if (this->camera_info_manager_)

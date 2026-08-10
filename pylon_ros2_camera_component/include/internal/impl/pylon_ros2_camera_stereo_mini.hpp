@@ -367,7 +367,7 @@ bool PylonROS2StereoMiniCamera::startGrabbing(const PylonROS2CameraParameter& pa
         // The Stereo mini needs more time than a 2D camera to deliver its first
         // (and subsequent) stereo-processed frames. Use a generous grab timeout
         // (at least 5 s), independent of the smaller 2D default.
-        grab_timeout_ = std::max(parameters.grab_timeout_, 5000);
+        grab_timeout_ = std::max(parameters.grab_timeout_, MIN_GRAB_TIMEOUT_MS);
         RCLCPP_DEBUG_STREAM_ONCE(LOGGER_STEREO_MINI, "Grab timeout for Stereo mini: " << grab_timeout_);
 
         // Perform an initial grab to determine the image dimensions and confirm
@@ -579,9 +579,8 @@ bool PylonROS2StereoMiniCamera::setExposure(const float& target_exposure, float&
 {
     // SourceSelector must be Source3 (color sensor) before changing ExposureTime.
     // Changing the stereo-pair sources (Source1/Source2) while grabbing blocks
-    // RetrieveResult() indefinitely — confirmed with Basler support.
-    // SourceSelector is intentionally left on Source3 after this call.
-    // TODO: expose SourceSelector as a user-accessible service parameter.
+    // RetrieveResult() indefinitely.
+    // SourceSelector stays on Source3 after this call.
     try
     {
         stereo_mini_cam_->SourceSelector.SetValue(
@@ -683,7 +682,7 @@ std::string PylonROS2StereoMiniCamera::setTriggerSelector(const int& mode)
         else
         {
             RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "TriggerSelector not available on this camera");
-            return "The connected camera does not support this feature";
+            return "Feature not available for this camera type";
         }
     }
     catch (const GenICam::GenericException& e)
@@ -729,7 +728,7 @@ std::string PylonROS2StereoMiniCamera::setTriggerSource(const int& source)
         else
         {
             RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "TriggerSource not available on this camera");
-            return "The connected camera does not support this feature";
+            return "Feature not available for this camera type";
         }
     }
     catch (const GenICam::GenericException& e)
@@ -754,7 +753,7 @@ std::string PylonROS2StereoMiniCamera::setTriggerMode(const bool& value)
         else
         {
             RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "TriggerMode not available on this camera");
-            return "The connected camera does not support this feature";
+            return "Feature not available for this camera type";
         }
     }
     catch (const GenICam::GenericException& e)
@@ -1000,7 +999,7 @@ std::string PylonROS2StereoMiniCamera::enableHDRMode(const bool& enable)
 {
     // HDR is controlled by BslHDREnable, which is not part of the typed parameter class, so reach it
     // through the generic node map by name. The node is only writable while an IR source (Source1/Source2)
-    // is selected; it is read-only under the color source (Source3) the startup config leaves selected.
+    // is selected; it is read-only under the color source (Source3) that the startup config keeps selected.
     // Select each IR source, write the value, then restore Source3. The node is locked while grabbing,
     // so stop/start around the write.
     try
@@ -1363,7 +1362,7 @@ std::string PylonROS2StereoMiniCamera::setMaxNumBuffer(const int& size)
 {
     if (!GenApi::IsAvailable(stereo_mini_cam_->MaxNumBuffer))
     {
-        return "The connected Camera not supporting this feature";
+        return "Feature not available for this camera type";
     }
     try
     {

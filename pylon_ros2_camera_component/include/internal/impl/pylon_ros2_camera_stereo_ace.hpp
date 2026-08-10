@@ -106,7 +106,7 @@ public:
     // feature the Stereo ace hardware actually supports to stereo_ace_cam_ and
     // return clear stubs for the nodes it does not expose.
 
-    // 2D image controls the profile neutralizes but the Stereo ace supports.
+    // 2D image controls the profile marks unavailable but the Stereo ace supports.
     virtual bool setGain(const float& target_gain, float& reached_gain) override;
     virtual bool setGamma(const float& target_gamma, float& reached_gamma) override;
     virtual bool setBrightness(const int& target_brightness,
@@ -383,7 +383,7 @@ bool PylonROS2StereoAceCamera::startGrabbing(const PylonROS2CameraParameter& par
         this->grabbingStarting();
 
         device_user_id_ = stereo_ace_cam_->GetDeviceInfo().GetUserDefinedName().c_str();
-        grab_timeout_ = std::max(parameters.grab_timeout_, 5000);
+        grab_timeout_ = std::max(parameters.grab_timeout_, MIN_GRAB_TIMEOUT_MS);
         RCLCPP_DEBUG_STREAM_ONCE(LOGGER_STEREO_ACE, "Grab timeout for Stereo ace: " << grab_timeout_);
 
         Pylon::CGrabResultPtr grab_result;
@@ -569,9 +569,9 @@ bool PylonROS2StereoAceCamera::grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
             uint8_t* pt = cloud_msg.data.data() + static_cast<size_t>(v * dw + u) * 16;
             if (z_mm > 0.0f)
             {
-                const float z_m = z_mm * 0.001f;
-                const float x_m = (static_cast<float>(u) - sta_cx_) * z_mm * 0.001f / sta_focal_length_;
-                const float y_m = (static_cast<float>(v) - sta_cy_) * z_mm * 0.001f / sta_focal_length_;
+                const float z_m = z_mm * MM_TO_M;
+                const float x_m = (static_cast<float>(u) - sta_cx_) * z_mm * MM_TO_M / sta_focal_length_;
+                const float y_m = (static_cast<float>(v) - sta_cy_) * z_mm * MM_TO_M / sta_focal_length_;
                 memcpy(pt,     &x_m, 4);
                 memcpy(pt + 4, &y_m, 4);
                 memcpy(pt + 8, &z_m, 4);
@@ -609,7 +609,7 @@ bool PylonROS2StereoAceCamera::grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
     for (int i = 0; i < dh * dw; ++i)
     {
         const float z = z_buf[i];
-        dm16[i] = (z > 0.0f && z < 65535.0f) ? static_cast<uint16_t>(z) : 0u;
+        dm16[i] = (z > 0.0f && z < DEPTH16_MAX) ? static_cast<uint16_t>(z) : 0u;
     }
 
     // --- Depth map colour (bgr8 false-colour: near=blue, far=red, 5 m range) ---
@@ -1717,13 +1717,17 @@ std::string PylonROS2StereoAceCamera::setOutputQueueSize(const int& size)
 
 int PylonROS2StereoAceCamera::getMaxNumBuffer()
 {
+    if (!GenApi::IsAvailable(stereo_ace_cam_->MaxNumBuffer))
+    {
+        return -1;  // Not supported
+    }
     try
     {
         return static_cast<int>(stereo_ace_cam_->MaxNumBuffer.GetValue());
     }
     catch (const GenICam::GenericException&)
     {
-        return -2;
+        return -2;  // Error
     }
 }
 

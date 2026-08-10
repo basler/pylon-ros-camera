@@ -133,24 +133,12 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
 #ifdef HAVE_PYLON_BLAZE
         else if (device_class == "BaslerGTC/Basler/GenTL_Producer_for_Basler_blaze_101_cameras")
         {
-            if (device_info.IsModelNameAvailable())
-            {
-                std::string model_name(device_info.GetModelName());
-                //RCLCPP_INFO_STREAM(LOGGER, "blaze model name: " << model_name);
-            }
-
             return BLAZE;
         }
 #endif
 #ifdef HAVE_PYLON_STEREO_MINI
         else if (device_class == "BaslerGTC/Basler/Stereo_mini")
         {
-            if (device_info.IsModelNameAvailable())
-            {
-                std::string model_name(device_info.GetModelName());
-                //RCLCPP_INFO_STREAM(LOGGER, "Stereo mini model name: " << model_name);
-            }
-
             return STEREO_MINI;
         }
 #endif
@@ -163,7 +151,7 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
         else
         {
             RCLCPP_ERROR_STREAM(LOGGER, "The detected camera type is: " << device_class << ". "
-                << "Only 'BaslerUsb' and 'BaslerGigE' types are supported by this driver for now!");
+                << "This camera type is not supported by this driver.");
 
             return UNKNOWN;
         }
@@ -240,7 +228,6 @@ std::unique_ptr<PylonROS2Camera> PylonROS2Camera::create(const std::string& devi
                     PYLON_CAM_TYPE cam_type = detectPylonCamType(*it);
                     if (cam_type != UNKNOWN)
                     {
-                        //RCLCPP_ERROR_STREAM(LOGGER, "CAM TYPE: " << cam_type);
                         std::unique_ptr<PylonROS2Camera> new_cam_ptr = createFromDevice(cam_type, tl_factory.CreateDevice(*it));
                         new_cam_ptr->device_user_id_ = it->GetUserDefinedName();
                         
