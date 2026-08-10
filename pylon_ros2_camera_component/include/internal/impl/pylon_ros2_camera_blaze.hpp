@@ -79,12 +79,7 @@ public:
                                             sensor_msgs::msg::Image& depth_map_msg, 
                                             sensor_msgs::msg::Image& depth_map_color_msg, 
                                             sensor_msgs::msg::Image& confidence_map_msg);
-            bool convertGrabResultToPointCloud(const Pylon::CPylonDataContainer& container,
-                                               sensor_msgs::msg::PointCloud2& cloud_msg);
 
-            // uses blaze_cam_->Scan3dCoordinateScale; unlike the base which takes scale as a parameter
-            void calculateDepthMap(const Pylon::CPylonDataComponent& pointCloud, int min_depth, int max_depth, uint16_t* pDepthMap);
-    
     virtual void getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg);
     
     virtual int imagePixelDepth() const;
@@ -498,7 +493,7 @@ bool PylonROS2BlazeCamera::processAndConvertBlazeData(const Pylon::CPylonDataCon
     int max_depth = blaze_cam_->DepthMax.GetValue();
 
     // point cloud
-    this->convertGrabResultToPointCloud(container, cloud_msg);
+    this->buildPointCloud(range_component, &intensity_component, cloud_msg);
     
     // intensity
     cv::Mat intensity_map = cv::Mat(height, width, CV_16UC1, (void*) intensity_component.GetData());
@@ -521,7 +516,7 @@ bool PylonROS2BlazeCamera::processAndConvertBlazeData(const Pylon::CPylonDataCon
 
     // depth map
     uint16_t* pdepth_data = new uint16_t[width * height];
-    this->calculateDepthMap(range_component, min_depth, max_depth, pdepth_data);
+    this->calculateDepthMap(range_component, blaze_cam_->Scan3dCoordinateScale.GetValue(), min_depth, max_depth, pdepth_data);
     cv::Mat depth_map = cv::Mat(height, width, CV_16UC1, pdepth_data);
     // convert
     cv_bridge::CvImage depth_map_cv_img;
@@ -573,86 +568,6 @@ bool PylonROS2BlazeCamera::processAndConvertBlazeData(const Pylon::CPylonDataCon
     confidence_map_msg.data = confidence_cv_img.toImageMsg()->data;
 
     return true;
-}
-
-bool PylonROS2BlazeCamera::convertGrabResultToPointCloud(const Pylon::CPylonDataContainer& container,
-                                                         sensor_msgs::msg::PointCloud2& cloud_msg)
-{
-    // An organized point cloud is used, i.e., for each camera pixel there is an entry 
-    // in the data structure indicating the 3D coordinates calculated from that pixel.
-    // If the camera wasn't able to create depth information for a pixel, the x, y, and z coordinates 
-    // are set to NaN. These NaNs will be retained in the PCL point cloud.
-
-    auto range_component = container.GetDataComponent(0);
-    auto intensity_component = container.GetDataComponent(1);
-
-    const size_t width = range_component.GetWidth();
-    const size_t height = range_component.GetHeight();
-
-    // allocate PCL point cloud.
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr ppoint_cloud = std::make_shared<pcl::PointCloud<pcl::PointXYZRGB>>();
-    ppoint_cloud->width = width;
-    ppoint_cloud->height = height;
-    ppoint_cloud->points.resize(width * height);
-    ppoint_cloud->is_dense = false; // organized point cloud
-
-    // Create a pointer to the 3D coordinates of the first point.
-    // imgParts[0] always refers to the point cloud data.
-    Point* psrc_point = (Point*) range_component.GetData();
-
-    // Create a pointer to the intensity information stored in the second buffer part.
-    uint16_t* pintensity = (uint16_t*)intensity_component.GetData();
-
-    // Set the points.
-    for (size_t i = 0; i < height * width; ++i, ++psrc_point, ++pintensity)
-    {
-        // Set the X/Y/Z cordinates.
-        pcl::PointXYZRGB& dst_point = ppoint_cloud->points[i];
-
-        dst_point.x = psrc_point->x * 0.001;
-        dst_point.y = psrc_point->y * 0.001;
-        dst_point.z = psrc_point->z * 0.001;
-
-        // Use the intensity value of the pixel for coloring the point.
-        dst_point.r = dst_point.g = dst_point.b = (uint8_t)(*pintensity >> 8);
-    }
-
-    // convert from pcl to ros
-    pcl::toROSMsg(*ppoint_cloud, cloud_msg);
-
-    return true;
-}
-
-void PylonROS2BlazeCamera::calculateDepthMap(const Pylon::CPylonDataComponent& pointCloud, int min_depth, int max_depth, uint16_t* pDepthMap)
-{
-    const int width = pointCloud.GetWidth();
-    const int height = pointCloud.GetHeight();
-    const Point *pPoint = reinterpret_cast<const Point*>(pointCloud.GetData());
-
-    const double scale = 65535.0 / (max_depth - min_depth);
-
-    for (int row = 0; row < height; ++row)
-    {
-        for (int col = 0; col < width; ++col, ++pPoint, ++pDepthMap)
-        {
-            if (isValid(pPoint))
-            {
-                // Depth along the optical axis (Z).
-                double distance = pPoint->z * this->blaze_cam_->Scan3dCoordinateScale.GetValue();
-                // Clip to [min_depth..MaxDept].
-                if (distance < min_depth)
-                    distance = min_depth;
-                else if (distance > max_depth)
-                    distance = max_depth;
-                *pDepthMap = (uint16_t) ( ( distance - min_depth ) * scale );
-            }
-            else
-            {
-                // No depth information available for this pixel. Zero it.
-                *pDepthMap = 0;
-            }
-        }
-    }
 }
 
 void PylonROS2BlazeCamera::getInitialCameraInfo(sensor_msgs::msg::CameraInfo& cam_info_msg)
