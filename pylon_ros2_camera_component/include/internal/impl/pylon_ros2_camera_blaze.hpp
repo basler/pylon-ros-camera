@@ -89,6 +89,8 @@ public:
 
     virtual std::string setTriggerSelector(const int& mode) override;
     virtual std::string setTriggerSource(const int& source) override;
+    virtual std::string setTriggerMode(const bool& value) override;
+    virtual std::string executeSoftwareTrigger() override;
 
     virtual std::string setLineSelector(const int& value) override;
 
@@ -726,6 +728,46 @@ std::string PylonROS2BlazeCamera::setTriggerSource(const int& source)
     {
         RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "An exception while setting the trigger source occurred:" << e.GetDescription());
         return e.GetDescription(); 
+    }
+    return "done";
+}
+
+std::string PylonROS2BlazeCamera::setTriggerMode(const bool& value)
+{
+    try
+    {
+        if (GenApi::IsAvailable(blaze_cam_->TriggerMode))
+        {
+            blaze_cam_->TriggerMode.SetValue(
+                value ? Pylon::BlazeCameraParams_Params::TriggerMode_On
+                      : Pylon::BlazeCameraParams_Params::TriggerMode_Off);
+            RCLCPP_INFO_STREAM(LOGGER_BLAZE, "Trigger mode: " << (value ? "On" : "Off"));
+        }
+        else
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "TriggerMode not available on this camera");
+            return "Feature not available for this camera type";
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "An exception while setting trigger mode occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2BlazeCamera::executeSoftwareTrigger()
+{
+    // The blaze does not support waiting for frame trigger ready.
+    try
+    {
+        blaze_cam_->ExecuteSoftwareTrigger();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "An exception while executing software trigger occurred: " << e.GetDescription());
+        return e.GetDescription();
     }
     return "done";
 }
