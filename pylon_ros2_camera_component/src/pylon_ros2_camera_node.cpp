@@ -921,7 +921,7 @@ bool PylonROS2CameraNode::startGrabbing()
             << reached_exposure);
   }
   
-  if (!this->pylon_camera_->is3D() && this->pylon_camera_parameter_set_.gain_given_)
+  if (this->pylon_camera_parameter_set_.gain_given_)
   {   
     float reached_gain;
     this->setGain(this->pylon_camera_parameter_set_.gain_, reached_gain);
@@ -930,7 +930,7 @@ bool PylonROS2CameraNode::startGrabbing()
             << reached_gain);
   }
 
-  if (!this->pylon_camera_->is3D() && pylon_camera_parameter_set_.gamma_given_)
+  if (pylon_camera_parameter_set_.gamma_given_)
   {   
     float reached_gamma;
     this->setGamma(pylon_camera_parameter_set_.gamma_, reached_gamma);
@@ -938,7 +938,7 @@ bool PylonROS2CameraNode::startGrabbing()
             << ", reached: " << reached_gamma);
   }
 
-  if (!this->pylon_camera_->is3D() && pylon_camera_parameter_set_.brightness_given_)
+  if (pylon_camera_parameter_set_.brightness_given_)
   {
     int reached_brightness;
     this->setBrightness(this->pylon_camera_parameter_set_.brightness_,
@@ -2088,12 +2088,6 @@ std::string PylonROS2CameraNode::setTriggerSource(const int& source)
 
 std::string PylonROS2CameraNode::setTriggerActivation(const int& value)
 {
-  if (this->pylon_camera_->is3D())
-  {
-    RCLCPP_WARN(LOGGER, "Trying to set trigger activation: there's no trigger activation parameter with a 3D camera");
-    return "No trigger activation parameter with a 3D camera";
-  }
-
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -2106,12 +2100,6 @@ std::string PylonROS2CameraNode::setTriggerActivation(const int& value)
 
 std::string PylonROS2CameraNode::setTriggerDelay(const float& value)
 {
-  if (this->pylon_camera_->is3D())
-  {
-    RCLCPP_WARN(LOGGER, "Trying to set trigger delay: there's no trigger delay parameter with a 3D camera");
-    return "No trigger delay parameter with a 3D camera";
-  }
-
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {
@@ -2166,12 +2154,6 @@ std::string PylonROS2CameraNode::setLineSource(const int& value)
 
 std::string PylonROS2CameraNode::setLineInverter(const bool& value)
 {
-  if (this->pylon_camera_->is3D())
-  {
-    RCLCPP_WARN(LOGGER, "Trying to set line inverter: there's no line inverter parameter with a 3D camera");
-    return "No line inverter parameter with a 3D camera";
-  }
-
   std::lock_guard<std::recursive_mutex> lock(this->grab_mutex_);
   if (!this->pylon_camera_->isReady())
   {

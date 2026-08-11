@@ -40,6 +40,7 @@
 //   test_set_depth_range       – set depth_min + depth_max, verify, restore
 //   test_enable_spatial_filter – enable / disable round-trip
 //   test_enable_temporal_filter – enable / disable round-trip
+//   test_set_brightness        – set_brightness, skip if unsupported
 //
 // Camera detection: waits for the grab_3d_data action server.
 // Note: "grab_3d_data" is the current driver action name; the test class
@@ -59,6 +60,7 @@
 #include <pylon_ros2_camera_interfaces/action/grab3_d_data.hpp>
 #include <pylon_ros2_camera_interfaces/srv/set_integer_value.hpp>
 #include <pylon_ros2_camera_interfaces/srv/set_float_value.hpp>
+#include <pylon_ros2_camera_interfaces/srv/set_brightness.hpp>
 
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <std_srvs/srv/set_bool.hpp>
@@ -80,6 +82,7 @@ protected:
   virtual bool test_set_depth_range();
   virtual bool test_enable_spatial_filter();
   virtual bool test_enable_temporal_filter();
+  virtual bool test_set_brightness();
 
   // ── Type aliases ───────────────────────────────────────────────────────────
 
@@ -88,6 +91,7 @@ protected:
     rclcpp_action::ClientGoalHandle<Grab3DDataAction>;
   using SetIntegerValue      = pylon_ros2_camera_interfaces::srv::SetIntegerValue;
   using SetFloatValue        = pylon_ros2_camera_interfaces::srv::SetFloatValue;
+  using SetBrightness        = pylon_ros2_camera_interfaces::srv::SetBrightness;
   using SetBool              = std_srvs::srv::SetBool;
 
   // ── Clients ────────────────────────────────────────────────────────────────
@@ -95,6 +99,7 @@ protected:
   rclcpp_action::Client<Grab3DDataAction>::SharedPtr grab_3d_client_;
   rclcpp::Client<SetFloatValue>::SharedPtr set_depth_min_client_;
   rclcpp::Client<SetFloatValue>::SharedPtr set_depth_max_client_;
+  rclcpp::Client<SetBrightness>::SharedPtr set_brightness_client_;
   rclcpp::Client<SetBool>::SharedPtr enable_spatial_filter_client_;
   rclcpp::Client<SetBool>::SharedPtr enable_temporal_filter_client_;
 };

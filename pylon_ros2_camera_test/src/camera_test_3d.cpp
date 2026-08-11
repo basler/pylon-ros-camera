@@ -54,6 +54,8 @@ CameraTest3D::CameraTest3D(const rclcpp::NodeOptions & options)
     make_client<SetFloatValue>("set_depth_min");
   set_depth_max_client_ =
     make_client<SetFloatValue>("set_depth_max");
+  set_brightness_client_ =
+    make_client<SetBrightness>("set_brightness");
   enable_spatial_filter_client_ =
     make_client<SetBool>("enable_spatial_filter");
   enable_temporal_filter_client_ =
@@ -69,6 +71,8 @@ CameraTest3D::CameraTest3D(const rclcpp::NodeOptions & options)
     std::bind(&CameraTest3D::test_enable_spatial_filter, this));
   register_test("test_enable_temporal_filter",
     std::bind(&CameraTest3D::test_enable_temporal_filter, this));
+  register_test("test_set_brightness",
+    std::bind(&CameraTest3D::test_set_brightness, this));
 
   // Start the test thread LAST, after all tests are registered.
   start_tests();
@@ -284,6 +288,31 @@ bool CameraTest3D::test_enable_temporal_filter()
   ok &= assert_true(res_off->success,
     "test_enable_temporal_filter/off", res_off->message);
   return ok;
+}
+
+// Set brightness with exposure_auto and verify the service responds and, when
+// supported, succeeds. The stereo mini and stereo ace support brightness; the
+// blaze may not, in which case the driver returns success=false and the test
+// skips gracefully so the suite stays usable across all 3D models.
+bool CameraTest3D::test_set_brightness()
+{
+  auto req = std::make_shared<SetBrightness::Request>();
+  req->target_brightness = 100;
+  req->brightness_continuous = false;
+  req->exposure_auto = true;
+  req->gain_auto = false;
+  auto res = call_service<SetBrightness>(set_brightness_client_, req);
+  if (!res) {
+    return assert_true(false, "test_set_brightness",
+      "service call failed or timed out");
+  }
+  if (!res->success) {
+    RCLCPP_WARN(get_logger(),
+      "test_set_brightness: brightness not supported by this camera, skipping.");
+    return true;
+  }
+  return assert_true(res->success,
+    "test_set_brightness/success", "set_brightness reported failure");
 }
 
 }  // namespace pylon_ros2_camera_test

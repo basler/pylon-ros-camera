@@ -93,6 +93,8 @@ public:
     virtual std::string executeSoftwareTrigger() override;
 
     virtual std::string setLineSelector(const int& value) override;
+    virtual std::string setLineMode(const int& value) override;
+    virtual std::string setLineSource(const int& value) override;
 
     virtual std::string setDeviceLinkThroughputLimitMode(const bool& turnOn) override;
     virtual std::string setDeviceLinkThroughputLimit(const int& limit) override;
@@ -803,6 +805,72 @@ std::string PylonROS2BlazeCamera::setLineSelector(const int& value)
         return e.GetDescription(); 
     }
 
+    return "done";
+}
+
+std::string PylonROS2BlazeCamera::setLineMode(const int& value)
+{
+    try
+    {
+        if (GenApi::IsAvailable(blaze_cam_->LineMode))
+        {
+            blaze_cam_->LineMode.SetValue(value == 0 ? Pylon::BlazeCameraParams_Params::LineMode_Input
+                                                     : Pylon::BlazeCameraParams_Params::LineMode_Output);
+            RCLCPP_INFO_STREAM(LOGGER_BLAZE, "Line mode: " << (value == 0 ? "Input" : "Output"));
+        }
+        else
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Error while trying to set the line mode. The connected camera does not support this feature");
+            return "Feature not available for this camera type";
+        }
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "An exception while setting the line mode occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2BlazeCamera::setLineSource(const int& value)
+{
+    try
+    {
+        if (GenApi::IsAvailable(blaze_cam_->LineSource))
+        {
+            switch (value)
+            {
+                case 0:
+                    blaze_cam_->LineSource.SetValue(Pylon::BlazeCameraParams_Params::LineSource_FrameActive);
+                    RCLCPP_INFO_STREAM(LOGGER_BLAZE, "Line source: FrameActive");
+                    break;
+                case 1:
+                    blaze_cam_->LineSource.SetValue(Pylon::BlazeCameraParams_Params::LineSource_FrameTriggerWait);
+                    RCLCPP_INFO_STREAM(LOGGER_BLAZE, "Line source: FrameTriggerWait");
+                    break;
+                case 2:
+                    blaze_cam_->LineSource.SetValue(Pylon::BlazeCameraParams_Params::LineSource_Off);
+                    RCLCPP_INFO_STREAM(LOGGER_BLAZE, "Line source: Off");
+                    break;
+                case 3:
+                    blaze_cam_->LineSource.SetValue(Pylon::BlazeCameraParams_Params::LineSource_UserOutput0);
+                    RCLCPP_INFO_STREAM(LOGGER_BLAZE, "Line source: UserOutput0");
+                    break;
+                default:
+                    return "Error: unknown value (0=FrameActive, 1=FrameTriggerWait, 2=Off, 3=UserOutput0)";
+            }
+        }
+        else
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "Error while trying to set the line source. The connected camera does not support this feature");
+            return "Feature not available for this camera type";
+        }
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_BLAZE, "An exception while setting the line source occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
     return "done";
 }
 
