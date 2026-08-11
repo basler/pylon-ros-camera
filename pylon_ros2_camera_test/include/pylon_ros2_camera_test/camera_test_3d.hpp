@@ -61,6 +61,7 @@
 #include <pylon_ros2_camera_interfaces/srv/set_integer_value.hpp>
 #include <pylon_ros2_camera_interfaces/srv/set_float_value.hpp>
 #include <pylon_ros2_camera_interfaces/srv/set_brightness.hpp>
+#include <pylon_ros2_camera_interfaces/msg/current_params.hpp>
 
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <std_srvs/srv/set_bool.hpp>
@@ -76,14 +77,6 @@ public:
 protected:
   bool detect_camera() override;
 
-  // ── 3D-specific test declarations ─────────────────────────────────────────
-
-  virtual bool test_grab_3d_data();
-  virtual bool test_set_depth_range();
-  virtual bool test_enable_spatial_filter();
-  virtual bool test_enable_temporal_filter();
-  virtual bool test_set_brightness();
-
   // ── Type aliases ───────────────────────────────────────────────────────────
 
   using Grab3DDataAction  = pylon_ros2_camera_interfaces::action::Grab3DData;
@@ -93,6 +86,33 @@ protected:
   using SetFloatValue        = pylon_ros2_camera_interfaces::srv::SetFloatValue;
   using SetBrightness        = pylon_ros2_camera_interfaces::srv::SetBrightness;
   using SetBool              = std_srvs::srv::SetBool;
+  using CurrentParams        = pylon_ros2_camera_interfaces::msg::CurrentParams;
+
+  // ── 3D-specific test declarations ─────────────────────────────────────────
+
+  virtual bool test_grab_3d_data();
+  virtual bool test_set_depth_range();
+  virtual bool test_enable_spatial_filter();
+  virtual bool test_enable_temporal_filter();
+  virtual bool test_set_brightness();
+  virtual bool test_set_confidence_threshold();
+  virtual bool test_enable_hdr_mode();
+  virtual bool test_set_illumination_mode();
+  virtual bool test_set_depth_quality();
+  virtual bool test_enable_static_scene();
+  virtual bool test_enable_projector();
+  virtual bool test_set_projector_level();
+  virtual bool test_set_depth_preset();
+
+  // Read one current_params message from the driver. Returns false if none
+  // arrives within a few seconds. Used to detect which 3D features a camera
+  // supports (unavailable features report -1) and to restore original values.
+  bool read_current_params(CurrentParams & out);
+
+  // Read the camera's current working depth range from the current_params
+  // topic. The units are camera-native (mm for blaze/mini, meters for the
+  // stereo ace). Returns false if no message arrives within a few seconds.
+  bool read_current_depth_range(float & depth_min, float & depth_max);
 
   // ── Clients ────────────────────────────────────────────────────────────────
 
@@ -102,6 +122,14 @@ protected:
   rclcpp::Client<SetBrightness>::SharedPtr set_brightness_client_;
   rclcpp::Client<SetBool>::SharedPtr enable_spatial_filter_client_;
   rclcpp::Client<SetBool>::SharedPtr enable_temporal_filter_client_;
+  rclcpp::Client<SetFloatValue>::SharedPtr set_confidence_threshold_client_;
+  rclcpp::Client<SetBool>::SharedPtr enable_hdr_mode_client_;
+  rclcpp::Client<SetBool>::SharedPtr enable_static_scene_client_;
+  rclcpp::Client<SetIntegerValue>::SharedPtr set_illumination_mode_client_;
+  rclcpp::Client<SetIntegerValue>::SharedPtr set_depth_quality_client_;
+  rclcpp::Client<SetBool>::SharedPtr enable_projector_client_;
+  rclcpp::Client<SetIntegerValue>::SharedPtr set_projector_level_client_;
+  rclcpp::Client<SetIntegerValue>::SharedPtr set_operating_mode_client_;
 };
 
 }  // namespace pylon_ros2_camera_test
