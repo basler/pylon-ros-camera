@@ -4688,7 +4688,7 @@ void PylonROS2CameraNode::executeGrab3DDataAction(const std::shared_ptr<Grab3DDa
   {
     RCLCPP_WARN(LOGGER, "This action is not implemented for 2D camera models.");
     result->success = false;
-    goal_handle->succeed(result);
+    goal_handle->abort(result);
     return;
   }
 
@@ -4697,16 +4697,13 @@ void PylonROS2CameraNode::executeGrab3DDataAction(const std::shared_ptr<Grab3DDa
     RCLCPP_ERROR_STREAM(LOGGER, "Grab3DData action server received request and "
         << "'exposure_given' is true, but the 'exposure_times' vector is "
         << "empty! Not enough information to execute acquisition!");
-    goal_handle->succeed(result);
+    result->success = false;
+    goal_handle->abort(result);
     return;
   }
 
-  std::vector<std::size_t> candidates;
-  candidates.resize(1);
-  candidates.at(0) = goal->exposure_given ? goal->exposure_times.size() : 0;
-
-  std::size_t n_data = *std::max_element(candidates.begin(), candidates.end());
-  // if new parameters are added, needs to be checked. See PylonROS2CameraNode::grabRawImages.
+  // With exposure_given=false, grab a single frame using the camera's current settings.
+  std::size_t n_data = goal->exposure_given ? goal->exposure_times.size() : 1;
 
   result->point_clouds.clear();
   result->intensity_maps.clear();
@@ -4733,6 +4730,8 @@ void PylonROS2CameraNode::executeGrab3DDataAction(const std::shared_ptr<Grab3DDa
   }
 
   RCLCPP_DEBUG_STREAM(LOGGER, "Number of grabbed data set: " << n_data);
+  // The action result carries the combined intensity map. Left/right intensity
+  // images (stereo mini/ace) are published on the *_3d topics only.
   for (std::size_t i = 0; i < n_data; ++i)
   {
     // user cancel request
@@ -4801,7 +4800,14 @@ void PylonROS2CameraNode::executeGrab3DDataAction(const std::shared_ptr<Grab3DDa
     this->setExposure(previous_exp, reached_val);
   }
 
-  goal_handle->succeed(result);
+  if (result->success)
+  {
+    goal_handle->succeed(result);
+  }
+  else
+  {
+    goal_handle->abort(result);
+  }
 }
 
 void PylonROS2CameraNode::createDiagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
