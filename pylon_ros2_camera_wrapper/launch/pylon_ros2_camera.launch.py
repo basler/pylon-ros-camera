@@ -17,8 +17,8 @@ def resolve_profile_config(config_file, profile):
 
     An explicit, non-empty ``config_file`` always takes precedence. Otherwise
     the file is selected from the profile: ``3d`` (case-insensitive) uses
-    ``profile_3d.yaml`` and any other value (including ``2d`` and unknown
-    profiles) falls back to ``default.yaml``.
+    ``default_3d.yaml`` and any other value (including ``2d`` and unknown
+    profiles) falls back to ``default_2d.yaml``.
     """
     if config_file:
         return config_file
@@ -28,8 +28,8 @@ def resolve_profile_config(config_file, profile):
         'config'
     )
     if (profile or '').strip().lower() == '3d':
-        return os.path.join(config_dir, 'profile_3d.yaml')
-    return os.path.join(config_dir, 'default.yaml')
+        return os.path.join(config_dir, 'default_3d.yaml')
+    return os.path.join(config_dir, 'default_2d.yaml')
 
 
 def _launch_node(context: LaunchContext):
@@ -119,8 +119,8 @@ def generate_launch_description():
         'profile',
         default_value='2d',
         description='Camera profile used to pick a default config file when '
-                    '"config_file" is empty: "2d" -> default.yaml, '
-                    '"3d" -> profile_3d.yaml.'
+                    '"config_file" is empty: "2d" -> default_2d.yaml, '
+                    '"3d" -> default_3d.yaml.'
     )
 
     declare_device_user_id_cmd = DeclareLaunchArgument(

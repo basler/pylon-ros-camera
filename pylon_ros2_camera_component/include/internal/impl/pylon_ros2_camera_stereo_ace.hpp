@@ -337,7 +337,7 @@ bool PylonROS2StereoAceCamera::applyCamSpecificStartupSettings(const PylonROS2Ca
         stereo_ace_cam_->ComponentEnable.SetValue(true);
 
         // Illumination mode: configurable via 'stereo_ace_illumination_mode' ROS parameter
-        // (set in profile_3d.yaml or as a launch argument).
+        // (set in default_3d.yaml or as a launch argument).
         // AlwaysActive (default): projector always on; Basler-recommended for depth quality (IR pattern visible in intensity).
         // AlternateActive: clean intensity images (projector alternates exposures), extra exposure per result.
         // Measured: no ROS output-rate difference between modes (pipeline capped ~2 Hz host-side).

@@ -159,11 +159,11 @@ docker run --rm --network=host pylon_ros2_camera:kilted \
 
 ### Custom configuration file
 
-Mount your own `default.yaml` to override camera parameters without rebuilding:
+Mount your own `default_2d.yaml` to override camera parameters without rebuilding:
 
 ```bash
 docker run --rm --network=host \
-    -v /path/to/my_camera.yaml:/ros2_ws/install/pylon_ros2_camera_wrapper/share/pylon_ros2_camera_wrapper/config/default.yaml:ro \
+    -v /path/to/my_camera.yaml:/ros2_ws/install/pylon_ros2_camera_wrapper/share/pylon_ros2_camera_wrapper/config/default_2d.yaml:ro \
     pylon_ros2_camera:kilted
 ```
 
