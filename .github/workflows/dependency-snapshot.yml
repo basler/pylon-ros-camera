@@ -1,0 +1,28 @@
+name: Submit ROS2 dependency snapshot
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # lets you trigger it manually to test
+
+permissions:
+  contents: write
+
+jobs:
+  submit-snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate snapshot JSON from package.xml files
+        run: python3 .github/scripts/ros2_dep_snapshot.py > snapshot.json
+
+      - name: Show snapshot (debug)
+        run: cat snapshot.json
+
+      - name: Submit snapshot
+        run: |
+          curl -sf -X POST \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/dependency-graph/snapshots \
+            -d @snapshot.json
