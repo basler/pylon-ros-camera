@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.3.9 (2026-08-12)
+------------------
+* Fix scheduled action command on ace 2 (SFNC 2.x TimestampLatch node names) (issue #299).
+
 3.3.8 (2026-07-23)
 ------------------
 * Fix auto-brightness startup parameters ignored when both ``exposure`` and ``gain`` are also set (issue #265).

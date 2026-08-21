@@ -1852,8 +1852,24 @@ std::string PylonROS2GigECamera::issueScheduledActionCommand(const int& device_k
 
         // Get the current timestamp of the first camera
         // NOTE: All cameras must be synchronized via Precision Time Protocol
-        cam_->GevTimestampControlLatch.Execute();
-        int64_t current_timestamp = cam_->GevTimestampValue.GetValue();
+        // ace 2 and other SFNC 2.x cameras name these nodes TimestampLatch/TimestampLatchValue;
+        // older GigE cameras use GevTimestampControlLatch/GevTimestampValue.
+        int64_t current_timestamp = 0;
+        if (GenApi::IsAvailable(cam_->TimestampLatch))
+        {
+            cam_->TimestampLatch.Execute();
+            current_timestamp = cam_->TimestampLatchValue.GetValue();
+        }
+        else if (GenApi::IsAvailable(cam_->GevTimestampControlLatch))
+        {
+            cam_->GevTimestampControlLatch.Execute();
+            current_timestamp = cam_->GevTimestampValue.GetValue();
+        }
+        else
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_GIGE, "The connected camera provides no timestamp latch feature");
+            return "The connected camera provides no timestamp latch feature";
+        }
         // Specify that the command will be executed roughly 30 seconds
         // (30 000 000 000 ticks) after the current timestamp.
         int64_t action_time = current_timestamp + action_time_ns_from_current_timestamp;
