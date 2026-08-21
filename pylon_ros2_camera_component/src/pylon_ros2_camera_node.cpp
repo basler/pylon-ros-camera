@@ -464,6 +464,12 @@ void PylonROS2CameraNode::initServices()
   srv_name = srv_prefix + "set_projector_level";
   this->set_projector_level_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setProjectorLevelCallback, this, _1, _2));
   
+  srv_name = srv_prefix + "set_depth_fill";
+  this->set_depth_fill_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setDepthFillCallback, this, _1, _2));
+  
+  srv_name = srv_prefix + "set_depth_seg";
+  this->set_depth_seg_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setDepthSegCallback, this, _1, _2));
+  
   srv_name = srv_prefix + "set_multi_camera_channel";
   this->set_multi_camera_channel_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setMultiCameraChannelCallback, this, _1, _2));
   
@@ -574,6 +580,9 @@ void PylonROS2CameraNode::initServices()
 
   srv_name = srv_prefix + "enable_projector";
   this->enable_projector_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableProjectorCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_depth_smooth";
+  this->enable_depth_smooth_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableDepthSmoothCallback, this, _1, _2));
 
   srv_name = srv_prefix + "enable_fast_mode";
   this->enable_fast_mode_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableFastModeCallback, this, _1, _2));
@@ -4346,6 +4355,45 @@ void PylonROS2CameraNode::enableStaticSceneCallback(const std::shared_ptr<SetBoo
   }
 }
 
+void PylonROS2CameraNode::enableDepthSmoothCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enableDepthSmooth(request->data);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setDepthFillCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setDepthFill(request->value);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setDepthSegCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setDepthSeg(request->value);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
 void PylonROS2CameraNode::enableProjectorCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
 {
   response->message = this->pylon_camera_->enableProjector(request->data);
@@ -5391,6 +5439,9 @@ void PylonROS2CameraNode::publishCurrentParams()
       this->current_params_.illumination_mode = this->pylon_camera_->getIlluminationMode();
       this->current_params_.depth_quality = this->pylon_camera_->getDepthQuality();
       this->current_params_.static_scene = this->pylon_camera_->getStaticScene();
+      this->current_params_.depth_smooth = this->pylon_camera_->getDepthSmooth();
+      this->current_params_.depth_fill = this->pylon_camera_->getDepthFill();
+      this->current_params_.depth_seg = this->pylon_camera_->getDepthSeg();
 
       if (!this->pylon_camera_->is3D())
       {

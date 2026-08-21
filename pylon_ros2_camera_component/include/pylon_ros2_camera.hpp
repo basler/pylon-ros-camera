@@ -1330,6 +1330,26 @@ public:
      */
     virtual std::string setProjectorLevel(const int& level) = 0;
 
+    /**
+     * Enable/Disable depth smoothing - Applies to: Stereo ace (BslDepthSmooth).
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableDepthSmooth(const bool& enable) = 0;
+
+    /**
+     * Set the depth fill level - Applies to: Stereo ace (BslDepthFill). The value
+     * is clamped to the range the camera reports at runtime.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setDepthFill(const int& value) = 0;
+
+    /**
+     * Set the depth segmentation threshold - Applies to: Stereo ace (BslDepthSeg).
+     * The value is clamped to the range the camera reports at runtime.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setDepthSeg(const int& value) = 0;
+
     // --- 3D read-back getters -------------------------------------------------
     // Read-only reflections of already-existing 3D settings, published in
     // current_params. They are NOT pure virtual: cameras that do not support a
@@ -1416,6 +1436,21 @@ public:
      * Static scene mode - Applies to: Stereo ace (BslDepthStaticScene). -1 = n/a, 0 = Off, 1 = On.
      */
     virtual int getStaticScene() { return -1; }
+
+    /**
+     * Depth smoothing - Applies to: Stereo ace (BslDepthSmooth). -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getDepthSmooth() { return -1; }
+
+    /**
+     * Depth fill level - Applies to: Stereo ace (BslDepthFill). -1 if not available.
+     */
+    virtual int getDepthFill() { return -1; }
+
+    /**
+     * Depth segmentation threshold - Applies to: Stereo ace (BslDepthSeg). -1 if not available.
+     */
+    virtual int getDepthSeg() { return -1; }
 
     virtual ~PylonROS2Camera();
 

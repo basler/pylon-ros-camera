@@ -70,6 +70,12 @@ CameraTest3D::CameraTest3D(const rclcpp::NodeOptions & options)
     make_client<SetIntegerValue>("set_illumination_mode");
   set_depth_quality_client_ =
     make_client<SetIntegerValue>("set_depth_quality");
+  enable_depth_smooth_client_ =
+    make_client<SetBool>("enable_depth_smooth");
+  set_depth_fill_client_ =
+    make_client<SetIntegerValue>("set_depth_fill");
+  set_depth_seg_client_ =
+    make_client<SetIntegerValue>("set_depth_seg");
   enable_projector_client_ =
     make_client<SetBool>("enable_projector");
   set_projector_level_client_ =
@@ -99,6 +105,12 @@ CameraTest3D::CameraTest3D(const rclcpp::NodeOptions & options)
     std::bind(&CameraTest3D::test_set_depth_quality, this));
   register_test("test_enable_static_scene",
     std::bind(&CameraTest3D::test_enable_static_scene, this));
+  register_test("test_enable_depth_smooth",
+    std::bind(&CameraTest3D::test_enable_depth_smooth, this));
+  register_test("test_set_depth_fill",
+    std::bind(&CameraTest3D::test_set_depth_fill, this));
+  register_test("test_set_depth_seg",
+    std::bind(&CameraTest3D::test_set_depth_seg, this));
   register_test("test_enable_projector",
     std::bind(&CameraTest3D::test_enable_projector, this));
   register_test("test_set_projector_level",
@@ -548,6 +560,79 @@ bool CameraTest3D::test_enable_static_scene()
   req_restore->data = original_on;
   call_service<SetBool>(enable_static_scene_client_, req_restore);
   return ok;
+}
+
+// Depth smoothing maps to BslDepthSmooth on the stereo ace. Enables it, verifies
+// the call, then restores the original state. Skips when the camera does not
+// expose it.
+bool CameraTest3D::test_enable_depth_smooth()
+{
+  CurrentParams p;
+  if (!read_current_params(p) || p.depth_smooth < 0) {
+    RCLCPP_WARN(get_logger(),
+      "test_enable_depth_smooth: not available for this camera, skipping.");
+    return true;
+  }
+  const bool original_on = (p.depth_smooth == 1);
+
+  auto req_on = std::make_shared<SetBool::Request>();
+  req_on->data = true;
+  auto res_on = call_service<SetBool>(enable_depth_smooth_client_, req_on);
+  if (!res_on) {
+    return assert_true(false, "test_enable_depth_smooth",
+      "enable(true) service call failed");
+  }
+  bool ok = assert_true(res_on->success,
+    "test_enable_depth_smooth/on", res_on->message);
+
+  auto req_restore = std::make_shared<SetBool::Request>();
+  req_restore->data = original_on;
+  call_service<SetBool>(enable_depth_smooth_client_, req_restore);
+  return ok;
+}
+
+// Depth fill maps to BslDepthFill (int) on the stereo ace. Re-applies the current
+// value (always in range) and restores it. Skips when the camera does not expose it.
+bool CameraTest3D::test_set_depth_fill()
+{
+  CurrentParams p;
+  if (!read_current_params(p) || p.depth_fill < 0) {
+    RCLCPP_WARN(get_logger(),
+      "test_set_depth_fill: not available for this camera, skipping.");
+    return true;
+  }
+  const int original = p.depth_fill;
+
+  auto req = std::make_shared<SetIntegerValue::Request>();
+  req->value = original;
+  auto res = call_service<SetIntegerValue>(set_depth_fill_client_, req);
+  if (!res) {
+    return assert_true(false, "test_set_depth_fill",
+      "service call failed");
+  }
+  return assert_success(res->success, res->message, "test_set_depth_fill/set");
+}
+
+// Depth segmentation maps to BslDepthSeg (int) on the stereo ace. Re-applies the
+// current value and restores it. Skips when the camera does not expose it.
+bool CameraTest3D::test_set_depth_seg()
+{
+  CurrentParams p;
+  if (!read_current_params(p) || p.depth_seg < 0) {
+    RCLCPP_WARN(get_logger(),
+      "test_set_depth_seg: not available for this camera, skipping.");
+    return true;
+  }
+  const int original = p.depth_seg;
+
+  auto req = std::make_shared<SetIntegerValue::Request>();
+  req->value = original;
+  auto res = call_service<SetIntegerValue>(set_depth_seg_client_, req);
+  if (!res) {
+    return assert_true(false, "test_set_depth_seg",
+      "service call failed");
+  }
+  return assert_success(res->success, res->message, "test_set_depth_seg/set");
 }
 
 // The pattern projector (BslLaserEnable) exists on the stereo mini. Enable it,

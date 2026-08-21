@@ -100,6 +100,9 @@ protected:
   virtual bool test_set_illumination_mode();
   virtual bool test_set_depth_quality();
   virtual bool test_enable_static_scene();
+  virtual bool test_enable_depth_smooth();
+  virtual bool test_set_depth_fill();
+  virtual bool test_set_depth_seg();
   virtual bool test_enable_projector();
   virtual bool test_set_projector_level();
   virtual bool test_set_depth_preset();
@@ -127,6 +130,9 @@ protected:
   rclcpp::Client<SetBool>::SharedPtr enable_static_scene_client_;
   rclcpp::Client<SetIntegerValue>::SharedPtr set_illumination_mode_client_;
   rclcpp::Client<SetIntegerValue>::SharedPtr set_depth_quality_client_;
+  rclcpp::Client<SetBool>::SharedPtr enable_depth_smooth_client_;
+  rclcpp::Client<SetIntegerValue>::SharedPtr set_depth_fill_client_;
+  rclcpp::Client<SetIntegerValue>::SharedPtr set_depth_seg_client_;
   rclcpp::Client<SetBool>::SharedPtr enable_projector_client_;
   rclcpp::Client<SetIntegerValue>::SharedPtr set_projector_level_client_;
   rclcpp::Client<SetIntegerValue>::SharedPtr set_operating_mode_client_;

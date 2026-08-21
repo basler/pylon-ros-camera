@@ -59,6 +59,9 @@ int32 depth_preset          # -1 = not available, BslDepthPreset index (stereo m
 int32 illumination_mode     # -1 = not available, BslIlluminationMode index (stereo ace)
 int32 depth_quality         # -1 = not available, BslDepthQuality index (stereo ace)
 int32 static_scene          # -1 = not available, 0 = Off, 1 = On (stereo ace)
+int32 depth_smooth          # -1 = not available, 0 = Off, 1 = On (stereo ace)
+int32 depth_fill            # -1 = not available, BslDepthFill level (stereo ace)
+int32 depth_seg             # -1 = not available, BslDepthSeg threshold (stereo ace)
 
 bool success
 string message

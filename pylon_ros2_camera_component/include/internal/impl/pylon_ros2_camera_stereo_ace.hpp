@@ -175,6 +175,16 @@ public:
     virtual int getDepthQuality() override;
     virtual int getStaticScene() override;
 
+    // Depth post-processing filters: smoothing (BslDepthSmooth, bool), hole filling
+    // (BslDepthFill, int) and segmentation threshold (BslDepthSeg, int). All three
+    // can be written while grabbing; the int values are clamped to the reported range.
+    virtual std::string enableDepthSmooth(const bool& enable) override;
+    virtual std::string setDepthFill(const int& value) override;
+    virtual std::string setDepthSeg(const int& value) override;
+    virtual int getDepthSmooth() override;
+    virtual int getDepthFill() override;
+    virtual int getDepthSeg() override;
+
     // Feature persistence (pfs) via the Stereo ace node map.
     virtual std::pair<std::string, std::string> getPfs() override;
     virtual std::string savePfs(const std::string& fileName) override;
@@ -1585,6 +1595,132 @@ int PylonROS2StereoAceCamera::getStaticScene()
     catch (const GenICam::GenericException& e)
     {
         RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while reading the static scene mode occurred: " << e.GetDescription());
+        return -1;
+    }
+}
+
+std::string PylonROS2StereoAceCamera::enableDepthSmooth(const bool& enable)
+{
+    // BslDepthSmooth reduces depth noise. The node accepts writes while grabbing.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_ace_cam_->BslDepthSmooth))
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_ACE, "BslDepthSmooth is not available on this camera");
+            return "BslDepthSmooth is not available on this camera";
+        }
+        stereo_ace_cam_->BslDepthSmooth.SetValue(enable);
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_ACE, "Depth smoothing " << (enable ? "enabled" : "disabled"));
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the depth smoothing occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setDepthFill(const int& value)
+{
+    // BslDepthFill controls how far valid depth is expanded into holes. Clamp the
+    // request to the range the camera reports at runtime.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_ace_cam_->BslDepthFill))
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_ACE, "BslDepthFill is not available on this camera");
+            return "BslDepthFill is not available on this camera";
+        }
+        const int64_t min_value = stereo_ace_cam_->BslDepthFill.GetMin();
+        const int64_t max_value = stereo_ace_cam_->BslDepthFill.GetMax();
+        int64_t target = static_cast<int64_t>(value);
+        if (target < min_value)
+            target = min_value;
+        else if (target > max_value)
+            target = max_value;
+
+        stereo_ace_cam_->BslDepthFill.SetValue(target);
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_ACE, "Depth fill set to " << target);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the depth fill occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setDepthSeg(const int& value)
+{
+    // BslDepthSeg sets the segmentation threshold that splits depth into regions. Clamp
+    // the request to the range the camera reports at runtime.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_ace_cam_->BslDepthSeg))
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_ACE, "BslDepthSeg is not available on this camera");
+            return "BslDepthSeg is not available on this camera";
+        }
+        const int64_t min_value = stereo_ace_cam_->BslDepthSeg.GetMin();
+        const int64_t max_value = stereo_ace_cam_->BslDepthSeg.GetMax();
+        int64_t target = static_cast<int64_t>(value);
+        if (target < min_value)
+            target = min_value;
+        else if (target > max_value)
+            target = max_value;
+
+        stereo_ace_cam_->BslDepthSeg.SetValue(target);
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_ACE, "Depth segmentation threshold set to " << target);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the depth segmentation threshold occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+int PylonROS2StereoAceCamera::getDepthSmooth()
+{
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_ace_cam_->BslDepthSmooth))
+            return -1;
+        return stereo_ace_cam_->BslDepthSmooth.GetValue() ? 1 : 0;
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while reading the depth smoothing occurred: " << e.GetDescription());
+        return -1;
+    }
+}
+
+int PylonROS2StereoAceCamera::getDepthFill()
+{
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_ace_cam_->BslDepthFill))
+            return -1;
+        return static_cast<int>(stereo_ace_cam_->BslDepthFill.GetValue());
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while reading the depth fill occurred: " << e.GetDescription());
+        return -1;
+    }
+}
+
+int PylonROS2StereoAceCamera::getDepthSeg()
+{
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_ace_cam_->BslDepthSeg))
+            return -1;
+        return static_cast<int>(stereo_ace_cam_->BslDepthSeg.GetValue());
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while reading the depth segmentation threshold occurred: " << e.GetDescription());
         return -1;
     }
 }

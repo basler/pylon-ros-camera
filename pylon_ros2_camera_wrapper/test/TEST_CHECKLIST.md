@@ -622,6 +622,9 @@ ros2 run pylon_ros2_camera_test camera_test_2d --ros-args \
 - On a high-resolution 2D camera two of the node's checks read `camera_info` right after a binning
   change, where the width can briefly report a transitional value; the harness re-runs the node once
   if it does not pass the first time.
+- On a stereo ace the node also exercises the depth post-processing controls
+  (`test_enable_depth_smooth`, `test_set_depth_fill`, `test_set_depth_seg`); these skip on cameras
+  that do not expose them.
 
 ## 11. Component tools + wrapper action-client scripts
 

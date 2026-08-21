@@ -401,6 +401,12 @@ public:
 
     virtual std::string setProjectorLevel(const int& level) override;
 
+    virtual std::string enableDepthSmooth(const bool& enable) override;
+
+    virtual std::string setDepthFill(const int& value) override;
+
+    virtual std::string setDepthSeg(const int& value) override;
+
     virtual std::string setMultiCameraChannel(const int& channel) override;
 
     virtual std::string setAcquisitionFrameRate(const float& framerate) override;
