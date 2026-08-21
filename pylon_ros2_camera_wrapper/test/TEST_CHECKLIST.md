@@ -49,7 +49,7 @@ Run the whole workflow (master script):
 ```bash
 cd ~/basler_github_ws/src/pylon_ros2_camera
 ./pylon_ros2_camera_wrapper/test/run_all_tests.sh [device_user_id]
-# options: --config FILE  --tools  --destructive  --yes  -h
+# options: --config FILE  --tools  --destructive  --yes  --fail-fast  -h
 # camera type is auto-detected. With no --config the driver starts on default_2d.yaml and
 # relaunches on default_3d.yaml if a 3D camera is found; --config FILE uses that file as-is.
 ```
