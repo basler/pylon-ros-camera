@@ -784,6 +784,57 @@ phase_services() {
         record SKIP "driver-parameter: set_gamma (not available on this camera: ${gam:-none})"
     fi
 
+    # --- driver-parameter: HDR enable/disable (3D, source-aware) ---
+    # On the stereo mini enable_hdr_mode writes BslHDREnable, which is only
+    # writable while an IR source (Source1/Source2) is selected. Two checks:
+    #   1. IR source selected      -> enable and disable both succeed.
+    #   2. color source (Source3)  -> enable is rejected with the hint to select
+    #      an IR source.
+    # Cameras that are not source-gated (blaze / stereo ace) report
+    # set_source_selector as not available; for them a plain enable/disable round
+    # trip is run instead. The original HDR state is restored at the end.
+    if [[ "$CAM_TYPE" == "3d" ]]; then
+        local hdr0 hdr_restore ok1 ok2 si="pylon_ros2_camera_interfaces/srv/SetIntegerValue"
+        hdr0="$(current_param hdr_mode)"
+        if [[ -z "$hdr0" ]] || ! awk "BEGIN{exit !($hdr0>=0)}" 2>/dev/null; then
+            record SKIP "driver-parameter: enable_hdr_mode (not available on this camera: ${hdr0:-none})"
+        else
+            if awk "BEGIN{exit !($hdr0==1)}" 2>/dev/null; then hdr_restore=true; else hdr_restore=false; fi
+            out="$(svc_call set_source_selector "$si" '{value: 1}')"
+            if echo "$out" | grep -qi "success=True"; then
+                # Source-gated camera (stereo mini). Test 1: IR source -> enable -> disable.
+                out="$(svc_call enable_hdr_mode std_srvs/srv/SetBool '{data: true}')"
+                ok1=$(echo "$out" | grep -qi "success=True" && echo 1 || echo 0)
+                out="$(svc_call enable_hdr_mode std_srvs/srv/SetBool '{data: false}')"
+                ok2=$(echo "$out" | grep -qi "success=True" && echo 1 || echo 0)
+                if [[ "$ok1" == "1" && "$ok2" == "1" ]]; then
+                    record PASS "driver-parameter: enable_hdr_mode on IR source (enable+disable)"
+                else
+                    record FAIL "driver-parameter: enable_hdr_mode on IR source (enable+disable)"
+                fi
+                # Test 2: color source (Source3) -> enable rejected with the IR-source hint.
+                svc_call set_source_selector "$si" '{value: 3}' >/dev/null
+                out="$(svc_call enable_hdr_mode std_srvs/srv/SetBool '{data: true}')"
+                if echo "$out" | grep -qiE "IR source|source selector"; then
+                    record PASS "driver-parameter: enable_hdr_mode on color source (rejected with IR-source hint)"
+                else
+                    record FAIL "driver-parameter: enable_hdr_mode on color source (expected IR-source hint): $out"
+                fi
+                # Restore original HDR state (needs an IR source), then leave the color source selected.
+                svc_call set_source_selector "$si" '{value: 1}' >/dev/null
+                svc_call enable_hdr_mode std_srvs/srv/SetBool "{data: $hdr_restore}" >/dev/null
+                svc_call set_source_selector "$si" '{value: 3}' >/dev/null
+            else
+                # Not source-gated (blaze / stereo ace): a plain enable/disable round trip.
+                out="$(svc_call enable_hdr_mode std_srvs/srv/SetBool '{data: true}')"
+                svc_result "driver-parameter: enable_hdr_mode (enable)" "$out"
+                out="$(svc_call enable_hdr_mode std_srvs/srv/SetBool '{data: false}')"
+                svc_result "driver-parameter: enable_hdr_mode (disable)" "$out"
+                svc_call enable_hdr_mode std_srvs/srv/SetBool "{data: $hdr_restore}" >/dev/null
+            fi
+        fi
+    fi
+
     # --- hardware-parameter: confirm the services are advertised ---
     # These change hardware registers. Phase 4 and later phases exercise the
     # mutating ones; here we only verify a representative few exist.

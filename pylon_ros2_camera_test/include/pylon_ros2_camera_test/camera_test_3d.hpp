@@ -136,6 +136,7 @@ protected:
   rclcpp::Client<SetBool>::SharedPtr enable_projector_client_;
   rclcpp::Client<SetIntegerValue>::SharedPtr set_projector_level_client_;
   rclcpp::Client<SetIntegerValue>::SharedPtr set_operating_mode_client_;
+  rclcpp::Client<SetIntegerValue>::SharedPtr set_source_selector_client_;
 };
 
 }  // namespace pylon_ros2_camera_test

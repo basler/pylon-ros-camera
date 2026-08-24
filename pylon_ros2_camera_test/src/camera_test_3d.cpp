@@ -82,6 +82,8 @@ CameraTest3D::CameraTest3D(const rclcpp::NodeOptions & options)
     make_client<SetIntegerValue>("set_projector_level");
   set_operating_mode_client_ =
     make_client<SetIntegerValue>("set_operating_mode");
+  set_source_selector_client_ =
+    make_client<SetIntegerValue>("set_source_selector");
 
   // Generic tests run first, then 3D-specific tests.
   register_generic_tests();
@@ -459,6 +461,14 @@ bool CameraTest3D::test_enable_hdr_mode()
   }
   const bool original_on = (p.hdr_mode == 1);
 
+  // The stereo mini only allows writing HDR while an IR source (Source1/Source2)
+  // is selected. Select Source1 first; cameras that are not source-gated report
+  // set_source_selector as not available, which is fine to ignore here.
+  auto sel = std::make_shared<SetIntegerValue::Request>();
+  sel->value = 1;
+  auto sel_res = call_service<SetIntegerValue>(set_source_selector_client_, sel);
+  const bool source_gated = sel_res && sel_res->success;
+
   auto req_on = std::make_shared<SetBool::Request>();
   req_on->data = true;
   auto res_on = call_service<SetBool>(enable_hdr_mode_client_, req_on);
@@ -472,6 +482,13 @@ bool CameraTest3D::test_enable_hdr_mode()
   auto req_restore = std::make_shared<SetBool::Request>();
   req_restore->data = original_on;
   call_service<SetBool>(enable_hdr_mode_client_, req_restore);
+
+  // Leave the stereo mini back on the color source (its startup default).
+  if (source_gated) {
+    auto restore_src = std::make_shared<SetIntegerValue::Request>();
+    restore_src->value = 3;
+    call_service<SetIntegerValue>(set_source_selector_client_, restore_src);
+  }
   return ok;
 }
 
