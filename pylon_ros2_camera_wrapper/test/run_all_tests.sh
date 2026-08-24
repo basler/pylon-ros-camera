@@ -752,6 +752,14 @@ phase_services() {
     # exercising the set path. A negative current_params value is a
     # not-available sentinel (e.g. 3D depth cameras report gamma/gain as -1).
     local exp gain gam
+    # The stereo mini applies exposure/gain/gamma to the currently selected
+    # source, so select the color source (Source3) first to make the re-apply
+    # below deterministic. Other 3D cameras report set_source_selector as not
+    # available, which svc_result treats as a handled pass.
+    if [[ "$CAM_TYPE" == "3d" ]]; then
+        out="$(svc_call set_source_selector pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 3}')"
+        svc_result "driver-parameter: set_source_selector to Source3 (color)" "$out"
+    fi
     exp="$(current_param exposure)"
     if [[ -n "$exp" ]] && awk "BEGIN{exit !($exp>0)}" 2>/dev/null; then
         out="$(svc_call set_exposure pylon_ros2_camera_interfaces/srv/SetExposure "{target_exposure: $exp}")"

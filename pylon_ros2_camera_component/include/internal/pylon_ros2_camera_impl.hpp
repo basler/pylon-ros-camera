@@ -429,6 +429,8 @@ public:
 
     virtual std::string enableHDRMode(const bool& enable) override;
 
+    virtual std::string setSourceSelector(const int& source) override;
+
     virtual std::string enableFastMode(const bool& enable) override;
 
 

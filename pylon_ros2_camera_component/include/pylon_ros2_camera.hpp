@@ -1292,6 +1292,12 @@ public:
     virtual std::string enableHDRMode(const bool& enable) = 0;
 
     /**
+     * Set the active source selector - Applies to: stereo mini. 1 = Source1, 2 = Source2, 3 = Source3.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setSourceSelector(const int& source) = 0;
+
+    /**
      * Enable/Disable fast mode - Applies to: blaze.
      * @return error message if an error occurred or done message otherwise.
      */

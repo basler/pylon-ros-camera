@@ -126,6 +126,8 @@ public:
     virtual std::string enableHDRMode(const bool& enable) override;
     // Reads the current HDR state (BslHDREnable) under the IR source.
     virtual int getHDRMode() override;
+    // Selects the active source (1=Source1 IR left, 2=Source2 IR right, 3=Source3 color).
+    virtual std::string setSourceSelector(const int& source) override;
 
     // Overrides for features the stereo mini hardware actually supports. The
     // inherited base implementations use the (never-opened) cam_ device and
@@ -346,6 +348,7 @@ bool PylonROS2StereoMiniCamera::applyCamSpecificStartupSettings(const PylonROS2C
         stereo_mini_cam_->ChunkModeActive.SetValue(false);
 
         RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Stereo mini configured: Range=Coord3D_ABC32f (mm), Intensity=Source3 (color) + Source1/Source2 (IR left/right), Confidence enabled.");
+        RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Active source selector: " << stereo_mini_cam_->SourceSelector.ToString());
         RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Source IDs: left=" << src_id_left_ << " right=" << src_id_right_ << " color=" << src_id_color_);
     }
     catch (const GenICam::GenericException& e)
@@ -577,15 +580,11 @@ int PylonROS2StereoMiniCamera::imagePixelDepth() const
 
 bool PylonROS2StereoMiniCamera::setExposure(const float& target_exposure, float& reached_exposure)
 {
-    // SourceSelector must be Source3 (color sensor) before changing ExposureTime.
-    // Changing the stereo-pair sources (Source1/Source2) while grabbing blocks
-    // RetrieveResult() indefinitely.
-    // SourceSelector stays on Source3 after this call.
+    // Changes ExposureTime on the currently selected source. Select the source with the
+    // set_source_selector service beforehand (color is Source3); this call no longer
+    // switches the source itself.
     try
     {
-        stereo_mini_cam_->SourceSelector.SetValue(
-            Pylon::StereoMiniCameraParams_Params::SourceSelectorEnums::SourceSelector_Source3);
-
         stereo_mini_cam_->ExposureAuto.TrySetValue(
             Pylon::StereoMiniCameraParams_Params::ExposureAutoEnums::ExposureAuto_Off);
 
@@ -997,10 +996,9 @@ int PylonROS2StereoMiniCamera::getDepthPreset()
 
 std::string PylonROS2StereoMiniCamera::enableHDRMode(const bool& enable)
 {
-    // HDR is controlled by BslHDREnable, which is not part of the typed parameter class, so reach it
-    // through the generic node map by name. The node is only writable while an IR source (Source1/Source2)
-    // is selected; it is read-only under the color source (Source3) that the startup config keeps selected.
-    // Select each IR source, write the value, then restore Source3. The node is locked while grabbing,
+    // HDR is controlled by BslHDREnable, reached through the generic node map by name. The
+    // node is only writable while an IR source (Source1/Source2) is selected; use the
+    // set_source_selector service to select one first. The node is locked while grabbing,
     // so stop/start around the write.
     try
     {
@@ -1012,18 +1010,18 @@ std::string PylonROS2StereoMiniCamera::enableHDRMode(const bool& enable)
         }
 
         this->grabbingStopping();
-        stereo_mini_cam_->SourceSelector.FromString("Source1");
+        if (!GenApi::IsWritable(hdr_enable))
+        {
+            this->grabbingStarting();
+            return "BslHDREnable is not writable; set the source selector to an IR source (Source1 or Source2) first";
+        }
         hdr_enable->SetValue(enable);
-        stereo_mini_cam_->SourceSelector.FromString("Source2");
-        hdr_enable->SetValue(enable);
-        stereo_mini_cam_->SourceSelector.FromString("Source3");
         this->grabbingStarting();
         RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "HDR mode " << (enable ? "enabled" : "disabled"));
     }
     catch (const GenICam::GenericException& e)
     {
         RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the HDR mode occurred: " << e.GetDescription());
-        try { stereo_mini_cam_->SourceSelector.FromString("Source3"); } catch (const GenICam::GenericException&) {}
         this->grabbingStarting();
         return e.GetDescription();
     }
@@ -1056,13 +1054,10 @@ int PylonROS2StereoMiniCamera::getHDRMode()
 
 bool PylonROS2StereoMiniCamera::setGain(const float& target_gain, float& reached_gain)
 {
-    // Gain is selected by SourceSelector; operate on the color sensor (Source3),
-    // consistent with setExposure. target_gain is a fraction [0.0 - 1.0].
+    // Gain acts on the currently selected source. Select the source beforehand with the
+    // set_source_selector service. target_gain is a fraction [0.0 - 1.0].
     try
     {
-        stereo_mini_cam_->SourceSelector.SetValue(
-            Pylon::StereoMiniCameraParams_Params::SourceSelectorEnums::SourceSelector_Source3);
-
         // The color source has no separate GainAuto; its auto-exposure function
         // also owns Gain and keeps the Gain node read-only while active. Disable
         // ExposureAuto before writing a manual gain (mirrors setExposure).
@@ -1102,12 +1097,9 @@ bool PylonROS2StereoMiniCamera::setGain(const float& target_gain, float& reached
 
 bool PylonROS2StereoMiniCamera::setGamma(const float& target_gamma, float& reached_gamma)
 {
-    // Gamma is selected by SourceSelector; operate on the color sensor (Source3).
+    // Gamma acts on the currently selected source; select it beforehand with set_source_selector.
     try
     {
-        stereo_mini_cam_->SourceSelector.SetValue(
-            Pylon::StereoMiniCameraParams_Params::SourceSelectorEnums::SourceSelector_Source3);
-
         float gamma_to_set = target_gamma;
         const float min_gamma = static_cast<float>(stereo_mini_cam_->Gamma.GetMin());
         const float max_gamma = static_cast<float>(stereo_mini_cam_->Gamma.GetMax());
@@ -1142,13 +1134,11 @@ bool PylonROS2StereoMiniCamera::setBrightness(const int& target_brightness,
                                               const bool& gain_auto __attribute__((unused)))
 {
     // The stereo mini has no auto-brightness search. It exposes a direct analog
-    // BslBrightness control (selected by SourceSelector). target_brightness
-    // [1..255] is mapped linearly onto the BslBrightness range.
+    // BslBrightness control on the currently selected source (select it beforehand with
+    // set_source_selector). target_brightness [1..255] is mapped linearly onto the
+    // BslBrightness range.
     try
     {
-        stereo_mini_cam_->SourceSelector.SetValue(
-            Pylon::StereoMiniCameraParams_Params::SourceSelectorEnums::SourceSelector_Source3);
-
         if (exposure_auto)
         {
             stereo_mini_cam_->ExposureAuto.TrySetValue(
@@ -1175,12 +1165,10 @@ std::string PylonROS2StereoMiniCamera::setWhiteBalance(const double& redValue, c
 {
     // BalanceRatio is applied per channel via the (runtime) BalanceRatioSelector
     // node, which the typed StereoMiniCameraParams header does not expose; access
-    // it generically. Requires the color sensor source (Source3).
+    // it generically. Acts on the currently selected source (select the color source
+    // with set_source_selector beforehand).
     try
     {
-        stereo_mini_cam_->SourceSelector.SetValue(
-            Pylon::StereoMiniCameraParams_Params::SourceSelectorEnums::SourceSelector_Source3);
-
         GenApi::INodeMap& node_map = stereo_mini_cam_->GetNodeMap();
         GenApi::CEnumerationPtr wb_auto(node_map.GetNode("BalanceWhiteAuto"));
         if (wb_auto.IsValid() && GenApi::IsWritable(wb_auto))
@@ -1223,11 +1211,9 @@ std::string PylonROS2StereoMiniCamera::setBalanceWhiteAuto(const int& mode)
 {
     // The typed BalanceWhiteAuto enum only carries a placeholder value; use the
     // runtime enumeration node so real Off/Once/Continuous entries can be set.
+    // Acts on the currently selected source (select it with set_source_selector).
     try
     {
-        stereo_mini_cam_->SourceSelector.SetValue(
-            Pylon::StereoMiniCameraParams_Params::SourceSelectorEnums::SourceSelector_Source3);
-
         GenApi::CEnumerationPtr wb_auto(stereo_mini_cam_->GetNodeMap().GetNode("BalanceWhiteAuto"));
         if (!wb_auto.IsValid() || !GenApi::IsWritable(wb_auto))
         {
@@ -1247,6 +1233,35 @@ std::string PylonROS2StereoMiniCamera::setBalanceWhiteAuto(const int& mode)
     catch (const GenICam::GenericException& e)
     {
         RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while changing the balance white auto occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setSourceSelector(const int& source)
+{
+    // Selects the active source so per-source features (exposure, gain, gamma, brightness,
+    // white balance, HDR) act on the intended sensor. 1 = Source1 (IR left), 2 = Source2
+    // (IR right), 3 = Source3 (color). The node is locked while grabbing, so stop/start.
+    try
+    {
+        this->grabbingStopping();
+        switch (source)
+        {
+            case 1: stereo_mini_cam_->SourceSelector.FromString("Source1"); break;
+            case 2: stereo_mini_cam_->SourceSelector.FromString("Source2"); break;
+            case 3: stereo_mini_cam_->SourceSelector.FromString("Source3"); break;
+            default:
+                this->grabbingStarting();
+                return "Error: unknown value (1=Source1, 2=Source2, 3=Source3)";
+        }
+        this->grabbingStarting();
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Source selector set to Source" << source);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the source selector occurred: " << e.GetDescription());
+        this->grabbingStarting();
         return e.GetDescription();
     }
     return "done";

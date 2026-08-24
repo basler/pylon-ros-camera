@@ -268,6 +268,23 @@ Re-apply a driver parameter to its current value (a no-op that exercises the set
 current value from `current_params` first, then set it back. Gain is reported as a 0-1 fraction of the
 sensor range and set back the same way:
 
+On the stereo mini, exposure/gain/gamma/brightness/white-balance apply to the currently selected
+source (the driver no longer switches it for you). Select the source first with `set_source_selector`
+(1 = Source1 IR left, 2 = Source2 IR right, 3 = Source3 color). Other cameras report this service as
+not available:
+
+```bash
+ros2 service call $NS/set_source_selector pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 3}'   # color (stereo mini)
+```
+
+On the stereo mini, `enable_hdr_mode` writes `BslHDREnable`, which is only writable while an IR source
+is selected. Select Source1 or Source2 first, otherwise the service returns a hint to do so:
+
+```bash
+ros2 service call $NS/set_source_selector pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 1}'   # Source1 (IR left)
+ros2 service call $NS/enable_hdr_mode std_srvs/srv/SetBool '{data: true}'
+```
+
 ```bash
 ros2 topic echo --once --field exposure $NS/current_params      # e.g. 5000.0
 ros2 service call $NS/set_exposure pylon_ros2_camera_interfaces/srv/SetExposure '{target_exposure: 5000.0}'   # common

@@ -369,6 +369,9 @@ void PylonROS2CameraNode::initServices()
   srv_name = srv_prefix + "set_user_set_selector";
   this->set_user_set_selector_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setUserSetSelectorCallback, this, _1, _2));
   
+  srv_name = srv_prefix + "set_source_selector";
+  this->set_source_selector_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setSourceSelectorCallback, this, _1, _2));
+  
   srv_name = srv_prefix + "set_user_set_default_selector";
   this->set_user_set_default_selector_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setUserSetDefaultSelectorCallback, this, _1, _2));
   
@@ -3298,6 +3301,20 @@ void PylonROS2CameraNode::setUserSetSelectorCallback(const std::shared_ptr<SetIn
     {
       response->message = "The passed user set number is not supported by the connected camera";
     }
+  }
+}
+
+void PylonROS2CameraNode::setSourceSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                                    std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setSourceSelector(request->value);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
   }
 }
 

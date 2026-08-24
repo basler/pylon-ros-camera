@@ -872,6 +872,14 @@ protected:
                                   std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
+   * @brief Service callback for setting the active source selector (stereo mini)
+   * @param req request
+   * @param res response
+   */
+  void setSourceSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                 std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
    * @brief Service callback for setting the camera user set default selector
    * @param req request
    * @param res response
@@ -1792,6 +1800,7 @@ protected:
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_line_mode_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_line_source_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_user_set_selector_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_source_selector_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_user_set_default_selector_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_device_link_throughput_limit_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_max_transfer_size_srv_;

@@ -5157,6 +5157,13 @@ std::string PylonROS2CameraImpl<CameraTraitT>::enableHDRMode(const bool& enable 
 }
 
 template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setSourceSelector(const int& source __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::enableFastMode(const bool& enable __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
