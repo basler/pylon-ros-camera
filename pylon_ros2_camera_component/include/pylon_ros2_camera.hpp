@@ -1164,16 +1164,18 @@ public:
     virtual std::string issueScheduledActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const int64_t& action_time_ns_from_current_timestamp, const std::string& broadcast_address) = 0;
 
     /**
-     * Set depth min - Applies to: blaze.
+     * Set depth min - Applies to: blaze, stereo mini, stereo ace.
+     * depth_min is in camera-native units: mm (blaze/mini, integer node), meters (stereo ace, float node).
      * @return error message if an error occurred or done message otherwise.
      */
-    virtual std::string setDepthMin(const int& depth_min) = 0;
+    virtual std::string setDepthMin(const double& depth_min) = 0;
 
     /**
-     * Set depth max - Applies to: blaze.
+     * Set depth max - Applies to: blaze, stereo mini, stereo ace.
+     * depth_max is in camera-native units: mm (blaze/mini, integer node), meters (stereo ace, float node).
      * @return error message if an error occurred or done message otherwise.
      */
-    virtual std::string setDepthMax(const int& depth_max) = 0;
+    virtual std::string setDepthMax(const double& depth_max) = 0;
 
     /**
      * Set temporal filter strength - Applies to: blaze.
@@ -1200,10 +1202,10 @@ public:
     virtual std::string setAmbiguityFilterThreshold(const int& threshold) = 0;
 
     /**
-     * Set confidence threshold - Applies to: blaze.
+     * Set confidence threshold - Applies to: blaze, Stereo ace.
      * @return error message if an error occurred or done message otherwise.
      */
-    virtual std::string setConfidenceThreshold(const int& threshold) = 0;
+    virtual std::string setConfidenceThreshold(const double& threshold) = 0;
 
     /**
      * Set intensity calculation - Applies to: blaze.
@@ -1290,10 +1292,171 @@ public:
     virtual std::string enableHDRMode(const bool& enable) = 0;
 
     /**
+     * Set the active source selector - Applies to: stereo mini. 1 = Source1, 2 = Source2, 3 = Source3.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setSourceSelector(const int& source) = 0;
+
+    /**
      * Enable/Disable fast mode - Applies to: blaze.
      * @return error message if an error occurred or done message otherwise.
      */
     virtual std::string enableFastMode(const bool& enable) = 0;
+
+    /**
+     * Set illumination mode - Applies to: Stereo ace (BslIlluminationMode). The index selects
+     * one of the modes the camera reports at runtime.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setIlluminationMode(const int& mode) = 0;
+
+    /**
+     * Set depth quality - Applies to: Stereo ace (BslDepthQuality). The index selects one of
+     * the depth quality settings the camera reports at runtime.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setDepthQuality(const int& quality) = 0;
+
+    /**
+     * Enable/Disable static scene mode - Applies to: Stereo ace (BslDepthStaticScene).
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableStaticScene(const bool& enable) = 0;
+
+    /**
+     * Enable/Disable the pattern projector - Applies to: Stereo mini (BslLaserEnable).
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableProjector(const bool& enable) = 0;
+
+    /**
+     * Set the pattern projector power level - Applies to: Stereo mini (BslLaserLevel).
+     * The value is clamped to the range the camera reports at runtime.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setProjectorLevel(const int& level) = 0;
+
+    /**
+     * Enable/Disable depth smoothing - Applies to: Stereo ace (BslDepthSmooth).
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableDepthSmooth(const bool& enable) = 0;
+
+    /**
+     * Set the depth fill level - Applies to: Stereo ace (BslDepthFill). The value
+     * is clamped to the range the camera reports at runtime.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setDepthFill(const int& value) = 0;
+
+    /**
+     * Set the depth segmentation threshold - Applies to: Stereo ace (BslDepthSeg).
+     * The value is clamped to the range the camera reports at runtime.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setDepthSeg(const int& value) = 0;
+
+    // --- 3D read-back getters -------------------------------------------------
+    // Read-only reflections of already-existing 3D settings, published in
+    // current_params. They are NOT pure virtual: cameras that do not support a
+    // given feature keep the sentinel default (-1). getDepthMin/getDepthMax are
+    // implemented once in the 3D profile; the blaze-specific getters are
+    // overridden in the blaze camera only.
+
+    /**
+     * Working depth range minimum, camera-native units (mm: blaze/mini, m: stereo ace). -1 if not available.
+     */
+    virtual double getDepthMin() { return -1.0; }
+
+    /**
+     * Working depth range maximum, camera-native units (mm: blaze/mini, m: stereo ace). -1 if not available.
+     */
+    virtual double getDepthMax() { return -1.0; }
+
+    /**
+     * Operating mode - Applies to: blaze. -1 = n/a, 0 = ShortRange, 1 = LongRange.
+     */
+    virtual int getOperatingMode() { return -1; }
+
+    /**
+     * HDR mode - Applies to: blaze. -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getHDRMode() { return -1; }
+
+    /**
+     * Fast mode - Applies to: blaze. -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getFastMode() { return -1; }
+
+    /**
+     * Spatial filter enabled - Applies to: blaze. -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getSpatialFilter() { return -1; }
+
+    /**
+     * Temporal filter enabled - Applies to: blaze. -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getTemporalFilter() { return -1; }
+
+    /**
+     * Outlier removal enabled - Applies to: blaze. -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getOutlierRemoval() { return -1; }
+
+    /**
+     * Ambiguity filter enabled - Applies to: blaze. -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getAmbiguityFilter() { return -1; }
+
+    /**
+     * Confidence threshold - Applies to: blaze. -1.0 if not available.
+     */
+    virtual float getConfidenceThreshold() { return -1.0f; }
+
+    /**
+     * Projector enabled - Applies to: Stereo mini (BslLaserEnable). -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getProjectorEnable() { return -1; }
+
+    /**
+     * Projector power level - Applies to: Stereo mini (BslLaserLevel). -1 if not available.
+     */
+    virtual int getProjectorLevel() { return -1; }
+
+    /**
+     * Depth preset index into the entries the camera reports at runtime - Applies to: Stereo mini (BslDepthPreset). -1 if not available.
+     */
+    virtual int getDepthPreset() { return -1; }
+
+    /**
+     * Illumination mode index into the entries the camera reports at runtime - Applies to: Stereo ace (BslIlluminationMode). -1 if not available.
+     */
+    virtual int getIlluminationMode() { return -1; }
+
+    /**
+     * Depth quality index into the entries the camera reports at runtime - Applies to: Stereo ace (BslDepthQuality). -1 if not available.
+     */
+    virtual int getDepthQuality() { return -1; }
+
+    /**
+     * Static scene mode - Applies to: Stereo ace (BslDepthStaticScene). -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getStaticScene() { return -1; }
+
+    /**
+     * Depth smoothing - Applies to: Stereo ace (BslDepthSmooth). -1 = n/a, 0 = Off, 1 = On.
+     */
+    virtual int getDepthSmooth() { return -1; }
+
+    /**
+     * Depth fill level - Applies to: Stereo ace (BslDepthFill). -1 if not available.
+     */
+    virtual int getDepthFill() { return -1; }
+
+    /**
+     * Depth segmentation threshold - Applies to: Stereo ace (BslDepthSeg). -1 if not available.
+     */
+    virtual int getDepthSeg() { return -1; }
 
     virtual ~PylonROS2Camera();
 
@@ -1367,7 +1530,7 @@ protected:
      * 1 = GrabStrategy_LatestImageOnly
      * 2 = GrabStrategy_LatestImages
      */
-    int grab_strategy_;
+    int grab_strategy_ = 0;
 
     /**
      * True if the extended binary exposure search is running.

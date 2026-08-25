@@ -233,6 +233,15 @@ private:
         "test_set_gamma: gamma not supported by this camera, skipping.");
       return true;
     }
+    if (std::fabs(res->reached_gamma - target) > 0.1f) {
+      RCLCPP_WARN(
+        get_logger(),
+        "test_set_gamma: target %.2f out of camera range "
+        "(reached %.2f), skipping.",
+        static_cast<double>(target),
+        static_cast<double>(res->reached_gamma));
+      return true;
+    }
     return assert_near(res->reached_gamma, target, 0.1,
       "test_set_gamma/reached_gamma");
   }

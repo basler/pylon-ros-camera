@@ -371,9 +371,9 @@ public:
                            sensor_msgs::msg::Image& depth_map_color_msg, 
                            sensor_msgs::msg::Image& confidence_map_msg) override;
     
-    virtual std::string setDepthMin(const int& depth_min) override;
+    virtual std::string setDepthMin(const double& depth_min) override;
 
-    virtual std::string setDepthMax(const int& depth_max) override;
+    virtual std::string setDepthMax(const double& depth_max) override;
 
     virtual std::string setTemporalFilterStrength(const int& strength) override;
 
@@ -383,13 +383,29 @@ public:
 
     virtual std::string setAmbiguityFilterThreshold(const int& threshold) override;
 
-    virtual std::string setConfidenceThreshold(const int& threshold) override;
+    virtual std::string setConfidenceThreshold(const double& threshold) override;
 
     virtual std::string setIntensityCalculation(const int& calculation) override;
 
     virtual std::string setExposureTimeSelector(const int& selector) override;
 
     virtual std::string setOperatingMode(const int& mode) override;
+
+    virtual std::string setIlluminationMode(const int& mode) override;
+
+    virtual std::string setDepthQuality(const int& quality) override;
+
+    virtual std::string enableStaticScene(const bool& enable) override;
+
+    virtual std::string enableProjector(const bool& enable) override;
+
+    virtual std::string setProjectorLevel(const int& level) override;
+
+    virtual std::string enableDepthSmooth(const bool& enable) override;
+
+    virtual std::string setDepthFill(const int& value) override;
+
+    virtual std::string setDepthSeg(const int& value) override;
 
     virtual std::string setMultiCameraChannel(const int& channel) override;
 
@@ -412,6 +428,8 @@ public:
     virtual std::string enableAcquisitionFrameRate(const bool& enable) override;
 
     virtual std::string enableHDRMode(const bool& enable) override;
+
+    virtual std::string setSourceSelector(const int& source) override;
 
     virtual std::string enableFastMode(const bool& enable) override;
 

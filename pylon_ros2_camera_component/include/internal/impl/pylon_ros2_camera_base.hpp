@@ -4954,157 +4954,220 @@ std::string PylonROS2CameraImpl<CameraTraitT>::issueScheduledActionCommand(const
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMin(const int& depth_min __attribute__((unused)))
+std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMin(const double& depth_min __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMax(const int& depth_max __attribute__((unused)))
+std::string PylonROS2CameraImpl<CameraTraitT>::setDepthMax(const double& depth_max __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setTemporalFilterStrength(const int& strength __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setOutlierRemovalThreshold(const int& threshold __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setOutlierRemovalTolerance(const int& tolerance __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setAmbiguityFilterThreshold(const int& threshold __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
-std::string PylonROS2CameraImpl<CameraTraitT>::setConfidenceThreshold(const int& threshold __attribute__((unused)))
+std::string PylonROS2CameraImpl<CameraTraitT>::setConfidenceThreshold(const double& threshold __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setIntensityCalculation(const int& calculation __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setExposureTimeSelector(const int& selector __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setOperatingMode(const int& mode __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setIlluminationMode(const int& mode __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setDepthQuality(const int& quality __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableStaticScene(const bool& enable __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableProjector(const bool& enable __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setProjectorLevel(const int& level __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableDepthSmooth(const bool& enable __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setDepthFill(const int& value __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setDepthSeg(const int& value __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setMultiCameraChannel(const int& channel __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setAcquisitionFrameRate(const float& framerate __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setScan3dCalibrationOffset(const float& offset __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::enableSpatialFilter(const bool& enable __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::enableTemporalFilter(const bool& enable __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::enableOutlierRemoval(const bool& enable __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::enableAmbiguityFilter(const bool& enable __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::enableThermalDriftCorrection(const bool& enable __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::enableDistortionCorrection(const bool& enable __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::enableAcquisitionFrameRate(const bool& enable __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::enableHDRMode(const bool& enable __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setSourceSelector(const int& source __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::enableFastMode(const bool& enable __attribute__((unused)))
 {
-    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available except for blaze");
-    return "Feature not available except for blaze";
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
 }
 
 }  // namespace pylon_ros2_camera

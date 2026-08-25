@@ -44,25 +44,25 @@ def test_resolve_profile_config_2d_default():
     """The 2d profile resolves to the default configuration file."""
     launch_module = _load_launch_module()
     resolved = launch_module.resolve_profile_config('', '2d')
-    assert resolved.endswith('/config/default.yaml')
+    assert resolved.endswith('/config/default_2d.yaml')
 
 
 def test_resolve_profile_config_3d_default():
     """The 3d profile resolves to the 3D profile configuration file."""
     launch_module = _load_launch_module()
     resolved = launch_module.resolve_profile_config('', '3d')
-    assert resolved.endswith('/config/profile_3d.yaml')
+    assert resolved.endswith('/config/default_3d.yaml')
 
 
 def test_resolve_profile_config_case_insensitive():
     """Profile matching is case-insensitive."""
     launch_module = _load_launch_module()
     resolved = launch_module.resolve_profile_config('', '3D')
-    assert resolved.endswith('/config/profile_3d.yaml')
+    assert resolved.endswith('/config/default_3d.yaml')
 
 
 def test_resolve_profile_config_unknown_profile_falls_back_to_2d():
     """An unknown profile falls back to the default configuration file."""
     launch_module = _load_launch_module()
     resolved = launch_module.resolve_profile_config('', 'future-profile')
-    assert resolved.endswith('/config/default.yaml')
+    assert resolved.endswith('/config/default_2d.yaml')

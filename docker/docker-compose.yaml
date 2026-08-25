@@ -75,7 +75,7 @@ services:
     # Uncomment and adjust the path to load your own config file.
     # -------------------------------------------------------------------------
     # volumes:
-    #   - ./my_camera.yaml:/ros2_ws/install/pylon_ros2_camera_wrapper/share/pylon_ros2_camera_wrapper/config/default.yaml:ro
+    #   - ./my_camera.yaml:/ros2_ws/install/pylon_ros2_camera_wrapper/share/pylon_ros2_camera_wrapper/config/default_2d.yaml:ro
 
     # Default command – can be overridden here or on the CLI.
     # Useful launch arguments:

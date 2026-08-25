@@ -42,6 +42,27 @@ string ptp_status           # latched state of the PTP clock, see https://ja.doc
 string ptp_servo_status     # latched state of the clock servo, see https://docs.baslerweb.com/pylonapi/net/T_Basler_Pylon_PLCamera_PtpServoStatusEnum
 int64 ptp_offset            # ptp offset from master in ticks [ns]
 
+# 3D-only parameters (populated when a 3D camera is connected; -1 otherwise).
+float32 depth_min           # working depth range minimum, camera-native units (mm: blaze/mini, m: stereo ace). -1 = not available
+float32 depth_max           # working depth range maximum, camera-native units (mm: blaze/mini, m: stereo ace). -1 = not available
+int32 operating_mode        # -1 = not available, 0 = ShortRange, 1 = LongRange (blaze)
+int32 hdr_mode              # -1 = not available, 0 = Off, 1 = On (blaze, stereo mini, stereo ace)
+int32 fast_mode             # -1 = not available, 0 = Off, 1 = On (blaze)
+int32 spatial_filter        # -1 = not available, 0 = Off, 1 = On (blaze)
+int32 temporal_filter       # -1 = not available, 0 = Off, 1 = On (blaze)
+int32 outlier_removal       # -1 = not available, 0 = Off, 1 = On (blaze)
+int32 ambiguity_filter      # -1 = not available, 0 = Off, 1 = On (blaze)
+float32 confidence_threshold # -1.0 = not available (blaze, stereo ace)
+int32 projector_enable      # -1 = not available, 0 = Off, 1 = On (stereo mini)
+int32 projector_level       # -1 = not available, pattern projector power level (stereo mini)
+int32 depth_preset          # -1 = not available, BslDepthPreset index (stereo mini)
+int32 illumination_mode     # -1 = not available, BslIlluminationMode index (stereo ace)
+int32 depth_quality         # -1 = not available, BslDepthQuality index (stereo ace)
+int32 static_scene          # -1 = not available, 0 = Off, 1 = On (stereo ace)
+int32 depth_smooth          # -1 = not available, 0 = Off, 1 = On (stereo ace)
+int32 depth_fill            # -1 = not available, BslDepthFill level (stereo ace)
+int32 depth_seg             # -1 = not available, BslDepthSeg threshold (stereo ace)
+
 bool success
 string message
 

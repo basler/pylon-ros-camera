@@ -39,26 +39,31 @@ int main(int argc, char * argv[])
 
   rclcpp::init(argc, argv);
 
-  // pylon camera node
   rclcpp::NodeOptions options;
   options.automatically_declare_parameters_from_overrides(true);
-  auto pylon_ros2_camera_node = std::make_shared<pylon_ros2_camera::PylonROS2CameraNode>(options);
-  
+
   try
   {
+    // Build the node inside the try block. Opening the camera and creating the
+    // node's timers and services takes a few seconds, and if Ctrl-C arrives
+    // during that window rclcpp throws because the context is already shutting
+    // down. Catching it here lets the node destruct normally, which closes the
+    // camera and releases the device. If the process aborted instead, the
+    // camera would stay open and the next launch would fail to reopen it.
+    auto pylon_ros2_camera_node = std::make_shared<pylon_ros2_camera::PylonROS2CameraNode>(options);
+
     // executor responsible for execution of callbacks for a set of nodes
     rclcpp::executors::SingleThreadedExecutor exec;
     exec.add_node(pylon_ros2_camera_node);
     exec.spin();
-
-    rclcpp::shutdown();
   }
   catch(const std::exception& e)
   {
-    std::cerr << "Impossible to spin" << std::endl;
-    std::cerr << e.what() << std::endl;
-    return EXIT_FAILURE;
+    std::cerr << "pylon camera node stopped: " << e.what() << std::endl;
   }
+
+  if (rclcpp::ok())
+    rclcpp::shutdown();
 
   return EXIT_SUCCESS;
 }

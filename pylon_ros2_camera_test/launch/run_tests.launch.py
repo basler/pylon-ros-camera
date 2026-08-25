@@ -230,7 +230,7 @@ def generate_launch_description():
     default_config_file = os.path.join(
         get_package_share_directory('pylon_ros2_camera_wrapper'),
         'config',
-        'default.yaml',
+        'default_2d.yaml',
     )
 
     os.environ['RCUTILS_CONSOLE_OUTPUT_FORMAT'] = '{time} [{name}] [{severity}] {message}'
@@ -296,9 +296,11 @@ def generate_launch_description():
     )
     declare_detection_timeout = DeclareLaunchArgument(
         'camera_detection_timeout',
-        default_value='15',
-        description='Seconds to wait for the camera to connect before skipping '
-                    '(a blaze can take several seconds through its GenTL producer).',
+        default_value='30',
+        description='Seconds to wait for the camera to connect before skipping. '
+                    'A GigE stereo ace needs about 20 s to enumerate, open and '
+                    'start grabbing; a blaze also takes several seconds through '
+                    'its GenTL producer.',
     )
 
     # ── Common parameters forwarded to every test node ────────────────────────

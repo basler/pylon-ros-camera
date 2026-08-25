@@ -1,0 +1,34 @@
+# Camera parameters
+
+/**:
+  ros__parameters:
+
+    #  The tf frame under which the images were published
+    camera_frame: pylon_camera
+
+    #  The DeviceUserID of the camera. If empty, the first camera found in the
+    #  device list will be used
+    # The stereo mini does not support Device User ID — leave empty to auto-select
+    device_user_id: ""
+
+    #  The desired publisher frame rate if listening to the topics.
+    #  This parameter can only be set once at startup
+    #  Calling the GrabImages-Action can result in a higher framerate
+    frame_rate: 10.0
+
+    ##########################################################################
+    ######################## Image Intensity Settings ########################
+    ##########################################################################
+    # The following settings do *NOT* have to be set. Each camera has default
+    # values which provide an automatic image adjustment resulting in valid
+    # images
+    ##########################################################################
+
+    #  The exposure time in microseconds to be set after opening the camera.
+    # exposure: 10000.0
+
+    ##########################################################################
+
+    # Grab timeout — the Stereo mini needs at least 5000 ms to deliver its
+    # first stereo-processed frame
+    grab_timeout: 5000

@@ -872,6 +872,14 @@ protected:
                                   std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
+   * @brief Service callback for setting the active source selector (stereo mini)
+   * @param req request
+   * @param res response
+   */
+  void setSourceSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                 std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
    * @brief Service callback for setting the camera user set default selector
    * @param req request
    * @param res response
@@ -1028,14 +1036,14 @@ protected:
    * @param req request
    * @param res response
    */
-  void setDepthMinCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+  void setDepthMinCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response);
 
   /**
    * @brief Service callback for setting depth max - Applies to: blaze.
    * @param req request
    * @param res response
    */
-  void setDepthMaxCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+  void setDepthMaxCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response);
 
   /**
    * @brief Service callback for setting temporal filter strength - Applies to: blaze.
@@ -1066,11 +1074,11 @@ protected:
   void setAmbiguityFilterThresholdCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for setting confidence threshold - Applies to: blaze.
+   * @brief Service callback for setting confidence threshold - Applies to: blaze, Stereo ace.
    * @param req request
    * @param res response
    */
-  void setConfidenceThresholdCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+  void setConfidenceThresholdCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response);
 
   /**
    * @brief Service callback for setting intensity calculation - Applies to: blaze.
@@ -1381,6 +1389,62 @@ protected:
    * @param res response
    */
   void enableHDRModeCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting illumination mode - Applies to: Stereo ace.
+   * @param req request
+   * @param res response
+   */
+  void setIlluminationModeCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting depth quality - Applies to: Stereo ace.
+   * @param req request
+   * @param res response
+   */
+  void setDepthQualityCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling static scene mode - Applies to: Stereo ace.
+   * @param req request
+   * @param res response
+   */
+  void enableStaticSceneCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling the pattern projector - Applies to: Stereo mini.
+   * @param req request
+   * @param res response
+   */
+  void enableProjectorCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the pattern projector power level - Applies to: Stereo mini.
+   * @param req request
+   * @param res response
+   */
+  void setProjectorLevelCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling depth smoothing - Applies to: Stereo ace.
+   * @param req request
+   * @param res response
+   */
+  void enableDepthSmoothCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the depth fill level - Applies to: Stereo ace.
+   * @param req request
+   * @param res response
+   */
+  void setDepthFillCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the depth segmentation threshold - Applies to: Stereo ace.
+   * @param req request
+   * @param res response
+   */
+  void setDepthSegCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
    * @brief Service callback for enabling/disabling fast mode - Applies to: blaze.
@@ -1736,6 +1800,7 @@ protected:
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_line_mode_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_line_source_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_user_set_selector_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_source_selector_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_user_set_default_selector_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_device_link_throughput_limit_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_max_transfer_size_srv_;
@@ -1756,17 +1821,22 @@ protected:
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_sync_free_run_timer_start_time_low_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_sync_free_run_timer_start_time_high_srv_;
   // 3D camera specific services
-  rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_min_srv_;
-  rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_max_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_depth_min_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_depth_max_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_temporal_filter_strength_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_outlier_removal_threshold_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_outlier_removal_tolerance_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_ambiguity_filter_threshold_srv_;
-  rclcpp::Service<SetIntegerSrv>::SharedPtr set_confidence_threshold_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_confidence_threshold_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_intensity_calculation_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_exposure_time_selector_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_operating_mode_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_multi_camera_channel_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_illumination_mode_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_quality_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_projector_level_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_fill_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_seg_srv_;
 
   rclcpp::Service<SetFloatSrv>::SharedPtr set_noise_reduction_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_sharpness_enhancement_srv_;
@@ -1808,6 +1878,9 @@ protected:
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_acquisition_frame_rate_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_hdr_mode_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_fast_mode_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_static_scene_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_projector_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_depth_smooth_srv_;
  
   rclcpp::Service<TriggerSrv>::SharedPtr execute_software_trigger_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr save_user_set_srv_;

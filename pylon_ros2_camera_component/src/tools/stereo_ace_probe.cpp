@@ -1,0 +1,332 @@
+/******************************************************************************
+ * Software License Agreement (BSD License)
+ *
+ * Copyright (C) 2022, Basler AG. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   * Redistributions of source code must retain the above copyright notice,
+ *     this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * No contributors' name may be used to endorse or promote products derived from
+ *     this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *****************************************************************************/
+
+// Read-only diagnostic for the Stereo ace. Requires exclusive access, so the
+// ROS node must NOT be running when this tool is used.
+//
+//   stereo_ace_probe                 -> probe first available camera
+//   stereo_ace_probe -uid <id>       -> probe camera with the given DeviceUserID
+//   stereo_ace_probe -sn <serial>    -> probe camera with the given serial
+//
+// It answers three open hardware questions:
+//   Q2  BslDepthMinConf (confidence threshold): node type + min/max/value/unit.
+//   Q8  Disparity Scan3dInvalidDataValue / Scan3dCoordinateOffset (invalid sentinel).
+//   Q6  Intensity PixelFormat: allowed entries + whether it is writable while grabbing.
+
+#include <pylon/PylonIncludes.h>
+
+#include <algorithm>
+#include <string>
+#include <vector>
+
+namespace
+{
+
+// Minimal command-line parser (same style as the other tools in this folder).
+class InputParser
+{
+public:
+    InputParser(int& argc, char** argv)
+    {
+        for (int i = 1; i < argc; ++i)
+        {
+            this->tokens.push_back(std::string(argv[i]));
+        }
+    }
+
+    std::string getCmdOption(const std::string& option) const
+    {
+        auto itr = std::find(this->tokens.begin(), this->tokens.end(), option);
+        if (itr != this->tokens.end() && ++itr != this->tokens.end())
+        {
+            return *itr;
+        }
+        return std::string();
+    }
+
+    bool cmdOptionExists(const std::string& option) const
+    {
+        return std::find(this->tokens.begin(), this->tokens.end(), option) != this->tokens.end();
+    }
+
+private:
+    std::vector<std::string> tokens;
+};
+
+// GenApi access mode -> human-readable state, so writability is unambiguous.
+std::string accessModeToString(GenApi::EAccessMode mode)
+{
+    switch (mode)
+    {
+        case GenApi::NI: return "NotImplemented";
+        case GenApi::NA: return "NotAvailable";
+        case GenApi::WO: return "WriteOnly";
+        case GenApi::RO: return "ReadOnly";
+        case GenApi::RW: return "ReadWrite";
+        default:         return "Undefined";
+    }
+}
+
+void probeFloat(GenApi::INodeMap& node_map, const char* name)
+{
+    GenApi::CFloatPtr node(node_map.GetNode(name));
+    if (!node.IsValid())
+    {
+        std::cout << "  " << name << ": <node absent>" << std::endl;
+        return;
+    }
+    std::cout << "  " << name << " [CFloat, " << accessModeToString(node->GetAccessMode()) << "]";
+    if (GenApi::IsReadable(node))
+    {
+        std::cout << " value=" << node->GetValue()
+                  << " min=" << node->GetMin()
+                  << " max=" << node->GetMax();
+        try { std::cout << " unit='" << node->GetUnit() << "'"; } catch (const GenICam::GenericException&) {}
+    }
+    std::cout << std::endl;
+}
+
+void probeEnum(GenApi::INodeMap& node_map, const char* name)
+{
+    GenApi::CEnumerationPtr node(node_map.GetNode(name));
+    if (!node.IsValid())
+    {
+        std::cout << "  " << name << ": <node absent>" << std::endl;
+        return;
+    }
+    std::cout << "  " << name << " [IEnumeration, " << accessModeToString(node->GetAccessMode()) << "]";
+    if (GenApi::IsReadable(node))
+    {
+        std::cout << " value='" << node->ToString() << "' entries={";
+        GenApi::NodeList_t entries;
+        node->GetEntries(entries);
+        bool first = true;
+        for (auto& e : entries)
+        {
+            GenApi::CEnumEntryPtr entry(e);
+            if (entry.IsValid() && GenApi::IsAvailable(entry))
+            {
+                if (!first) std::cout << ", ";
+                std::cout << entry->GetSymbolic();
+                first = false;
+            }
+        }
+        std::cout << "}";
+    }
+    std::cout << std::endl;
+}
+
+void probeBool(GenApi::INodeMap& node_map, const char* name)
+{
+    GenApi::CBooleanPtr node(node_map.GetNode(name));
+    if (!node.IsValid())
+    {
+        std::cout << "  " << name << ": <node absent>" << std::endl;
+        return;
+    }
+    std::cout << "  " << name << " [IBoolean, " << accessModeToString(node->GetAccessMode()) << "]";
+    if (GenApi::IsReadable(node))
+    {
+        std::cout << " value=" << (node->GetValue() ? "true" : "false");
+    }
+    std::cout << std::endl;
+}
+
+// Print only the access mode of a node, and whether it can be written while grabbing.
+void printAccess(GenApi::INodeMap& node_map, const char* name)
+{
+    GenApi::CNodePtr node(node_map.GetNode(name));
+    const std::string state = node.IsValid() ? accessModeToString(node->GetAccessMode()) : "absent";
+    std::cout << "  " << name << " access=" << state
+              << " => " << ((state == "ReadWrite") ? "WRITABLE WHILE GRABBING" : "NOT WRITABLE WHILE GRABBING")
+              << std::endl;
+}
+
+// Select a Stereo ace stream component (Intensity / Disparity / Confidence).
+bool selectComponent(GenApi::INodeMap& node_map, const char* component)
+{
+    GenApi::CEnumerationPtr selector(node_map.GetNode("ComponentSelector"));
+    if (!selector.IsValid() || !GenApi::IsWritable(selector))
+    {
+        return false;
+    }
+    try
+    {
+        selector->FromString(component);
+        return true;
+    }
+    catch (const GenICam::GenericException&)
+    {
+        return false;
+    }
+}
+
+void probeCamera(Pylon::CInstantCamera& cam)
+{
+    cam.Open();
+    GenApi::INodeMap& node_map = cam.GetNodeMap();
+
+    std::cout << "Camera: " << cam.GetDeviceInfo().GetModelName()
+              << " (serial " << cam.GetDeviceInfo().GetSerialNumber() << ")" << std::endl;
+
+    std::cout << "\n[Q2] Confidence + depth range nodes:" << std::endl;
+    probeFloat(node_map, "BslDepthMinConf");
+    probeFloat(node_map, "BslDepthMinDepth");
+    probeFloat(node_map, "BslDepthMaxDepth");
+
+    std::cout << "\n[Q8] Disparity invalid-data sentinel + scale/offset:" << std::endl;
+    if (selectComponent(node_map, "Disparity"))
+    {
+        probeFloat(node_map, "Scan3dCoordinateScale");
+        probeFloat(node_map, "Scan3dCoordinateOffset");
+        probeFloat(node_map, "Scan3dInvalidDataValue");
+        probeEnum(node_map, "Scan3dInvalidDataFlag");
+        probeFloat(node_map, "Scan3dBaseline");
+        probeFloat(node_map, "Scan3dFocalLength");
+    }
+    else
+    {
+        std::cout << "  <ComponentSelector=Disparity not settable>" << std::endl;
+    }
+
+    std::cout << "\n[Q6] Intensity PixelFormat writability (stopped vs grabbing):" << std::endl;
+    if (selectComponent(node_map, "Intensity"))
+    {
+        GenApi::CEnumerationPtr pixel_format(node_map.GetNode("PixelFormat"));
+        std::cout << "  stopped -> ";
+        probeEnum(node_map, "PixelFormat");
+
+        try
+        {
+            cam.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
+            Pylon::CGrabResultPtr result;
+            cam.RetrieveResult(5000, result, Pylon::TimeoutHandling_Return);  // warm up one frame
+            std::string state = pixel_format.IsValid()
+                ? accessModeToString(pixel_format->GetAccessMode()) : "n/a";
+            std::cout << "  grabbing -> PixelFormat access=" << state
+                      << " => " << ((state == "ReadWrite") ? "LIVE-SWITCHABLE" : "STARTUP/STOPPED-ONLY")
+                      << std::endl;
+            cam.StopGrabbing();
+        }
+        catch (const GenICam::GenericException& e)
+        {
+            std::cout << "  grabbing test skipped (" << e.GetDescription() << ")" << std::endl;
+            if (cam.IsGrabbing()) cam.StopGrabbing();
+        }
+    }
+    else
+    {
+        std::cout << "  <ComponentSelector=Intensity not settable>" << std::endl;
+    }
+
+    std::cout << "\n[Phase1] Runtime tuning nodes (camera stopped):" << std::endl;
+    probeEnum(node_map, "BslIlluminationMode");
+    probeEnum(node_map, "BslDepthQuality");
+    probeBool(node_map, "BslDepthStaticScene");
+
+    std::cout << "\n[Phase1] Same nodes while grabbing:" << std::endl;
+    try
+    {
+        cam.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
+        Pylon::CGrabResultPtr result;
+        cam.RetrieveResult(5000, result, Pylon::TimeoutHandling_Return);  // warm up one frame
+        printAccess(node_map, "BslIlluminationMode");
+        printAccess(node_map, "BslDepthQuality");
+        printAccess(node_map, "BslDepthStaticScene");
+        cam.StopGrabbing();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        std::cout << "  grabbing test skipped (" << e.GetDescription() << ")" << std::endl;
+        if (cam.IsGrabbing()) cam.StopGrabbing();
+    }
+
+    cam.Close();
+}
+
+}  // namespace
+
+int main(int argc, char* argv[])
+{
+    InputParser input(argc, argv);
+    const std::string user_id = input.getCmdOption("-uid");
+    const std::string serial  = input.getCmdOption("-sn");
+
+    Pylon::PylonInitialize();
+
+    int rc = 0;
+    try
+    {
+        Pylon::CTlFactory& tl_factory = Pylon::CTlFactory::GetInstance();
+
+        if (!serial.empty() || !user_id.empty())
+        {
+            Pylon::DeviceInfoList_t devices;
+            if (tl_factory.EnumerateDevices(devices) == 0)
+            {
+                std::cerr << "No cameras detected!" << std::endl;
+                Pylon::PylonTerminate();
+                return 1;
+            }
+
+            size_t i = 0;
+            for (; i < devices.size(); ++i)
+            {
+                const std::string dev_serial(devices[i].GetSerialNumber().c_str());
+                const std::string dev_uid(devices[i].GetUserDefinedName().c_str());
+                if ((!serial.empty() && dev_serial == serial) ||
+                    (!user_id.empty() && dev_uid == user_id))
+                {
+                    Pylon::CInstantCamera cam(tl_factory.CreateDevice(devices[i]));
+                    probeCamera(cam);
+                    break;
+                }
+            }
+            if (i == devices.size())
+            {
+                std::cerr << "Camera not found (serial='" << serial
+                          << "', uid='" << user_id << "')." << std::endl;
+                rc = 2;
+            }
+        }
+        else
+        {
+            Pylon::CDeviceInfo dev_info;
+            Pylon::CInstantCamera cam(tl_factory.CreateFirstDevice(dev_info));
+            probeCamera(cam);
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        std::cerr << "An exception occurred." << std::endl << e.GetDescription() << std::endl;
+        rc = 3;
+    }
+
+    Pylon::PylonTerminate();
+    return rc;
+}
