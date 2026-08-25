@@ -36,7 +36,17 @@ set -u -o pipefail
 # --- paths and constants ----------------------------------------------------
 
 WS_DIR="${HOME}/basler_github_ws"
-ROS_SETUP="/opt/ros/kilted/setup.bash"
+# Use the ROS distro already sourced in the environment; otherwise the first one
+# installed under /opt/ros. Lets the same harness run on any distro.
+ROS_DISTRO_EXPECTED="${ROS_DISTRO:-}"
+if [[ -z "$ROS_DISTRO_EXPECTED" ]]; then
+    for _setup in /opt/ros/*/setup.bash; do
+        [[ -f "$_setup" ]] || continue
+        ROS_DISTRO_EXPECTED="$(basename "$(dirname "$_setup")")"
+        break
+    done
+fi
+ROS_SETUP="/opt/ros/${ROS_DISTRO_EXPECTED}/setup.bash"
 NODE_NAME="pylon_ros2_camera_node"
 LAUNCH_PKG="pylon_ros2_camera_wrapper"
 LAUNCH_FILE="pylon_ros2_camera.launch.py"
@@ -138,7 +148,7 @@ trap cleanup EXIT INT TERM
 source_ros() {
     # shellcheck disable=SC1090
     if [[ ! -f "$ROS_SETUP" ]]; then
-        echo "ROS 2 Kilted setup not found at $ROS_SETUP" >&2
+        echo "ROS 2 setup not found at $ROS_SETUP" >&2
         exit 1
     fi
     # The ROS setup scripts reference unset variables, so relax nounset while sourcing them.
@@ -152,8 +162,8 @@ source_ros() {
         exit 1
     fi
     set -u
-    if [[ "${ROS_DISTRO:-}" != "kilted" ]]; then
-        echo "Expected ROS_DISTRO=kilted, got '${ROS_DISTRO:-}'" >&2
+    if [[ "${ROS_DISTRO:-}" != "$ROS_DISTRO_EXPECTED" ]]; then
+        echo "Expected ROS_DISTRO=$ROS_DISTRO_EXPECTED, got '${ROS_DISTRO:-}'" >&2
         exit 1
     fi
 }
