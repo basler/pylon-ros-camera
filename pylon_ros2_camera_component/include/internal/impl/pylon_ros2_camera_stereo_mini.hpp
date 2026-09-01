@@ -52,6 +52,10 @@ namespace
     constexpr int s_stm_fallback_depth_max = 16000;
 }
 
+// Shorthand for the Stereo mini enumeration tokens. The Stereo mini supplementary
+// package 1.1.0 moved this namespace out of Pylon:: to the global scope.
+namespace StmParams = StereoMiniCameraParams_Params;
+
 /**
  * Basler Stereo mini integration.
  *
@@ -381,7 +385,7 @@ bool PylonROS2StereoMiniCamera::startGrabbing(const PylonROS2CameraParameter& pa
         try
         {
             if (stereo_mini_cam_->TriggerMode.GetValue() ==
-                Pylon::StereoMiniCameraParams_Params::TriggerModeEnums::TriggerMode_On)
+                StmParams::TriggerModeEnums::TriggerMode_On)
             {
                 GenApi::CIntegerPtr width_node(stereo_mini_cam_->GetNodeMap().GetNode("Width"));
                 GenApi::CIntegerPtr height_node(stereo_mini_cam_->GetNodeMap().GetNode("Height"));
@@ -586,7 +590,7 @@ bool PylonROS2StereoMiniCamera::setExposure(const float& target_exposure, float&
     try
     {
         stereo_mini_cam_->ExposureAuto.TrySetValue(
-            Pylon::StereoMiniCameraParams_Params::ExposureAutoEnums::ExposureAuto_Off);
+            StmParams::ExposureAutoEnums::ExposureAuto_Off);
 
         float exposure_to_set = target_exposure;
         const float min_exp = static_cast<float>(stereo_mini_cam_->ExposureTime.GetMin());
@@ -666,12 +670,12 @@ std::string PylonROS2StereoMiniCamera::setTriggerSelector(const int& mode)
             {
                 case 0:
                     stereo_mini_cam_->TriggerSelector.SetValue(
-                        Pylon::StereoMiniCameraParams_Params::TriggerSelectorEnums::TriggerSelector_FrameStart);
+                        StmParams::TriggerSelectorEnums::TriggerSelector_FrameStart);
                     RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Trigger selector: Frame Start");
                     break;
                 case 1:
                     stereo_mini_cam_->TriggerSelector.SetValue(
-                        Pylon::StereoMiniCameraParams_Params::TriggerSelectorEnums::TriggerSelector_AcquisitionStart);
+                        StmParams::TriggerSelectorEnums::TriggerSelector_AcquisitionStart);
                     RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Trigger selector: Acquisition Start");
                     break;
                 default:
@@ -702,22 +706,22 @@ std::string PylonROS2StereoMiniCamera::setTriggerSource(const int& source)
             {
                 case 0:
                     stereo_mini_cam_->TriggerSource.SetValue(
-                        Pylon::StereoMiniCameraParams_Params::TriggerSourceEnums::TriggerSource_Software);
+                        StmParams::TriggerSourceEnums::TriggerSource_Software);
                     RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Trigger source: Software");
                     break;
                 case 1:
                     stereo_mini_cam_->TriggerSource.SetValue(
-                        Pylon::StereoMiniCameraParams_Params::TriggerSourceEnums::TriggerSource_Line1);
+                        StmParams::TriggerSourceEnums::TriggerSource_Line1);
                     RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Trigger source: Line1");
                     break;
                 case 2:
                     stereo_mini_cam_->TriggerSource.SetValue(
-                        Pylon::StereoMiniCameraParams_Params::TriggerSourceEnums::TriggerSource_Primary);
+                        StmParams::TriggerSourceEnums::TriggerSource_Primary);
                     RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Trigger source: Primary");
                     break;
                 case 3:
                     stereo_mini_cam_->TriggerSource.SetValue(
-                        Pylon::StereoMiniCameraParams_Params::TriggerSourceEnums::TriggerSource_Secondary_synced);
+                        StmParams::TriggerSourceEnums::TriggerSource_Secondary_synced);
                     RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Trigger source: Secondary synced");
                     break;
                 default:
@@ -745,8 +749,8 @@ std::string PylonROS2StereoMiniCamera::setTriggerMode(const bool& value)
         if (GenApi::IsAvailable(stereo_mini_cam_->TriggerMode))
         {
             stereo_mini_cam_->TriggerMode.SetValue(
-                value ? Pylon::StereoMiniCameraParams_Params::TriggerModeEnums::TriggerMode_On
-                      : Pylon::StereoMiniCameraParams_Params::TriggerModeEnums::TriggerMode_Off);
+                value ? StmParams::TriggerModeEnums::TriggerMode_On
+                      : StmParams::TriggerModeEnums::TriggerMode_Off);
             RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Trigger mode: " << (value ? "On" : "Off"));
         }
         else
@@ -1062,7 +1066,7 @@ bool PylonROS2StereoMiniCamera::setGain(const float& target_gain, float& reached
         // also owns Gain and keeps the Gain node read-only while active. Disable
         // ExposureAuto before writing a manual gain (mirrors setExposure).
         stereo_mini_cam_->ExposureAuto.TrySetValue(
-            Pylon::StereoMiniCameraParams_Params::ExposureAutoEnums::ExposureAuto_Off);
+            StmParams::ExposureAutoEnums::ExposureAuto_Off);
 
         float truncated_gain = target_gain;
         if (truncated_gain < 0.0f)
@@ -1142,7 +1146,7 @@ bool PylonROS2StereoMiniCamera::setBrightness(const int& target_brightness,
         if (exposure_auto)
         {
             stereo_mini_cam_->ExposureAuto.TrySetValue(
-                Pylon::StereoMiniCameraParams_Params::ExposureAutoEnums::ExposureAuto_Continuous);
+                StmParams::ExposureAutoEnums::ExposureAuto_Continuous);
         }
 
         const float clamped = static_cast<float>(std::min(255, std::max(1, target_brightness)));
