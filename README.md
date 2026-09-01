@@ -1,6 +1,6 @@
 # ROS2-Driver for Basler Cameras
 
-The official pylon ROS2 driver for [Basler](http://www.baslerweb.com/) GigE Vision, Basler USB3 Vision and Basler blaze 3D cameras (Jazzy Jalisco)
+The official pylon ROS2 driver under Jazzy Jalisco for [Basler](http://www.baslerweb.com/) GigE Vision and USB3 Vision 2D cameras, and for Basler 3D cameras (the blaze, the Stereo ace and the Stereo mini).
 
 This driver provides many functionalities available through the Basler [pylon Camera Software Suite](https://www.baslerweb.com/en/products/software/basler-pylon-camera-software-suite/) C++ API.
 
@@ -16,8 +16,8 @@ You are welcome to post any questions or issues on [GitHub](https://github.com/b
 - From [Ubuntu 24.04 Noble Numbat](https://releases.ubuntu.com/noble/)
 - From [ROS2 Jazzy Jalisco](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html). Your ROS2 environment must be [configured](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools/Configuring-ROS2-Environment.html), your workspace [created](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace.html), and colcon, used to build the packages, [installed](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html).
 - [rosdep](https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Rosdep.html). rosdep must be installed as a debian package (`sudo apt update && sudo apt install python3-rosdep && sudo rosdep init && rosdep update`).
-- From [pylon Camera Software Suite](https://www2.baslerweb.com/en/downloads/software-downloads/) version 7.5.0 or newer. The latest API libraries must be installed manually. Download and install the latest pylon Camera Software Suite Linux Debian Installer Package for your architecture. You may be experiencing some problems with the codemeter debian package installation. Just drop it for now and install only the pylon debian package in this case.
-- *(blaze cameras only)* From [pylon Supplementary Package for blaze](https://www2.baslerweb.com/en/downloads/software-downloads/) version 1.6.0 or newer (compatibility with the installed pylon Camera Software Suite needs to be ensured, please refer to the documentation). The latest API libraries must be installed manually. Download and install the latest pylon Supplementary Package for blaze Linux Debian Installer Package for your architecture. If this package is not installed, blaze support is automatically disabled at build time and all other camera types (GigE, USB, DART) remain fully functional.
+- From [pylon Camera Software Suite](https://www2.baslerweb.com/en/downloads/software-downloads/) version 26.07 or newer.
+- *(3D cameras only)* Each Basler 3D camera (blaze, Stereo ace, and Stereo mini) needs its own pylon Supplementary Package, installed in addition to the pylon Camera Software Suite: [pylon Supplementary Package for blaze](https://www2.baslerweb.com/en/downloads/software-downloads/) (version 1.7.3 or newer for the blaze, version 1.2.2 or newer for the Stereo ace, and version 1.0.8 or newer for the Stereo mini). Compatibility with the installed pylon Camera Software Suite must be ensured (please refer to the documentation). The API libraries must be installed manually: download and install the corresponding Linux Debian Installer Package for your architecture.
 - [Git](https://git-scm.com/). Git must be installed as a debian package (`sudo apt update && sudo apt install git`).
 - [xterm](https://invisible-island.net/xterm/). The xterm terminal emulator must be installed (refer to the *Known Issues* section below) as a debian package (`sudo apt update && sudo apt install xterm`).
 
@@ -49,8 +49,8 @@ Source the environment:
 **Note**: This step can be skipped if the `setup.bash` file is sourced in your `.bashrc`.
 
 Start the driver:  
-``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py``  or  
-``ros2 launch pylon_ros2_camera_wrapper my_blaze.launch.py``  to start the acquisition through the blaze.  
+``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py``  to start the acquisition from a 2D camera, or  
+``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py profile:=3d``  to start the acquisition from a 3D camera.  
 
 
 ## Docker
@@ -68,32 +68,31 @@ For build instructions, run options, and troubleshooting, refer to the
 Starting the *pylon_ros2_camera_node* starts the acquisition from a given Basler camera. The nodes allow as well to access many camera parameters and parameters related to the grabbing process itself.
 
 The *pylon_ros2_camera_node* can be started thanks to a dedicated launch file thanks to the command:  
-``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py``  or  
-``ros2 launch pylon_ros2_camera_wrapper my_blaze.launch.py`` for the blaze  
-Several parameters can be set through the launch file and the user parameter file loaded through it (the `pylon_ros2_camera_wrapper/config/default.yaml` user parameter file is loaded by default, `pylon_ros2_camera_wrapper/config/my_blaze.yaml` for the blaze).
+``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py``  
+The `profile` launch argument selects the camera type: `profile:=2d` (default) starts a 2D camera and `profile:=3d` starts a 3D camera.  
+Several parameters can be set through the launch file and the user parameter file loaded through it. `profile:=2d` loads `pylon_ros2_camera_wrapper/config/default_2d.yaml` (default); `profile:=3d` loads `pylon_ros2_camera_wrapper/config/default_3d.yaml`. Per-camera launch files can load their own file, such as `my_blaze.yaml`, `my_stereo_ace.yaml`, and `my_stereo_mini.yaml` (these are launch file examples and should adapted accordingly).
 
 Acquisition from a specific camera is possible by setting the `device_user_id` parameter. If no specific camera is specified, the first available camera is connected automatically.  
 
 The pylon node defines the different interface names according to the following convention:  
-``[Camera name (= my_camera or my_blaze by default)]/[Node name (= pylon_ros2_camera_node)]/[Interface name]``  
+``[Camera name (= my_camera by default)]/[Node name (= pylon_ros2_camera_node)]/[Interface name]``  
 The camera and the node names can be set thanks respectively to the `camera_name` and `node_name` parameters.  
 
-Acquisition images are published through the `[Camera name]/[Node name]/[image_raw]` topic, only if a subscriber to this topic has been registered.  
-To visualize the images, [rqt](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools/Introducing-Turtlesim/Introducing-Turtlesim.html#install-rqt) can be used. Add an image viewer plugin through thanks to the contextual menu (Plugin -> Visualization -> Image View) and select the `[Camera name]/[Node name]/[image_raw]` topic to display the acquired and published images. Beware that if you are using rviz2 to visualize the acquired images, this tool is not able not vizualize correctly images encoded in Bayer.  
-The 3d point clouds acquired by the blaze can be visualized thanks to [rviz2](https://index.ros.org/p/rviz2/).  
+Acquired images and point clouds are published through the `[Camera name]/[Node name]/[image_raw/confidence_3d/depth_map_3d/depth_map_color_3d/intensity_3d/intensity_left_3d/intensity_right_3d/cloud_3d]` topics, only if a subscriber to these topics has been registered.  
+To visualize the images and point clouds, [rqt](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools/Introducing-Turtlesim/Introducing-Turtlesim.html#install-rqt) and [rviz2](https://index.ros.org/p/rviz2/) can be used. Beware that rviz2 is not able to vizualize correctly images encoded in Bayer.  
 
-For camera models other than the blaze, specific user set can be specified thanks to the `startup_user_set` parameter.  
+When available, specific user set can be specified thanks to the `startup_user_set` parameter.  
 ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py startup_user_set:=Default``  or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py startup_user_set:=UserSet1`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py startup_user_set:=UserSet2`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py startup_user_set:=UserSet3``  
 
 Through the driver, the camera image acquisition is sequentially triggered by software trigger. It is not possible in the current implementation to change this acquisition mode. In other words, it is not possible through the driver to configure for free run and hardware triggered image acquisition.
 
-Beware that some parameters implemented by the driver, like for instance the parameter `startup_user_set`, can be set through 1. the `pylon_ros2_camera_wrapper/config/default.yaml` user parameter file, 2. the `pylon_ros2_camera.launch.py` driver launch file, and 3. the command line arguments of the launch command to start the driver. A parameter value set as an argument of the launch command to start the driver will overwrite the value set in the driver launch file itself, that will overwrite the value set in the user parameter file.    
+Beware that some parameters implemented by the driver, like for instance the parameter `startup_user_set`, can be set through 1. the `pylon_ros2_camera_wrapper/config/default_2d.yaml` user parameter file, 2. the `pylon_ros2_camera.launch.py` driver launch file, and 3. the command line arguments of the launch command to start the driver. A parameter value set as an argument of the launch command to start the driver will overwrite the value set in the driver launch file itself, that will overwrite the value set in the user parameter file.    
 
 ### Acquisition mode and frame rate
 
 From version 3.1.0, the driver allows free run as well as sequentially triggered acquisition by software trigger.
 
-When starting the driver, the maximum acquisition frame rate that can be reached according to the current camera settings is displayed (for further information, please refer to the [Basler documentation](https://docs.baslerweb.com/resulting-acquisition-frame-rate)). If this frame rate is lower than the one specified in the driver configuration file, the latter is updated accordingly. Except for the blaze, it is not possible to change the acquisition frame rate when the driver is running.
+When starting the driver, the maximum acquisition frame rate that can be reached according to the current camera settings is displayed (for further information, please refer to the [Basler documentation](https://docs.baslerweb.com/resulting-acquisition-frame-rate)). If this frame rate is lower than the one specified in the driver configuration file, the latter is updated accordingly. It is generally not possible to change the acquisition frame rate when the driver is running.
 
 Free run acquisition is set when the driver starts and loads the `Default` user set. Otherwise, if another user set is loaded, including `CurrentSetting`, the driver does not modify any parameter related to the acquisition, keeping the ones defined by the user. Setting a specific user set can be specified in the driver launch file. By default, the driver load the `CurrentSetting` user set.
 
@@ -123,7 +122,7 @@ Generally speaking, to increase the acquisition frame rate when using the driver
 
 The interested readers can refer to the following discussions for more information: [#21](https://github.com/basler/pylon-ros-camera/issues/21), [#28](https://github.com/basler/pylon-ros-camera/issues/28), [#29](https://github.com/basler/pylon-ros-camera/issues/29), [#81](https://github.com/basler/pylon-ros-camera/issues/81), [#116](https://github.com/basler/pylon-ros-camera/issues/116), [#147](https://github.com/basler/pylon-ros-camera/issues/147), [#200](https://github.com/basler/pylon-ros-camera/issues/200).
 
-### Image pixel encoding (not for the blaze)
+### Image pixel encoding
 
 The pylon ROS2 driver support currently the following ROS2 image pixel formats :
 
@@ -148,18 +147,88 @@ More information about the image encoding can be found in the [Basler documentat
 
 2 : When the user calls the `set_image_encoding` service to use 16-bits encoding, the driver will check first for the availability of the requested 16-bits encoding to set it, when the requested 16-bits image encoding is not available, then the driver will check the availability of the equivalent 12-bits encoding to set it. When both 16-bits and 12-bits image encoding are not available then an error message will be returned.
 
-### Intrinsic calibration and rectified images (not for the blaze)
+### Intrinsic calibration and rectified images
 
-ROS2 includes a standardised camera intrinsic calibration process through the *camera_calibration* package. This calibration process generates a file, which can be processed by the pylon ROS2 driver by setting the `camera_info_url` parameter in the `pylon_ros2_camera_wrapper/config/default.yaml` file (it is the user parameter file loaded by default through the driver main launch file) to the correct URI (e.g., file:///home/user/data/calibrations/my_calibration.yaml).
+ROS2 includes a standardised camera intrinsic calibration process through the *camera_calibration* package. This calibration process generates a file, which can be processed by the pylon ROS2 driver by setting the `camera_info_url` parameter in the `pylon_ros2_camera_wrapper/config/default_2d.yaml` file (it is the user parameter file loaded by default through the driver main launch file) to the correct URI (e.g., file:///home/user/data/calibrations/my_calibration.yaml).
 
 If the calibration is valid, the rectified images are published through the `[Camera name]/[Node name]/[image_rect]` topic, only if a subscriber to this topic has been registered.
 
 ### Setting device user id
 
-It is easily possible to connect to a specific camera through its user id. This user id can be set through the parameter `device_user_id` listed in the .yaml user parameter file loaded at launch time (by default `pylon_ros2_camera_wrapper/config/default.yaml`). It is up to the user to create specific launch files, loading specific .yaml user parameter files, which would specify the user ids of the cameras that need to be connected. If no specific camera is specified, either because the `device_user_id` parameter is not set or no .yaml user parameter file is loaded, the first available camera is connected automatically.  
+It is easily possible to connect to a specific camera through its user id. This user id can be set through the parameter `device_user_id` listed in the .yaml user parameter file loaded at launch time (by default `pylon_ros2_camera_wrapper/config/default_2d.yaml`). It is up to the user to create specific launch files, loading specific .yaml user parameter files, which would specify the user ids of the cameras that need to be connected. If no specific camera is specified, either because the `device_user_id` parameter is not set or no .yaml user parameter file is loaded, the first available camera is connected automatically.  
 
 In addition to being able to do so through the pylon Viewer provided by Basler, it is possible to set the device user id with the command: `ros2 run pylon_ros2_camera_component set_device_user_id [-sn SERIAL_NB] your_device_user_id`. If no serial number is specified thanks to the option `-sn`, the specified device user id `your_device_user_id` will be assigned to the first available camera.
 USB cameras must be disconnected and then reconnected after setting a new device user id. USB cameras keep their old user id otherwise.
+
+
+## 3D cameras
+
+The driver supports the Basler 3D cameras (the blaze, the Stereo ace, and the Stereo mini) in addition to the 2D cameras. A 3D camera is started with the `profile:=3d` launch argument or with its dedicated launch file. All 3D cameras share the same topics; the camera-specific settings are exposed through additional services.
+
+### 3D topics
+
+The following topics are published when a subscriber is registered:
+
+| Topic | Type | Content |
+| --- | --- | --- |
+| `[Camera name]/[Node name]/cloud_3d` | `sensor_msgs/PointCloud2` | 3D point cloud |
+| `[Camera name]/[Node name]/depth_map_3d` | `sensor_msgs/Image` | Depth map |
+| `[Camera name]/[Node name]/depth_map_color_3d` | `sensor_msgs/Image` | Color-coded depth map |
+| `[Camera name]/[Node name]/intensity_3d` | `sensor_msgs/Image` | Intensity image |
+| `[Camera name]/[Node name]/confidence_3d` | `sensor_msgs/Image` | Per-pixel confidence map |
+| `[Camera name]/[Node name]/camera_info_3d` | `sensor_msgs/CameraInfo` | Calibration data of the 3D stream |
+| `[Camera name]/[Node name]/intensity_left_3d` | `sensor_msgs/Image` | Left intensity image (stereo cameras) |
+| `[Camera name]/[Node name]/intensity_right_3d` | `sensor_msgs/Image` | Right intensity image (stereo cameras) |
+
+### 3D data acquisition action
+
+A full 3D acquisition can be requested through the `~/grab_3d_data` action. The result contains the point clouds, depth maps, color-coded depth maps, intensity maps, confidence maps, and the camera info collected during the acquisition.
+
+### Camera-specific settings
+
+Some settings are common to all 3D cameras, while others depend on the camera model. The depth range unit differs per model (millimeters for the blaze and the Stereo mini, meters for the Stereo ace).
+
+Common to all 3D cameras:
+
+| Setting | Service |
+| --- | --- |
+| Depth range | `set_depth_min`, `set_depth_max` |
+| HDR mode | `enable_hdr_mode` |
+
+**blaze:**
+
+| Setting | Service |
+| --- | --- |
+| Operating mode | `set_operating_mode` |
+| Fast mode | `enable_fast_mode` |
+| Confidence threshold | `set_confidence_threshold` |
+| Spatial filter | `enable_spatial_filter` |
+| Temporal filter | `enable_temporal_filter`, `set_temporal_filter_strength` |
+| Outlier removal | `enable_outlier_removal`, `set_outlier_removal_threshold`, `set_outlier_removal_tolerance` |
+| Ambiguity filter | `enable_ambiguity_filter`, `set_ambiguity_filter_threshold` |
+
+**Stereo ace:**
+
+| Setting | Service |
+| --- | --- |
+| Illumination mode | `set_illumination_mode` |
+| Depth quality | `set_depth_quality` |
+| Confidence threshold | `set_confidence_threshold` |
+| Static scene | `enable_static_scene` |
+| Depth smoothing | `enable_depth_smooth` |
+| Depth fill | `set_depth_fill` |
+| Depth segmentation | `set_depth_seg` |
+
+**Stereo mini:**
+
+| Setting | Service |
+| --- | --- |
+| Depth preset | `set_operating_mode` |
+| Projector | `enable_projector`, `set_projector_level` |
+
+### Current 3D parameters
+
+When the current parameters publisher is enabled, the `current_params` topic also reports the current 3D settings (depth range, operating mode, HDR mode, filters, projector, illumination mode, depth quality, and so on). A field that does not apply to the connected camera is set to `-1` (or `-1.0` for the float fields).
 
 
 ## Packages
@@ -180,37 +249,37 @@ USB cameras must be disconnected and then reconnected after setting a new device
 - **device_user_id**  
   The DeviceUserID of the camera. If empty, the first camera found in the device list will be used.
 
-- **camera_info_url (not for the blaze)**  
+- **camera_info_url**  
   The CameraInfo URL (Uniform Resource Locator) where the optional intrinsic camera calibration parameters are stored. This URL string will be parsed from the CameraInfoManager.
 
-- **image_encoding (not for the blaze)**  
+- **image_encoding**  
   The encoding of the pixels -- channel meaning, ordering, size taken from the list of strings in include file *sensor_msgs/image_encodings.h*. The supported encodings are 'mono8', 'bgr8', 'rgb8', 'bayer_bggr8', 'bayer_gbrg8' and 'bayer_rggb8'. Default values are 'mono8' and 'rgb8'.
 
-- **binning_x & binning_y (not for the blaze)**  
+- **binning_x & binning_y**  
   Binning factor to get downsampled images. It refers here to any camera setting which combines rectangular neighborhoods of pixels into larger "super-pixels." It reduces the resolution of the output image to (width / binning_x) x (height / binning_y). The default values binning_x = binning_y = 0 are considered the same as binning_x = binning_y = 1 (no subsampling).
 
-- **downsampling_factor_exposure_search (not for the blaze)**  
+- **downsampling_factor_exposure_search**  
   To speed up the exposure search, the mean brightness is not calculated on the entire image, but on a subset instead. The image is downsampled until a desired window hight is reached. The window hight is calculated out of the image height divided by the downsampling_factor_exposure search.
 
 - **frame_rate**  
   The desired acquisition frame rate corresponding to the driver spinning frame rate. Calling the GrabImages-Action can result in a higher frame rate.
 
-- **shutter_mode (not for the blaze)**  
+- **shutter_mode**  
   Set mode of camera's shutter if the value is not empty. The supported modes are 'rolling', 'global' and 'global_reset'. Default value is '' (empty)
 
-- **white_balance_auto (not for the blaze)**  
+- **white_balance_auto**  
   Camera white balance auto.
 
-- **white_balance_ratio_red & white_balance_ratio_green & white_balance_ratio_blue (not for the blaze)**  
+- **white_balance_ratio_red & white_balance_ratio_green & white_balance_ratio_blue**  
   Camera white balance ratio.
 
-- **trigger_timeout (not for the blaze)**  
+- **trigger_timeout**  
   Timeout in ms. Only relevant when using software trigger mode. Limits how long the driver waits for the camera to become ready to accept the next software trigger command. This parameter has no effect for cameras driven by a hardware (external) trigger.
 
 - **grab_timeout**  
   Timeout in ms. Limits how long the driver waits for image data to arrive after a grab is initiated. In free-run mode, must be greater than the inter-frame period (e.g. >100 ms at 10 fps). For external (hardware) trigger mode, must be long enough to cover the maximum expected interval between trigger pulses. Increase this value if triggers arrive less frequently than once per 500 ms (the default), otherwise grab timeouts will occur.
 
-- **grab_strategy (not for the blaze)**  
+- **grab_strategy**  
   Camera grab strategy: 0 = GrabStrategy_OneByOne / 1 = GrabStrategy_LatestImageOnly / 2 = GrabStrategy_LatestImages
 
 **Image Intensity Settings**
@@ -220,50 +289,50 @@ The following settings do **NOT** have to be set. Each camera has default values
 - **exposure**  
   The exposure time in microseconds to be set after opening the camera.
 
-- **gain (not for the blaze)**  
+- **gain**  
   The target gain in percent of the maximal value the camera supports. For USB cameras, the gain is in dB, for GigE cameras it is given in so called 'device specific units'.
 
-- **gamma (not for the blaze)**  
+- **gamma**  
   Gamma correction of pixel intensity. Adjusts the brightness of the pixel values output by the camera's sensor to account for a non-linearity in the human perception of brightness or of the display system (such as CRT).
 
-- **brightness (not for the blaze)**  
+- **brightness**  
   The average intensity value of the images. It depends on the exposure time as well as the gain setting. If '**exposure**' is provided, the interface will try to reach the desired brightness by only varying the gain. (What may often fail, because the range of possible exposure values is many times higher than the gain range). If '**gain**' is provided, the interface will try to reach the desired brightness by only varying the exposure time. If '**gain**' AND '**exposure**' are given, it is not possible to reach the brightness, because both are assumed to be fixed.
 
-- **brightness_continuous (not for the blaze)**  
+- **brightness_continuous**  
   Only relevant, if '**brightness**' is set. The brightness_continuous flag controls the auto brightness function. If it is set to false, the brightness will only be reached once. Hence changing light conditions lead to changing brightness values. If it is set to true, the given brightness will be reached continuously, trying to adapt to changing light conditions. This is only possible for values in the possible auto range of the pylon API which is generally [50 - 205].
 
-- **exposure_auto & gain_auto (not for the blaze)**  
+- **exposure_auto & gain_auto**  
   Only relevant, if '**brightness**' is set. If the camera should try to reach and / or keep the brightness, hence adapting to changing light conditions, at least one of the following flags must be set. If both are set, the interface will use the profile that tries to keep the gain at minimum to reduce white noise. The '**exposure_auto**' flag indicates, that the desired brightness will be reached by adapting the exposure time. The '**gain_auto**' flag indicates, that the desired brightness will be reached by adapting the gain.
 
 **Optional and device specific parameter**
 
-- **exposure_search_timeout (not for the blaze)**  
+- **exposure_search_timeout**  
   The timeout while searching the exposure which is connected to the desired brightness. For slow system this has to be increased.
 
-- **auto_exposure_upper_limit (not for the blaze)**  
+- **auto_exposure_upper_limit**  
   The exposure search can be limited with an upper bound. This is to prevent very high exposure times and resulting timeouts. A typical value for this upper bound is ~2000000us. Beware that this upper limit is only set if `startup_user_set` is set to `Default`.  
 
-- **mtu_size (not for the blaze)**  
+- **mtu_size**  
   The MTU size. Only used for GigE cameras. To prevent lost frames configure the camera has to be configured with the MTU size the network card supports. A value greater 3000 should be good (1500 for single-board computer)
 
-- **inter_pkg_delay (not for the blaze)**  
+- **inter_pkg_delay**  
   The inter-packet delay in ticks to prevent frame loss, support the network bandwith priorisation. Generally needs to modified if more than one cameras is involved or if hardware is not performing well. Raise inter-packet delay (GevSCPD) for solving error: 'the buffer was incompletely grabbed': https://docs.baslerweb.com/knowledge/troubleshooting-error-code-3774873620-0xe1000014-with-gige-cameras. For most of GigE cameras, a value of 1000 is reasonable. For cameras used on a single-board computer this value should be set to 11772. Beware that the inter-packet delay decrease will result in frame rate reduction.
 
-- **frame_transmission_delay (not for the blaze)**  
+- **frame_transmission_delay**  
   In most cases, this parameter should be set to 0. However, if your network hardware can't handle spikes in network traffic (e.g., if you are triggering multiple camera simultaneously), you can use the frame transmission delay parameter to stagger the start of image data transmissions from each camera.
 
-- **auto_flash (not for the blaze)**  
+- **auto_flash**  
   Flag that indicates if the camera has a flash connected, which should be on exposure. Only supported for GigE cameras. Default: false.
 
-- **auto_flash_line_2 (not for the blaze)**  
+- **auto_flash_line_2**  
   Flag that indicates if the camera has a flash connected on line 2, which should be on exposure. Only supported for GigE cameras. Default: true.
 
-- **auto_flash_line_3 (not for the blaze)**  
+- **auto_flash_line_3**  
   Flag that indicates if the camera has a flash connected on line 3, which should be on exposure. Only supported for GigE cameras. Default: true.
 
 **ROS2 pylon node specific parameter**
 
-- **startup_user_set (not for the blaze)**  
+- **startup_user_set**  
   Flag specifying if a given user set is used when starting the camera. Can be set to `Default`, `UserSet1`, `UserSet2`, `UserSet3`, and `CurrentSetting`.  
 
 - **enable_status_publisher**  
@@ -272,8 +341,13 @@ The following settings do **NOT** have to be set. Each camera has default values
 - **enable_current_params_publisher**  
   Flag used to enable/disable the current camera publisher.
 
+**3D camera parameters**
 
-## PTP synchronization (not for the blaze)
+- **stereo_ace_illumination_mode**  
+  Illumination mode for the Stereo ace IR projector. `AlwaysActive` (default): the projector is always on; this is the Basler-recommended mode for depth quality, but the IR dot pattern is visible in the intensity images. `AlternateActive`: exposures alternate with and without the projector, so the intensity images are free of the IR dot pattern. `Off`: the projector is disabled (passive stereo). This parameter has no effect on the blaze or the Stereo mini.
+
+
+## PTP synchronization
 
 The Precision Time Protocol (PTP) camera feature allows you to synchronize multiple GigE cameras in the same network. It enables a camera to use the following features, if available:
 - **Scheduled Action Commands** & **Action Commands**
@@ -336,12 +410,14 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/image_raw  | acquired images
 /my_camera/pylon_ros2_camera_node/image_rect  | rectified images if the camera is calibrated
 /my_camera/pylon_ros2_camera_node/status  | camera status
-/my_camera/pylon_ros2_camera_node/blaze_camera_info  | sensor_msgs/msg/CameraInfo
-/my_camera/pylon_ros2_camera_node/blaze_cloud  | 3d point clouds from the blaze
-/my_camera/pylon_ros2_camera_node/blaze_confidence  | confidence images from the blaze
-/my_camera/pylon_ros2_camera_node/blaze_depth_map  | depth map images from the blaze
-/my_camera/pylon_ros2_camera_node/blaze_depth_map_color  | depth map color images from the blaze
-/my_camera/pylon_ros2_camera_node/blaze_intensity  | intensity images from the blaze
+/my_camera/pylon_ros2_camera_node/camera_info_3d  | sensor_msgs/msg/CameraInfo (3D cameras)
+/my_camera/pylon_ros2_camera_node/cloud_3d  | 3D point clouds from the 3D cameras
+/my_camera/pylon_ros2_camera_node/confidence_3d  | confidence images from the 3D cameras
+/my_camera/pylon_ros2_camera_node/depth_map_3d  | depth map images from the 3D cameras
+/my_camera/pylon_ros2_camera_node/depth_map_color_3d  | depth map color images from the 3D cameras
+/my_camera/pylon_ros2_camera_node/intensity_3d  | intensity images from the 3D cameras
+/my_camera/pylon_ros2_camera_node/intensity_left_3d  | left intensity images from stereo cameras (e.g. the Stereo mini)
+/my_camera/pylon_ros2_camera_node/intensity_right_3d  | right intensity images from stereo cameras (e.g. the Stereo mini)
 
 
 ## Service servers
@@ -352,14 +428,17 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/describe_parameters  | -
 /my_camera/pylon_ros2_camera_node/enable_acquisition_frame_rate  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/enable_ambiguity_filter  | data : false = deactivate, true = activate
+/my_camera/pylon_ros2_camera_node/enable_depth_smooth  | data : false = deactivate, true = activate (Stereo ace)
 /my_camera/pylon_ros2_camera_node/enable_distortion_correction  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/enable_fast_mode  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/enable_hdr_mode  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/enable_outlier_removal  | data : false = deactivate, true = activate
+/my_camera/pylon_ros2_camera_node/enable_projector  | data : false = deactivate, true = activate (Stereo mini)
 /my_camera/pylon_ros2_camera_node/enable_ptp  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/get_ptp_status  | -
 /my_camera/pylon_ros2_camera_node/enable_ptp_management_protocol  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/enable_spatial_filter  | data : false = deactivate, true = activate
+/my_camera/pylon_ros2_camera_node/enable_static_scene  | data : false = deactivate, true = activate (Stereo ace)
 /my_camera/pylon_ros2_camera_node/enable_sync_free_run_timer  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/enable_temporal_filter  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/enable_thermal_drift_correction  | data : false = deactivate, true = activate
@@ -404,10 +483,13 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/set_chunk_exposure_time  | -
 /my_camera/pylon_ros2_camera_node/set_chunk_mode_active  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/set_chunk_selector  | -
-/my_camera/pylon_ros2_camera_node/set_confidence_threshold  | value = new confidence threshold
+/my_camera/pylon_ros2_camera_node/set_confidence_threshold  | value = new confidence threshold (float; the Stereo ace expects a value in 0..1)
 /my_camera/pylon_ros2_camera_node/set_demosaicing_mode  | value : 0 = Simple, 1 = Basler PGI
-/my_camera/pylon_ros2_camera_node/set_depth_max  | value = new max depth threshold
-/my_camera/pylon_ros2_camera_node/set_depth_min  | value = new min depth threshold
+/my_camera/pylon_ros2_camera_node/set_depth_fill  | value = new depth fill level (Stereo ace)
+/my_camera/pylon_ros2_camera_node/set_depth_max  | value = new max depth (float; meters for the Stereo ace, millimeters for the blaze and the Stereo mini)
+/my_camera/pylon_ros2_camera_node/set_depth_min  | value = new min depth (float; meters for the Stereo ace, millimeters for the blaze and the Stereo mini)
+/my_camera/pylon_ros2_camera_node/set_depth_quality  | value = new depth quality (Stereo ace)
+/my_camera/pylon_ros2_camera_node/set_depth_seg  | value = new depth segmentation (Stereo ace)
 /my_camera/pylon_ros2_camera_node/set_device_link_throughput_limit  | value = new targeted throughput limit in Bytes/sec.
 /my_camera/pylon_ros2_camera_node/set_device_link_throughput_limit_mode  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/set_exposure  | -
@@ -418,6 +500,7 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/set_gamma_selector  | value : 0 = User, 1 = sRGB (For GigE Cameras)
 /my_camera/pylon_ros2_camera_node/set_grab_timeout  | -
 /my_camera/pylon_ros2_camera_node/set_grabbing_strategy  | -
+/my_camera/pylon_ros2_camera_node/set_illumination_mode  | value = new illumination mode (Stereo ace)
 /my_camera/pylon_ros2_camera_node/set_image_encoding  | value = mono8, mono16, bgr8, rgb8, bayer_bggr8, bayer_gbrg8, bayer_rggb8, bayer_grbg8, bayer_rggb16, bayer_bggr16, bayer_gbrg16, bayer_grbg16
 /my_camera/pylon_ros2_camera_node/set_intensity_calculation  | value : 1 = Method1, 2 = Method2
 /my_camera/pylon_ros2_camera_node/set_light_source_preset  | value : 0 = Off, 1 = Daylight5000K, 2 = Daylight6500K, 3 = Tungsten2800K
@@ -432,7 +515,7 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/set_noise_reduction  | value = reduction value
 /my_camera/pylon_ros2_camera_node/set_offset_x  | value = targeted offset in x-axis
 /my_camera/pylon_ros2_camera_node/set_offset_y  | value = targeted offset in y-axis
-/my_camera/pylon_ros2_camera_node/set_operating_mode  | value : 0 = Long range, 1 = Short range
+/my_camera/pylon_ros2_camera_node/set_operating_mode  | value : blaze operating mode (0 = Long range, 1 = Short range) or Stereo mini depth preset
 /my_camera/pylon_ros2_camera_node/set_outlier_removal_threshold  | value = new outlier removal threshold
 /my_camera/pylon_ros2_camera_node/set_outlier_removal_tolerance  | value = new outlier removal tolerance
 /my_camera/pylon_ros2_camera_node/set_output_queue_size  | -
@@ -440,6 +523,7 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/set_parameters_atomically  | -
 /my_camera/pylon_ros2_camera_node/set_periodic_signal_delay  | value : delay to be applied to the periodic signal in microseconds
 /my_camera/pylon_ros2_camera_node/set_periodic_signal_period  | value : length of the periodic signal in microseconds
+/my_camera/pylon_ros2_camera_node/set_projector_level  | value = new projector level (Stereo mini)
 /my_camera/pylon_ros2_camera_node/set_ptp_network_mode  | value : 1 = Hybrid, 2 = Multicast, 3 = Unicast
 /my_camera/pylon_ros2_camera_node/set_ptp_priority  | value = value indicating the priority of the device when determining the master clock
 /my_camera/pylon_ros2_camera_node/set_ptp_profile  | value : 1 = Delay Request Response Default Profile, 2 = Peer to Peer Default Profile
@@ -479,24 +563,25 @@ Name          | Notes
 
 Name          | Notes
 ------------- | -------------
-/my_camera/pylon_ros2_camera_node/grab_blaze_data | -
+/my_camera/pylon_ros2_camera_node/grab_3d_data | -
 /my_camera/pylon_ros2_camera_node/grab_images_raw  | -
 
-Depending on the camera model, it is possible to grab one or several images or 3d data sets (3d point cloud, intensity, confidence, depth map, depth color map) through the dedicated action with user-specified parameters (e.g., exposure time, brightness value, etc.). Refer to the action definitions to get more information.  
+Depending on the camera model, it is possible to grab one or several images or 3D data sets (3D point cloud, intensity, confidence, depth map, depth color map) through the dedicated action with user-specified parameters (e.g., exposure time, brightness value, etc.). The `grab_images_raw` action is available for the 2D cameras, and the `grab_3d_data` action is available for the 3D cameras (the blaze, the Stereo ace, and the Stereo mini).  
 
-For camera models other than the blaze, the camera-characteristic parameter such as height, width, projection matrix (by ROS2 convention, this matrix specifies the intrinsic (camera) matrix of the processed (rectified) image - see the [CameraInfo message definition](https://github.com/ros2/common_interfaces/blob/master/sensor_msgs/msg/CameraInfo.msg) for detailed information) and camera_frame were published over the /camera_info topic. Furthermore, an action-based image grabbing with desired exposure time, gain, gamma and / or brightness is provided. Hence, one can grab a sequence of images with above target settings as well as a single image. Grabbing images through this action can result in a higher frame rate.  
+The camera-characteristic parameter such as height, width, projection matrix (by ROS2 convention, this matrix specifies the intrinsic (camera) matrix of the processed (rectified) image - see the [CameraInfo message definition](https://github.com/ros2/common_interfaces/blob/master/sensor_msgs/msg/CameraInfo.msg) for detailed information) and camera_frame are published over the /camera_info topic. Furthermore, an action-based image grabbing with desired exposure time, gain, gamma and / or brightness is provided. Hence, one can grab a sequence of images with above target settings as well as a single image. Grabbing images through this action can result in a higher frame rate.  
 
 
 ### Tests
 
 The folder `pylon_ros2_camera_wrapper/test` includes different test programs. testing specific functionalities implemented by the driver. These programs are for testing purposes and should be adapted according to one's needs.
 - *test_get_chunk_data*: test the access of specific chunk data
-- *test_grab_blaze_data_action_client*, *test_grab_image_action_client*, and *test_grab_images_action_client*: trigger the image or the 3d data set grabbing through the actions `/my_camera/pylon_ros2_camera_node/grab_images_raw` or `/my_camera/pylon_ros2_camera_node/grab_blaze_data`, depending on the camera model. Each grabbed image (only the intensity image for the blaze) is displayed in a dedicated popup window.  
+- *test_grab_3d_data_action_client*, *test_grab_image_action_client*, and *test_grab_images_action_client*: trigger the image or the 3D data set grabbing through the actions `/my_camera/pylon_ros2_camera_node/grab_images_raw` or `/my_camera/pylon_ros2_camera_node/grab_3d_data`, depending on the camera model. Each grabbed image (only the intensity image for the 3D cameras) is displayed in a dedicated popup window.  
+- *test_launch_profiles.py*: unit tests for the launch profile resolution (checks that `profile:=2d` and `profile:=3d` select the right configuration file). These run without any camera connected.
 
 
 ## Integration tests
 
-The `pylon_ros2_camera_test` package provides automated integration tests that cover the full driver stack for both 2D cameras (GigE, USB) and 3D cameras (Basler blaze). Each test run launches the driver, connects to the camera, executes all tests, prints a pass/fail summary, and shuts down automatically.
+The `pylon_ros2_camera_test` package provides automated integration tests that cover the full driver stack for both 2D cameras (GigE, USB) and 3D cameras (Basler blaze, Stereo ace, Stereo mini). Each test run launches the driver, connects to the camera, executes all tests, prints a pass/fail summary, and shuts down automatically.
 
 ### Building
 
@@ -559,14 +644,28 @@ The test node automatically detects the camera type and runs the appropriate tes
 | `test_set_roi` | Sets a region of interest and restores the full sensor |
 | `test_set_image_encoding` | Switches pixel encoding (mono8 ↔ bayer_rggb8), grabs a frame after each switch, and verifies the image header encoding matches |
 
-**3D-specific tests** (blaze cameras):
+**3D-specific tests** (blaze, Stereo ace, Stereo mini cameras):
+
+The 3D test suite runs the same set of tests for every 3D camera. Many features exist on only one or two models, so the camera each test targets is noted in parentheses. A test skips automatically when the connected camera does not support its feature.
 
 | Test | Description |
 |---|---|
-| `test_grab_3d_data` | Grabs a point cloud via the `grab_blaze_data` action |
-| `test_set_depth_range` | Sets depth min/max and restores defaults |
-| `test_enable_spatial_filter` | Enables and disables the spatial filter |
-| `test_enable_temporal_filter` | Enables and disables the temporal filter |
+| `test_grab_3d_data` | Grabs a point cloud and intensity map via the `grab_3d_data` action |
+| `test_set_depth_range` | Sets depth min/max and restores the original range |
+| `test_enable_spatial_filter` | Enables and disables the spatial filter (blaze) |
+| `test_enable_temporal_filter` | Enables and disables the temporal filter (blaze) |
+| `test_set_brightness` | Sets a target brightness with auto exposure (Stereo ace, Stereo mini) |
+| `test_set_confidence_threshold` | Writes back the current confidence threshold (blaze, Stereo ace) |
+| `test_enable_hdr_mode` | Enables HDR mode and restores the original state |
+| `test_set_illumination_mode` | Sets the illumination mode and restores the original (Stereo ace) |
+| `test_set_depth_quality` | Sets the depth quality and restores the original (Stereo ace) |
+| `test_enable_static_scene` | Enables the static-scene mode and restores the original state (Stereo ace) |
+| `test_enable_depth_smooth` | Enables depth smoothing and restores the original state (Stereo ace) |
+| `test_set_depth_fill` | Re-applies the current depth-fill value (Stereo ace) |
+| `test_set_depth_seg` | Re-applies the current depth-segmentation value (Stereo ace) |
+| `test_enable_projector` | Enables the pattern projector and restores the original state (Stereo mini) |
+| `test_set_projector_level` | Sets the projector power level (Stereo mini) |
+| `test_set_depth_preset` | Selects a depth preset and restores the original (Stereo mini) |
 
 Some tests skip gracefully when a feature is not supported by the connected camera model. A skipped test is reported as `[ PASS ]` with a `[WARN]` note in the log.
 
@@ -599,7 +698,7 @@ These can fail if the driver rejects the service call. Check the driver log for 
 These indicate the driver is not responding to control commands. Restart the driver and try again. If the issue is consistent, check for concurrent clients holding the camera open.
 
 **`test_grab_images_raw` or `test_grab_3d_data` fail**
-Image/point-cloud acquisition failed. Check that no other process is grabbing from the same camera. For the blaze, ensure the supplementary pylon package for blaze is installed and compatible with the installed pylon version.
+Image/point-cloud acquisition failed. Check that no other process is grabbing from the same camera. For the 3D cameras, ensure the relevant supplementary pylon package is installed and compatible with the installed pylon version.
 
 **`test_set_binning` fails**
 Not all camera models support hardware binning. The test skips automatically on such cameras. A genuine failure means the binning service returned an error unexpectedly.
