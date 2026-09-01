@@ -39,7 +39,7 @@ sudo apt install ros-kilted-pcl-ros
 Compile the workspace using `colcon`:  
 ``cd ~/dev_ws && colcon build``  
 
-**Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g., Python files or other not compiled resourced) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/kilted/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html)).
+**Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g., Python files or other not compiled resources) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/kilted/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html)).
 
 **Note**: The packages are built in Release by default. The build type can be modified by using the `--cmake-args` flag (for instance `colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Debug`).
 
@@ -113,7 +113,7 @@ More information about acquisition modes can be found [here](https://docs.basler
 Generally speaking, to increase the acquisition frame rate when using the driver, consider when possible and applicable:
 - Switch to free run.
 - Changing the image encoding to Bayer or Mono ones.
-- Setting a region of interest.git status
+- Setting a region of interest.
 - Decreasing the exposure time.
 - Decreasing the inter-packet delay and setting it to 0 if possible.
 - Setting the ``enable_current_params_publisher`` parameter to false (it is set to false by default).
@@ -736,7 +736,7 @@ To increase performance and to minimize CPU usage when grabbing images, the foll
 
 ### Slow frame rate
 
-Please refer to the dedicated chapter ("Acquisition mode and frame rate" in this documentation for more information.
+Please refer to the dedicated chapter ("Acquisition mode and frame rate") in this documentation for more information.
 
 Beware as well that starting rviz2 or rqt before the driver may result in a slower frame rate. Start the driver starts followed by rqt or rviz2.
 
