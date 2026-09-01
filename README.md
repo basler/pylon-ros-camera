@@ -218,6 +218,10 @@ Common to all 3D cameras:
 | Depth smoothing | `enable_depth_smooth` |
 | Depth fill | `set_depth_fill` |
 | Depth segmentation | `set_depth_seg` |
+| HDR sub-exposure selector | `set_hdr_exposure_time_selector` |
+| HDR sub-exposure time | `set_hdr_exposure_time` |
+| HDR sub-exposure count | `set_hdr_sub_exposures` |
+| Auto exposure mode (Off/Continuous/HDR) | `set_exposure_auto_mode` |
 
 **Stereo mini:**
 
@@ -225,6 +229,10 @@ Common to all 3D cameras:
 | --- | --- |
 | Depth preset | `set_operating_mode` |
 | Projector | `enable_projector`, `set_projector_level` |
+| HDR sequence index | `set_hdr_sequence_index` |
+| HDR sequence preset | `set_hdr_sequence_preset`, `load_hdr_preset` |
+| HDR max exposure | `set_hdr_max_exposure` |
+| HDR frame merging | `enable_hdr_merge`, `enable_hdr_merge_use_ir` |
 
 ### Current 3D parameters
 
@@ -431,6 +439,8 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/enable_depth_smooth  | data : false = deactivate, true = activate (Stereo ace)
 /my_camera/pylon_ros2_camera_node/enable_distortion_correction  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/enable_fast_mode  | data : false = deactivate, true = activate
+/my_camera/pylon_ros2_camera_node/enable_hdr_merge  | data : false = deactivate, true = activate (Stereo mini)
+/my_camera/pylon_ros2_camera_node/enable_hdr_merge_use_ir  | data : false = deactivate, true = activate (Stereo mini)
 /my_camera/pylon_ros2_camera_node/enable_hdr_mode  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/enable_outlier_removal  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/enable_projector  | data : false = deactivate, true = activate (Stereo mini)
@@ -465,6 +475,7 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/issue_action_command  | -
 /my_camera/pylon_ros2_camera_node/issue_scheduled_action_command  | -
 /my_camera/pylon_ros2_camera_node/list_parameters  | -
+/my_camera/pylon_ros2_camera_node/load_hdr_preset  | loads the selected HDR sequence preset (Stereo mini)
 /my_camera/pylon_ros2_camera_node/load_user_set  | -
 /my_camera/pylon_ros2_camera_node/get_pfs  | -
 /my_camera/pylon_ros2_camera_node/save_pfs  | value : '/path/to/your/output.pfs'
@@ -493,6 +504,7 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/set_device_link_throughput_limit  | value = new targeted throughput limit in Bytes/sec.
 /my_camera/pylon_ros2_camera_node/set_device_link_throughput_limit_mode  | data : false = deactivate, true = activate
 /my_camera/pylon_ros2_camera_node/set_exposure  | -
+/my_camera/pylon_ros2_camera_node/set_exposure_auto_mode  | value : 0 = Off, 1 = Continuous, 2 = HDR (Stereo ace)
 /my_camera/pylon_ros2_camera_node/set_exposure_time_selector  | value : 1 = Stage1, 2 = Stage2
 /my_camera/pylon_ros2_camera_node/set_gain  | -
 /my_camera/pylon_ros2_camera_node/set_gamma  | value: 0 = User, 1 = sRGB
@@ -500,6 +512,12 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/set_gamma_selector  | value : 0 = User, 1 = sRGB (For GigE Cameras)
 /my_camera/pylon_ros2_camera_node/set_grab_timeout  | -
 /my_camera/pylon_ros2_camera_node/set_grabbing_strategy  | -
+/my_camera/pylon_ros2_camera_node/set_hdr_exposure_time  | value = HDR sub-exposure time in microseconds (Stereo ace)
+/my_camera/pylon_ros2_camera_node/set_hdr_exposure_time_selector  | value : 1 = ExposureTime1 ... 4 = ExposureTime4 (Stereo ace)
+/my_camera/pylon_ros2_camera_node/set_hdr_max_exposure  | value = HDR sequence max auto-exposure time in microseconds (Stereo mini)
+/my_camera/pylon_ros2_camera_node/set_hdr_sequence_index  | value : 0 or 1 = HDR sequence to configure (Stereo mini)
+/my_camera/pylon_ros2_camera_node/set_hdr_sequence_preset  | value : 0 = DepthFromHDR, 1 = LaserOnOff (Stereo mini)
+/my_camera/pylon_ros2_camera_node/set_hdr_sub_exposures  | value = number of HDR sub-exposures (Stereo ace)
 /my_camera/pylon_ros2_camera_node/set_illumination_mode  | value = new illumination mode (Stereo ace)
 /my_camera/pylon_ros2_camera_node/set_image_encoding  | value = mono8, mono16, bgr8, rgb8, bayer_bggr8, bayer_gbrg8, bayer_rggb8, bayer_grbg8, bayer_rggb16, bayer_bggr16, bayer_gbrg16, bayer_grbg16
 /my_camera/pylon_ros2_camera_node/set_intensity_calculation  | value : 1 = Method1, 2 = Method2
@@ -666,6 +684,18 @@ The 3D test suite runs the same set of tests for every 3D camera. Many features 
 | `test_enable_projector` | Enables the pattern projector and restores the original state (Stereo mini) |
 | `test_set_projector_level` | Sets the projector power level (Stereo mini) |
 | `test_set_depth_preset` | Selects a depth preset and restores the original (Stereo mini) |
+| `test_set_hdr_exposure_time_selector` | Selects an HDR sub-exposure to configure (Stereo ace) |
+| `test_set_hdr_exposure_time` | Sets the selected HDR sub-exposure time (Stereo ace) |
+| `test_set_hdr_sub_exposures` | Sets the number of HDR sub-exposures (Stereo ace) |
+| `test_set_exposure_auto_mode` | Sets the auto exposure mode Off/Continuous/HDR (Stereo ace) |
+| `test_set_hdr_sequence_index` | Selects the HDR sequence to configure (Stereo mini) |
+| `test_set_hdr_sequence_preset` | Selects the HDR sequence preset (Stereo mini) |
+| `test_load_hdr_preset` | Loads the selected HDR sequence preset (Stereo mini) |
+| `test_set_hdr_max_exposure` | Sets the HDR sequence max exposure (Stereo mini) |
+| `test_enable_hdr_merge` | Enables and disables HDR frame merging (Stereo mini) |
+| `test_enable_hdr_merge_use_ir` | Enables and disables IR use during HDR merging (Stereo mini) |
+| `test_hdr_sequence_workflow` | Runs the full HDR sequence ordering: IR source, enable HDR, preset, both sequence indices, frame merging, then restore (Stereo mini) |
+| `test_hdr_sub_exposure_workflow` | Runs the full HDR sub-exposure ordering: set sub-exposure count, set each sub-exposure time by selector, activate HDR auto exposure, then restore (Stereo ace) |
 
 Some tests skip gracefully when a feature is not supported by the connected camera model. A skipped test is reported as `[ PASS ]` with a `[WARN]` note in the log.
 

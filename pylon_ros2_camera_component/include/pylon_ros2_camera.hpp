@@ -1292,6 +1292,66 @@ public:
     virtual std::string enableHDRMode(const bool& enable) = 0;
 
     /**
+     * Select which HDR sub-exposure the exposure time applies to - Applies to: Stereo ace.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setHDRExposureTimeSelector(const int& selector) = 0;
+
+    /**
+     * Set the exposure time of the selected HDR sub-exposure - Applies to: Stereo ace.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setHDRExposureTime(const double& exposure_time) = 0;
+
+    /**
+     * Set the number of sub-exposures used in the HDR sequence - Applies to: Stereo ace.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setHDRSubExposures(const int& count) = 0;
+
+    /**
+     * Set the auto exposure mode - Applies to: Stereo ace. 0 = Off, 1 = Continuous, 2 = HDR.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setExposureAutoMode(const int& mode) = 0;
+
+    /**
+     * Select which HDR sequence (0 or 1) the exposure, gain and brightness apply to - Applies to: Stereo mini.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setHDRSequenceIndex(const int& index) = 0;
+
+    /**
+     * Select the HDR sequence preset to load - Applies to: Stereo mini.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setHDRSequencePreset(const int& preset) = 0;
+
+    /**
+     * Load the selected HDR sequence preset - Applies to: Stereo mini.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string loadHDRPreset() = 0;
+
+    /**
+     * Enable/Disable HDR frame merging - Applies to: Stereo mini.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableHDRMerge(const bool& enable) = 0;
+
+    /**
+     * Enable/Disable using IR frames during HDR merging - Applies to: Stereo mini.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string enableHDRMergeUseIR(const bool& enable) = 0;
+
+    /**
+     * Set the maximum exposure time of the selected HDR sequence - Applies to: Stereo mini.
+     * @return error message if an error occurred or done message otherwise.
+     */
+    virtual std::string setHDRMaxExposure(const double& max_exposure) = 0;
+
+    /**
      * Set the active source selector - Applies to: stereo mini. 1 = Source1, 2 = Source2, 3 = Source3.
      * @return error message if an error occurred or done message otherwise.
      */

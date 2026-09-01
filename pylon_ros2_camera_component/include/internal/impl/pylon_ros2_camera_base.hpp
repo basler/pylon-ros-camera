@@ -5157,6 +5157,76 @@ std::string PylonROS2CameraImpl<CameraTraitT>::enableHDRMode(const bool& enable 
 }
 
 template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setHDRExposureTimeSelector(const int& selector __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setHDRExposureTime(const double& exposure_time __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setHDRSubExposures(const int& count __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setExposureAutoMode(const int& mode __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setHDRSequenceIndex(const int& index __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setHDRSequencePreset(const int& preset __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::loadHDRPreset()
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableHDRMerge(const bool& enable __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::enableHDRMergeUseIR(const bool& enable __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
+std::string PylonROS2CameraImpl<CameraTraitT>::setHDRMaxExposure(const double& max_exposure __attribute__((unused)))
+{
+    RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");
+    return "Feature not available for this camera type";
+}
+
+template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setSourceSelector(const int& source __attribute__((unused)))
 {
     RCLCPP_DEBUG(LOGGER_BASE, "Feature not available for this camera type");

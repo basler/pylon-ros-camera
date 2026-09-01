@@ -429,6 +429,26 @@ public:
 
     virtual std::string enableHDRMode(const bool& enable) override;
 
+    virtual std::string setHDRExposureTimeSelector(const int& selector) override;
+
+    virtual std::string setHDRExposureTime(const double& exposure_time) override;
+
+    virtual std::string setHDRSubExposures(const int& count) override;
+
+    virtual std::string setExposureAutoMode(const int& mode) override;
+
+    virtual std::string setHDRSequenceIndex(const int& index) override;
+
+    virtual std::string setHDRSequencePreset(const int& preset) override;
+
+    virtual std::string loadHDRPreset() override;
+
+    virtual std::string enableHDRMerge(const bool& enable) override;
+
+    virtual std::string enableHDRMergeUseIR(const bool& enable) override;
+
+    virtual std::string setHDRMaxExposure(const double& max_exposure) override;
+
     virtual std::string setSourceSelector(const int& source) override;
 
     virtual std::string enableFastMode(const bool& enable) override;

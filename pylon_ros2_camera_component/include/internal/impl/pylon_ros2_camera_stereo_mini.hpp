@@ -130,6 +130,15 @@ public:
     virtual std::string enableHDRMode(const bool& enable) override;
     // Reads the current HDR state (BslHDREnable) under the IR source.
     virtual int getHDRMode() override;
+    // HDR sequence configuration (firmware dependent; each node is runtime-checked).
+    // set_hdr_sequence_index selects sequence 0 or 1; the existing set_exposure/set_gain/
+    // set_brightness services and set_hdr_max_exposure then act on the selected sequence.
+    virtual std::string setHDRSequenceIndex(const int& index) override;
+    virtual std::string setHDRSequencePreset(const int& preset) override;
+    virtual std::string loadHDRPreset() override;
+    virtual std::string setHDRMaxExposure(const double& max_exposure) override;
+    virtual std::string enableHDRMerge(const bool& enable) override;
+    virtual std::string enableHDRMergeUseIR(const bool& enable) override;
     // Selects the active source (1=Source1 IR left, 2=Source2 IR right, 3=Source3 color).
     virtual std::string setSourceSelector(const int& source) override;
 
@@ -1054,6 +1063,193 @@ int PylonROS2StereoMiniCamera::getHDRMode()
         try { stereo_mini_cam_->SourceSelector.FromString("Source3"); } catch (const GenICam::GenericException&) {}
         return -1;
     }
+}
+
+std::string PylonROS2StereoMiniCamera::setHDRSequenceIndex(const int& index)
+{
+    // Selects which HDR sequence (0 or 1) the exposure/gain/brightness/max-exposure
+    // controls apply to. The node may be locked while grabbing, so stop/start only when needed.
+    bool stopped = false;
+    try
+    {
+        if (index < 0 || index > 1)
+            return "HDR sequence index must be 0 or 1";
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslHDRSequenceIndex))
+            return "BslHDRSequenceIndex is not available on this camera";
+
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRSequenceIndex))
+        {
+            this->grabbingStopping();
+            stopped = true;
+        }
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRSequenceIndex))
+        {
+            if (stopped) this->grabbingStarting();
+            return "BslHDRSequenceIndex is not writable on this camera";
+        }
+        stereo_mini_cam_->BslHDRSequenceIndex.SetValue(index);
+        if (stopped) this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the HDR sequence index occurred: " << e.GetDescription());
+        if (stopped) this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setHDRSequencePreset(const int& preset)
+{
+    // Selects the HDR preset that load_hdr_preset then applies.
+    bool stopped = false;
+    try
+    {
+        const char* name = nullptr;
+        switch (preset)
+        {
+            case 0: name = "DepthFromHDR"; break;
+            case 1: name = "LaserOnOff"; break;
+            default:
+                return "HDR sequence preset must be 0 (DepthFromHDR) or 1 (LaserOnOff)";
+        }
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslHDRSequencePreset))
+            return "BslHDRSequencePreset is not available on this camera";
+
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRSequencePreset))
+        {
+            this->grabbingStopping();
+            stopped = true;
+        }
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRSequencePreset))
+        {
+            if (stopped) this->grabbingStarting();
+            return "BslHDRSequencePreset is not writable on this camera";
+        }
+        stereo_mini_cam_->BslHDRSequencePreset.FromString(name);
+        if (stopped) this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the HDR sequence preset occurred: " << e.GetDescription());
+        if (stopped) this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::loadHDRPreset()
+{
+    // Loads the preset selected by set_hdr_sequence_preset, initializing both sequences
+    // with the recommended default values.
+    bool stopped = false;
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslHDRLoadPreset))
+            return "BslHDRLoadPreset is not available on this camera";
+
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRLoadPreset))
+        {
+            this->grabbingStopping();
+            stopped = true;
+        }
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRLoadPreset))
+        {
+            if (stopped) this->grabbingStarting();
+            return "BslHDRLoadPreset is not writable on this camera";
+        }
+        stereo_mini_cam_->BslHDRLoadPreset.Execute();
+        if (stopped) this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while loading the HDR preset occurred: " << e.GetDescription());
+        if (stopped) this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setHDRMaxExposure(const double& max_exposure)
+{
+    // Writes the auto-exposure maximum (BslAEMaxExposure) for the selected HDR sequence and
+    // source. Only effective while ExposureAuto is Continuous. Writable while grabbing.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslAEMaxExposure))
+            return "BslAEMaxExposure is not available on this camera";
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslAEMaxExposure))
+            return "BslAEMaxExposure is not writable; set ExposureAuto to Continuous first";
+        stereo_mini_cam_->BslAEMaxExposure.SetValue(max_exposure);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the HDR max exposure occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::enableHDRMerge(const bool& enable)
+{
+    // Enables or disables the HDR frame merging filter.
+    bool stopped = false;
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslHDRMergeEnable))
+            return "BslHDRMergeEnable is not available on this camera";
+
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRMergeEnable))
+        {
+            this->grabbingStopping();
+            stopped = true;
+        }
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRMergeEnable))
+        {
+            if (stopped) this->grabbingStarting();
+            return "BslHDRMergeEnable is not writable on this camera";
+        }
+        stereo_mini_cam_->BslHDRMergeEnable.SetValue(enable);
+        if (stopped) this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the HDR merge occurred: " << e.GetDescription());
+        if (stopped) this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::enableHDRMergeUseIR(const bool& enable)
+{
+    // Enables or disables using IR frames to improve HDR merge quality.
+    bool stopped = false;
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslHDRMergeUseIR))
+            return "BslHDRMergeUseIR is not available on this camera";
+
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRMergeUseIR))
+        {
+            this->grabbingStopping();
+            stopped = true;
+        }
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRMergeUseIR))
+        {
+            if (stopped) this->grabbingStarting();
+            return "BslHDRMergeUseIR is not writable on this camera";
+        }
+        stereo_mini_cam_->BslHDRMergeUseIR.SetValue(enable);
+        if (stopped) this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the HDR merge IR use occurred: " << e.GetDescription());
+        if (stopped) this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
 }
 
 bool PylonROS2StereoMiniCamera::setGain(const float& target_gain, float& reached_gain)

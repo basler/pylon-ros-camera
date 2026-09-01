@@ -285,6 +285,37 @@ ros2 service call $NS/set_source_selector pylon_ros2_camera_interfaces/srv/SetIn
 ros2 service call $NS/enable_hdr_mode std_srvs/srv/SetBool '{data: true}'
 ```
 
+The HDR sequence parameters are write-only and independent; set one at a time in the order your
+workflow needs. Each service is runtime-gated, so a camera or firmware without the node replies
+`not available`. The stereo ace exposes the sub-exposure sequence; the stereo mini exposes the
+sequence/preset/merge nodes. On the stereo ace, select the sub-exposure with
+`set_hdr_exposure_time_selector` (1-4) before writing `set_hdr_exposure_time`. `set_exposure_auto_mode`
+takes 0 = Off, 1 = Continuous, 2 = HDR:
+
+```bash
+# Stereo ace
+ros2 service call $NS/set_hdr_sub_exposures pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 2}'
+ros2 service call $NS/set_hdr_exposure_time_selector pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 1}'
+ros2 service call $NS/set_hdr_exposure_time pylon_ros2_camera_interfaces/srv/SetFloatValue '{value: 5000.0}'
+ros2 service call $NS/set_exposure_auto_mode pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 2}'   # HDR
+```
+
+On the stereo mini, `set_hdr_sequence_index` (0 or 1) selects which sequence the existing
+`set_exposure`/`set_gain`/`set_brightness` and `set_hdr_max_exposure` services configure.
+`set_hdr_sequence_preset` takes 0 = DepthFromHDR, 1 = LaserOnOff; `load_hdr_preset` applies it.
+`set_hdr_max_exposure` writes the auto-exposure ceiling and is effective only while `ExposureAuto` is
+Continuous:
+
+```bash
+# Stereo mini
+ros2 service call $NS/set_hdr_sequence_preset pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 0}'   # DepthFromHDR
+ros2 service call $NS/load_hdr_preset std_srvs/srv/Trigger '{}'
+ros2 service call $NS/set_hdr_sequence_index pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 0}'
+ros2 service call $NS/set_hdr_max_exposure pylon_ros2_camera_interfaces/srv/SetFloatValue '{value: 20000.0}'
+ros2 service call $NS/enable_hdr_merge std_srvs/srv/SetBool '{data: true}'
+ros2 service call $NS/enable_hdr_merge_use_ir std_srvs/srv/SetBool '{data: true}'
+```
+
 ```bash
 ros2 topic echo --once --field exposure $NS/current_params      # e.g. 5000.0
 ros2 service call $NS/set_exposure pylon_ros2_camera_interfaces/srv/SetExposure '{target_exposure: 5000.0}'   # common

@@ -1419,6 +1419,56 @@ protected:
   void enableProjectorCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
 
   /**
+   * @brief Service callback for selecting the HDR sub-exposure to configure - Applies to: Stereo ace.
+   */
+  void setHDRExposureTimeSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the selected HDR sub-exposure time - Applies to: Stereo ace.
+   */
+  void setHDRExposureTimeCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the number of HDR sub-exposures - Applies to: Stereo ace.
+   */
+  void setHDRSubExposuresCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the auto exposure mode - Applies to: Stereo ace.
+   */
+  void setExposureAutoModeCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for selecting the HDR sequence to configure - Applies to: Stereo mini.
+   */
+  void setHDRSequenceIndexCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for selecting the HDR sequence preset - Applies to: Stereo mini.
+   */
+  void setHDRSequencePresetCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the HDR sequence maximum exposure time - Applies to: Stereo mini.
+   */
+  void setHDRMaxExposureCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling HDR frame merging - Applies to: Stereo mini.
+   */
+  void enableHDRMergeCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling IR use during HDR merging - Applies to: Stereo mini.
+   */
+  void enableHDRMergeUseIRCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for loading the selected HDR sequence preset - Applies to: Stereo mini.
+   */
+  void loadHDRPresetCallback(const std::shared_ptr<TriggerSrv::Request> request, std::shared_ptr<TriggerSrv::Response> response);
+
+  /**
    * @brief Service callback for setting the pattern projector power level - Applies to: Stereo mini.
    * @param req request
    * @param res response
@@ -1881,6 +1931,18 @@ protected:
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_static_scene_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_projector_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_depth_smooth_srv_;
+
+  // HDR parameter services (Stereo ace / Stereo mini)
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_hdr_exposure_time_selector_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_hdr_exposure_time_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_hdr_sub_exposures_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_exposure_auto_mode_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_hdr_sequence_index_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_hdr_sequence_preset_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_hdr_max_exposure_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_hdr_merge_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_hdr_merge_use_ir_srv_;
+  rclcpp::Service<TriggerSrv>::SharedPtr load_hdr_preset_srv_;
  
   rclcpp::Service<TriggerSrv>::SharedPtr execute_software_trigger_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr save_user_set_srv_;

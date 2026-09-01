@@ -165,6 +165,15 @@ public:
     virtual std::string enableHDRMode(const bool& enable) override;
     virtual int getHDRMode() override;
 
+    // HDR sub-exposure sequence: BslHdrExposureTimeSelector picks a sub-exposure (1-4),
+    // BslHdrExposureTime sets its time, BslHdrSubExposures sets the sequence length.
+    // ExposureAuto selects the auto exposure mode (Off/Continuous/HDR). All are written
+    // while grabbing is stopped.
+    virtual std::string setHDRExposureTimeSelector(const int& selector) override;
+    virtual std::string setHDRExposureTime(const double& exposure_time) override;
+    virtual std::string setHDRSubExposures(const int& count) override;
+    virtual std::string setExposureAutoMode(const int& mode) override;
+
     // Illumination (BslIlluminationMode) and depth quality (BslDepthQuality) are enum nodes;
     // the index picks one of the entries the camera reports at runtime. Static scene
     // (BslDepthStaticScene) is a bool node. All three can be written while grabbing.
@@ -1407,6 +1416,106 @@ int PylonROS2StereoAceCamera::getHDRMode()
     return -1;
 }
 
+std::string PylonROS2StereoAceCamera::setHDRExposureTimeSelector(const int& selector)
+{
+    // Picks which of the up-to-four HDR sub-exposures BslHdrExposureTime writes.
+    // The node is not writable while grabbing.
+    try
+    {
+        if (selector < 1 || selector > 4)
+            return "HDR exposure time selector must be between 1 and 4";
+        if (!GenApi::IsAvailable(stereo_ace_cam_->BslHdrExposureTimeSelector))
+            return "BslHdrExposureTimeSelector is not available on this camera";
+
+        const std::string entry = "ExposureTime" + std::to_string(selector);
+        this->grabbingStopping();
+        stereo_ace_cam_->BslHdrExposureTimeSelector.FromString(entry.c_str());
+        this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the HDR exposure time selector occurred: " << e.GetDescription());
+        this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setHDRExposureTime(const double& exposure_time)
+{
+    // Sets the exposure time of the sub-exposure currently picked by
+    // BslHdrExposureTimeSelector. The node is not writable while grabbing.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_ace_cam_->BslHdrExposureTime))
+            return "BslHdrExposureTime is not available on this camera";
+
+        this->grabbingStopping();
+        stereo_ace_cam_->BslHdrExposureTime.SetValue(exposure_time);
+        this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the HDR exposure time occurred: " << e.GetDescription());
+        this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setHDRSubExposures(const int& count)
+{
+    // Number of sub-exposures used in the HDR sequence. Not writable while grabbing.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_ace_cam_->BslHdrSubExposures))
+            return "BslHdrSubExposures is not available on this camera";
+
+        this->grabbingStopping();
+        stereo_ace_cam_->BslHdrSubExposures.SetValue(count);
+        this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the HDR sub-exposures occurred: " << e.GetDescription());
+        this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoAceCamera::setExposureAutoMode(const int& mode)
+{
+    // ExposureAuto selects Off / Continuous / HDR. Switching to or from HDR changes the
+    // processing mode, so the node is written while grabbing is stopped.
+    try
+    {
+        const char* name = nullptr;
+        switch (mode)
+        {
+            case 0: name = "Off"; break;
+            case 1: name = "Continuous"; break;
+            case 2: name = "HDR"; break;
+            default:
+                return "Exposure auto mode must be 0 (Off), 1 (Continuous) or 2 (HDR)";
+        }
+
+        if (!GenApi::IsAvailable(stereo_ace_cam_->ExposureAuto))
+            return "ExposureAuto is not available on this camera";
+
+        this->grabbingStopping();
+        stereo_ace_cam_->ExposureAuto.FromString(name);
+        this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the exposure auto mode occurred: " << e.GetDescription());
+        this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
 // --- Runtime depth tuning ---------------------------------------------------
 
 std::string PylonROS2StereoAceCamera::setIlluminationMode(const int& mode)
@@ -1456,7 +1565,9 @@ std::string PylonROS2StereoAceCamera::setIlluminationMode(const int& mode)
 std::string PylonROS2StereoAceCamera::setDepthQuality(const int& quality)
 {
     // BslDepthQuality is an enum whose entries depend on the model/firmware, so read the
-    // available entries at runtime and select by index. The node accepts writes while grabbing.
+    // available entries at runtime and select by index. On some firmware the node is not
+    // writable while grabbing, so stop grabbing only when the write needs it.
+    bool stopped = false;
     try
     {
         if (!GenApi::IsAvailable(stereo_ace_cam_->BslDepthQuality))
@@ -1486,12 +1597,25 @@ std::string PylonROS2StereoAceCamera::setDepthQuality(const int& quality)
             return msg;
         }
 
+        if (!GenApi::IsWritable(stereo_ace_cam_->BslDepthQuality))
+        {
+            this->grabbingStopping();
+            stopped = true;
+        }
+        if (!GenApi::IsWritable(stereo_ace_cam_->BslDepthQuality))
+        {
+            if (stopped) this->grabbingStarting();
+            return "BslDepthQuality is not writable on this camera";
+        }
+
         stereo_ace_cam_->BslDepthQuality.FromString(available[quality].c_str());
+        if (stopped) this->grabbingStarting();
         RCLCPP_DEBUG_STREAM(LOGGER_STEREO_ACE, "Depth quality set to " << available[quality]);
     }
     catch (const GenICam::GenericException& e)
     {
         RCLCPP_ERROR_STREAM(LOGGER_STEREO_ACE, "An exception while setting the depth quality occurred: " << e.GetDescription());
+        if (stopped) this->grabbingStarting();
         return e.GetDescription();
     }
     return "done";

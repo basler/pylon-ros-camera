@@ -65,6 +65,7 @@
 
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <std_srvs/srv/set_bool.hpp>
+#include <std_srvs/srv/trigger.hpp>
 
 namespace pylon_ros2_camera_test
 {
@@ -86,6 +87,7 @@ protected:
   using SetFloatValue        = pylon_ros2_camera_interfaces::srv::SetFloatValue;
   using SetBrightness        = pylon_ros2_camera_interfaces::srv::SetBrightness;
   using SetBool              = std_srvs::srv::SetBool;
+  using Trigger              = std_srvs::srv::Trigger;
   using CurrentParams        = pylon_ros2_camera_interfaces::msg::CurrentParams;
 
   // ── 3D-specific test declarations ─────────────────────────────────────────
@@ -106,6 +108,18 @@ protected:
   virtual bool test_enable_projector();
   virtual bool test_set_projector_level();
   virtual bool test_set_depth_preset();
+  virtual bool test_set_hdr_exposure_time_selector();
+  virtual bool test_set_hdr_exposure_time();
+  virtual bool test_set_hdr_sub_exposures();
+  virtual bool test_set_exposure_auto_mode();
+  virtual bool test_set_hdr_sequence_index();
+  virtual bool test_set_hdr_sequence_preset();
+  virtual bool test_load_hdr_preset();
+  virtual bool test_set_hdr_max_exposure();
+  virtual bool test_enable_hdr_merge();
+  virtual bool test_enable_hdr_merge_use_ir();
+  virtual bool test_hdr_sequence_workflow();
+  virtual bool test_hdr_sub_exposure_workflow();
 
   // Read one current_params message from the driver. Returns false if none
   // arrives within a few seconds. Used to detect which 3D features a camera
@@ -137,6 +151,16 @@ protected:
   rclcpp::Client<SetIntegerValue>::SharedPtr set_projector_level_client_;
   rclcpp::Client<SetIntegerValue>::SharedPtr set_operating_mode_client_;
   rclcpp::Client<SetIntegerValue>::SharedPtr set_source_selector_client_;
+  rclcpp::Client<SetIntegerValue>::SharedPtr set_hdr_exposure_time_selector_client_;
+  rclcpp::Client<SetFloatValue>::SharedPtr set_hdr_exposure_time_client_;
+  rclcpp::Client<SetIntegerValue>::SharedPtr set_hdr_sub_exposures_client_;
+  rclcpp::Client<SetIntegerValue>::SharedPtr set_exposure_auto_mode_client_;
+  rclcpp::Client<SetIntegerValue>::SharedPtr set_hdr_sequence_index_client_;
+  rclcpp::Client<SetIntegerValue>::SharedPtr set_hdr_sequence_preset_client_;
+  rclcpp::Client<SetFloatValue>::SharedPtr set_hdr_max_exposure_client_;
+  rclcpp::Client<SetBool>::SharedPtr enable_hdr_merge_client_;
+  rclcpp::Client<SetBool>::SharedPtr enable_hdr_merge_use_ir_client_;
+  rclcpp::Client<Trigger>::SharedPtr load_hdr_preset_client_;
 };
 
 }  // namespace pylon_ros2_camera_test
