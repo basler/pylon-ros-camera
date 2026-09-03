@@ -401,7 +401,15 @@ bool PylonROS2StereoAceCamera::startGrabbing(const PylonROS2CameraParameter& par
     {
         this->grabbingStarting();
 
-        device_user_id_ = stereo_ace_cam_->GetDeviceInfo().GetUserDefinedName().c_str();
+        // Read the user id from the open camera, falling back to the
+        // enumeration-time name only if the node is unreadable.
+        {
+            GenApi::CStringPtr user_id_node(stereo_ace_cam_->GetNodeMap().GetNode("DeviceUserID"));
+            if (user_id_node.IsValid() && GenApi::IsReadable(user_id_node))
+                device_user_id_ = user_id_node->GetValue().c_str();
+            else
+                device_user_id_ = stereo_ace_cam_->GetDeviceInfo().GetUserDefinedName().c_str();
+        }
         grab_timeout_ = std::max(parameters.grab_timeout_, MIN_GRAB_TIMEOUT_MS);
         RCLCPP_DEBUG_STREAM_ONCE(LOGGER_STEREO_ACE, "Grab timeout for Stereo ace: " << grab_timeout_);
 
