@@ -311,7 +311,7 @@ Continuous:
 ros2 service call $NS/set_hdr_sequence_preset pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 0}'   # DepthFromHDR
 ros2 service call $NS/load_hdr_preset std_srvs/srv/Trigger '{}'
 ros2 service call $NS/set_hdr_sequence_index pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 0}'
-ros2 service call $NS/set_hdr_max_exposure pylon_ros2_camera_interfaces/srv/SetFloatValue '{value: 20000.0}'
+ros2 service call $NS/set_hdr_max_exposure pylon_ros2_camera_interfaces/srv/SetFloatValue '{value: 1500.0}'   # within the camera's exposure range (the stereo mini caps near 1999 us)
 ros2 service call $NS/enable_hdr_merge std_srvs/srv/SetBool '{data: true}'
 ros2 service call $NS/enable_hdr_merge_use_ir std_srvs/srv/SetBool '{data: true}'
 ```

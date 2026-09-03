@@ -147,18 +147,8 @@ CameraTest3D::CameraTest3D(const rclcpp::NodeOptions & options)
     std::bind(&CameraTest3D::test_set_hdr_sub_exposures, this));
   register_test("test_set_exposure_auto_mode",
     std::bind(&CameraTest3D::test_set_exposure_auto_mode, this));
-  register_test("test_set_hdr_sequence_index",
-    std::bind(&CameraTest3D::test_set_hdr_sequence_index, this));
-  register_test("test_set_hdr_sequence_preset",
-    std::bind(&CameraTest3D::test_set_hdr_sequence_preset, this));
-  register_test("test_load_hdr_preset",
-    std::bind(&CameraTest3D::test_load_hdr_preset, this));
   register_test("test_set_hdr_max_exposure",
     std::bind(&CameraTest3D::test_set_hdr_max_exposure, this));
-  register_test("test_enable_hdr_merge",
-    std::bind(&CameraTest3D::test_enable_hdr_merge, this));
-  register_test("test_enable_hdr_merge_use_ir",
-    std::bind(&CameraTest3D::test_enable_hdr_merge_use_ir, this));
   register_test("test_hdr_sequence_workflow",
     std::bind(&CameraTest3D::test_hdr_sequence_workflow, this));
   register_test("test_hdr_sub_exposure_workflow",
@@ -866,73 +856,21 @@ bool CameraTest3D::test_set_exposure_auto_mode()
     "test_set_exposure_auto_mode/set", res->message);
 }
 
-// HDR sequence index (BslHDRSequenceIndex) on the stereo mini selects which
-// sequence the exposure/gain/brightness/max-exposure controls apply to. Selects
-// sequence 0. Skips when the node is not available.
-bool CameraTest3D::test_set_hdr_sequence_index()
-{
-  auto req = std::make_shared<SetIntegerValue::Request>();
-  req->value = 0;
-  auto res = call_service<SetIntegerValue>(set_hdr_sequence_index_client_, req);
-  if (!res) {
-    return assert_true(false, "test_set_hdr_sequence_index",
-      "service call failed");
-  }
-  if (!res->success) {
-    RCLCPP_WARN(get_logger(),
-      "test_set_hdr_sequence_index: not available for this camera, skipping.");
-    return true;
-  }
-  return assert_true(res->success,
-    "test_set_hdr_sequence_index/set", res->message);
-}
-
-// HDR sequence preset (BslHDRSequencePreset) on the stereo mini: 0 = DepthFromHDR,
-// 1 = LaserOnOff. Selects DepthFromHDR. Skips when the node is not available.
-bool CameraTest3D::test_set_hdr_sequence_preset()
-{
-  auto req = std::make_shared<SetIntegerValue::Request>();
-  req->value = 0;
-  auto res = call_service<SetIntegerValue>(set_hdr_sequence_preset_client_, req);
-  if (!res) {
-    return assert_true(false, "test_set_hdr_sequence_preset",
-      "service call failed");
-  }
-  if (!res->success) {
-    RCLCPP_WARN(get_logger(),
-      "test_set_hdr_sequence_preset: not available for this camera, skipping.");
-    return true;
-  }
-  return assert_true(res->success,
-    "test_set_hdr_sequence_preset/set", res->message);
-}
-
-// Load HDR preset (BslHDRLoadPreset) on the stereo mini applies the preset
-// selected by set_hdr_sequence_preset. Skips when the command is not available.
-bool CameraTest3D::test_load_hdr_preset()
-{
-  auto req = std::make_shared<Trigger::Request>();
-  auto res = call_service<Trigger>(load_hdr_preset_client_, req);
-  if (!res) {
-    return assert_true(false, "test_load_hdr_preset",
-      "service call failed");
-  }
-  if (!res->success) {
-    RCLCPP_WARN(get_logger(),
-      "test_load_hdr_preset: not available for this camera, skipping.");
-    return true;
-  }
-  return assert_true(res->success,
-    "test_load_hdr_preset/execute", res->message);
-}
-
-// HDR sequence maximum exposure (BslAEMaxExposure) on the stereo mini. Writes a
-// representative value; effective only while ExposureAuto is Continuous. Skips
-// when the node is not available or not writable.
+// HDR sequence maximum exposure (BslAEMaxExposure) on the stereo mini. Writes the
+// camera's current exposure value, which is always inside the node's range, so the
+// call is validated instead of tripping the upper limit. Effective only while
+// ExposureAuto is Continuous. Skips when the node is not available.
 bool CameraTest3D::test_set_hdr_max_exposure()
 {
+  CurrentParams p;
+  if (!read_current_params(p) || p.exposure <= 0.0f) {
+    RCLCPP_WARN(get_logger(),
+      "test_set_hdr_max_exposure: no current exposure to reuse, skipping.");
+    return true;
+  }
+
   auto req = std::make_shared<SetFloatValue::Request>();
-  req->value = 20000.0;
+  req->value = p.exposure;
   auto res = call_service<SetFloatValue>(set_hdr_max_exposure_client_, req);
   if (!res) {
     return assert_true(false, "test_set_hdr_max_exposure",
@@ -947,76 +885,13 @@ bool CameraTest3D::test_set_hdr_max_exposure()
     "test_set_hdr_max_exposure/set", res->message);
 }
 
-// HDR frame merging (BslHDRMergeEnable) on the stereo mini. Enable then disable
-// to leave the filter off. Skips when the node is not available.
-bool CameraTest3D::test_enable_hdr_merge()
-{
-  auto req_on = std::make_shared<SetBool::Request>();
-  req_on->data = true;
-  auto res_on = call_service<SetBool>(enable_hdr_merge_client_, req_on);
-  if (!res_on) {
-    return assert_true(false, "test_enable_hdr_merge",
-      "enable(true) service call failed");
-  }
-  if (!res_on->success) {
-    RCLCPP_WARN(get_logger(),
-      "test_enable_hdr_merge: not available for this camera, skipping.");
-    return true;
-  }
-  bool ok = assert_true(res_on->success,
-    "test_enable_hdr_merge/on", res_on->message);
-
-  auto req_off = std::make_shared<SetBool::Request>();
-  req_off->data = false;
-  auto res_off = call_service<SetBool>(enable_hdr_merge_client_, req_off);
-  if (!res_off) {
-    return assert_true(false, "test_enable_hdr_merge",
-      "enable(false) service call failed");
-  }
-  ok &= assert_true(res_off->success,
-    "test_enable_hdr_merge/off", res_off->message);
-  return ok;
-}
-
-// HDR merge IR use (BslHDRMergeUseIR) on the stereo mini. Enable then disable to
-// leave it off. Skips when the node is not available.
-bool CameraTest3D::test_enable_hdr_merge_use_ir()
-{
-  auto req_on = std::make_shared<SetBool::Request>();
-  req_on->data = true;
-  auto res_on = call_service<SetBool>(enable_hdr_merge_use_ir_client_, req_on);
-  if (!res_on) {
-    return assert_true(false, "test_enable_hdr_merge_use_ir",
-      "enable(true) service call failed");
-  }
-  if (!res_on->success) {
-    RCLCPP_WARN(get_logger(),
-      "test_enable_hdr_merge_use_ir: not available for this camera, skipping.");
-    return true;
-  }
-  bool ok = assert_true(res_on->success,
-    "test_enable_hdr_merge_use_ir/on", res_on->message);
-
-  auto req_off = std::make_shared<SetBool::Request>();
-  req_off->data = false;
-  auto res_off = call_service<SetBool>(enable_hdr_merge_use_ir_client_, req_off);
-  if (!res_off) {
-    return assert_true(false, "test_enable_hdr_merge_use_ir",
-      "enable(false) service call failed");
-  }
-  ok &= assert_true(res_off->success,
-    "test_enable_hdr_merge_use_ir/off", res_off->message);
-  return ok;
-}
-
-// Stereo mini HDR sequence workflow. The individual HDR tests above call each
-// service on its own, which the mini reports as not writable because the
-// sequence controls only unlock once HDR is enabled on an IR source. This test
-// drives the common ordering end to end: select the IR source, enable HDR,
-// choose a sequence preset, configure both sequence indices, enable frame
-// merging, then restore the camera. It skips on cameras that are not HDR-capable
-// or whose firmware does not expose the sequence controls, so it stays green on
-// the stereo ace and blaze (whose HDR paths differ).
+// Stereo mini HDR preset workflow, following Basler's documented order: select an
+// IR source, choose a sequence preset, load its recommended defaults, enable HDR,
+// configure both sequence indices, then turn on frame merging. Restores the
+// camera afterwards. The per-service HDR controls are only writable in this
+// context, so this is the one test that exercises them on the mini. It skips on
+// cameras that are not HDR-capable or do not expose the sequence controls, so it
+// stays green on the stereo ace and blaze (whose HDR paths differ).
 bool CameraTest3D::test_hdr_sequence_workflow()
 {
   CurrentParams p;
@@ -1049,41 +924,47 @@ bool CameraTest3D::test_hdr_sequence_workflow()
     call_service<SetIntegerValue>(set_source_selector_client_, src_restore);
   };
 
-  // Enable HDR so the sequence controls become writable.
-  auto hdr_on = std::make_shared<SetBool::Request>();
-  hdr_on->data = true;
-  auto hdr_res = call_service<SetBool>(enable_hdr_mode_client_, hdr_on);
-  if (!hdr_res || !hdr_res->success) {
-    RCLCPP_WARN(get_logger(),
-      "test_hdr_sequence_workflow: HDR could not be enabled, skipping.");
-    restore();
-    return true;
-  }
-
-  // Probe the central sequence control. If it is still not writable the firmware
-  // does not support the sequence workflow, so skip rather than fail.
-  auto idx0 = std::make_shared<SetIntegerValue::Request>();
-  idx0->value = 0;
-  auto idx0_res = call_service<SetIntegerValue>(set_hdr_sequence_index_client_, idx0);
-  if (!idx0_res || !idx0_res->success) {
+  // Choose the DepthFromHDR sequence preset. With an IR source selected this is
+  // writable before HDR is enabled; if it is not, the firmware does not support
+  // the sequence workflow, so skip rather than fail.
+  auto preset = std::make_shared<SetIntegerValue::Request>();
+  preset->value = 0;
+  auto preset_res = call_service<SetIntegerValue>(set_hdr_sequence_preset_client_, preset);
+  if (!preset_res || !preset_res->success) {
     RCLCPP_WARN(get_logger(),
       "test_hdr_sequence_workflow: sequence controls not writable on this "
       "firmware, skipping.");
     restore();
     return true;
   }
-  bool ok = assert_true(idx0_res->success,
-    "test_hdr_sequence_workflow/index0", idx0_res->message);
+  bool ok = assert_true(preset_res->success,
+    "test_hdr_sequence_workflow/preset", preset_res->message);
 
-  // Choose the DepthFromHDR sequence preset.
-  auto preset = std::make_shared<SetIntegerValue::Request>();
-  preset->value = 0;
-  auto preset_res = call_service<SetIntegerValue>(set_hdr_sequence_preset_client_, preset);
-  ok &= assert_true(preset_res && preset_res->success,
-    "test_hdr_sequence_workflow/preset",
-    preset_res ? preset_res->message : "service call failed");
+  // Load the preset's recommended defaults. Not every mini firmware exposes this
+  // node, so a "not available" reply is fine; note it and carry on.
+  auto load = std::make_shared<Trigger::Request>();
+  auto load_res = call_service<Trigger>(load_hdr_preset_client_, load);
+  if (!load_res || !load_res->success) {
+    RCLCPP_WARN(get_logger(),
+      "test_hdr_sequence_workflow: load_hdr_preset not available, continuing.");
+  }
 
-  // Configure the second sequence index.
+  // Enable HDR, which unlocks the frame-merging controls.
+  auto hdr_on = std::make_shared<SetBool::Request>();
+  hdr_on->data = true;
+  auto hdr_res = call_service<SetBool>(enable_hdr_mode_client_, hdr_on);
+  ok &= assert_true(hdr_res && hdr_res->success,
+    "test_hdr_sequence_workflow/enable",
+    hdr_res ? hdr_res->message : "service call failed");
+
+  // Configure both sequence indices.
+  auto idx0 = std::make_shared<SetIntegerValue::Request>();
+  idx0->value = 0;
+  auto idx0_res = call_service<SetIntegerValue>(set_hdr_sequence_index_client_, idx0);
+  ok &= assert_true(idx0_res && idx0_res->success,
+    "test_hdr_sequence_workflow/index0",
+    idx0_res ? idx0_res->message : "service call failed");
+
   auto idx1 = std::make_shared<SetIntegerValue::Request>();
   idx1->value = 1;
   auto idx1_res = call_service<SetIntegerValue>(set_hdr_sequence_index_client_, idx1);
@@ -1091,7 +972,7 @@ bool CameraTest3D::test_hdr_sequence_workflow()
     "test_hdr_sequence_workflow/index1",
     idx1_res ? idx1_res->message : "service call failed");
 
-  // Enable HDR frame merging and IR-based merging.
+  // Turn on HDR frame merging and IR-based merging.
   auto merge_on = std::make_shared<SetBool::Request>();
   merge_on->data = true;
   auto merge_res = call_service<SetBool>(enable_hdr_merge_client_, merge_on);

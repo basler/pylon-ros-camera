@@ -688,13 +688,8 @@ The 3D test suite runs the same set of tests for every 3D camera. Many features 
 | `test_set_hdr_exposure_time` | Sets the selected HDR sub-exposure time (Stereo ace) |
 | `test_set_hdr_sub_exposures` | Sets the number of HDR sub-exposures (Stereo ace) |
 | `test_set_exposure_auto_mode` | Sets the auto exposure mode Off/Continuous/HDR (Stereo ace) |
-| `test_set_hdr_sequence_index` | Selects the HDR sequence to configure (Stereo mini) |
-| `test_set_hdr_sequence_preset` | Selects the HDR sequence preset (Stereo mini) |
-| `test_load_hdr_preset` | Loads the selected HDR sequence preset (Stereo mini) |
 | `test_set_hdr_max_exposure` | Sets the HDR sequence max exposure (Stereo mini) |
-| `test_enable_hdr_merge` | Enables and disables HDR frame merging (Stereo mini) |
-| `test_enable_hdr_merge_use_ir` | Enables and disables IR use during HDR merging (Stereo mini) |
-| `test_hdr_sequence_workflow` | Runs the full HDR sequence ordering: IR source, enable HDR, preset, both sequence indices, frame merging, then restore (Stereo mini) |
+| `test_hdr_sequence_workflow` | Runs the full mini HDR preset workflow in Basler's order: select IR source, set preset, load preset, enable HDR, set both sequence indices, enable frame merging, then restore. The mini's sequence/preset/load/merge nodes are only writable in this order, so they are exercised here rather than as standalone tests (Stereo mini) |
 | `test_hdr_sub_exposure_workflow` | Runs the full HDR sub-exposure ordering: set sub-exposure count, set each sub-exposure time by selector, activate HDR auto exposure, then restore (Stereo ace) |
 
 Some tests skip gracefully when a feature is not supported by the connected camera model. A skipped test is reported as `[ PASS ]` with a `[WARN]` note in the log.
