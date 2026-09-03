@@ -241,21 +241,59 @@ std::unique_ptr<PylonROS2Camera> PylonROS2Camera::create(const std::string& devi
                 return nullptr;
             }
 
+            // Match the requested id against a candidate user id: exact, or the
+            // requested id being the tail of the candidate.
+            auto id_matches = [&device_user_id_to_open](const std::string& candidate) -> bool
+            {
+                return (0 == device_user_id_to_open.compare(candidate)) ||
+                       (device_user_id_to_open.length() < candidate.length() &&
+                        0 == candidate.compare(candidate.length() - device_user_id_to_open.length(),
+                                               device_user_id_to_open.length(),
+                                               device_user_id_to_open));
+            };
+
             bool found_desired_device = false;
             for ( it = device_list.begin(); it != device_list.end(); ++it )
             {
-                std::string device_user_id_found(it->GetUserDefinedName());
-                if ( (0 == device_user_id_to_open.compare(device_user_id_found)) ||
-                     (device_user_id_to_open.length() < device_user_id_found.length() &&
-                     (0 == device_user_id_found.compare(device_user_id_found.length() -
-                                                         device_user_id_to_open.length(),
-                                                         device_user_id_to_open.length(),
-                                                         device_user_id_to_open) )
-                     )
-                   )
+                if (id_matches(std::string(it->GetUserDefinedName())))
                 {
                     found_desired_device = true;
                     break;
+                }
+            }
+
+            // Some device classes (e.g. Basler Stereo mini over GenTL) leave the
+            // enumeration-time user id blank and only report DeviceUserID once the
+            // device is open. Open those and match on the live value.
+            if (!found_desired_device)
+            {
+                for ( it = device_list.begin(); it != device_list.end(); ++it )
+                {
+                    if (!std::string(it->GetUserDefinedName()).empty())
+                        continue;
+
+                    std::string live_user_id;
+                    try
+                    {
+                        Pylon::CInstantCamera probe(tl_factory.CreateDevice(*it));
+                        probe.Open();
+                        GenApi::CStringPtr user_id_node(probe.GetNodeMap().GetNode("DeviceUserID"));
+                        if (user_id_node.IsValid() && GenApi::IsReadable(user_id_node))
+                            live_user_id = std::string(user_id_node->GetValue().c_str());
+                        probe.Close();
+                    }
+                    catch (const GenICam::GenericException& e)
+                    {
+                        RCLCPP_DEBUG_STREAM(LOGGER, "Could not read DeviceUserID from device "
+                            << it->GetModelName() << ": " << e.GetDescription());
+                        continue;
+                    }
+
+                    if (id_matches(live_user_id))
+                    {
+                        found_desired_device = true;
+                        break;
+                    }
                 }
             }
 
