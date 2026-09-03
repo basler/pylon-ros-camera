@@ -31,6 +31,8 @@
 #include <rclcpp/logger.hpp>
 #include <signal.h>
 #include <pthread.h>
+#include <chrono>
+#include <thread>
 
 //#include <functional>
 
@@ -81,6 +83,13 @@ PylonROS2CameraNode::PylonROS2CameraNode(const rclcpp::NodeOptions& options)
   this->stop_spinning_ = false;
   this->spin_thread_ = std::thread(&PylonROS2CameraNode::spin, this);
 
+  // Publish IMU samples from a dedicated thread so they go out at the hardware
+  // IMU rate, independent of the (slower) image grabbing rate.
+  if (this->pylon_camera_->hasIMU())
+  {
+    this->imu_publish_thread_ = std::thread(&PylonROS2CameraNode::imuPublishLoop, this);
+  }
+
   // Signal the spin thread to stop when the rclcpp context is being torn down.
   // We only set the flag here and do NOT join: joining inside an on_shutdown
   // callback (which is called synchronously from rclcpp::shutdown()) would
@@ -106,6 +115,11 @@ PylonROS2CameraNode::~PylonROS2CameraNode()
   if (this->spin_thread_.joinable())
   {
     this->spin_thread_.join();
+  }
+
+  if (this->imu_publish_thread_.joinable())
+  {
+    this->imu_publish_thread_.join();
   }
 
   if (this->img_rect_pub_)
@@ -234,6 +248,10 @@ void PylonROS2CameraNode::initPublishers()
   this->intensity_left_3d_pub_ = this->create_publisher<sensor_msgs::msg::Image>(msg_name, 10);
   msg_name = msg_prefix + "intensity_right_3d"; this->intensity_right_3d_topic_name_ = msg_name;
   this->intensity_right_3d_pub_ = this->create_publisher<sensor_msgs::msg::Image>(msg_name, 10);
+  // IMU topic (e.g. Stereo mini). Created unconditionally; it only publishes
+  // when the camera has an enabled IMU.
+  msg_name = msg_prefix + "imu"; this->imu_topic_name_ = msg_name;
+  this->imu_pub_ = this->create_publisher<sensor_msgs::msg::Imu>(msg_name, 100);
 }
 
 void PylonROS2CameraNode::initServices()
@@ -1042,6 +1060,32 @@ bool PylonROS2CameraNode::startGrabbing()
   }
   
   return true;
+}
+
+void PylonROS2CameraNode::imuPublishLoop()
+{
+  // Block SIGINT/SIGTERM here too; only the main thread handles them.
+  sigset_t sigset;
+  sigemptyset(&sigset);
+  sigaddset(&sigset, SIGINT);
+  sigaddset(&sigset, SIGTERM);
+  pthread_sigmask(SIG_BLOCK, &sigset, nullptr);
+
+  const std::string frame_id = this->cameraFrame();
+  std::vector<sensor_msgs::msg::Imu> samples;
+  while (!this->stop_spinning_ && rclcpp::ok())
+  {
+    samples.clear();
+    this->pylon_camera_->getImuSamples(samples);
+    for (auto& imu_msg : samples)
+    {
+      imu_msg.header.frame_id = frame_id;
+      this->imu_pub_->publish(imu_msg);
+    }
+    // Drain often so samples are published close to when they arrive, at the
+    // hardware IMU rate rather than in bursts.
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
+  }
 }
 
 void PylonROS2CameraNode::spin()

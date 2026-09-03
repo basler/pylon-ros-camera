@@ -32,3 +32,16 @@
     # Grab timeout — the Stereo mini needs at least 5000 ms to deliver its
     # first stereo-processed frame
     grab_timeout: 5000
+
+    ##########################################################################
+    ############################## IMU Settings ##############################
+    ##########################################################################
+
+    # Enable the IMU and publish sensor_msgs/Imu on the ~/imu topic. Off by
+    # default; set to true to receive IMU samples.
+    imu_enabled: false
+
+    # IMU output data rate in Hz, applied once at startup. 0 leaves the camera
+    # default. Only used when imu_enabled is true.
+    # imu_frame_rate: 200
+

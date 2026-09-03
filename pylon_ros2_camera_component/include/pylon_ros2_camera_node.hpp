@@ -41,6 +41,7 @@
 
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
+#include <sensor_msgs/msg/imu.hpp>
 
 // services
 #include "pylon_ros2_camera_interfaces/srv/get_integer_value.hpp"
@@ -201,6 +202,15 @@ protected:
    * @brief Spinning grabbing thread
    */
   virtual void spin();
+
+  /**
+   * @brief Drains queued IMU samples and publishes them at the IMU rate.
+   *
+   * Runs in its own thread so the samples go out smoothly at the hardware
+   * IMU rate instead of in bursts once per (slower) image spin. Publishing
+   * in bursts overflows a normal subscriber's queue and drops samples.
+   */
+  void imuPublishLoop();
 
   /**
    * @brief Grabs an image and stores the image in img_raw_msg_
@@ -1791,6 +1801,7 @@ protected:
   std::string confidence_3d_topic_name_;
   std::string intensity_left_3d_topic_name_;
   std::string intensity_right_3d_topic_name_;
+  std::string imu_topic_name_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_3d_pub_;
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr intensity_3d_pub_;
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr depth_map_3d_pub_;
@@ -1799,6 +1810,7 @@ protected:
   rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr cam_info_3d_pub_;
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr intensity_left_3d_pub_;
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr intensity_right_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
 
   // services
   rclcpp::Service<GetIntegerSrv>::SharedPtr get_max_num_buffer_srv_;
@@ -1963,6 +1975,8 @@ protected:
   // spinning thread
   std::thread spin_thread_;
   std::atomic<bool> stop_spinning_;
+  // IMU publishing thread (only used for cameras with an enabled IMU)
+  std::thread imu_publish_thread_;
   // mutex
   std::recursive_mutex grab_mutex_;
 

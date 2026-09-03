@@ -116,6 +116,10 @@ protected:
   virtual bool test_hdr_sequence_workflow();
   virtual bool test_hdr_sub_exposure_workflow();
 
+  // Verify the Stereo mini IMU stream. Skips when the imu topic is silent
+  // (IMU not enabled, or a camera model without an IMU).
+  virtual bool test_imu_stream();
+
   // Read one current_params message from the driver. Returns false if none
   // arrives within a few seconds. Used to detect which 3D features a camera
   // supports (unavailable features report -1) and to restore original values.

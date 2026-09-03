@@ -179,6 +179,7 @@ The following topics are published when a subscriber is registered:
 | `[Camera name]/[Node name]/camera_info_3d` | `sensor_msgs/CameraInfo` | Calibration data of the 3D stream |
 | `[Camera name]/[Node name]/intensity_left_3d` | `sensor_msgs/Image` | Left intensity image (stereo cameras) |
 | `[Camera name]/[Node name]/intensity_right_3d` | `sensor_msgs/Image` | Right intensity image (stereo cameras) |
+| `[Camera name]/[Node name]/imu` | `sensor_msgs/Imu` | IMU readings (Stereo mini, when `imu_enabled` is true) |
 
 ### 3D data acquisition action
 
@@ -237,6 +238,44 @@ Common to all 3D cameras:
 ### Current 3D parameters
 
 When the current parameters publisher is enabled, the `current_params` topic also reports the current 3D settings (depth range, operating mode, HDR mode, filters, projector, illumination mode, depth quality, and so on). A field that does not apply to the connected camera is set to `-1` (or `-1.0` for the float fields).
+
+### IMU (Stereo mini)
+
+The Stereo mini has a built-in IMU. When `imu_enabled` is set to `true`, the driver publishes the accelerometer and gyroscope readings on the `imu` topic as `sensor_msgs/Imu` messages. Values are in SI units (m/s² for `linear_acceleration`, rad/s for `angular_velocity`). The IMU does not provide orientation, so `orientation_covariance[0]` is set to `-1` following [REP 145](https://www.ros.org/reps/rep-0145.html). The `linear_acceleration_covariance` and `angular_velocity_covariance` matrices are left at zero, meaning the covariance is not characterized. Each message is stamped with the IMU hardware timestamp mapped to the ROS clock, not the host arrival time.
+
+The IMU is published from a dedicated thread at its hardware rate, independent of the image acquisition rate, so the samples arrive smoothly even when the 3D frame rate is much lower.
+
+The `imu` topic uses the default QoS (reliable, queue depth 100).
+
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `imu_enabled` | `false` | Enables the IMU and the `imu` topic. |
+| `imu_frame_rate` | `0` | IMU sampling rate in Hz (e.g. 200). `0` keeps the camera default. |
+
+Both parameters are read once at startup. They are set in the camera configuration file; the launch files do not expose them as launch arguments.
+
+Example: enable the IMU in the Stereo mini config, then read the topic.
+
+Set the parameters in `pylon_ros2_camera_wrapper/config/my_stereo_mini.yaml`:
+
+```yaml
+    imu_enabled: true
+    imu_frame_rate: 200
+```
+
+Start the driver and read the topic:
+
+```
+ros2 launch pylon_ros2_camera_wrapper my_stereo_mini.launch.py
+
+# Print the IMU messages (default QoS):
+ros2 topic echo /my_stereo_mini/pylon_ros2_camera_node/imu
+
+# Check the publishing rate:
+ros2 topic hz /my_stereo_mini/pylon_ros2_camera_node/imu
+```
+
+The topic name follows the `[Camera name]/[Node name]/imu` convention, so replace accordingly with this example `my_stereo_mini` and `pylon_ros2_camera_node` with the `camera_name` and `node_name` you launched with.
 
 
 ## Packages
@@ -426,6 +465,7 @@ Name          | Notes
 /my_camera/pylon_ros2_camera_node/intensity_3d  | intensity images from the 3D cameras
 /my_camera/pylon_ros2_camera_node/intensity_left_3d  | left intensity images from stereo cameras (e.g. the Stereo mini)
 /my_camera/pylon_ros2_camera_node/intensity_right_3d  | right intensity images from stereo cameras (e.g. the Stereo mini)
+/my_camera/pylon_ros2_camera_node/imu  | IMU readings from the Stereo mini (when imu_enabled is true)
 
 
 ## Service servers

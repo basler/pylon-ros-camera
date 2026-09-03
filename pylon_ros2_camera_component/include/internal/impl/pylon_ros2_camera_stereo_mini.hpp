@@ -32,10 +32,18 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <cstdint>
+#include <deque>
+#include <mutex>
+#include <chrono>
+#include <thread>
+#include <atomic>
+#include <condition_variable>
 
 #include "internal/impl/pylon_ros2_camera_3d.hpp"
 
 #include <pylon/StereoMiniInstantCamera.h>
+#include <pylon/CameraEventHandler.h>
 
 
 namespace pylon_ros2_camera
@@ -51,6 +59,174 @@ namespace
     constexpr int s_stm_fallback_depth_min = 0;
     constexpr int s_stm_fallback_depth_max = 16000;
 }
+
+// User id passed to RegisterCameraEventHandler to tag IMU frame events.
+constexpr intptr_t s_imu_event_id = 0x1111;
+
+    // One IMU reading: accelerometer (m/s^2), gyroscope (rad/s) and the device
+    // hardware timestamp (nanoseconds). Accel and gyro share one timestamp.
+    struct ImuSample
+    {
+        int64_t device_timestamp_ns = 0;
+        double ax = 0.0, ay = 0.0, az = 0.0;
+        double gx = 0.0, gy = 0.0, gz = 0.0;
+    };
+
+    // Receives IMU frame events from the Stereo mini and queues the readings.
+    // OnCameraEvent runs on a pylon event thread; the grab loop drains the queue
+    // through takeSamples().
+    class CImuEventHandler : public Pylon::CCameraEventHandler
+    {
+    public:
+        void OnCameraEvent(Pylon::CInstantCamera& camera, intptr_t user_id, GenApi::INode* /*node*/) override
+        {
+            if (user_id != s_imu_event_id)
+                return;
+
+            auto* stereo_cam = dynamic_cast<Pylon::CStereoMiniInstantCamera*>(&camera);
+            if (stereo_cam == nullptr)
+                return;
+
+            try
+            {
+                // Accel and gyro share one timestamp per frame; skip repeats.
+                const int64_t timestamp = static_cast<int64_t>(stereo_cam->BslEventImuGyroTimestamp.GetValue());
+                if (timestamp == last_timestamp_)
+                    return;
+
+                ImuSample sample;
+                sample.device_timestamp_ns = timestamp;
+                sample.ax = stereo_cam->BslEventImuAccelX.GetValue();
+                sample.ay = stereo_cam->BslEventImuAccelY.GetValue();
+                sample.az = stereo_cam->BslEventImuAccelZ.GetValue();
+                sample.gx = stereo_cam->BslEventImuGyroX.GetValue();
+                sample.gy = stereo_cam->BslEventImuGyroY.GetValue();
+                sample.gz = stereo_cam->BslEventImuGyroZ.GetValue();
+
+                const int64_t host_now_ns = clock_.now().nanoseconds();
+                const int64_t offset_ns = host_now_ns - timestamp;
+
+                {
+                    std::lock_guard<std::mutex> lock(mutex_);
+                    // Keep the smallest device->host offset seen. It anchors the
+                    // device timestamps to the ROS clock and ignores the extra
+                    // delay of bursty host-side event delivery.
+                    if (!offset_valid_ || offset_ns < min_offset_ns_)
+                    {
+                        min_offset_ns_ = offset_ns;
+                        offset_valid_ = true;
+                    }
+                    if (queue_.size() >= kMaxQueue)
+                        queue_.pop_front();
+                    queue_.push_back(sample);
+                }
+                last_timestamp_ = timestamp;
+            }
+            catch (const GenICam::GenericException&)
+            {
+                // Ignore transient read failures around the first events.
+            }
+        }
+
+        // Moves the queued samples into out as sensor_msgs/Imu messages, stamping
+        // each with its device timestamp shifted to the ROS clock. Returns the
+        // number of samples added. frame_id is left for the caller to fill.
+        size_t takeSamples(std::vector<sensor_msgs::msg::Imu>& out)
+        {
+            std::deque<ImuSample> local;
+            int64_t offset_ns = 0;
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                if (queue_.empty() || !offset_valid_)
+                    return 0;
+                local.swap(queue_);
+                offset_ns = min_offset_ns_;
+            }
+
+            size_t count = 0;
+            for (const ImuSample& s : local)
+            {
+                sensor_msgs::msg::Imu msg;
+                msg.header.stamp = rclcpp::Time(s.device_timestamp_ns + offset_ns);
+                msg.linear_acceleration.x = s.ax;
+                msg.linear_acceleration.y = s.ay;
+                msg.linear_acceleration.z = s.az;
+                msg.angular_velocity.x = s.gx;
+                msg.angular_velocity.y = s.gy;
+                msg.angular_velocity.z = s.gz;
+                // No orientation is provided by the IMU (REP-145 convention).
+                msg.orientation_covariance[0] = -1.0;
+                out.push_back(msg);
+                ++count;
+            }
+            return count;
+        }
+
+        void clear()
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            queue_.clear();
+            offset_valid_ = false;
+            last_timestamp_ = -1;
+        }
+
+    private:
+        static constexpr size_t kMaxQueue = 5000;
+        std::mutex mutex_;
+        std::deque<ImuSample> queue_;
+        rclcpp::Clock clock_{RCL_SYSTEM_TIME};
+        int64_t last_timestamp_ = -1;
+        int64_t min_offset_ns_ = 0;
+        bool offset_valid_ = false;
+    };
+
+    // Holds the most recent 3D grab result. When the IMU is enabled a dedicated
+    // pump thread calls RetrieveResult in a tight loop to keep IMU events flowing
+    // at the full rate; it stores each frame here through store(), and the node
+    // grab loop reads the latest one through waitAndTake() instead of calling
+    // RetrieveResult itself.
+    class LatestFrameBuffer
+    {
+    public:
+        void store(const Pylon::CGrabResultPtr& grab_result)
+        {
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                latest_ = grab_result;
+                has_new_ = true;
+            }
+            cond_.notify_one();
+        }
+
+        // Waits up to timeout_ms for a frame that arrived since the previous take
+        // and moves it into out. Returns false on timeout.
+        bool waitAndTake(Pylon::CGrabResultPtr& out, unsigned int timeout_ms)
+        {
+            std::unique_lock<std::mutex> lock(mutex_);
+            if (!cond_.wait_for(lock, std::chrono::milliseconds(timeout_ms),
+                                [this] { return has_new_; }))
+            {
+                return false;
+            }
+            out = latest_;
+            latest_ = Pylon::CGrabResultPtr();
+            has_new_ = false;
+            return true;
+        }
+
+        void clear()
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            latest_ = Pylon::CGrabResultPtr();
+            has_new_ = false;
+        }
+
+    private:
+        std::mutex mutex_;
+        std::condition_variable cond_;
+        Pylon::CGrabResultPtr latest_;
+        bool has_new_ = false;
+    };
 
 // Shorthand for the Stereo mini enumeration tokens. The Stereo mini supplementary
 // package 1.1.0 moved this namespace out of Pylon:: to the global scope.
@@ -98,6 +274,11 @@ public:
     virtual bool hasExtraIntensityImages() const override { return true; }
     virtual const sensor_msgs::msg::Image& extraIntensityLeft() const override { return intensity_ir_left_msg_; }
     virtual const sensor_msgs::msg::Image& extraIntensityRight() const override { return intensity_ir_right_msg_; }
+
+    // IMU (opt-in via imu_enabled). Samples are delivered as camera events and
+    // drained by the node grab loop.
+    virtual bool hasIMU() const override { return imu_enabled_; }
+    virtual size_t getImuSamples(std::vector<sensor_msgs::msg::Imu>& samples) override { return imu_handler_.takeSamples(samples); }
 
     virtual int imagePixelDepth() const override;
 
@@ -257,6 +438,22 @@ private:
     uint64_t src_id_left_  = 0;  // Source1 (left IR)
     uint64_t src_id_right_ = 0;  // Source2 (right IR)
     uint64_t src_id_color_ = 0;  // Source3 (color)
+
+    // Registers the IMU camera events (open, not grabbing) and optionally sets
+    // the IMU frame rate. Called from applyCamSpecificStartupSettings.
+    void setupImu(int frame_rate);
+    // Stops the IMU events and deregisters the handler before the camera closes.
+    void teardownImu();
+    // Tight RetrieveResult poll loop that keeps IMU camera events flowing at the
+    // full rate and buffers the latest frame for the node grab loop.
+    void imuPumpLoop();
+
+    CImuEventHandler imu_handler_;
+    // Latest frame buffered by the IMU pump thread while it is running.
+    LatestFrameBuffer frame_buffer_;
+    std::thread imu_pump_thread_;
+    std::atomic<bool> imu_pump_running_{false};
+    bool imu_enabled_ = false;
 };
 
 PylonROS2StereoMiniCamera::PylonROS2StereoMiniCamera(Pylon::IPylonDevice* device) :
@@ -272,6 +469,7 @@ PylonROS2StereoMiniCamera::~PylonROS2StereoMiniCamera()
 {
     try
     {
+        this->teardownImu();
         if (stereo_mini_cam_->IsOpen())
         {
             stereo_mini_cam_->Close();
@@ -305,6 +503,17 @@ bool PylonROS2StereoMiniCamera::openCamera()
 {
     try
     {
+        // GrabCameraEvents must be enabled before Open() to receive camera
+        // events (e.g. IMU frames). Harmless when no events are selected.
+        try
+        {
+            stereo_mini_cam_->GrabCameraEvents.SetValue(true);
+        }
+        catch (const GenICam::GenericException& e)
+        {
+            RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "GrabCameraEvents not set before open: " << e.GetDescription());
+        }
+
         stereo_mini_cam_->Open();
         RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Connected to camera " << stereo_mini_cam_->GetDeviceInfo().GetFriendlyName());
     }
@@ -317,7 +526,7 @@ bool PylonROS2StereoMiniCamera::openCamera()
     return true;
 }
 
-bool PylonROS2StereoMiniCamera::applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters __attribute__((unused)))
+bool PylonROS2StereoMiniCamera::applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters)
 {
     try
     {
@@ -360,6 +569,13 @@ bool PylonROS2StereoMiniCamera::applyCamSpecificStartupSettings(const PylonROS2C
         // Disabling chunk data is essential to receive a grab result.
         stereo_mini_cam_->ChunkModeActive.SetValue(false);
 
+        // IMU (opt-in). Register the camera events now, while the camera is open
+        // but not yet grabbing; samples are drained later in the grab loop.
+        if (parameters.imu_enabled_)
+        {
+            this->setupImu(parameters.imu_frame_rate_);
+        }
+
         RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Stereo mini configured: Range=Coord3D_ABC32f (mm), Intensity=Source3 (color) + Source1/Source2 (IR left/right), Confidence enabled.");
         RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Active source selector: " << stereo_mini_cam_->SourceSelector.ToString());
         RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Source IDs: left=" << src_id_left_ << " right=" << src_id_right_ << " color=" << src_id_color_);
@@ -378,6 +594,15 @@ bool PylonROS2StereoMiniCamera::startGrabbing(const PylonROS2CameraParameter& pa
     try
     {
         this->grabbingStarting();
+
+        // With the IMU enabled, start the pump thread now so it owns RetrieveResult
+        // and keeps IMU events flowing at the full rate. The node grab loop then
+        // reads frames from frame_buffer_ instead of calling RetrieveResult.
+        if (imu_enabled_ && !imu_pump_running_.load())
+        {
+            imu_pump_running_.store(true);
+            imu_pump_thread_ = std::thread(&PylonROS2StereoMiniCamera::imuPumpLoop, this);
+        }
 
         // Read the user id from the open camera. The enumeration-time name is
         // blank on the Stereo mini, so fall back to it only if the node is unreadable.
@@ -462,6 +687,32 @@ bool PylonROS2StereoMiniCamera::grab3D(Pylon::CGrabResultPtr& grab_result)
         return false;
     }
 
+    // With the IMU enabled the pump thread owns RetrieveResult and dispatches
+    // IMU events; take the latest frame it buffered instead of calling
+    // RetrieveResult, which two threads must not do on the same camera.
+    if (imu_enabled_)
+    {
+        if (!frame_buffer_.waitAndTake(grab_result, static_cast<unsigned int>(grab_timeout_)))
+        {
+            if (stereo_mini_cam_->IsCameraDeviceRemoved())
+            {
+                RCLCPP_ERROR(LOGGER_STEREO_MINI, "Lost connection to the camera...");
+            }
+            return false;
+        }
+
+        if (!grab_result.IsValid() || !grab_result->GrabSucceeded())
+        {
+            if (grab_result.IsValid())
+            {
+                RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "Error: " << grab_result->GetErrorCode() << " " << grab_result->GetErrorDescription());
+            }
+            return false;
+        }
+
+        return true;
+    }
+
     try
     {
         stereo_mini_cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException);
@@ -493,7 +744,140 @@ bool PylonROS2StereoMiniCamera::grab3D(Pylon::CGrabResultPtr& grab_result)
     return true;
 }
 
+void PylonROS2StereoMiniCamera::setupImu(int frame_rate)
+{
+    // GrabCameraEvents is normally set before Open(); set it again best-effort
+    // in case it was not writable then. Some firmware reports it not writable
+    // here, which does not prevent the events from arriving.
+    try
+    {
+        stereo_mini_cam_->GrabCameraEvents.SetValue(true);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "GrabCameraEvents not set: " << e.GetDescription());
+    }
+
+    if (frame_rate > 0)
+    {
+        try
+        {
+            GenApi::CIntegerPtr imu_rate(stereo_mini_cam_->GetNodeMap().GetNode("BslImuFrameRate"));
+            if (imu_rate.IsValid() && GenApi::IsWritable(imu_rate))
+            {
+                int64_t target = frame_rate;
+                if (target < imu_rate->GetMin())
+                    target = imu_rate->GetMin();
+                else if (target > imu_rate->GetMax())
+                    target = imu_rate->GetMax();
+                imu_rate->SetValue(target);
+                RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "IMU frame rate set to " << target << " Hz");
+            }
+            else
+            {
+                RCLCPP_WARN(LOGGER_STEREO_MINI, "BslImuFrameRate is not writable on this camera; keeping the IMU default rate");
+            }
+        }
+        catch (const GenICam::GenericException& e)
+        {
+            RCLCPP_WARN_STREAM(LOGGER_STEREO_MINI, "Could not set the IMU frame rate: " << e.GetDescription());
+        }
+    }
+
+    try
+    {
+        frame_buffer_.clear();
+
+        stereo_mini_cam_->EventSelector.FromString("ImuFrame");
+        stereo_mini_cam_->EventNotification.FromString("On");
+        stereo_mini_cam_->RegisterCameraEventHandler(
+            &imu_handler_,
+            "BslEventImuGyroTimestamp",
+            s_imu_event_id,
+            Pylon::RegistrationMode_Append,
+            Pylon::Cleanup_None);
+
+        imu_enabled_ = true;
+        RCLCPP_INFO(LOGGER_STEREO_MINI, "IMU enabled; publishing samples on the imu topic");
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        imu_enabled_ = false;
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "Failed to enable the IMU: " << e.GetDescription());
+    }
+}
+
+void PylonROS2StereoMiniCamera::teardownImu()
+{
+    if (!imu_enabled_)
+    {
+        return;
+    }
+
+    // Stop the pump thread first so nothing calls RetrieveResult while we turn the
+    // events off and deregister the handler before the camera is closed.
+    imu_pump_running_.store(false);
+    if (imu_pump_thread_.joinable())
+    {
+        imu_pump_thread_.join();
+    }
+
+    try
+    {
+        if (stereo_mini_cam_->IsGrabbing())
+        {
+            stereo_mini_cam_->StopGrabbing();
+        }
+
+        stereo_mini_cam_->EventSelector.FromString("ImuFrame");
+        stereo_mini_cam_->EventNotification.FromString("Off");
+        stereo_mini_cam_->DeregisterCameraEventHandler(&imu_handler_, "BslEventImuGyroTimestamp");
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "IMU teardown: " << e.GetDescription());
+    }
+
+    frame_buffer_.clear();
+    imu_enabled_ = false;
+}
+
+void PylonROS2StereoMiniCamera::imuPumpLoop()
+{
+    // Poll RetrieveResult in a tight loop. Each call dispatches the IMU camera
+    // events that arrived since the last call (that is how the IMU keeps its full
+    // rate), and returns the next stereo frame when one is ready. The short
+    // timeout paces the loop without a busy wait.
+    while (imu_pump_running_.load())
+    {
+        if (!stereo_mini_cam_->IsGrabbing())
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+            continue;
+        }
+
+        Pylon::CGrabResultPtr grab_result;
+        try
+        {
+            stereo_mini_cam_->RetrieveResult(5, grab_result, Pylon::TimeoutHandling_Return);
+        }
+        catch (const GenICam::GenericException&)
+        {
+            // The camera may have been stopped or removed between the checks above
+            // and this call; the next iteration re-checks IsGrabbing().
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+            continue;
+        }
+
+        if (grab_result.IsValid() && grab_result->GrabSucceeded())
+        {
+            frame_buffer_.store(grab_result);
+        }
+    }
+}
+
 bool PylonROS2StereoMiniCamera::grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
+
                                        sensor_msgs::msg::Image& intensity_map_msg,
                                        sensor_msgs::msg::Image& depth_map_msg,
                                        sensor_msgs::msg::Image& depth_map_color_msg,

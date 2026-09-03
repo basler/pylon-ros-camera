@@ -328,6 +328,18 @@ public:
     int trigger_timeout_;
 
     /**
+    * Enable the IMU on cameras that have one (Stereo mini). When true, the
+    * driver registers for IMU events and publishes them on the ~/imu topic.
+    */
+    bool imu_enabled_;
+
+    /**
+    * IMU output data rate in Hz applied once at startup. 0 leaves the camera
+    * default. Only used when imu_enabled_ is true.
+    */
+    int imu_frame_rate_;
+
+    /**
     * camera white balance auto 
     */
     int white_balance_auto_;
