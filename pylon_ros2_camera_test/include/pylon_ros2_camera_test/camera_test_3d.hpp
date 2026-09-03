@@ -112,12 +112,7 @@ protected:
   virtual bool test_set_hdr_exposure_time();
   virtual bool test_set_hdr_sub_exposures();
   virtual bool test_set_exposure_auto_mode();
-  virtual bool test_set_hdr_sequence_index();
-  virtual bool test_set_hdr_sequence_preset();
-  virtual bool test_load_hdr_preset();
   virtual bool test_set_hdr_max_exposure();
-  virtual bool test_enable_hdr_merge();
-  virtual bool test_enable_hdr_merge_use_ir();
   virtual bool test_hdr_sequence_workflow();
   virtual bool test_hdr_sub_exposure_workflow();
 

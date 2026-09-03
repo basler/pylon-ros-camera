@@ -1,6 +1,6 @@
 # ROS2-Driver for Basler Cameras
 
-The official pylon ROS2 driver under Jazzy Jalisco for [Basler](http://www.baslerweb.com/) GigE Vision and USB3 Vision 2D cameras, and for Basler 3D cameras (the blaze, the Stereo ace and the Stereo mini).
+The official pylon ROS2 driver under Kilted Kaiju for [Basler](http://www.baslerweb.com/) GigE Vision and USB3 Vision 2D cameras, and for Basler 3D cameras (the blaze, the Stereo ace and the Stereo mini).
 
 This driver provides many functionalities available through the Basler [pylon Camera Software Suite](https://www.baslerweb.com/en/products/software/basler-pylon-camera-software-suite/) C++ API.
 
@@ -14,8 +14,8 @@ You are welcome to post any questions or issues on [GitHub](https://github.com/b
 ### Prerequisites
 
 - From [Ubuntu 24.04 Noble Numbat](https://releases.ubuntu.com/noble/)
-- From [ROS2 Jazzy Jalisco](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html). Your ROS2 environment must be [configured](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools/Configuring-ROS2-Environment.html), your workspace [created](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace.html), and colcon, used to build the packages, [installed](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html).
-- [rosdep](https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Rosdep.html). rosdep must be installed as a debian package (`sudo apt update && sudo apt install python3-rosdep && sudo rosdep init && rosdep update`).
+- From [ROS2 Kilted Kaiju](https://docs.ros.org/en/kilted/Installation/Ubuntu-Install-Debs.html). Your ROS2 environment must be [configured](https://docs.ros.org/en/kilted/Tutorials/Beginner-CLI-Tools/Configuring-ROS2-Environment.html), your workspace [created](https://docs.ros.org/en/kilted/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace.html), and colcon, used to build the packages, [installed](https://docs.ros.org/en/kilted/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html).
+- [rosdep](https://docs.ros.org/en/kilted/Tutorials/Intermediate/Rosdep.html). rosdep must be installed as a debian package (`sudo apt update && sudo apt install python3-rosdep && sudo rosdep init && rosdep update`).
 - From [pylon Camera Software Suite](https://www2.baslerweb.com/en/downloads/software-downloads/) version 26.07 or newer.
 - *(3D cameras only)* Each Basler 3D camera (blaze, Stereo ace, and Stereo mini) needs its own pylon Supplementary Package, installed in addition to the pylon Camera Software Suite: [pylon Supplementary Package for blaze](https://www2.baslerweb.com/en/downloads/software-downloads/) (version 1.7.3 or newer for the blaze, version 1.2.2 or newer for the Stereo ace, and version 1.0.8 or newer for the Stereo mini). Compatibility with the installed pylon Camera Software Suite must be ensured (please refer to the documentation). The API libraries must be installed manually: download and install the corresponding Linux Debian Installer Package for your architecture.
 - [Git](https://git-scm.com/). Git must be installed as a debian package (`sudo apt update && sudo apt install git`).
@@ -25,21 +25,21 @@ You are welcome to post any questions or issues on [GitHub](https://github.com/b
 
 This repository including the pylon ROS2 packages must be cloned in your workspace (e.g., `dev_ws` for instance):  
 ```
-cd ~/dev_ws/src && git clone -b jazzy https://github.com/basler/pylon-ros-camera pylon_ros2_camera
+cd ~/dev_ws/src && git clone -b kilted https://github.com/basler/pylon-ros-camera pylon_ros2_camera
 ```  
 
 Install the ROS2 dependencies required by the pylon ROS2 packages:  
 ``cd ~/dev_ws && rosdep install --from-paths src --ignore-src -r -y``  
 You may experience some problems with the `diagnostic_updater` and `pcl_ros` dependencies. In this case, install them by executing the following commands:  
 ```
-sudo apt install ros-jazzy-diagnostic-updater
-sudo apt install ros-jazzy-pcl-ros
+sudo apt install ros-kilted-diagnostic-updater
+sudo apt install ros-kilted-pcl-ros
 ```
 
 Compile the workspace using `colcon`:  
 ``cd ~/dev_ws && colcon build``  
 
-**Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g., Python files or other not compiled resources) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html)).
+**Note**: The --symlink-install flag can be added to the `colcon build` command. This allows the installed files to be changed by changing the files in the source space (e.g., Python files or other not compiled resources) for faster iteration (refer to [the ROS2 documentation](https://docs.ros.org/en/kilted/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html)).
 
 **Note**: The packages are built in Release by default. The build type can be modified by using the `--cmake-args` flag (for instance `colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Debug`).
 
@@ -79,7 +79,7 @@ The pylon node defines the different interface names according to the following 
 The camera and the node names can be set thanks respectively to the `camera_name` and `node_name` parameters.  
 
 Acquired images and point clouds are published through the `[Camera name]/[Node name]/[image_raw/confidence_3d/depth_map_3d/depth_map_color_3d/intensity_3d/intensity_left_3d/intensity_right_3d/cloud_3d]` topics, only if a subscriber to these topics has been registered.  
-To visualize the images and point clouds, [rqt](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools/Introducing-Turtlesim/Introducing-Turtlesim.html#install-rqt) and [rviz2](https://index.ros.org/p/rviz2/) can be used. Beware that rviz2 is not able to vizualize correctly images encoded in Bayer.  
+To visualize the images and point clouds, [rqt](https://docs.ros.org/en/kilted/Tutorials/Beginner-CLI-Tools/Introducing-Turtlesim/Introducing-Turtlesim.html#install-rqt) and [rviz2](https://index.ros.org/p/rviz2/) can be used. Beware that rviz2 is not able to vizualize correctly images encoded in Bayer.  
 
 When available, specific user set can be specified thanks to the `startup_user_set` parameter.  
 ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py startup_user_set:=Default``  or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py startup_user_set:=UserSet1`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py startup_user_set:=UserSet2`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py startup_user_set:=UserSet3``  
@@ -252,7 +252,7 @@ When the current parameters publisher is enabled, the `current_params` topic als
 
 - **camera_frame**  
   The tf2 frame under which the images were published.  
-  ROS2 provides a library called [tf2](https://docs.ros.org/en/jazzy/Concepts/Intermediate/About-Tf2.html) (*TransForm* version 2) to manage the coordinate transformations between the different frames (coordinate systems) defined by the user and assigned to the components of a robotics system.
+  ROS2 provides a library called [tf2](https://docs.ros.org/en/kilted/Concepts/Intermediate/About-Tf2.html) (*TransForm* version 2) to manage the coordinate transformations between the different frames (coordinate systems) defined by the user and assigned to the components of a robotics system.
 
 - **device_user_id**  
   The DeviceUserID of the camera. If empty, the first camera found in the device list will be used.
@@ -688,13 +688,8 @@ The 3D test suite runs the same set of tests for every 3D camera. Many features 
 | `test_set_hdr_exposure_time` | Sets the selected HDR sub-exposure time (Stereo ace) |
 | `test_set_hdr_sub_exposures` | Sets the number of HDR sub-exposures (Stereo ace) |
 | `test_set_exposure_auto_mode` | Sets the auto exposure mode Off/Continuous/HDR (Stereo ace) |
-| `test_set_hdr_sequence_index` | Selects the HDR sequence to configure (Stereo mini) |
-| `test_set_hdr_sequence_preset` | Selects the HDR sequence preset (Stereo mini) |
-| `test_load_hdr_preset` | Loads the selected HDR sequence preset (Stereo mini) |
 | `test_set_hdr_max_exposure` | Sets the HDR sequence max exposure (Stereo mini) |
-| `test_enable_hdr_merge` | Enables and disables HDR frame merging (Stereo mini) |
-| `test_enable_hdr_merge_use_ir` | Enables and disables IR use during HDR merging (Stereo mini) |
-| `test_hdr_sequence_workflow` | Runs the full HDR sequence ordering: IR source, enable HDR, preset, both sequence indices, frame merging, then restore (Stereo mini) |
+| `test_hdr_sequence_workflow` | Runs the full mini HDR preset workflow in Basler's order: select IR source, set preset, load preset, enable HDR, set both sequence indices, enable frame merging, then restore. The mini's sequence/preset/load/merge nodes are only writable in this order, so they are exercised here rather than as standalone tests (Stereo mini) |
 | `test_hdr_sub_exposure_workflow` | Runs the full HDR sub-exposure ordering: set sub-exposure count, set each sub-exposure time by selector, activate HDR auto exposure, then restore (Stereo ace) |
 
 Some tests skip gracefully when a feature is not supported by the connected camera model. A skipped test is reported as `[ PASS ]` with a `[WARN]` note in the log.
