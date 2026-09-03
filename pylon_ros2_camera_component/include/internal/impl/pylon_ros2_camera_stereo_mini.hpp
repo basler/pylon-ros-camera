@@ -379,7 +379,15 @@ bool PylonROS2StereoMiniCamera::startGrabbing(const PylonROS2CameraParameter& pa
     {
         this->grabbingStarting();
 
-        device_user_id_ = stereo_mini_cam_->GetDeviceInfo().GetUserDefinedName().c_str();
+        // Read the user id from the open camera. The enumeration-time name is
+        // blank on the Stereo mini, so fall back to it only if the node is unreadable.
+        {
+            GenApi::CStringPtr user_id_node(stereo_mini_cam_->GetNodeMap().GetNode("DeviceUserID"));
+            if (user_id_node.IsValid() && GenApi::IsReadable(user_id_node))
+                device_user_id_ = user_id_node->GetValue().c_str();
+            else
+                device_user_id_ = stereo_mini_cam_->GetDeviceInfo().GetUserDefinedName().c_str();
+        }
         // The Stereo mini needs more time than a 2D camera to deliver its first
         // (and subsequent) stereo-processed frames. Use a generous grab timeout
         // (at least 5 s), independent of the smaller 2D default.
