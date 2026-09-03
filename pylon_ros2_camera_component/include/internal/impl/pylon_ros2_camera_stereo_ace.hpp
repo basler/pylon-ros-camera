@@ -1396,8 +1396,8 @@ std::string PylonROS2StereoAceCamera::enableHDRMode(const bool& enable)
 {
     // The Stereo ace exposes HDR via the BslHdrEnable enum (Off/On).
     // BslHdrEnable is a static (not-while-grabbing) node, so stop/start around the write.
-    // Note: a complete HDR setup on the supported STA-200 variant also requires configuring
-    // the sub-exposure sequence; this bare toggle only flips the enable node.
+    // Note: a complete HDR setup also requires configuring the sub-exposure
+    // sequence; this bare toggle only flips the enable node.
     try
     {
         this->grabbingStopping();
