@@ -37,6 +37,7 @@
 #include "sensor_msgs/msg/region_of_interest.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include "sensor_msgs/msg/imu.hpp"
 
 #include "pylon_ros2_camera_parameter.hpp"
 #include "binary_exposure_search.hpp"
@@ -176,6 +177,23 @@ public:
     {
         static const sensor_msgs::msg::Image empty;
         return empty;
+    }
+
+    /**
+     * Whether this camera has an IMU that is enabled and delivering samples
+     * (e.g. the Stereo mini when imu_enabled is set). False by default.
+     */
+    virtual bool hasIMU() const { return false; }
+
+    /**
+     * Moves the IMU samples queued since the last call into samples and returns
+     * how many were added. Each sample already carries its hardware timestamp in
+     * header.stamp; the caller sets header.frame_id. Returns 0 by default.
+     */
+    virtual size_t getImuSamples(std::vector<sensor_msgs::msg::Imu>& samples)
+    {
+        (void)samples;
+        return 0;
     }
 
     /**

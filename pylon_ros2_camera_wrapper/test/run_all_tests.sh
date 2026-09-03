@@ -713,6 +713,25 @@ phase_topics() {
         fi
     done
 
+    # IMU (Stereo mini only). When imu_enabled is true, a normal default-QoS
+    # subscriber must receive the samples at the IMU hardware rate, well above
+    # the image frame rate. This is measured the same way a consumer would, with
+    # ros2 topic hz. The imu publisher is always advertised but only streams when
+    # imu_enabled is true, so a silent topic means the IMU is off (or the camera
+    # has none) and the check is skipped.
+    if [[ "$CAM_TYPE" == "3d" ]]; then
+        local imu_hz
+        imu_hz="$(timeout 8 ros2 topic hz "${NS}/imu" 2>/dev/null \
+            | grep -m1 -oE 'average rate: [0-9.]+' | grep -oE '[0-9.]+')"
+        if [[ -z "$imu_hz" ]]; then
+            record SKIP "imu stream rate (no data; enable with imu_enabled:=true on a Stereo mini)"
+        elif awk "BEGIN{exit !($imu_hz >= 100)}" 2>/dev/null; then
+            record PASS "imu streams at hardware rate (${imu_hz} Hz >= 100 Hz)"
+        else
+            record FAIL "imu rate too low (${imu_hz} Hz < 100 Hz; expected the IMU hardware rate)"
+        fi
+    fi
+
     # camera_info is published together with the frames, gated on a data-topic
     # subscriber, so hold a subscriber on the primary data topic while checking it.
     start_keepalive "${NS}/${primary}"

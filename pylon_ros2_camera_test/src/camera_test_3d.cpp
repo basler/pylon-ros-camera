@@ -30,6 +30,7 @@
 
 #include <rclcpp_components/register_node_macro.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
+#include <sensor_msgs/msg/imu.hpp>
 
 #include <atomic>
 #include <future>
@@ -153,6 +154,9 @@ CameraTest3D::CameraTest3D(const rclcpp::NodeOptions & options)
     std::bind(&CameraTest3D::test_hdr_sequence_workflow, this));
   register_test("test_hdr_sub_exposure_workflow",
     std::bind(&CameraTest3D::test_hdr_sub_exposure_workflow, this));
+
+  register_test("test_imu_stream",
+    std::bind(&CameraTest3D::test_imu_stream, this));
 
   // Start the test thread LAST, after all tests are registered.
   start_tests();
@@ -1046,6 +1050,63 @@ bool CameraTest3D::test_hdr_sub_exposure_workflow()
   auto off = std::make_shared<SetIntegerValue::Request>();
   off->value = 0;
   call_service<SetIntegerValue>(set_exposure_auto_mode_client_, off);
+  return ok;
+}
+
+// Verify the Stereo mini IMU stream. When imu_enabled is true the driver
+// publishes on the imu topic at the IMU hardware rate, well above the image
+// frame rate. A default-QoS subscriber (a normal consumer) must receive the
+// samples at that rate; this guards the earlier regression where the samples
+// were published in bursts once per image frame and most were dropped in
+// transport, so a normal subscriber saw only a fraction of them. The imu
+// publisher is always advertised, but only streams when imu_enabled is true, so
+// the test skips when no samples arrive (IMU disabled or a camera without one).
+bool CameraTest3D::test_imu_stream()
+{
+  const std::string topic = camera_ns_ + "/imu";
+
+  std::atomic<int> count{0};
+  std::atomic<bool> orientation_unset{true};
+  std::atomic<bool> frame_id_set{true};
+  auto sub = this->create_subscription<sensor_msgs::msg::Imu>(
+    topic, rclcpp::QoS(rclcpp::KeepLast(200)),
+    [&count, &orientation_unset, &frame_id_set]
+    (const sensor_msgs::msg::Imu::SharedPtr msg) {
+      count++;
+      if (msg->orientation_covariance[0] != -1.0) { orientation_unset = false; }
+      if (msg->header.frame_id.empty()) { frame_id_set = false; }
+    });
+
+  // Count messages over a fixed window and derive the received rate.
+  const double window_s = 3.0;
+  auto deadline = std::chrono::steady_clock::now() +
+    std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+      std::chrono::duration<double>(window_s));
+  while (rclcpp::ok() && std::chrono::steady_clock::now() < deadline) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+  const int n = count.load();
+
+  if (n == 0) {
+    RCLCPP_WARN(get_logger(),
+      "test_imu_stream: no IMU samples received (IMU not enabled or camera has "
+      "no IMU), skipping.");
+    return true;
+  }
+
+  const double rate = n / window_s;
+
+  // The image frame rate in the test configuration is well below 100 Hz, so a
+  // received rate above this threshold proves the IMU is delivered at its own
+  // hardware rate rather than coupled to the image spin.
+  const double min_rate = 100.0;
+  bool ok = assert_true(rate >= min_rate, "test_imu_stream/rate",
+    "expected >= " + std::to_string(min_rate) + " Hz, got " +
+    std::to_string(rate) + " Hz over " + std::to_string(n) + " samples");
+  ok &= assert_true(orientation_unset.load(), "test_imu_stream/orientation",
+    "orientation_covariance[0] should be -1 (REP-145)");
+  ok &= assert_true(frame_id_set.load(), "test_imu_stream/frame_id",
+    "header.frame_id should be set");
   return ok;
 }
 

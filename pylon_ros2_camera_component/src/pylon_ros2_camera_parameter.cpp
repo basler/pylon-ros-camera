@@ -70,6 +70,8 @@ PylonROS2CameraParameter::PylonROS2CameraParameter() :
     auto_flash_line_3_(true),
     grab_timeout_(500),
     trigger_timeout_(5000),
+    imu_enabled_(false),
+    imu_frame_rate_(0),
     white_balance_auto_(0),
     white_balance_ratio_red_(1.0),
     white_balance_ratio_green_(1.0),
@@ -549,6 +551,27 @@ void PylonROS2CameraParameter::readFromRosParameterServer(rclcpp::Node& nh)
     }
     
     nh.get_parameter("grab_strategy", this->grab_strategy_);
+
+    // imu_enabled: turn on the IMU (Stereo mini) and publish samples on ~/imu
+    RCLCPP_DEBUG(LOGGER, "---> imu_enabled");
+
+    if (!nh.has_parameter("imu_enabled"))
+    {
+        nh.declare_parameter<bool>("imu_enabled", false);
+    }
+
+    nh.get_parameter("imu_enabled", this->imu_enabled_);
+
+    // imu_frame_rate: IMU output data rate in Hz applied once at startup.
+    // 0 leaves the camera default.
+    RCLCPP_DEBUG(LOGGER, "---> imu_frame_rate");
+
+    if (!nh.has_parameter("imu_frame_rate"))
+    {
+        nh.declare_parameter<int>("imu_frame_rate", 0);
+    }
+
+    nh.get_parameter("imu_frame_rate", this->imu_frame_rate_);
 
     // validating parameters
     this->validateParameterSet(nh);
