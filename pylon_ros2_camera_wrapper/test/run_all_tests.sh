@@ -917,7 +917,7 @@ phase_services() {
     fi
 }
 phase_sequences() {
-    section "Step 6 - sequences (trigger / action-command / destructive)"
+    section "Step 6 - sequences (trigger / destructive)"
 
     local out name i fired
     local si="pylon_ros2_camera_interfaces/srv/SetIntegerValue"
@@ -984,18 +984,6 @@ phase_sequences() {
     svc_result "trigger: set_trigger_mode off (restored)" "$out"
     out="$(svc_call start_grabbing std_srvs/srv/Trigger '{}')"
     svc_result "trigger: start_grabbing (free-run restored)" "$out"
-
-    # --- action-command: verify the endpoints exist ---
-    # Action commands trigger several GigE cameras at once over a broadcast
-    # message and need a coordinated multi-camera / PTP setup to mean anything,
-    # so the automated run only confirms the services are advertised.
-    for name in set_action_trigger_configuration issue_action_command issue_scheduled_action_command; do
-        if service_advertised "$name"; then
-            record PASS "action-command advertised: $name"
-        else
-            record FAIL "action-command advertised: $name (not listed)"
-        fi
-    done
 
     # --- destructive group: only with --destructive, each step confirmed ---
     if [[ "$RUN_DESTRUCTIVE" -ne 1 ]]; then

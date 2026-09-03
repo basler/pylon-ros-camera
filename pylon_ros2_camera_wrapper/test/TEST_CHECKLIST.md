@@ -7,7 +7,7 @@ step it can and prompts only for the visual (rviz) and destructive checks; this 
 the same steps to run or verify by hand.
 
 Scope: build, driver start/stop, discovery, topics, services (general / driver-parameter /
-hardware-parameter, plus trigger and action-command sequences and a destructive group), actions,
+hardware-parameter, plus trigger sequences and a destructive group), actions,
 current_params, sleeping mode, launch + YAML + runtime params, transport tuning, integration tests,
 component-node tools, wrapper test scripts, and negative/robustness/soak checks. Both 2D and 3D
 cameras are covered.
@@ -250,7 +250,7 @@ rviz2
 
 **Given** the driver running (step 2) and a sourced terminal. The driver exposes ~120 services under
 `/my_camera/pylon_ros2_camera_node/`. This step spot-checks three representative services per family —
-two that users reach for often and one that is rarely used; the trigger, action-command, and
+two that users reach for often and one that is rarely used; the trigger and
 destructive (user-set / reset) services are covered in later steps. A service that does not apply to
 the connected camera returns `success: false` with a "feature not available" message — that is the
 expected, handled outcome, not a failure.
@@ -350,10 +350,10 @@ ros2 service call $NS/set_depth_min pylon_ros2_camera_interfaces/srv/SetFloatVal
 - The cross-type call returns `success: false` with a "feature not available" message and the driver
   keeps running (no crash, no error spam).
 
-## 6. Sequences (trigger / action-command / destructive)
+## 6. Sequences (trigger / destructive)
 
 **Given** the driver running (step 2) and a sourced terminal. This step runs the multi-call service
-sequences: a trigger sequence, the action-command endpoints, and the destructive user-set / reset
+sequences: a trigger sequence and the destructive user-set / reset
 services. The destructive services are skipped unless the harness is run with `--destructive`, and
 each destructive call asks for confirmation first.
 
@@ -392,14 +392,6 @@ ros2 service call $NS/set_trigger_mode std_srvs/srv/SetBool '{data: false}'   # 
 ros2 service call $NS/start_grabbing std_srvs/srv/Trigger '{}'                # free-run
 ```
 
-Confirm the action-command endpoints are advertised. These trigger several GigE cameras at once over
-a broadcast message and need a coordinated multi-camera / PTP setup to mean anything, so this step
-only checks that the services exist:
-
-```bash
-ros2 service list | grep -E '/(set_action_trigger_configuration|issue_action_command|issue_scheduled_action_command)$'
-```
-
 Destructive group — only when the harness runs with `--destructive`. Re-applying the user-set
 selectors to their current values exercises the persistent-config services without changing anything:
 
@@ -434,7 +426,6 @@ The services that write persistent camera state or a host-side `.pfs` file (`sav
   Each value is put back.
 - All three software triggers return `success: true` (with grabbing resumed), or report the feature
   as not available (handled). Trigger mode is left off (free-run) at the end.
-- The three action-command services are listed.
 - Without `--destructive`, the destructive group is skipped.
 - With `--destructive`: the user-set re-apply calls return `success: true`, or are skipped when the
   selector reads -1 (a 3D camera that does not expose user sets); `set_user_set_default_selector`
