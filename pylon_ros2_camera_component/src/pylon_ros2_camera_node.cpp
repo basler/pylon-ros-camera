@@ -472,6 +472,36 @@ void PylonROS2CameraNode::initServices()
   
   srv_name = srv_prefix + "set_depth_seg";
   this->set_depth_seg_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setDepthSegCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "set_hdr_exposure_time_selector";
+  this->set_hdr_exposure_time_selector_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setHDRExposureTimeSelectorCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "set_hdr_exposure_time";
+  this->set_hdr_exposure_time_srv_ = this->create_service<SetFloatSrv>(srv_name, std::bind(&PylonROS2CameraNode::setHDRExposureTimeCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "set_hdr_sub_exposures";
+  this->set_hdr_sub_exposures_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setHDRSubExposuresCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "set_exposure_auto_mode";
+  this->set_exposure_auto_mode_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setExposureAutoModeCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "set_hdr_sequence_index";
+  this->set_hdr_sequence_index_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setHDRSequenceIndexCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "set_hdr_sequence_preset";
+  this->set_hdr_sequence_preset_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setHDRSequencePresetCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "set_hdr_max_exposure";
+  this->set_hdr_max_exposure_srv_ = this->create_service<SetFloatSrv>(srv_name, std::bind(&PylonROS2CameraNode::setHDRMaxExposureCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_hdr_merge";
+  this->enable_hdr_merge_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableHDRMergeCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "enable_hdr_merge_use_ir";
+  this->enable_hdr_merge_use_ir_srv_ = this->create_service<SetBoolSrv>(srv_name, std::bind(&PylonROS2CameraNode::enableHDRMergeUseIRCallback, this, _1, _2));
+
+  srv_name = srv_prefix + "load_hdr_preset";
+  this->load_hdr_preset_srv_ = this->create_service<TriggerSrv>(srv_name, std::bind(&PylonROS2CameraNode::loadHDRPresetCallback, this, _1, _2));
   
   srv_name = srv_prefix + "set_multi_camera_channel";
   this->set_multi_camera_channel_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setMultiCameraChannelCallback, this, _1, _2));
@@ -4427,6 +4457,137 @@ void PylonROS2CameraNode::enableProjectorCallback(const std::shared_ptr<SetBoolS
 void PylonROS2CameraNode::setProjectorLevelCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
 {
   response->message = this->pylon_camera_->setProjectorLevel(request->value);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setHDRExposureTimeSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setHDRExposureTimeSelector(request->value);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setHDRExposureTimeCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setHDRExposureTime(request->value);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setHDRSubExposuresCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setHDRSubExposures(request->value);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setExposureAutoModeCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setExposureAutoMode(request->value);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setHDRSequenceIndexCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setHDRSequenceIndex(request->value);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setHDRSequencePresetCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setHDRSequencePreset(request->value);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::setHDRMaxExposureCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response)
+{
+  response->message = this->pylon_camera_->setHDRMaxExposure(request->value);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::enableHDRMergeCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enableHDRMerge(request->data);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::enableHDRMergeUseIRCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response)
+{
+  response->message = this->pylon_camera_->enableHDRMergeUseIR(request->data);
+  if (response->message.find("done") != std::string::npos)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+  }
+}
+
+void PylonROS2CameraNode::loadHDRPresetCallback(const std::shared_ptr<TriggerSrv::Request> request, std::shared_ptr<TriggerSrv::Response> response)
+{
+  (void)request;
+  response->message = this->pylon_camera_->loadHDRPreset();
   if (response->message.find("done") != std::string::npos)
   {
     response->success = true;

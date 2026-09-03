@@ -7,7 +7,7 @@ step it can and prompts only for the visual (rviz) and destructive checks; this 
 the same steps to run or verify by hand.
 
 Scope: build, driver start/stop, discovery, topics, services (general / driver-parameter /
-hardware-parameter, plus trigger and action-command sequences and a destructive group), actions,
+hardware-parameter, plus trigger sequences and a destructive group), actions,
 current_params, sleeping mode, launch + YAML + runtime params, transport tuning, integration tests,
 component-node tools, wrapper test scripts, and negative/robustness/soak checks. Both 2D and 3D
 cameras are covered.
@@ -250,7 +250,7 @@ rviz2
 
 **Given** the driver running (step 2) and a sourced terminal. The driver exposes ~120 services under
 `/my_camera/pylon_ros2_camera_node/`. This step spot-checks three representative services per family —
-two that users reach for often and one that is rarely used; the trigger, action-command, and
+two that users reach for often and one that is rarely used; the trigger and
 destructive (user-set / reset) services are covered in later steps. A service that does not apply to
 the connected camera returns `success: false` with a "feature not available" message — that is the
 expected, handled outcome, not a failure.
@@ -283,6 +283,37 @@ is selected. Select Source1 or Source2 first, otherwise the service returns a hi
 ```bash
 ros2 service call $NS/set_source_selector pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 1}'   # Source1 (IR left)
 ros2 service call $NS/enable_hdr_mode std_srvs/srv/SetBool '{data: true}'
+```
+
+The HDR sequence parameters are write-only and independent; set one at a time in the order your
+workflow needs. Each service is runtime-gated, so a camera or firmware without the node replies
+`not available`. The stereo ace exposes the sub-exposure sequence; the stereo mini exposes the
+sequence/preset/merge nodes. On the stereo ace, select the sub-exposure with
+`set_hdr_exposure_time_selector` (1-4) before writing `set_hdr_exposure_time`. `set_exposure_auto_mode`
+takes 0 = Off, 1 = Continuous, 2 = HDR:
+
+```bash
+# Stereo ace
+ros2 service call $NS/set_hdr_sub_exposures pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 2}'
+ros2 service call $NS/set_hdr_exposure_time_selector pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 1}'
+ros2 service call $NS/set_hdr_exposure_time pylon_ros2_camera_interfaces/srv/SetFloatValue '{value: 5000.0}'
+ros2 service call $NS/set_exposure_auto_mode pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 2}'   # HDR
+```
+
+On the stereo mini, `set_hdr_sequence_index` (0 or 1) selects which sequence the existing
+`set_exposure`/`set_gain`/`set_brightness` and `set_hdr_max_exposure` services configure.
+`set_hdr_sequence_preset` takes 0 = DepthFromHDR, 1 = LaserOnOff; `load_hdr_preset` applies it.
+`set_hdr_max_exposure` writes the auto-exposure ceiling and is effective only while `ExposureAuto` is
+Continuous:
+
+```bash
+# Stereo mini
+ros2 service call $NS/set_hdr_sequence_preset pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 0}'   # DepthFromHDR
+ros2 service call $NS/load_hdr_preset std_srvs/srv/Trigger '{}'
+ros2 service call $NS/set_hdr_sequence_index pylon_ros2_camera_interfaces/srv/SetIntegerValue '{value: 0}'
+ros2 service call $NS/set_hdr_max_exposure pylon_ros2_camera_interfaces/srv/SetFloatValue '{value: 20000.0}'
+ros2 service call $NS/enable_hdr_merge std_srvs/srv/SetBool '{data: true}'
+ros2 service call $NS/enable_hdr_merge_use_ir std_srvs/srv/SetBool '{data: true}'
 ```
 
 ```bash
@@ -319,10 +350,10 @@ ros2 service call $NS/set_depth_min pylon_ros2_camera_interfaces/srv/SetFloatVal
 - The cross-type call returns `success: false` with a "feature not available" message and the driver
   keeps running (no crash, no error spam).
 
-## 6. Sequences (trigger / action-command / destructive)
+## 6. Sequences (trigger / destructive)
 
 **Given** the driver running (step 2) and a sourced terminal. This step runs the multi-call service
-sequences: a trigger sequence, the action-command endpoints, and the destructive user-set / reset
+sequences: a trigger sequence and the destructive user-set / reset
 services. The destructive services are skipped unless the harness is run with `--destructive`, and
 each destructive call asks for confirmation first.
 
@@ -361,14 +392,6 @@ ros2 service call $NS/set_trigger_mode std_srvs/srv/SetBool '{data: false}'   # 
 ros2 service call $NS/start_grabbing std_srvs/srv/Trigger '{}'                # free-run
 ```
 
-Confirm the action-command endpoints are advertised. These trigger several GigE cameras at once over
-a broadcast message and need a coordinated multi-camera / PTP setup to mean anything, so this step
-only checks that the services exist:
-
-```bash
-ros2 service list | grep -E '/(set_action_trigger_configuration|issue_action_command|issue_scheduled_action_command)$'
-```
-
 Destructive group — only when the harness runs with `--destructive`. Re-applying the user-set
 selectors to their current values exercises the persistent-config services without changing anything:
 
@@ -403,7 +426,6 @@ The services that write persistent camera state or a host-side `.pfs` file (`sav
   Each value is put back.
 - All three software triggers return `success: true` (with grabbing resumed), or report the feature
   as not available (handled). Trigger mode is left off (free-run) at the end.
-- The three action-command services are listed.
 - Without `--destructive`, the destructive group is skipped.
 - With `--destructive`: the user-set re-apply calls return `success: true`, or are skipped when the
   selector reads -1 (a 3D camera that does not expose user sets); `set_user_set_default_selector`

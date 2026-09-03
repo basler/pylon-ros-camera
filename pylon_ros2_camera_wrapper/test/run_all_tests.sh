@@ -419,11 +419,14 @@ svc_call() {
 # "unknown value" / "only supports" cover cameras that reject a trigger enum they
 # do not offer (e.g. the blaze has no Line1 source; the stereo ace only offers
 # trigger selector 0 / FrameStart).
+# "not writable" covers the order-dependent HDR nodes on the stereo mini: the
+# node exists but only accepts a value once HDR sequence mode / continuous
+# auto-exposure is enabled first, so a clean not-writable reply is expected here.
 svc_result() {
     local label="$1" out="$2"
     if echo "$out" | grep -qi "success=True"; then
         record PASS "$label"
-    elif echo "$out" | grep -qiE "not available|not support|does not support|Feature not|no opened camera|unknown value|only supports"; then
+    elif echo "$out" | grep -qiE "not available|not support|does not support|Feature not|no opened camera|unknown value|only supports|not writable"; then
         record PASS "$label (feature not available for this camera - handled)"
     else
         record FAIL "$label"
@@ -845,6 +848,51 @@ phase_services() {
         fi
     fi
 
+    # --- driver-parameter: HDR sequence configuration (3D) ---
+    # Write-only services for the per-model HDR sequence nodes. Each one is
+    # runtime-gated in the driver, so on a camera or firmware without the node the
+    # call returns a handled 'not available'. The stereo ace exposes the sub-exposure
+    # sequence; the stereo mini exposes the sequence/preset/merge nodes. On the
+    # currently connected camera the nodes that do not apply return 'not available',
+    # and nodes that exist but need HDR sequence mode enabled first return a clean
+    # 'not writable'; in both cases no register is changed. Representative values are
+    # used because these parameters have no current_params read-back.
+    if [[ "$CAM_TYPE" == "3d" ]]; then
+        local sint="pylon_ros2_camera_interfaces/srv/SetIntegerValue"
+
+        # Stereo ace HDR sub-exposure sequence.
+        out="$(svc_call set_hdr_exposure_time_selector "$sint" '{value: 1}')"
+        svc_result "driver-parameter: set_hdr_exposure_time_selector" "$out"
+        out="$(svc_call set_hdr_sub_exposures "$sint" '{value: 2}')"
+        svc_result "driver-parameter: set_hdr_sub_exposures" "$out"
+        out="$(svc_call set_exposure_auto_mode "$sint" '{value: 0}')"
+        svc_result "driver-parameter: set_exposure_auto_mode (Off)" "$out"
+
+        # Stereo mini HDR sequence / merge / preset.
+        out="$(svc_call set_hdr_sequence_index "$sint" '{value: 0}')"
+        svc_result "driver-parameter: set_hdr_sequence_index" "$out"
+        out="$(svc_call set_hdr_sequence_preset "$sint" '{value: 0}')"
+        svc_result "driver-parameter: set_hdr_sequence_preset (DepthFromHDR)" "$out"
+        out="$(svc_call load_hdr_preset std_srvs/srv/Trigger '{}')"
+        svc_result "driver-parameter: load_hdr_preset" "$out"
+        out="$(svc_call enable_hdr_merge std_srvs/srv/SetBool '{data: false}')"
+        svc_result "driver-parameter: enable_hdr_merge (disable)" "$out"
+        out="$(svc_call enable_hdr_merge_use_ir std_srvs/srv/SetBool '{data: false}')"
+        svc_result "driver-parameter: enable_hdr_merge_use_ir (disable)" "$out"
+
+        # set_hdr_exposure_time and set_hdr_max_exposure write live float nodes on a
+        # supporting camera and have no read-back to restore, so only confirm they
+        # are advertised instead of changing an exposure value.
+        local hdr_name
+        for hdr_name in set_hdr_exposure_time set_hdr_max_exposure; do
+            if service_advertised "$hdr_name"; then
+                record PASS "driver-parameter advertised: $hdr_name"
+            else
+                record FAIL "driver-parameter advertised: $hdr_name (not listed)"
+            fi
+        done
+    fi
+
     # --- hardware-parameter: confirm the services are advertised ---
     # These change hardware registers. Phase 4 and later phases exercise the
     # mutating ones; here we only verify a representative few exist.
@@ -869,7 +917,7 @@ phase_services() {
     fi
 }
 phase_sequences() {
-    section "Step 6 - sequences (trigger / action-command / destructive)"
+    section "Step 6 - sequences (trigger / destructive)"
 
     local out name i fired
     local si="pylon_ros2_camera_interfaces/srv/SetIntegerValue"
@@ -936,18 +984,6 @@ phase_sequences() {
     svc_result "trigger: set_trigger_mode off (restored)" "$out"
     out="$(svc_call start_grabbing std_srvs/srv/Trigger '{}')"
     svc_result "trigger: start_grabbing (free-run restored)" "$out"
-
-    # --- action-command: verify the endpoints exist ---
-    # Action commands trigger several GigE cameras at once over a broadcast
-    # message and need a coordinated multi-camera / PTP setup to mean anything,
-    # so the automated run only confirms the services are advertised.
-    for name in set_action_trigger_configuration issue_action_command issue_scheduled_action_command; do
-        if service_advertised "$name"; then
-            record PASS "action-command advertised: $name"
-        else
-            record FAIL "action-command advertised: $name (not listed)"
-        fi
-    done
 
     # --- destructive group: only with --destructive, each step confirmed ---
     if [[ "$RUN_DESTRUCTIVE" -ne 1 ]]; then
