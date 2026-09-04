@@ -389,7 +389,7 @@ void PylonROS2CameraNode::initServices()
   
   srv_name = srv_prefix + "set_source_selector";
   this->set_source_selector_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setSourceSelectorCallback, this, _1, _2));
-  
+
   srv_name = srv_prefix + "set_user_set_default_selector";
   this->set_user_set_default_selector_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setUserSetDefaultSelectorCallback, this, _1, _2));
   
@@ -478,16 +478,16 @@ void PylonROS2CameraNode::initServices()
   
   srv_name = srv_prefix + "set_illumination_mode";
   this->set_illumination_mode_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setIlluminationModeCallback, this, _1, _2));
-  
+
   srv_name = srv_prefix + "set_depth_quality";
   this->set_depth_quality_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setDepthQualityCallback, this, _1, _2));
-  
+
   srv_name = srv_prefix + "set_projector_level";
   this->set_projector_level_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setProjectorLevelCallback, this, _1, _2));
-  
+
   srv_name = srv_prefix + "set_depth_fill";
   this->set_depth_fill_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setDepthFillCallback, this, _1, _2));
-  
+
   srv_name = srv_prefix + "set_depth_seg";
   this->set_depth_seg_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setDepthSegCallback, this, _1, _2));
 
@@ -520,7 +520,7 @@ void PylonROS2CameraNode::initServices()
 
   srv_name = srv_prefix + "load_hdr_preset";
   this->load_hdr_preset_srv_ = this->create_service<TriggerSrv>(srv_name, std::bind(&PylonROS2CameraNode::loadHDRPresetCallback, this, _1, _2));
-  
+
   srv_name = srv_prefix + "set_multi_camera_channel";
   this->set_multi_camera_channel_srv_ = this->create_service<SetIntegerSrv>(srv_name, std::bind(&PylonROS2CameraNode::setMultiCameraChannelCallback, this, _1, _2));
   
@@ -1221,7 +1221,7 @@ void PylonROS2CameraNode::spin()
 
         if (!rclcpp::ok())
           break;
-        const bool any_subscriber = (this->count_subscribers(this->cloud_3d_topic_name_) != 0 || 
+        const bool any_subscriber = (this->count_subscribers(this->cloud_3d_topic_name_) != 0 ||
                                     this->count_subscribers(this->intensity_3d_topic_name_) != 0 ||
                                     this->count_subscribers(this->depth_map_3d_topic_name_) != 0 ||
                                     this->count_subscribers(this->depth_map_color_3d_topic_name_) != 0 ||
@@ -1284,7 +1284,7 @@ void PylonROS2CameraNode::spin()
       // encoding, and their range pixel format has no ROS encoding equivalent,
       // so the check would restart grabbing on every iteration.
       if (!this->pylon_camera_->is3D() &&
-          this->pylon_camera_parameter_set_.imageEncoding() != this->pylon_camera_->currentROSEncoding()) 
+          this->pylon_camera_parameter_set_.imageEncoding() != this->pylon_camera_->currentROSEncoding())
       {
         this->pylon_camera_parameter_set_.setimageEncodingParam(*this, this->pylon_camera_->currentROSEncoding());
         this->grabbingStopping();
@@ -1361,7 +1361,7 @@ bool PylonROS2CameraNode::grabImage()
   }
   else
   {
-    if (!this->pylon_camera_->grab3D(this->cloud_3d_msg_, 
+    if (!this->pylon_camera_->grab3D(this->cloud_3d_msg_,
                                         this->intensity_map_msg_, 
                                         this->depth_map_msg_, 
                                         this->depth_map_color_msg_, 
@@ -5029,7 +5029,7 @@ void PylonROS2CameraNode::executeGrab3DDataAction(const std::shared_ptr<Grab3DDa
     sensor_msgs::msg::Image& depth_color_map = result->depth_color_maps[i];
     sensor_msgs::msg::Image& confidence_map = result->confidence_maps[i];
 
-    if (!this->pylon_camera_->grab3D(point_cloud, 
+    if (!this->pylon_camera_->grab3D(point_cloud,
                                         intensity_map, 
                                         depth_map, 
                                         depth_color_map, 
@@ -5641,7 +5641,7 @@ void PylonROS2CameraNode::publishCurrentParams()
         this->current_params_.ptp_offset = offset_from_master;
       }
 
-      // --- 3D read-back parameters ------------------------------------------
+      // --- 3D value parameters ----------------------------------------------
       // The getters return the sentinel -1 (or -1.0) on cameras that do not
       // support a given feature (every 2D camera, and 3D cameras without the
       // node), so they are safe to query unconditionally.

@@ -209,8 +209,8 @@ bool CameraTest2D::test_grab_images_raw()
 }
 
 // Set 2×2 binning, verify the reached values, then restore 1×1.
-// If the camera does not support binning the driver silently keeps the
-// current value (reached stays 1); the test skips gracefully so the suite
+// If the camera does not support binning the driver keeps the
+// current value (reached stays 1); the test skips so the suite
 // remains usable on cameras without hardware binning support.
 bool CameraTest2D::test_set_binning()
 {
@@ -380,7 +380,7 @@ std::string CameraTest2D::grab_current_encoding()
 }
 
 // Switch encoding to "mono8", grab a frame and verify the image header
-// encoding matches.  Then try "bayer_rggb8" (skip gracefully if the camera
+// encoding matches.  Then try "bayer_rggb8" (skip if the camera
 // is monochrome), grab and verify, then restore "mono8" and verify again.
 // The restore+grab is the key regression check for the bit_shift_active_
 // caching optimisation: a stale cached flag would produce an image whose

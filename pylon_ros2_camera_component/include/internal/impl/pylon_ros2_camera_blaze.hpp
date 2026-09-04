@@ -67,9 +67,9 @@ public:
     virtual bool setExposure(const float& target_exposure, float& reached_exposure) override;
 
     virtual bool grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
-                        sensor_msgs::msg::Image& intensity_map_msg, 
-                        sensor_msgs::msg::Image& depth_map_msg, 
-                        sensor_msgs::msg::Image& depth_map_color_msg, 
+                        sensor_msgs::msg::Image& intensity_map_msg,
+                        sensor_msgs::msg::Image& depth_map_msg,
+                        sensor_msgs::msg::Image& depth_map_color_msg,
                         sensor_msgs::msg::Image& confidence_map_msg) override;
             bool grab3D(Pylon::CGrabResultPtr& grab_result);
 
@@ -387,9 +387,9 @@ bool PylonROS2BlazeCamera::setExposure(const float& target_exposure, float& reac
 }
 
 bool PylonROS2BlazeCamera::grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
-                                   sensor_msgs::msg::Image& intensity_map_msg, 
-                                   sensor_msgs::msg::Image& depth_map_msg, 
-                                   sensor_msgs::msg::Image& depth_map_color_msg, 
+                                   sensor_msgs::msg::Image& intensity_map_msg,
+                                   sensor_msgs::msg::Image& depth_map_msg,
+                                   sensor_msgs::msg::Image& depth_map_color_msg,
                                    sensor_msgs::msg::Image& confidence_map_msg)
 {
     Pylon::CGrabResultPtr ptr_grab_result;

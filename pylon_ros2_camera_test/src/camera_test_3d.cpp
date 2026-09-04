@@ -440,7 +440,7 @@ bool CameraTest3D::test_enable_temporal_filter()
 // Set brightness with exposure_auto and verify the service responds and, when
 // supported, succeeds. The stereo mini and stereo ace support brightness; the
 // blaze may not, in which case the driver returns success=false and the test
-// skips gracefully so the suite stays usable across all 3D models.
+// skips so the suite stays usable across all 3D models.
 bool CameraTest3D::test_set_brightness()
 {
   auto req = std::make_shared<SetBrightness::Request>();
@@ -774,7 +774,7 @@ bool CameraTest3D::test_set_depth_preset()
 
 // HDR sub-exposure selector (BslHdrExposureTimeSelector) on the stereo ace picks
 // which sub-exposure the set_hdr_exposure_time service writes. These HDR sequence
-// parameters have no current_params read-back, so the test writes a representative
+// parameters are not reported in current_params, so the test writes a representative
 // value and skips when the driver reports the node is not available.
 bool CameraTest3D::test_set_hdr_exposure_time_selector()
 {

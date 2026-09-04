@@ -44,4 +44,3 @@
     # IMU output data rate in Hz, applied once at startup. 0 leaves the camera
     # default. Only used when imu_enabled is true.
     # imu_frame_rate: 200
-
