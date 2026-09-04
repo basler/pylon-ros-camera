@@ -1434,10 +1434,10 @@ public:
      */
     virtual std::string setDepthSeg(const int& value) = 0;
 
-    // --- 3D read-back getters -------------------------------------------------
-    // Read-only reflections of already-existing 3D settings, published in
-    // current_params. They are NOT pure virtual: cameras that do not support a
-    // given feature keep the sentinel default (-1). getDepthMin/getDepthMax are
+    // --- 3D value getters -----------------------------------------------------
+    // Read the current 3D settings for current_params. They are NOT pure
+    // virtual: cameras that do not support a given feature keep the sentinel
+    // default (-1). getDepthMin/getDepthMax are
     // implemented once in the 3D profile; the blaze-specific getters are
     // overridden in the blaze camera only.
 
