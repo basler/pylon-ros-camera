@@ -168,6 +168,47 @@ void printAccess(GenApi::INodeMap& node_map, const char* name)
               << std::endl;
 }
 
+// Read a device's live DeviceUserID by opening it. Some cameras (e.g. the Stereo
+// mini over GenTL) report a blank name at enumeration time and only expose the
+// DeviceUserID once the device is open, so enumeration data alone cannot match
+// them by id. Returns an empty string if the device cannot be opened or read.
+std::string liveDeviceUserId(Pylon::CTlFactory& tl_factory, const Pylon::CDeviceInfo& info)
+{
+    try
+    {
+        Pylon::CInstantCamera probe(tl_factory.CreateDevice(info));
+        probe.Open();
+        GenApi::CStringPtr user_id_node(probe.GetNodeMap().GetNode("DeviceUserID"));
+        std::string live_id;
+        if (user_id_node.IsValid() && GenApi::IsReadable(user_id_node))
+            live_id = std::string(user_id_node->GetValue().c_str());
+        probe.Close();
+        return live_id;
+    }
+    catch (const GenICam::GenericException&)
+    {
+        return std::string();
+    }
+}
+
+// Match a device against the requested serial and/or user id. The user id is
+// checked against the enumeration-time name first; for devices that report a
+// blank name there, fall back to the live DeviceUserID, mirroring the driver.
+bool deviceMatches(Pylon::CTlFactory& tl_factory, const Pylon::CDeviceInfo& info,
+                   const std::string& serial, const std::string& user_id)
+{
+    if (!serial.empty() && std::string(info.GetSerialNumber().c_str()) == serial)
+        return true;
+    if (user_id.empty())
+        return false;
+
+    const std::string enum_name(info.GetUserDefinedName().c_str());
+    if (!enum_name.empty())
+        return enum_name == user_id;
+
+    return liveDeviceUserId(tl_factory, info) == user_id;
+}
+
 void probeCamera(Pylon::CInstantCamera& cam)
 {
     cam.Open();
@@ -228,8 +269,13 @@ int main(int argc, char* argv[])
             }
             for (size_t i = 0; i < devices.size(); ++i)
             {
+                // Fall back to the live DeviceUserID when the enumeration name is
+                // blank, so cameras like the Stereo mini still show their id.
+                std::string uid(devices[i].GetUserDefinedName().c_str());
+                if (uid.empty())
+                    uid = liveDeviceUserId(tl_factory, devices[i]);
                 std::cout << "[" << i << "] model='" << devices[i].GetModelName()
-                          << "' uid='" << devices[i].GetUserDefinedName()
+                          << "' uid='" << uid
                           << "' serial='" << devices[i].GetSerialNumber() << "'" << std::endl;
             }
             Pylon::PylonTerminate();
@@ -249,10 +295,7 @@ int main(int argc, char* argv[])
             size_t i = 0;
             for (; i < devices.size(); ++i)
             {
-                const std::string dev_serial(devices[i].GetSerialNumber().c_str());
-                const std::string dev_uid(devices[i].GetUserDefinedName().c_str());
-                if ((!serial.empty() && dev_serial == serial) ||
-                    (!user_id.empty() && dev_uid == user_id))
+                if (deviceMatches(tl_factory, devices[i], serial, user_id))
                 {
                     Pylon::CInstantCamera cam(tl_factory.CreateDevice(devices[i]));
                     probeCamera(cam);
