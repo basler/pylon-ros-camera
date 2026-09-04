@@ -37,6 +37,28 @@ namespace pylon_ros2_camera
 namespace
 {
     static const rclcpp::Logger LOGGER = rclcpp::get_logger("basler.pylon.ros2.pylon_ros2_camera");
+
+    // Read a device's live DeviceUserID by opening it. Some cameras (e.g. the
+    // Stereo mini over GenTL) report a blank name at enumeration time and only
+    // expose DeviceUserID once open. Returns an empty string if it cannot be read.
+    std::string readLiveDeviceUserId(Pylon::CTlFactory& tl_factory, const Pylon::CDeviceInfo& device_info)
+    {
+        try
+        {
+            Pylon::CInstantCamera probe(tl_factory.CreateDevice(device_info));
+            probe.Open();
+            GenApi::CStringPtr user_id_node(probe.GetNodeMap().GetNode("DeviceUserID"));
+            std::string live_id;
+            if (user_id_node.IsValid() && GenApi::IsReadable(user_id_node))
+                live_id = std::string(user_id_node->GetValue().c_str());
+            probe.Close();
+            return live_id;
+        }
+        catch (const GenICam::GenericException&)
+        {
+            return std::string();
+        }
+    }
 }
 
 enum PYLON_CAM_TYPE
@@ -221,15 +243,22 @@ std::unique_ptr<PylonROS2Camera> PylonROS2Camera::create(const std::string& devi
             {
                 for (it = device_list.begin(); it != device_list.end(); ++it)
                 {
+                    // The enumeration-time name is blank on some cameras (e.g. the
+                    // Stereo mini), which only report their DeviceUserID once open;
+                    // read the live value so the log and the stored id are correct.
+                    std::string user_id(it->GetUserDefinedName().c_str());
+                    if (user_id.empty())
+                        user_id = readLiveDeviceUserId(tl_factory, *it);
+
                     RCLCPP_INFO_STREAM(LOGGER, "Found camera device!"
                                             << " Device Model: " << it->GetModelName()
-                                            << " with Device User Id: " << it->GetUserDefinedName());
-                    
+                                            << " with Device User Id: " << user_id);
+
                     PYLON_CAM_TYPE cam_type = detectPylonCamType(*it);
                     if (cam_type != UNKNOWN)
                     {
                         std::unique_ptr<PylonROS2Camera> new_cam_ptr = createFromDevice(cam_type, tl_factory.CreateDevice(*it));
-                        new_cam_ptr->device_user_id_ = it->GetUserDefinedName();
+                        new_cam_ptr->device_user_id_ = user_id;
                         
                         return new_cam_ptr;
                     }
