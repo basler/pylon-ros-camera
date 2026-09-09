@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.0 (2026-09-09)
+-------------------
+* Integration of Basler's stereo ace and the stereo mini within the ROS2 pylon driver.
+
 3.3.6 (2026-07-23)
 -------------------
 * Fix auto-brightness startup parameters ignored when both ``exposure`` and ``gain`` are also set (issue #265).
