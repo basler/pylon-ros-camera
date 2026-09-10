@@ -393,6 +393,11 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
         }
 
         grab_strategy_ = parameters.grab_strategy_;
+
+        // The chunk configuration may have changed since the previous grabbing session,
+        // so the cached "is the timestamp chunk enabled?" answer is invalidated here
+        chunk_timestamp_cache_valid_ = false;
+
         //cam_->StartGrabbing();
         grabbingStarting();
         user_output_selector_enums_ = detectAndCountNumUserOutputs();
@@ -424,6 +429,26 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
     }
 
     return true;
+}
+
+template <typename CameraTraitT>
+void PylonROS2CameraImpl<CameraTraitT>::refreshChunkTimestampCache()
+{
+    // ChunkSelector service code consumed by setChunkSelector(int); see the switch there
+    constexpr int kChunkSelectorTimestamp = 29;
+
+    chunk_timestamp_enabled_ = false;
+
+    if (this->getChunkModeActive() == 1)
+    {
+        const std::string success = this->setChunkSelector(kChunkSelectorTimestamp);
+        if (success.find("done") != std::string::npos && this->getChunkEnable() == 1)
+        {
+            chunk_timestamp_enabled_ = true;
+        }
+    }
+
+    chunk_timestamp_cache_valid_ = true;
 }
 
 // Grab a picture as std::vector of 8bits objects
@@ -469,16 +494,17 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp:
         image.assign(pImageBuffer, pImageBuffer + img_size_byte_);
     }
 
-    if (this->chunk_mode_active_)
+    // Whether the timestamp chunk is enabled is cached. Asking the camera costs a
+    // ChunkSelector write plus a ChunkEnable read, which used to be paid on every
+    // single grab; that is invisible while chunk mode is off but not once it is on.
+    // The chunk setters and startGrabbing() invalidate the cache, so a change made
+    // through the services is still picked up
+    if (!chunk_timestamp_cache_valid_)
     {
-    bool use_chunk_timestamp = false;
-        const std::string success = this->setChunkSelector(29); // = ChunkSelector_Timestamp
-        if (success.find("done") != std::string::npos && this->getChunkEnable() == 1)
-        {
-            use_chunk_timestamp = true;
-        }
+        this->refreshChunkTimestampCache();
+    }
 
-    if (use_chunk_timestamp)
+    if (chunk_timestamp_enabled_)
     {
         try
         {
@@ -496,7 +522,6 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp:
             RCLCPP_WARN_STREAM(LOGGER_BASE, "An exception while getting the chunk timestamp occurred: " << e.GetDescription());
         }
     }
-    } // end chunk_mode_active_
 
     if (!is_ready_)
         is_ready_ = true;
@@ -3599,6 +3624,8 @@ int PylonROS2CameraImpl<CameraTraitT>::getStatisticResynchronizationCount() {
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setChunkModeActive(const bool& enable)
 {
+    chunk_timestamp_cache_valid_ = false;
+
     if (GenApi::IsAvailable(cam_->ChunkModeActive))
     {
         try
@@ -3660,6 +3687,8 @@ int PylonROS2CameraImpl<CameraTraitT>::getChunkModeActive()
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setChunkSelector(const int& value)
 {
+    chunk_timestamp_cache_valid_ = false;
+
     if (GenApi::IsAvailable(cam_->ChunkSelector))
     {
         try
@@ -3972,6 +4001,8 @@ int PylonROS2CameraImpl<CameraTraitT>::getChunkSelector()
 template <typename CameraTraitT>
 std::string PylonROS2CameraImpl<CameraTraitT>::setChunkEnable(const bool& enable)
 {
+    chunk_timestamp_cache_valid_ = false;
+
     if (GenApi::IsAvailable(cam_->ChunkEnable))
     {
         try

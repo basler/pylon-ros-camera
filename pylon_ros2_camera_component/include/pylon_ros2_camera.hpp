@@ -1328,6 +1328,16 @@ protected:
     bool is_ready_;
 
     /**
+     * Cached answer to "is the timestamp chunk enabled?". Asking the camera costs a
+     * ChunkSelector write plus a ChunkEnable read, which used to be paid on every single
+     * grab; that is invisible while chunk mode is off but not once it is on. The chunk
+     * setters and startGrabbing() invalidate the cache, so a change made through the
+     * services is still picked up
+     */
+    bool chunk_timestamp_enabled_{false};
+    bool chunk_timestamp_cache_valid_{false};
+
+    /**
      * Camera trigger timeout in ms
      */
     int trigger_timeout_;

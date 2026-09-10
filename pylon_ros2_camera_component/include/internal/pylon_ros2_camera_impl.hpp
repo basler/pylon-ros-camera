@@ -470,6 +470,11 @@ protected:
 
     virtual bool setupSequencer(const std::vector<float>& exposure_times,
                                 std::vector<float>& exposure_times_set);
+
+    /**
+     * Ask the camera whether the timestamp chunk is enabled and cache the answer
+     */
+    virtual void refreshChunkTimestampCache();
 };
 
 }  // namespace pylon_ros2_camera
