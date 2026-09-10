@@ -38,6 +38,7 @@
 // topics
 #include "pylon_ros2_camera_interfaces/msg/current_params.hpp"
 #include "pylon_ros2_camera_interfaces/msg/component_status.hpp"
+#include "pylon_ros2_camera_interfaces/msg/frame_counters.hpp"
 
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
@@ -1665,6 +1666,8 @@ protected:
   rclcpp::Publisher<pylon_ros2_camera_interfaces::msg::CurrentParams>::SharedPtr current_params_pub_;
   pylon_ros2_camera_interfaces::msg::CurrentParams current_params_;
   rclcpp::Publisher<pylon_ros2_camera_interfaces::msg::ComponentStatus>::SharedPtr component_status_pub_;
+
+  rclcpp::Publisher<pylon_ros2_camera_interfaces::msg::FrameCounters>::SharedPtr frame_counters_pub_;
   pylon_ros2_camera_interfaces::msg::ComponentStatus cm_status_;
   // image transport publishers
   image_transport::CameraPublisher img_raw_pub_;
