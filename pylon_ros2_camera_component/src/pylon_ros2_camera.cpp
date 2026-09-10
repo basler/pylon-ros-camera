@@ -61,6 +61,19 @@ PylonROS2Camera::PylonROS2Camera()
     , max_brightness_tolerance_(2.5)
 {}
 
+bool PylonROS2Camera::getLastChunkCounters(int64_t& frame_counter, int64_t& trigger_input_counter) const
+{
+    if (!last_chunk_counters_valid_)
+    {
+        return false;
+    }
+
+    frame_counter = last_frame_counter_;
+    trigger_input_counter = last_trigger_input_counter_;
+
+    return true;
+}
+
 PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
 {
     Pylon::String_t device_class;

@@ -394,6 +394,13 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
 
         grab_strategy_ = parameters.grab_strategy_;
 
+        // Chunks change the payload size, so they have to be configured before grabbing
+        // starts. The timestamp chunk is deliberately left alone here
+        if (parameters.enable_chunk_counters_)
+        {
+            this->enableChunkCounters();
+        }
+
         // The chunk configuration may have changed since the previous grabbing session,
         // so the cached "is the timestamp chunk enabled?" answer is invalidated here
         chunk_timestamp_cache_valid_ = false;
@@ -429,6 +436,50 @@ bool PylonROS2CameraImpl<CameraTraitT>::startGrabbing(const PylonROS2CameraParam
     }
 
     return true;
+}
+
+template <typename CameraTraitT>
+bool PylonROS2CameraImpl<CameraTraitT>::enableOneChunk(const int selector, const char* name)
+{
+    if (this->setChunkSelector(selector).find("done") == std::string::npos ||
+        this->setChunkEnable(true).find("done") == std::string::npos)
+    {
+        RCLCPP_WARN_STREAM(LOGGER_BASE, "The " << name << " chunk is not available on this camera; "
+                                        "it will not be published");
+        return false;
+    }
+
+    RCLCPP_INFO_STREAM(LOGGER_BASE, "The " << name << " chunk is enabled");
+
+    return true;
+}
+
+template <typename CameraTraitT>
+void PylonROS2CameraImpl<CameraTraitT>::enableChunkCounters()
+{
+    // ChunkSelector service codes consumed by setChunkSelector(int); see the switch there
+    constexpr int kChunkSelectorFramecounter = 10;         // frames delivered by this camera
+    constexpr int kChunkSelectorTriggerinputcounter = 30;  // trigger pulses received since power-on
+
+    chunk_framecounter_enabled_ = false;
+    chunk_triggerinputcounter_enabled_ = false;
+
+    if (this->setChunkModeActive(true).find("done") == std::string::npos)
+    {
+        RCLCPP_WARN(LOGGER_BASE, "Could not enable chunk mode, the frame counters will not be published");
+        return;
+    }
+
+    // Each counter is enabled independently: a camera model may expose one chunk and
+    // not the other (e.g. some USB cameras don't provide the Framecounter chunk), and
+    // the trigger input counter alone is enough to index frames across cameras
+    chunk_framecounter_enabled_ = this->enableOneChunk(kChunkSelectorFramecounter, "Framecounter");
+    chunk_triggerinputcounter_enabled_ = this->enableOneChunk(kChunkSelectorTriggerinputcounter, "Triggerinputcounter");
+
+    if (!chunk_framecounter_enabled_ && !chunk_triggerinputcounter_enabled_)
+    {
+        RCLCPP_WARN(LOGGER_BASE, "Neither counter chunk could be enabled; nothing will be published on frame_counters");
+    }
 }
 
 template <typename CameraTraitT>
@@ -521,6 +572,31 @@ bool PylonROS2CameraImpl<CameraTrait>::grab(std::vector<uint8_t>& image, rclcpp:
         {
             RCLCPP_WARN_STREAM(LOGGER_BASE, "An exception while getting the chunk timestamp occurred: " << e.GetDescription());
         }
+    }
+
+    // The frame and trigger input counters travel in the same grab result as the image,
+    // so reading them here costs no extra round trip to the camera. Each counter is read
+    // only if it was enabled; a counter this camera does not provide is reported as -1
+    last_frame_counter_ = -1;
+    last_trigger_input_counter_ = -1;
+    last_chunk_counters_valid_ = false;
+    try
+    {
+        if (chunk_framecounter_enabled_ && ptr_grab_result->ChunkFramecounter.IsReadable())
+        {
+            last_frame_counter_ = ptr_grab_result->ChunkFramecounter.GetValue();
+        }
+        if (chunk_triggerinputcounter_enabled_ && ptr_grab_result->ChunkTriggerinputcounter.IsReadable())
+        {
+            last_trigger_input_counter_ = ptr_grab_result->ChunkTriggerinputcounter.GetValue();
+        }
+        last_chunk_counters_valid_ = (last_frame_counter_ >= 0 || last_trigger_input_counter_ >= 0);
+    }
+    catch (const GenICam::GenericException &e)
+    {
+        static rclcpp::Clock counters_clock(RCL_STEADY_TIME);
+        RCLCPP_WARN_STREAM_THROTTLE(LOGGER_BASE, counters_clock, 10000,
+                                    "An exception while getting the chunk counters occurred: " << e.GetDescription());
     }
 
     if (!is_ready_)

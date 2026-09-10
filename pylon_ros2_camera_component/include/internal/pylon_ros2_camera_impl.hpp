@@ -472,6 +472,19 @@ protected:
                                 std::vector<float>& exposure_times_set);
 
     /**
+     * Enable whichever of the frame counter and trigger input counter chunks the camera
+     * provides. Has to be called before grabbing starts, because chunks change the
+     * payload size
+     */
+    virtual void enableChunkCounters();
+
+    /**
+     * Select and enable a single chunk by its setChunkSelector(int) code. Returns false
+     * if the camera does not provide it
+     */
+    virtual bool enableOneChunk(const int selector, const char* name);
+
+    /**
      * Ask the camera whether the timestamp chunk is enabled and cache the answer
      */
     virtual void refreshChunkTimestampCache();
