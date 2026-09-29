@@ -201,6 +201,8 @@ void PylonROS2CameraNode::initPublishers()
   this->current_params_pub_ = this->create_publisher<pylon_ros2_camera_interfaces::msg::CurrentParams>(msg_name, 10);
   msg_name = msg_prefix + "status";
   this->component_status_pub_ = this->create_publisher<pylon_ros2_camera_interfaces::msg::ComponentStatus>(msg_name, 5);
+  msg_name = msg_prefix + "frame_counters";
+  this->frame_counters_pub_ = this->create_publisher<pylon_ros2_camera_interfaces::msg::FrameCounters>(msg_name, 10);
 
   msg_name = msg_prefix + "image_raw";
   this->img_raw_pub_ = image_transport::create_camera_publisher(this, msg_name);
@@ -1206,6 +1208,24 @@ bool PylonROS2CameraNode::grabImage()
       stamp = rclcpp::Node::now();
     }
     this->img_raw_msg_.header.stamp = stamp;
+
+    // Publish the counters of this same frame. sensor_msgs/Image has no seq field in
+    // ROS 2, so downstream nodes match image and counters by exact equality of the
+    // stamp: this is the very same value, not a nearby one
+    if (this->pylon_camera_parameter_set_.enable_chunk_counters_)
+    {
+      int64_t frame_counter = 0;
+      int64_t trigger_input_counter = 0;
+      if (this->pylon_camera_->getLastChunkCounters(frame_counter, trigger_input_counter))
+      {
+        pylon_ros2_camera_interfaces::msg::FrameCounters counters_msg;
+        counters_msg.header.stamp = stamp;
+        counters_msg.header.frame_id = this->cameraFrame();
+        counters_msg.frame_counter = frame_counter;
+        counters_msg.trigger_input_counter = trigger_input_counter;
+        this->frame_counters_pub_->publish(counters_msg);
+      }
+    }
   }
   else
   {

@@ -446,6 +446,19 @@ public:
     const bool& isReady() const;
 
     /**
+     * Getter for the counters that the camera attached, as chunk data, to the last
+     * frame grabbed successfully. The frame counter counts frames delivered by this
+     * camera. The trigger input counter counts trigger pulses received since the camera
+     * was powered on, and it keeps counting across stop/start grabbing, which is what
+     * makes it usable as a common index between cameras sharing one trigger line.
+     * The chunks have to be enabled first, see the enable_chunk_counters parameter.
+     * @param frame_counter output, ChunkFramecounter of the last grabbed frame
+     * @param trigger_input_counter output, ChunkTriggerinputcounter of the last frame
+     * @return false if the camera did not attach these chunks to the last frame
+     */
+    bool getLastChunkCounters(int64_t& frame_counter, int64_t& trigger_input_counter) const;
+
+    /**
      * Returns the number of digital user outputs, which can be set by the
      * camera. Might be zero for some cameras. The size affects the number of
      * 'set' ros-services the camera node will provide
@@ -1326,6 +1339,33 @@ protected:
      * acquisition contains valid data
      */
     bool is_ready_;
+
+    /**
+     * Counters read from the chunk data of the last successfully grabbed frame. Only
+     * meaningful while last_chunk_counters_valid_ is true
+     */
+    int64_t last_frame_counter_{-1};
+    int64_t last_trigger_input_counter_{-1};
+    bool last_chunk_counters_valid_{false};
+
+    /**
+     * Which counter chunks were actually enabled on the camera. They are enabled
+     * independently, since a camera model may provide one and not the other (e.g. some
+     * USB cameras have no Framecounter chunk); a counter that is not enabled is reported
+     * as -1 and not read on every grab
+     */
+    bool chunk_framecounter_enabled_{false};
+    bool chunk_triggerinputcounter_enabled_{false};
+
+    /**
+     * Cached answer to "is the timestamp chunk enabled?". Asking the camera costs a
+     * ChunkSelector write plus a ChunkEnable read, which used to be paid on every single
+     * grab; that is invisible while chunk mode is off but not once it is on. The chunk
+     * setters and startGrabbing() invalidate the cache, so a change made through the
+     * services is still picked up
+     */
+    bool chunk_timestamp_enabled_{false};
+    bool chunk_timestamp_cache_valid_{false};
 
     /**
      * Camera trigger timeout in ms

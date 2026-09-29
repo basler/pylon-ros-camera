@@ -60,6 +60,7 @@ PylonROS2CameraParameter::PylonROS2CameraParameter() :
     mtu_size_(1500),
     enable_status_publisher_(false),
     enable_current_params_publisher_(false),
+    enable_chunk_counters_(false),
     startup_user_set_(""),
     inter_pkg_delay_(0),
     frame_transmission_delay_(0),
@@ -372,6 +373,17 @@ void PylonROS2CameraParameter::readFromRosParameterServer(rclcpp::Node& nh)
     }
     
     nh.get_parameter("enable_current_params_publisher", this->enable_current_params_publisher_);
+
+    // enable_chunk_counters: attach ChunkFramecounter and ChunkTriggerinputcounter to
+    // every frame and publish them on the frame_counters topic
+    RCLCPP_DEBUG(LOGGER, "---> enable_chunk_counters");
+
+    if (!nh.has_parameter("enable_chunk_counters"))
+    {
+        nh.declare_parameter<bool>("enable_chunk_counters", false);
+    }
+
+    nh.get_parameter("enable_chunk_counters", this->enable_chunk_counters_);
 
     // startup_user_set
     RCLCPP_DEBUG(LOGGER, "---> startup_user_set");
