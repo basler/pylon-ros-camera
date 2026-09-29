@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.1 (2026-09-09)
+-------------------
+* Documentation adjustments.
+
 4.0.0 (2026-09-09)
 -------------------
 * Integration of Basler's stereo ace and the stereo mini within the ROS2 pylon driver.
