@@ -2,7 +2,7 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-4.0.1 (2026-09-09)
+4.0.1 (2026-09-29)
 -------------------
 * Documentation adjustments.
 
