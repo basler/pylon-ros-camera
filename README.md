@@ -85,8 +85,6 @@ The 3d point clouds acquired by the blaze can be visualized thanks to [rviz2](ht
 For camera models other than the blaze, specific user set can be specified thanks to the `startup_user_set` parameter.  
 ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py startup_user_set:=Default``  or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py startup_user_set:=UserSet1`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py startup_user_set:=UserSet2`` or ``ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py startup_user_set:=UserSet3``  
 
-Through the driver, the camera image acquisition is sequentially triggered by software trigger. It is not possible in the current implementation to change this acquisition mode. In other words, it is not possible through the driver to configure for free run and hardware triggered image acquisition.
-
 Beware that some parameters implemented by the driver, like for instance the parameter `startup_user_set`, can be set through 1. the `pylon_ros2_camera_wrapper/config/default.yaml` user parameter file, 2. the `pylon_ros2_camera.launch.py` driver launch file, and 3. the command line arguments of the launch command to start the driver. A parameter value set as an argument of the launch command to start the driver will overwrite the value set in the driver launch file itself, that will overwrite the value set in the user parameter file.    
 
 ### Acquisition mode and frame rate
