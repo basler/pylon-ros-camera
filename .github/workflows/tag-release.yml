@@ -1,0 +1,72 @@
+name: Tag, release, and attach SBOM
+
+on:
+  push:
+    branches: [jazzy, kilted]
+    paths:
+      - 'CHANGELOG.rst'
+
+permissions:
+  contents: write
+
+jobs:
+  tag-and-release:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      created: ${{ steps.check.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from CHANGELOG.rst
+        id: version
+        run: |
+          VERSION=$(python3 tools/get_version_from_changelog.py)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Compose full tag name
+        id: tag
+        run: |
+          ROS2_DISTRO="${{ github.ref_name }}"
+          TAG="${{ steps.version.outputs.version }}-${ROS2_DISTRO}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag already exists
+        id: check
+        run: |
+          if git rev-parse "${{ steps.tag.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create tag and release
+        if: steps.check.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: ${{ steps.tag.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          make_latest: false
+
+  attach-sbom:
+    needs: tag-and-release
+    if: needs.tag-and-release.outputs.created == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate CycloneDX SBOM from package.xml files
+        run: python3 .github/scripts/generate_cyclonedx_sbom.py > sbom-${{ needs.tag-and-release.outputs.tag }}.cdx.json
+
+      - name: Show SBOM (debug)
+        run: cat sbom-${{ needs.tag-and-release.outputs.tag }}.cdx.json
+
+      - name: Attach SBOM to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.tag-and-release.outputs.tag }}
+          files: sbom-${{ needs.tag-and-release.outputs.tag }}.cdx.json

@@ -3,6 +3,8 @@ import glob, json, os, sys, time, xml.etree.ElementTree as ET
 
 manifests = {}
 for path in glob.glob("**/package.xml", recursive=True):
+    if "/build/" in path or "/install/" in path or "/log/" in path:
+        continue
     tree = ET.parse(path)
     root = tree.getroot()
     pkg_name = root.findtext("name")

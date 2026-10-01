@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.3.10 (2026-10-01)
+-------------------
+* Automate SBOM file generation.
+
 3.3.9 (2026-08-12)
 ------------------
 * Fix scheduled action command on ace 2 (SFNC 2.x TimestampLatch node names) (issue #299).
