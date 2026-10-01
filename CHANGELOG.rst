@@ -4,6 +4,10 @@ Changelog for package pylon_ros2_camera
 
 3.3.8 (2026-10-01)
 -------------------
+* TODO: fill in release notes
+
+3.3.8 (2026-10-01)
+-------------------
 * Fixing automation SBOM generation for each new release from jazzy.
 
 3.3.7 (2026-10-01)
