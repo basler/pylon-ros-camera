@@ -1,4 +1,4 @@
-name: Tag and release on CHANGELOG update
+name: Tag, release, and attach SBOM
 
 on:
   push:
@@ -12,10 +12,13 @@ permissions:
 jobs:
   tag-and-release:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      created: ${{ steps.check.outputs.exists }}
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # needed to check existing tags
+          fetch-depth: 0
 
       - name: Extract version from CHANGELOG.rst
         id: version
@@ -48,3 +51,22 @@ jobs:
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
           make_latest: false
+
+  attach-sbom:
+    needs: tag-and-release
+    if: needs.tag-and-release.outputs.created == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate CycloneDX SBOM from package.xml files
+        run: python3 .github/scripts/generate_cyclonedx_sbom.py > sbom-${{ needs.tag-and-release.outputs.tag }}.cdx.json
+
+      - name: Show SBOM (debug)
+        run: cat sbom-${{ needs.tag-and-release.outputs.tag }}.cdx.json
+
+      - name: Attach SBOM to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.tag-and-release.outputs.tag }}
+          files: sbom-${{ needs.tag-and-release.outputs.tag }}.cdx.json
