@@ -1,0 +1,28 @@
+name: Attach CycloneDX SBOM to Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write   # needed to upload files to a release
+
+jobs:
+  attach-sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}   # checkout the exact tagged commit
+
+      - name: Generate CycloneDX SBOM from package.xml files
+        run: python3 .github/scripts/generate_cyclonedx_sbom.py > sbom.cdx.json
+
+      - name: Show SBOM (debug)
+        run: cat sbom.cdx.json
+
+      - name: Attach SBOM to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          files: sbom.cdx.json
