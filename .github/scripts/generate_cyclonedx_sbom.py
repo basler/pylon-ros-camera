@@ -8,7 +8,7 @@ def parse_package_xml(path):
     name = root.findtext("name")
     version = root.findtext("version") or "0.0.0"
     deps = []
-    for tag in ("depend", "build_depend", "exec_depend", "test_depend"):
+    for tag in ("depend", "build_depend", "exec_depend"):   # test_depend excluded on purpose
         for dep in root.findall(tag):
             deps.append(dep.text.strip())
     return name, version, deps

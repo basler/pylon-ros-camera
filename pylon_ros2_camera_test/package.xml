@@ -4,7 +4,7 @@
 
   <name>pylon_ros2_camera_test</name>
 
-  <version>1.0.0</version>
+  <version>3.3.7</version>
 
   <description>
     Integration tests for the pylon_ros2_camera driver.

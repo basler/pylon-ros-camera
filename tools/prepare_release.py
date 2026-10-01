@@ -35,7 +35,9 @@ CHANGELOG_PATH = "CHANGELOG.rst"
 with open(CHANGELOG_PATH, "r") as f:
     changelog = f.read()
 
-new_entry = f"{new_version} ({today})\n{'-' * (len(new_version) + len(today) + 3)}\n* TODO: fill in release notes\n\n"
+new_header = f"{new_version} ({today})"
+underline_length = max(len(new_header), 19)   # 19 matches this project's existing convention
+new_entry = f"{new_header}\n{'-' * underline_length}\n* TODO: fill in release notes\n\n"
 
 # Insert after the title block (assumes title + blank line at top)
 lines = changelog.split("\n", 3)

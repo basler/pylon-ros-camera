@@ -2,6 +2,10 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.3.7 (2026-10-01)
+-------------------
+* Automate SBOM generation for each new release from jazzy.
+
 3.3.6 (2026-07-23)
 -------------------
 * Fix auto-brightness startup parameters ignored when both ``exposure`` and ``gain`` are also set (issue #265).
