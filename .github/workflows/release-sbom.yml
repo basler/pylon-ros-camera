@@ -16,13 +16,13 @@ jobs:
           ref: ${{ github.event.release.tag_name }}   # checkout the exact tagged commit
 
       - name: Generate CycloneDX SBOM from package.xml files
-        run: python3 .github/scripts/generate_cyclonedx_sbom.py > sbom.cdx.json
+        run: python3 .github/scripts/generate_cyclonedx_sbom.py > sbom-${{ github.event.release.tag_name }}.cdx.json
 
       - name: Show SBOM (debug)
-        run: cat sbom.cdx.json
+        run: cat sbom-${{ github.event.release.tag_name }}.cdx.json
 
       - name: Attach SBOM to the release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.release.tag_name }}
-          files: sbom.cdx.json
+          files: sbom-${{ github.event.release.tag_name }}.cdx.json
