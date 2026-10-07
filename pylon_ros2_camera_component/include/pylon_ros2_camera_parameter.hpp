@@ -258,6 +258,14 @@ public:
     bool enable_current_params_publisher_;
 
     /**
+     * Attach the frame counter and trigger input counter to every frame as chunk data
+     * and publish them on the frame_counters topic. Off by default: the chunks cost
+     * extra bytes on the wire and are only useful when frames have to be matched
+     * between cameras
+     */
+    bool enable_chunk_counters_;
+
+    /**
      * The startup user set.
      */
     std::string startup_user_set_;
