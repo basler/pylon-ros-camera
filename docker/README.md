@@ -317,14 +317,16 @@ docker run --rm \
 
 ---
 
-## Stereo ace CPU resources
+## Stereo ace compute resources
 
-The Stereo ace driver reconstructs the point cloud and depth maps from raw
-disparity **on the host CPU**, looping over the full (~1224×1024) grid for every
-frame. Throughput for this camera is CPU-bound, not network-bound.
+Stereo ace disparity and depth processing uses compute resources on the host,
+whether the ROS driver runs directly or in a container. The achievable frame
+rate depends on the selected depth resolution and the available CPU or GPU
+resources.
 
-Give the container enough CPU — do not pin it to a single core. With Compose you
-can raise the limit in `docker-compose.yaml`:
+If you set a container CPU quota, check sustained acquisition at your intended
+resolution and frame rate — too tight a quota causes acquisition timeouts. With
+Compose you can raise or remove the limit in `docker-compose.yaml`:
 
 ```yaml
 services:
@@ -332,8 +334,21 @@ services:
     cpus: "4.0"
 ```
 
-Or with `docker run`, add `--cpus=4.0`. If the output rate is lower than expected
-for a Stereo ace, check CPU usage before suspecting the network or MTU.
+Or with `docker run`, add `--cpus=4.0`.
+
+On NVIDIA Jetson systems with the NVIDIA Container Runtime configured,
+`runtime: nvidia` and `NVIDIA_VISIBLE_DEVICES=all` can expose the GPU to the
+container:
+
+```yaml
+services:
+  pylon_ros2_camera:
+    runtime: nvidia
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+```
+
+GPU access alone does not confirm that the Stereo ace GenTL producer uses CUDA.
 
 ---
 
@@ -347,7 +362,7 @@ for a Stereo ace, check CPU usage before suspecting the network or MTU.
 | Low frame rate | Standard MTU (1500 bytes) | Enable jumbo frames: `mtu_size:=9000` (requires NIC/switch support) |
 | `pylon.deb: not found` build error | `.deb` not placed in `docker/` or wrong filename | Place the file in `docker/` and set `PYLON_DEB` accordingly |
 | Stereo ace / Stereo mini / blaze camera not built | Supplementary package not installed in the image | Place the matching supplementary `.deb` in `docker/` and set `PYLON_STEREO_ACE_DEB` / `PYLON_STEREO_MINI_DEB` / `PYLON_BLAZE_DEB`, then rebuild |
-| Low 3D output rate on Stereo ace | Container CPU-starved (host-side depth reconstruction) | Raise the CPU limit (`cpus:` in compose or `--cpus=`) — see [Stereo ace CPU resources](#stereo-ace-cpu-resources) |
+| Low 3D output rate on Stereo ace | Container compute quota too tight | Raise the CPU limit (`cpus:` in compose or `--cpus=`) — see [Stereo ace compute resources](#stereo-ace-compute-resources) |
 | Wrong ROS distro used (e.g. jazzy when kilted expected) | Host `ROS_DISTRO` env var (set by sourcing ROS) leaks into Compose | Use `PYLON_ROS_DISTRO` instead of `ROS_DISTRO` in `.env` and on the command line |
 | `permission denied` connecting to Docker socket | Current user is not in the `docker` group | Run with `sudo`, or add your user permanently: `sudo usermod -aG docker $USER` then `newgrp docker` |
 | `ros2: command not found` inside `exec` shell | ROS environment not sourced in `exec` sessions | Run `source /opt/ros/${ROS_DISTRO}/setup.bash && source /ros2_ws/install/setup.bash`, or prefix commands with `/entrypoint.sh` |
