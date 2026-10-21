@@ -266,6 +266,11 @@ private:
     float sta_cy_{0.0f};           // Scan3dPrincipalPointV
     float sta_invalid_data_value_{0.0f}; // raw disparity value marking an invalid pixel (Scan3dInvalidDataValue)
 
+    // Disparity component resolution (the depth / point-cloud grid, lower than
+    // the intensity resolution). Read at startup under ComponentSelector=Disparity.
+    int sta_disparity_width_{0};
+    int sta_disparity_height_{0};
+
     // Extra intensity images (left / right, from IntensityCombined, top/bottom halves)
     sensor_msgs::msg::Image intensity_left_msg_;
     sensor_msgs::msg::Image intensity_right_msg_;
@@ -373,6 +378,14 @@ bool PylonROS2StereoAceCamera::applyCamSpecificStartupSettings(const PylonROS2Ca
         sta_focal_length_      = static_cast<float>(stereo_ace_cam_->Scan3dFocalLength.GetValue());
         sta_cx_                = static_cast<float>(stereo_ace_cam_->Scan3dPrincipalPointU.GetValue());
         sta_cy_                = static_cast<float>(stereo_ace_cam_->Scan3dPrincipalPointV.GetValue());
+
+        // Disparity component dimensions. These describe the Scan3d intrinsics
+        // above and the published depth image / point cloud, so camera_info_3d
+        // must use them rather than the larger intensity resolution.
+        GenApi::CIntegerPtr disp_width(stereo_ace_cam_->GetNodeMap().GetNode("Width"));
+        GenApi::CIntegerPtr disp_height(stereo_ace_cam_->GetNodeMap().GetNode("Height"));
+        if (disp_width.IsValid() && GenApi::IsReadable(disp_width))   sta_disparity_width_  = static_cast<int>(disp_width->GetValue());
+        if (disp_height.IsValid() && GenApi::IsReadable(disp_height)) sta_disparity_height_ = static_cast<int>(disp_height->GetValue());
 
         // Query the invalid-pixel sentinel instead of assuming 0 (Basler: check nodes at runtime).
         if (stereo_ace_cam_->Scan3dInvalidDataValue.IsReadable())
@@ -671,10 +684,12 @@ void PylonROS2StereoAceCamera::getInitialCameraInfo(sensor_msgs::msg::CameraInfo
 {
     // Read intrinsics from the Disparity component's Scan3d nodes.
     stereo_ace_cam_->ComponentSelector.FromString("Disparity");
-    this->populateCameraInfoFromScan3d(stereo_ace_cam_->GetNodeMap(),
-                                       static_cast<int>(this->imageCols()),
-                                       static_cast<int>(this->imageRows()),
-                                       cam_info_msg);
+    // Use the Disparity component dimensions so width/height, K and P all
+    // describe the same (depth) pixel grid. Fall back to the intensity
+    // resolution only if the disparity dimensions were not read at startup.
+    const int w = sta_disparity_width_  > 0 ? sta_disparity_width_  : static_cast<int>(this->imageCols());
+    const int h = sta_disparity_height_ > 0 ? sta_disparity_height_ : static_cast<int>(this->imageRows());
+    this->populateCameraInfoFromScan3d(stereo_ace_cam_->GetNodeMap(), w, h, cam_info_msg);
 }
 
 int PylonROS2StereoAceCamera::imagePixelDepth() const
