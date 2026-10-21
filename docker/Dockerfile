@@ -17,15 +17,15 @@
 #
 # STEP 2 – Build examples:
 #
-#   # Kilted (default on this branch):
+#   # Jazzy (default on this branch):
 #   docker build --build-arg PYLON_DEB=pylon_<version>_amd64.deb \
-#                -t pylon_ros2_camera:kilted .   # uses REPO_BRANCH=kilted by default
+#                -t pylon_ros2_camera:jazzy .   # uses REPO_BRANCH=jazzy by default
 #
-#   # Jazzy:
-#   docker build --build-arg ROS_DISTRO=jazzy \
-#                --build-arg REPO_BRANCH=jazzy \
+#   # Kilted:
+#   docker build --build-arg ROS_DISTRO=kilted \
+#                --build-arg REPO_BRANCH=kilted \
 #                --build-arg PYLON_DEB=pylon_<version>_amd64.deb \
-#                -t pylon_ros2_camera:jazzy .
+#                -t pylon_ros2_camera:kilted .
 #
 #   # Jazzy with Stereo ace + Stereo mini support:
 #   docker build --build-arg ROS_DISTRO=jazzy \
@@ -53,14 +53,14 @@
 
 # ROS 2 distribution.  Each branch sets its own default:
 #   kilted → kilted  |  jazzy → jazzy  |  humble → humble
-ARG ROS_DISTRO=kilted
+ARG ROS_DISTRO=jazzy
 FROM ros:${ROS_DISTRO}-ros-base
 
 # Re-declare ARGs after FROM (Docker scope rule)
-ARG ROS_DISTRO=kilted
+ARG ROS_DISTRO=jazzy
 # Git branch of https://github.com/basler/pylon-ros-camera to clone.
 # Defaults to the same value as ROS_DISTRO (works for humble, jazzy and kilted).
-ARG REPO_BRANCH=kilted
+ARG REPO_BRANCH=jazzy
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYLON_ROOT=/opt/pylon \
@@ -159,5 +159,5 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 # Default: start the camera driver.
 # Override at runtime, e.g.:
-#   docker run --network=host pylon_ros2_camera:kilted ros2 topic list
+#   docker run --network=host pylon_ros2_camera:jazzy ros2 topic list
 CMD ["ros2", "launch", "pylon_ros2_camera_wrapper", "pylon_ros2_camera.launch.py"]

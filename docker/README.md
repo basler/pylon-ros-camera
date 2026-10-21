@@ -70,11 +70,11 @@ Create it once and all subsequent `docker compose` commands use it automatically
 ```bash
 cd docker/
 
-# Kilted (default — .env file not required):
+# Jazzy (default — .env file not required):
 docker compose build
 
-# Jazzy — create a .env file first:
-echo -e "PYLON_ROS_DISTRO=jazzy\nPYLON_REPO_BRANCH=jazzy" > .env
+# Kilted — create a .env file first:
+echo -e "PYLON_ROS_DISTRO=kilted\nPYLON_REPO_BRANCH=kilted" > .env
 docker compose build
 
 # Humble — create a .env file first:
@@ -82,7 +82,7 @@ echo -e "PYLON_ROS_DISTRO=humble\nPYLON_REPO_BRANCH=humble" > .env
 docker compose build
 ```
 
-To go back to the default (kilted), delete the `.env` file:
+To go back to the default (jazzy), delete the `.env` file:
 ```bash
 rm docker/.env
 ```
@@ -109,13 +109,13 @@ cd docker/
 
 docker build \
     --build-arg PYLON_DEB=pylon.deb \
-    -t pylon_ros2_camera:kilted .
+    -t pylon_ros2_camera:jazzy .
 
 docker build \
-    --build-arg ROS_DISTRO=jazzy \
-    --build-arg REPO_BRANCH=jazzy \
+    --build-arg ROS_DISTRO=kilted \
+    --build-arg REPO_BRANCH=kilted \
     --build-arg PYLON_DEB=pylon.deb \
-    -t pylon_ros2_camera:jazzy .
+    -t pylon_ros2_camera:kilted .
 
 docker build \
     --build-arg ROS_DISTRO=humble \
@@ -160,7 +160,7 @@ docker run --rm \               # remove the container automatically when it sto
     --cap-add=NET_RAW \         # raw socket access for the pylon GigE transport layer
     --cap-add=NET_ADMIN \       # network admin operations (e.g. adjusting MTU from inside the container)
     -e ROS_DOMAIN_ID=0 \        # ROS 2 domain ID — must match any external ROS 2 nodes you want to talk to
-    pylon_ros2_camera:kilted    # image tag — replace with :jazzy or :humble as needed
+    pylon_ros2_camera:jazzy     # image tag — replace with :kilted or :humble as needed
 ```
 
 ### Why `--network=host` is mandatory for GigE cameras
@@ -178,22 +178,22 @@ Pass extra arguments after the image name:
 
 ```bash
 # Connect to a specific camera by its DeviceUserID
-docker run --rm --network=host pylon_ros2_camera:kilted \
+docker run --rm --network=host pylon_ros2_camera:jazzy \
     ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py \
         device_user_id:=my_camera
 
 # Enable jumbo frames (requires host NIC and switch to support 9000-byte MTU)
-docker run --rm --network=host pylon_ros2_camera:kilted \
+docker run --rm --network=host pylon_ros2_camera:jazzy \
     ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py \
         mtu_size:=9000
 
 # Load factory defaults on startup
-docker run --rm --network=host pylon_ros2_camera:kilted \
+docker run --rm --network=host pylon_ros2_camera:jazzy \
     ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py \
         startup_user_set:=Default
 ```
 
-> Replace `:kilted` with `:jazzy` or `:humble` to match the image you built.
+> Replace `:jazzy` with `:kilted` or `:humble` to match the image you built.
 
 ### Custom configuration file
 
@@ -202,12 +202,12 @@ Mount your own `default_2d.yaml` to override camera parameters without rebuildin
 ```bash
 docker run --rm --network=host \
     -v /path/to/my_camera.yaml:/ros2_ws/install/pylon_ros2_camera_wrapper/share/pylon_ros2_camera_wrapper/config/default_2d.yaml:ro \
-    pylon_ros2_camera:kilted
+    pylon_ros2_camera:jazzy
 ```
 
 Or uncomment the `volumes` section in `docker-compose.yaml`.
 
-> Replace `:kilted` with `:jazzy` or `:humble` to match the image you built.
+> Replace `:jazzy` with `:kilted` or `:humble` to match the image you built.
 
 ### Opening a shell in the running container
 
@@ -218,7 +218,7 @@ docker compose exec pylon_ros2_camera bash
 
 With plain docker (from any directory):
 ```bash
-sudo docker exec -it $(sudo docker ps -qf "ancestor=pylon_ros2_camera:kilted") bash
+sudo docker exec -it $(sudo docker ps -qf "ancestor=pylon_ros2_camera:jazzy") bash
 ```
 
 Once inside, source the ROS environment before running any `ros2` commands:
@@ -310,10 +310,10 @@ docker run --rm \
     --device=/dev/bus/usb:/dev/bus/usb \
     --group-add plugdev \
     -e ROS_DOMAIN_ID=0 \
-    pylon_ros2_camera:kilted
+    pylon_ros2_camera:jazzy
 ```
 
-> Replace `:kilted` with `:jazzy` or `:humble` to match the image you built.
+> Replace `:jazzy` with `:kilted` or `:humble` to match the image you built.
 
 ---
 

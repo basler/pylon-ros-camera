@@ -1,7 +1,7 @@
 # =============================================================================
 # docker-compose.yaml – pylon_ros2_camera driver
 #
-# Default distro: kilted (this file lives on the kilted branch).
+# Default distro: jazzy (this file lives on the jazzy branch).
 # Override the distro by setting environment variables before the command:
 #
 #   PYLON_ROS_DISTRO=jazzy PYLON_REPO_BRANCH=jazzy docker compose build
@@ -46,9 +46,9 @@ services:
         # or a .env file (use PYLON_ROS_DISTRO, not ROS_DISTRO, to avoid
         # conflicts with a sourced ROS installation on the host):
         #   PYLON_ROS_DISTRO=jazzy PYLON_REPO_BRANCH=jazzy docker compose build
-        ROS_DISTRO: ${PYLON_ROS_DISTRO:-kilted}
-        REPO_BRANCH: ${PYLON_REPO_BRANCH:-kilted}
-    image: pylon_ros2_camera:${PYLON_ROS_DISTRO:-kilted}
+        ROS_DISTRO: ${PYLON_ROS_DISTRO:-jazzy}
+        REPO_BRANCH: ${PYLON_REPO_BRANCH:-jazzy}
+    image: pylon_ros2_camera:${PYLON_ROS_DISTRO:-jazzy}
 
     # -------------------------------------------------------------------------
     # CRITICAL for GigE cameras: host networking
