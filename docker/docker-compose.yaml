@@ -34,6 +34,13 @@ services:
         # Download from: https://www2.baslerweb.com/en/downloads/software-downloads/
         # Override with: PYLON_DEB=my_pylon.deb docker compose build
         PYLON_DEB: ${PYLON_DEB:-pylon.deb}
+        # Optional 3D supplementary packages. The base suite does not include
+        # the Stereo ace / Stereo mini / blaze SDKs. Place the matching .deb in
+        # this docker/ directory and set the variable, e.g.:
+        #   PYLON_STEREO_ACE_DEB=pylon-supplementary-package-for-stereo-ace_<ver>_amd64.deb docker compose build
+        PYLON_STEREO_ACE_DEB: ${PYLON_STEREO_ACE_DEB:-}
+        PYLON_STEREO_MINI_DEB: ${PYLON_STEREO_MINI_DEB:-}
+        PYLON_BLAZE_DEB: ${PYLON_BLAZE_DEB:-}
         # ROS 2 distro and matching repository branch.
         # Defaults are set in the Dockerfile; override via environment variables
         # or a .env file (use PYLON_ROS_DISTRO, not ROS_DISTRO, to avoid

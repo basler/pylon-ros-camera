@@ -37,6 +37,24 @@ Copy the downloaded `.deb` file into this `docker/` directory and rename it
 `pylon.deb`, **or** update `PYLON_DEB` in `docker-compose.yaml` to match your
 filename.
 
+### 3. pylon supplementary packages (3D cameras only)
+
+The **Stereo ace**, **Stereo mini** and **blaze** 3D cameras are **not** part of
+the base pylon suite. Each needs its own *pylon Supplementary Package* (Linux
+Debian Installer), downloaded from the same Basler downloads page. These provide
+the SDK headers the driver uses to build the 3D camera support.
+
+For every 3D camera you use, place the `.deb` in this `docker/` directory and
+set the matching variable at build time:
+
+| Camera      | Build variable          | Package (Basler download)                        |
+|-------------|-------------------------|--------------------------------------------------|
+| Stereo ace  | `PYLON_STEREO_ACE_DEB`  | pylon Supplementary Package for Stereo ace       |
+| Stereo mini | `PYLON_STEREO_MINI_DEB` | pylon Supplementary Package for Stereo mini (SDK)|
+| blaze       | `PYLON_BLAZE_DEB`       | pylon Supplementary Package for blaze            |
+
+2D-only users can skip this step.
+
 ---
 
 ## Build
@@ -69,6 +87,14 @@ To go back to the default (kilted), delete the `.env` file:
 rm docker/.env
 ```
 
+To include 3D camera support, set the supplementary package variables (the
+matching `.deb` files must be in the `docker/` directory):
+```bash
+PYLON_STEREO_ACE_DEB=pylon-supplementary-package-for-stereo-ace_<ver>_amd64.deb \
+PYLON_STEREO_MINI_DEB=pylon-supplementary-package-for-stereo-mini-sdk_<ver>_amd64.deb \
+    docker compose build
+```
+
 > **Note:** `PYLON_ROS_DISTRO` is used instead of `ROS_DISTRO` in the `.env`
 > file and when overriding on the command line.  This avoids a conflict with
 > the host's `ROS_DISTRO` environment variable, which is set automatically
@@ -96,6 +122,18 @@ docker build \
     --build-arg REPO_BRANCH=humble \
     --build-arg PYLON_DEB=pylon.deb \
     -t pylon_ros2_camera:humble .
+```
+
+To build with 3D camera support, add the supplementary package build args (the
+`.deb` files must be in the `docker/` directory):
+```bash
+docker build \
+    --build-arg ROS_DISTRO=jazzy \
+    --build-arg REPO_BRANCH=jazzy \
+    --build-arg PYLON_DEB=pylon.deb \
+    --build-arg PYLON_STEREO_ACE_DEB=pylon-supplementary-package-for-stereo-ace_<ver>_amd64.deb \
+    --build-arg PYLON_STEREO_MINI_DEB=pylon-supplementary-package-for-stereo-mini-sdk_<ver>_amd64.deb \
+    -t pylon_ros2_camera:jazzy .
 ```
 
 The build clones the driver from GitHub and compiles it with `colcon`.  
@@ -279,6 +317,26 @@ docker run --rm \
 
 ---
 
+## Stereo ace CPU resources
+
+The Stereo ace driver reconstructs the point cloud and depth maps from raw
+disparity **on the host CPU**, looping over the full (~1224×1024) grid for every
+frame. Throughput for this camera is CPU-bound, not network-bound.
+
+Give the container enough CPU — do not pin it to a single core. With Compose you
+can raise the limit in `docker-compose.yaml`:
+
+```yaml
+services:
+  pylon_ros2_camera:
+    cpus: "4.0"
+```
+
+Or with `docker run`, add `--cpus=4.0`. If the output rate is lower than expected
+for a Stereo ace, check CPU usage before suspecting the network or MTU.
+
+---
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |
@@ -288,6 +346,8 @@ docker run --rm \
 | `ros2 topic list` shows nothing | `ROS_DOMAIN_ID` mismatch | Set the same `ROS_DOMAIN_ID` on host and container |
 | Low frame rate | Standard MTU (1500 bytes) | Enable jumbo frames: `mtu_size:=9000` (requires NIC/switch support) |
 | `pylon.deb: not found` build error | `.deb` not placed in `docker/` or wrong filename | Place the file in `docker/` and set `PYLON_DEB` accordingly |
+| Stereo ace / Stereo mini / blaze camera not built | Supplementary package not installed in the image | Place the matching supplementary `.deb` in `docker/` and set `PYLON_STEREO_ACE_DEB` / `PYLON_STEREO_MINI_DEB` / `PYLON_BLAZE_DEB`, then rebuild |
+| Low 3D output rate on Stereo ace | Container CPU-starved (host-side depth reconstruction) | Raise the CPU limit (`cpus:` in compose or `--cpus=`) — see [Stereo ace CPU resources](#stereo-ace-cpu-resources) |
 | Wrong ROS distro used (e.g. jazzy when kilted expected) | Host `ROS_DISTRO` env var (set by sourcing ROS) leaks into Compose | Use `PYLON_ROS_DISTRO` instead of `ROS_DISTRO` in `.env` and on the command line |
 | `permission denied` connecting to Docker socket | Current user is not in the `docker` group | Run with `sudo`, or add your user permanently: `sudo usermod -aG docker $USER` then `newgrp docker` |
 | `ros2: command not found` inside `exec` shell | ROS environment not sourced in `exec` sessions | Run `source /opt/ros/${ROS_DISTRO}/setup.bash && source /ros2_ws/install/setup.bash`, or prefix commands with `/entrypoint.sh` |
