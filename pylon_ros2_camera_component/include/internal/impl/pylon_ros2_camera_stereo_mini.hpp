@@ -1,0 +1,2218 @@
+/******************************************************************************
+ * Software License Agreement (BSD License)
+ *
+ * Copyright (C) 2022, Basler AG. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   * Redistributions of source code must retain the above copyright notice,
+ *     this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *   * No contributors' name may be used to endorse or promote products derived from
+ *     this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *****************************************************************************/
+
+#pragma once
+
+#include <cmath>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <cstdint>
+#include <deque>
+#include <mutex>
+#include <chrono>
+#include <thread>
+#include <atomic>
+#include <condition_variable>
+
+#include "internal/impl/pylon_ros2_camera_3d.hpp"
+
+#include <pylon/StereoMiniInstantCamera.h>
+#include <pylon/CameraEventHandler.h>
+
+
+namespace pylon_ros2_camera
+{
+
+namespace
+{
+    static const rclcpp::Logger LOGGER_STEREO_MINI = rclcpp::get_logger("basler.pylon.ros2.pylon_ros2_stereo_mini_camera");
+
+    // Stereo mini working depth range fallback (millimeters) used if DepthMin/
+    // DepthMax cannot be read from the camera. The connected STM-951mg reports
+    // DepthMin=0, DepthMax=16000.
+    constexpr int s_stm_fallback_depth_min = 0;
+    constexpr int s_stm_fallback_depth_max = 16000;
+}
+
+// User id passed to RegisterCameraEventHandler to tag IMU frame events.
+constexpr intptr_t s_imu_event_id = 0x1111;
+
+    // One IMU reading: accelerometer (m/s^2), gyroscope (rad/s) and the device
+    // hardware timestamp (nanoseconds). Accel and gyro share one timestamp.
+    struct ImuSample
+    {
+        int64_t device_timestamp_ns = 0;
+        double ax = 0.0, ay = 0.0, az = 0.0;
+        double gx = 0.0, gy = 0.0, gz = 0.0;
+    };
+
+    // Receives IMU frame events from the Stereo mini and queues the readings.
+    // OnCameraEvent runs on a pylon event thread; the grab loop drains the queue
+    // through takeSamples().
+    class CImuEventHandler : public Pylon::CCameraEventHandler
+    {
+    public:
+        void OnCameraEvent(Pylon::CInstantCamera& camera, intptr_t user_id, GenApi::INode* /*node*/) override
+        {
+            if (user_id != s_imu_event_id)
+                return;
+
+            auto* stereo_cam = dynamic_cast<Pylon::CStereoMiniInstantCamera*>(&camera);
+            if (stereo_cam == nullptr)
+                return;
+
+            try
+            {
+                // Accel and gyro share one timestamp per frame; skip repeats.
+                const int64_t timestamp = static_cast<int64_t>(stereo_cam->BslEventImuGyroTimestamp.GetValue());
+                if (timestamp == last_timestamp_)
+                    return;
+
+                ImuSample sample;
+                sample.device_timestamp_ns = timestamp;
+                sample.ax = stereo_cam->BslEventImuAccelX.GetValue();
+                sample.ay = stereo_cam->BslEventImuAccelY.GetValue();
+                sample.az = stereo_cam->BslEventImuAccelZ.GetValue();
+                sample.gx = stereo_cam->BslEventImuGyroX.GetValue();
+                sample.gy = stereo_cam->BslEventImuGyroY.GetValue();
+                sample.gz = stereo_cam->BslEventImuGyroZ.GetValue();
+
+                const int64_t host_now_ns = clock_.now().nanoseconds();
+                const int64_t offset_ns = host_now_ns - timestamp;
+
+                {
+                    std::lock_guard<std::mutex> lock(mutex_);
+                    // Keep the smallest device->host offset seen. It anchors the
+                    // device timestamps to the ROS clock and ignores the extra
+                    // delay of bursty host-side event delivery.
+                    if (!offset_valid_ || offset_ns < min_offset_ns_)
+                    {
+                        min_offset_ns_ = offset_ns;
+                        offset_valid_ = true;
+                    }
+                    if (queue_.size() >= kMaxQueue)
+                        queue_.pop_front();
+                    queue_.push_back(sample);
+                }
+                last_timestamp_ = timestamp;
+            }
+            catch (const GenICam::GenericException&)
+            {
+                // Ignore transient read failures around the first events.
+            }
+        }
+
+        // Moves the queued samples into out as sensor_msgs/Imu messages, stamping
+        // each with its device timestamp shifted to the ROS clock. Returns the
+        // number of samples added. frame_id is left for the caller to fill.
+        size_t takeSamples(std::vector<sensor_msgs::msg::Imu>& out)
+        {
+            std::deque<ImuSample> local;
+            int64_t offset_ns = 0;
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                if (queue_.empty() || !offset_valid_)
+                    return 0;
+                local.swap(queue_);
+                offset_ns = min_offset_ns_;
+            }
+
+            size_t count = 0;
+            for (const ImuSample& s : local)
+            {
+                sensor_msgs::msg::Imu msg;
+                msg.header.stamp = rclcpp::Time(s.device_timestamp_ns + offset_ns);
+                msg.linear_acceleration.x = s.ax;
+                msg.linear_acceleration.y = s.ay;
+                msg.linear_acceleration.z = s.az;
+                msg.angular_velocity.x = s.gx;
+                msg.angular_velocity.y = s.gy;
+                msg.angular_velocity.z = s.gz;
+                // No orientation is provided by the IMU (REP-145 convention).
+                msg.orientation_covariance[0] = -1.0;
+                out.push_back(msg);
+                ++count;
+            }
+            return count;
+        }
+
+        void clear()
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            queue_.clear();
+            offset_valid_ = false;
+            last_timestamp_ = -1;
+        }
+
+    private:
+        static constexpr size_t kMaxQueue = 5000;
+        std::mutex mutex_;
+        std::deque<ImuSample> queue_;
+        rclcpp::Clock clock_{RCL_SYSTEM_TIME};
+        int64_t last_timestamp_ = -1;
+        int64_t min_offset_ns_ = 0;
+        bool offset_valid_ = false;
+    };
+
+    // Holds the most recent 3D grab result. When the IMU is enabled a dedicated
+    // pump thread calls RetrieveResult in a tight loop to keep IMU events flowing
+    // at the full rate; it stores each frame here through store(), and the node
+    // grab loop reads the latest one through waitAndTake() instead of calling
+    // RetrieveResult itself.
+    class LatestFrameBuffer
+    {
+    public:
+        void store(const Pylon::CGrabResultPtr& grab_result)
+        {
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                latest_ = grab_result;
+                has_new_ = true;
+            }
+            cond_.notify_one();
+        }
+
+        // Waits up to timeout_ms for a frame that arrived since the previous take
+        // and moves it into out. Returns false on timeout.
+        bool waitAndTake(Pylon::CGrabResultPtr& out, unsigned int timeout_ms)
+        {
+            std::unique_lock<std::mutex> lock(mutex_);
+            if (!cond_.wait_for(lock, std::chrono::milliseconds(timeout_ms),
+                                [this] { return has_new_; }))
+            {
+                return false;
+            }
+            out = latest_;
+            latest_ = Pylon::CGrabResultPtr();
+            has_new_ = false;
+            return true;
+        }
+
+        void clear()
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            latest_ = Pylon::CGrabResultPtr();
+            has_new_ = false;
+        }
+
+    private:
+        std::mutex mutex_;
+        std::condition_variable cond_;
+        Pylon::CGrabResultPtr latest_;
+        bool has_new_ = false;
+    };
+
+// Shorthand for the Stereo mini enumeration tokens. The Stereo mini supplementary
+// package 1.1.0 moved this namespace out of Pylon:: to the global scope.
+namespace StmParams = StereoMiniCameraParams_Params;
+
+/**
+ * Basler Stereo mini integration.
+ *
+ * The Stereo mini is a stereo 3D camera. Like the blaze it delivers, in a single
+ * grab result, an organized point cloud (Range, Coord3D_ABC32f, in millimeters),
+ * an intensity image and a confidence image. Differences with the blaze that are
+ * relevant here (verified on an STM-951mg):
+ *   - components are selected per Source: Source1 = left IR, Source2 = right IR,
+ *     Source3 = color; this integration publishes the Source3 color intensity and
+ *     the left/right IR intensity images from Source1/Source2,
+ *   - color intensity is RGBa8; left/right IR intensity is Mono8 at 848x480,
+ *   - the confidence component is Confidence8 (8-bit) instead of Confidence16,
+ *   - ChunkModeActive must be disabled to receive a grab result,
+ *   - acquisition is continuous (free-run) rather than software triggered.
+ *
+ * The heavy conversions (point cloud, depth maps, intensity/confidence images,
+ * camera info) are provided by the generic 3D profile (PylonROS23DCamera) and
+ * shared with other 3D cameras.
+ */
+class PylonROS2StereoMiniCamera : public PylonROS23DCamera
+{
+public:
+    explicit PylonROS2StereoMiniCamera(Pylon::IPylonDevice* device);
+    virtual ~PylonROS2StereoMiniCamera();
+
+    virtual bool registerCameraConfiguration() override;
+    virtual bool openCamera() override;
+    virtual bool applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters) override;
+
+    virtual bool startGrabbing(const PylonROS2CameraParameter& parameters) override;
+
+    virtual bool grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
+                        sensor_msgs::msg::Image& intensity_map_msg,
+                        sensor_msgs::msg::Image& depth_map_msg,
+                        sensor_msgs::msg::Image& depth_map_color_msg,
+                        sensor_msgs::msg::Image& confidence_map_msg) override;
+            bool grab3D(Pylon::CGrabResultPtr& grab_result);
+
+    // Left and right IR intensity images (Mono8, 848x480).
+    virtual bool hasExtraIntensityImages() const override { return true; }
+    virtual const sensor_msgs::msg::Image& extraIntensityLeft() const override { return intensity_ir_left_msg_; }
+    virtual const sensor_msgs::msg::Image& extraIntensityRight() const override { return intensity_ir_right_msg_; }
+
+    // IMU (opt-in via imu_enabled). Samples are delivered as camera events and
+    // drained by the node grab loop.
+    virtual bool hasIMU() const override { return imu_enabled_; }
+    virtual size_t getImuSamples(std::vector<sensor_msgs::msg::Imu>& samples) override { return imu_handler_.takeSamples(samples); }
+
+    virtual int imagePixelDepth() const override;
+
+    // Override setExposure to use stereo_mini_cam_->ExposureTime directly.
+    // Using the inherited cam_->ExposureTime while stereo_mini_cam_ is grabbing
+    // causes the grab queue to flush and RetrieveResult() to block indefinitely.
+    virtual bool setExposure(const float& target_exposure, float& reached_exposure) override;
+
+    virtual std::string setAcquisitionFrameRate(const float& framerate) override;
+    virtual std::string enableAcquisitionFrameRate(const bool& enable) override;
+    virtual std::string setTriggerSelector(const int& mode) override;
+    virtual std::string setTriggerSource(const int& source) override;
+    virtual std::string setTriggerMode(const bool& value) override;
+    virtual std::string executeSoftwareTrigger() override;
+    virtual std::string setDepthMin(const double& depth_min) override;
+    virtual std::string setDepthMax(const double& depth_max) override;
+    // Selects a BslDepthPreset by index into the entries the camera reports as available at runtime.
+    virtual std::string setOperatingMode(const int& mode) override;
+    // Turns the pattern projector on or off (BslLaserEnable), writable while grabbing.
+    virtual std::string enableProjector(const bool& enable) override;
+    // Sets the pattern projector power level (BslLaserLevel), clamped to the reported range.
+    virtual std::string setProjectorLevel(const int& level) override;
+    // Reads the current pattern projector state (BslLaserEnable).
+    virtual int getProjectorEnable() override;
+    // Reads the current pattern projector power level (BslLaserLevel).
+    virtual int getProjectorLevel() override;
+    // Reads the current BslDepthPreset as an index into the reported entries.
+    virtual int getDepthPreset() override;
+    // Turns HDR on or off (BslHDREnable); the node is only writable while acquisition is stopped.
+    virtual std::string enableHDRMode(const bool& enable) override;
+    // Reads the current HDR state (BslHDREnable) under the IR source.
+    virtual int getHDRMode() override;
+    // HDR sequence configuration (firmware dependent; each node is runtime-checked).
+    // set_hdr_sequence_index selects sequence 0 or 1; the existing set_exposure/set_gain/
+    // set_brightness services and set_hdr_max_exposure then act on the selected sequence.
+    virtual std::string setHDRSequenceIndex(const int& index) override;
+    virtual std::string setHDRSequencePreset(const int& preset) override;
+    virtual std::string loadHDRPreset() override;
+    virtual std::string setHDRMaxExposure(const double& max_exposure) override;
+    virtual std::string enableHDRMerge(const bool& enable) override;
+    virtual std::string enableHDRMergeUseIR(const bool& enable) override;
+    // Selects the active source (1=Source1 IR left, 2=Source2 IR right, 3=Source3 color).
+    virtual std::string setSourceSelector(const int& source) override;
+
+    // Overrides for features the stereo mini hardware actually supports. The
+    // inherited base implementations use the (never-opened) cam_ device and
+    // would throw "Camera is not open"; these use stereo_mini_cam_ instead.
+    virtual bool setGain(const float& target_gain, float& reached_gain) override;
+    virtual bool setGamma(const float& target_gamma, float& reached_gamma) override;
+    virtual bool setBrightness(const int& target_brightness,
+                               const float& current_brightness,
+                               const bool& exposure_auto,
+                               const bool& gain_auto) override;
+    virtual std::string setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue) override;
+    virtual std::string setBalanceWhiteAuto(const int& mode) override;
+    virtual std::string setAcquisitionFrameCount(const int& frameCount) override;
+    virtual std::string setTriggerDelay(const float& delayValue) override;
+    virtual std::string triggerDeviceReset() override;
+
+    // Buffer / statistics services retargeted to stereo_mini_cam_. The inherited
+    // base versions act on the never-opened cam_ (wrong object; setMaxNumBuffer
+    // even stops/restarts nothing useful, and the statistic getters read cam_'s
+    // stream grabber outside a try block => potential uncaught exception).
+    virtual std::string setMaxNumBuffer(const int& size) override;
+    virtual std::string setOutputQueueSize(const int& size) override;
+    virtual int getMaxNumBuffer() override;
+    virtual int getStatisticTotalBufferCount() override;
+    virtual int getStatisticFailedBufferCount() override;
+    virtual int getStatisticBufferUnderrunCount() override;
+    virtual int getStatisticFailedPacketCount() override;
+    virtual int getStatisticResendRequestCount() override;
+    virtual int getStatisticMissedFrameCount() override;
+    virtual int getStatisticResynchronizationCount() override;
+
+    // Stubs for features the stereo mini SDK does not expose. The inherited
+    // base implementations use the never-opened cam_ device and would report a
+    // confusing "Camera is not open"; these return a clear message instead.
+    virtual std::string setTriggerActivation(const int& value) override;
+    virtual std::string setLineSelector(const int& value) override;
+    virtual std::string setLineMode(const int& value) override;
+    virtual std::string setLineSource(const int& value) override;
+    virtual std::string setLineInverter(const bool& value) override;
+    virtual std::string setLineDebouncerTime(const float& value) override;
+    virtual std::string setDeviceLinkThroughputLimitMode(const bool& turnOn) override;
+    virtual std::string setDeviceLinkThroughputLimit(const int& limit) override;
+    virtual std::string gammaEnable(const bool& enable) override;
+
+    // User set (configuration set) services - no UserSetSelector node.
+    virtual std::string setUserSetSelector(const int& set) override;
+    virtual std::string saveUserSet() override;
+    virtual std::string loadUserSet() override;
+    virtual std::string setUserSetDefaultSelector(const int& set) override;
+
+    // Feature persistence (pfs) services - base uses the never-opened cam_.
+    virtual std::pair<std::string, std::string> getPfs() override;
+    virtual std::string savePfs(const std::string& fileName) override;
+    virtual std::string loadPfs(const std::string& fileName) override;
+
+    // ace-style chunk services - the stereo mini uses a different chunk model.
+    virtual std::string setChunkModeActive(const bool& enable) override;
+    virtual std::string setChunkSelector(const int& value) override;
+    virtual std::string setChunkEnable(const bool& enable) override;
+    virtual std::string setChunkExposureTime(const float& value) override;
+
+    // Timer services - no Timer* nodes.
+    virtual std::string setTimerSelector(const int& selector) override;
+    virtual std::string setTimerTriggerSource(const int& source) override;
+    virtual std::string setTimerDuration(const float& duration) override;
+
+    // USB transfer tuning - no MaxTransferSize node.
+    virtual std::string setMaxTransferSize(const int& maxTransferSize) override;
+
+    // PTP / IEEE 1588 services - no PTP nodes.
+    virtual std::string setPTPPriority(const int& value) override;
+    virtual std::string setPTPProfile(const int& value) override;
+    virtual std::string setPTPNetworkMode(const int& value) override;
+    virtual std::string setPTPUCPortAddressIndex(const int& value) override;
+    virtual std::string setPTPUCPortAddress(const int& value) override;
+    virtual std::string enablePTPManagementProtocol(const bool& value) override;
+    virtual std::string enablePTPTwoStepOperation(const bool& value) override;
+    virtual std::string enablePTP(const bool& value) override;
+    virtual std::string getPTPStatus(int64_t& offset_from_master, std::string& status, std::string& servo_status) override;
+
+    // Periodic signal / synchronous free run services - no such nodes.
+    virtual std::string setPeriodicSignalPeriod(const float& value) override;
+    virtual std::string setPeriodicSignalDelay(const float& value) override;
+    virtual std::string setSyncFreeRunTimerStartTimeLow(const int& value) override;
+    virtual std::string setSyncFreeRunTimerStartTimeHigh(const int& value) override;
+    virtual std::string setSyncFreeRunTimerTriggerRateAbs(const float& value) override;
+    virtual std::string enableSyncFreeRunTimer(const bool& value) override;
+    virtual std::string updateSyncFreeRunTimer() override;
+
+    // GigE action command services - no action command nodes.
+    virtual std::string setActionTriggerConfiguration(const int& action_device_key, const int& action_group_key, const unsigned int& action_group_mask,
+                                                      const int& registration_mode, const int& cleanup) override;
+    virtual std::string issueActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const std::string& broadcast_address) override;
+    virtual std::string issueScheduledActionCommand(const int& device_key, const int& group_key, const unsigned int& group_mask, const int64_t& action_time_ns_from_current_timestamp, const std::string& broadcast_address) override;
+
+    // bool-returning stubs the stereo mini SDK does not expose (flash / output
+    // lines); return false to signal "not set".
+    virtual bool setAutoflash(const std::map<int, bool> flash_on_lines) override;
+    virtual bool setUserOutput(const int& output_id, const bool& value) override;
+
+protected:
+    // The stereo mini grabs through stereo_mini_cam_; the profile uses this for
+    // acquisition start/stop and device-removal detection.
+    Pylon::CInstantCamera& activeCamera() const override { return *stereo_mini_cam_; }
+
+public:
+    Pylon::CStereoMiniInstantCamera* stereo_mini_cam_;
+
+private:
+    // Cached left and right IR intensity images, filled by grab3D().
+    sensor_msgs::msg::Image intensity_ir_left_msg_;
+    sensor_msgs::msg::Image intensity_ir_right_msg_;
+    // SourceIDValue values read at startup; used to identify components.
+    uint64_t src_id_left_  = 0;  // Source1 (left IR)
+    uint64_t src_id_right_ = 0;  // Source2 (right IR)
+    uint64_t src_id_color_ = 0;  // Source3 (color)
+
+    // Registers the IMU camera events (open, not grabbing) and optionally sets
+    // the IMU frame rate. Called from applyCamSpecificStartupSettings.
+    void setupImu(int frame_rate);
+    // Stops the IMU events and deregisters the handler before the camera closes.
+    void teardownImu();
+    // Tight RetrieveResult poll loop that keeps IMU camera events flowing at the
+    // full rate and buffers the latest frame for the node grab loop.
+    void imuPumpLoop();
+
+    CImuEventHandler imu_handler_;
+    // Latest frame buffered by the IMU pump thread while it is running.
+    LatestFrameBuffer frame_buffer_;
+    std::thread imu_pump_thread_;
+    std::atomic<bool> imu_pump_running_{false};
+    bool imu_enabled_ = false;
+};
+
+PylonROS2StereoMiniCamera::PylonROS2StereoMiniCamera(Pylon::IPylonDevice* device) :
+    PylonROS23DCamera(device),
+    stereo_mini_cam_(new Pylon::CStereoMiniInstantCamera(device))
+{
+    // Default to keeping only the latest stereo frame; user-changeable via
+    // set_grabbing_strategy (takes effect on the next grab (re)start).
+    grab_strategy_ = 1;
+}
+
+PylonROS2StereoMiniCamera::~PylonROS2StereoMiniCamera()
+{
+    try
+    {
+        this->teardownImu();
+        if (stereo_mini_cam_->IsOpen())
+        {
+            stereo_mini_cam_->Close();
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Destructor (Stereo mini): Failed to properly close camera: " << e.GetDescription());
+    }
+
+    if (stereo_mini_cam_)
+    {
+        // stereo_mini_cam_ and the inherited base cam_ wrap the same IPylonDevice.
+        // Detach the device from the base cam_ (without destroying it) before
+        // stereo_mini_cam_ destroys it, to avoid a double DestroyDevice().
+        this->detachBaseDevice();
+
+        delete stereo_mini_cam_;
+        stereo_mini_cam_ = nullptr;
+    }
+}
+
+bool PylonROS2StereoMiniCamera::registerCameraConfiguration()
+{
+    // The Stereo mini streams continuously; no special instant camera
+    // configuration is registered (unlike the blaze default configuration).
+    return true;
+}
+
+bool PylonROS2StereoMiniCamera::openCamera()
+{
+    try
+    {
+        // GrabCameraEvents must be enabled before Open() to receive camera
+        // events (e.g. IMU frames). Harmless when no events are selected.
+        try
+        {
+            stereo_mini_cam_->GrabCameraEvents.SetValue(true);
+        }
+        catch (const GenICam::GenericException& e)
+        {
+            RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "GrabCameraEvents not set before open: " << e.GetDescription());
+        }
+
+        stereo_mini_cam_->Open();
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Connected to camera " << stereo_mini_cam_->GetDeviceInfo().GetFriendlyName());
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception occurred while opening camera:" << e.GetDescription());
+        return false;
+    }
+
+    return true;
+}
+
+bool PylonROS2StereoMiniCamera::applyCamSpecificStartupSettings(const PylonROS2CameraParameter& parameters)
+{
+    try
+    {
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Infos about connected camera:");
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "-> Model name:        " << stereo_mini_cam_->GetDeviceInfo().GetModelName().c_str());
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "-> Serial number:     " << stereo_mini_cam_->GetDeviceInfo().GetSerialNumber().c_str());
+
+        // Enable the color intensity from Source3.
+        stereo_mini_cam_->SourceSelector.FromString("Source3");
+        stereo_mini_cam_->ComponentSelector.FromString("Intensity");
+        stereo_mini_cam_->ComponentEnable.SetValue(true);
+
+        // Enable the range output as direct XYZ (Coord3D_ABC32f, millimeters).
+        // The Range component is enabled by default; selecting the pixel format
+        // is sufficient.
+        stereo_mini_cam_->SourceSelector.FromString("Source1");
+        stereo_mini_cam_->ComponentSelector.FromString("Range");
+        stereo_mini_cam_->PixelFormat.FromString("Coord3D_ABC32f");
+
+        // Enable the confidence map.
+        stereo_mini_cam_->ComponentSelector.FromString("Confidence");
+        stereo_mini_cam_->ComponentEnable.TrySetValue(true);
+
+        // Enable left IR intensity from Source1 (Mono8, 848x480) and read its SourceIDValue.
+        stereo_mini_cam_->SourceSelector.FromString("Source1");
+        stereo_mini_cam_->ComponentSelector.FromString("Intensity");
+        stereo_mini_cam_->ComponentEnable.SetValue(true);
+        src_id_left_ = static_cast<uint64_t>(stereo_mini_cam_->SourceIDValue.GetValue());
+
+        // Enable right IR intensity from Source2 (Mono8, 848x480) and read its SourceIDValue.
+        stereo_mini_cam_->SourceSelector.FromString("Source2");
+        stereo_mini_cam_->ComponentSelector.FromString("Intensity");
+        stereo_mini_cam_->ComponentEnable.SetValue(true);
+        src_id_right_ = static_cast<uint64_t>(stereo_mini_cam_->SourceIDValue.GetValue());
+
+        // Read the Source3 (color) SourceIDValue for completeness.
+        stereo_mini_cam_->SourceSelector.FromString("Source3");
+        src_id_color_ = static_cast<uint64_t>(stereo_mini_cam_->SourceIDValue.GetValue());
+
+        // Disabling chunk data is essential to receive a grab result.
+        stereo_mini_cam_->ChunkModeActive.SetValue(false);
+
+        // IMU (opt-in). Register the camera events now, while the camera is open
+        // but not yet grabbing; samples are drained later in the grab loop.
+        if (parameters.imu_enabled_)
+        {
+            this->setupImu(parameters.imu_frame_rate_);
+        }
+
+        RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Stereo mini configured: Range=Coord3D_ABC32f (mm), Intensity=Source3 (color) + Source1/Source2 (IR left/right), Confidence enabled.");
+        RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Active source selector: " << stereo_mini_cam_->SourceSelector.ToString());
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Source IDs: left=" << src_id_left_ << " right=" << src_id_right_ << " color=" << src_id_color_);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception occurred while applying specific startup settings:" << e.GetDescription());
+        return false;
+    }
+
+    return true;
+}
+
+bool PylonROS2StereoMiniCamera::startGrabbing(const PylonROS2CameraParameter& parameters)
+{
+    try
+    {
+        this->grabbingStarting();
+
+        // With the IMU enabled, start the pump thread now so it owns RetrieveResult
+        // and keeps IMU events flowing at the full rate. The node grab loop then
+        // reads frames from frame_buffer_ instead of calling RetrieveResult.
+        if (imu_enabled_ && !imu_pump_running_.load())
+        {
+            imu_pump_running_.store(true);
+            imu_pump_thread_ = std::thread(&PylonROS2StereoMiniCamera::imuPumpLoop, this);
+        }
+
+        // Read the user id from the open camera. The enumeration-time name is
+        // blank on the Stereo mini, so fall back to it only if the node is unreadable.
+        {
+            GenApi::CStringPtr user_id_node(stereo_mini_cam_->GetNodeMap().GetNode("DeviceUserID"));
+            if (user_id_node.IsValid() && GenApi::IsReadable(user_id_node))
+                device_user_id_ = user_id_node->GetValue().c_str();
+            else
+                device_user_id_ = stereo_mini_cam_->GetDeviceInfo().GetUserDefinedName().c_str();
+        }
+        // The Stereo mini needs more time than a 2D camera to deliver its first
+        // (and subsequent) stereo-processed frames. Use a generous grab timeout
+        // (at least 5 s), independent of the smaller 2D default.
+        grab_timeout_ = std::max(parameters.grab_timeout_, MIN_GRAB_TIMEOUT_MS);
+        RCLCPP_DEBUG_STREAM_ONCE(LOGGER_STEREO_MINI, "Grab timeout for Stereo mini: " << grab_timeout_);
+
+        // Perform an initial grab to determine the image dimensions and confirm
+        // the camera is delivering data.
+        // When trigger mode is active no frame arrives until the user issues a
+        // trigger, so a blocking startup grab would time out. Instead read the
+        // image dimensions from the GenICam Width/Height nodes and defer.
+        try
+        {
+            if (stereo_mini_cam_->TriggerMode.GetValue() ==
+                StmParams::TriggerModeEnums::TriggerMode_On)
+            {
+                GenApi::CIntegerPtr width_node(stereo_mini_cam_->GetNodeMap().GetNode("Width"));
+                GenApi::CIntegerPtr height_node(stereo_mini_cam_->GetNodeMap().GetNode("Height"));
+                if (width_node.IsValid() && GenApi::IsReadable(width_node) &&
+                    height_node.IsValid() && GenApi::IsReadable(height_node))
+                {
+                    img_cols_ = static_cast<size_t>(width_node->GetValue());
+                    img_rows_ = static_cast<size_t>(height_node->GetValue());
+                    img_size_byte_ = img_cols_ * img_rows_ * imagePixelDepth();
+                }
+                RCLCPP_INFO(LOGGER_STEREO_MINI, "Trigger mode active — deferring initial grab; use execute_software_trigger to acquire frames");
+                is_ready_ = true;
+                return true;
+            }
+        }
+        catch (const GenICam::GenericException& e)
+        {
+            RCLCPP_WARN_STREAM(LOGGER_STEREO_MINI, "Could not read dimensions in trigger mode: " << e.GetDescription());
+            is_ready_ = true;
+            return true;
+        }
+
+        Pylon::CGrabResultPtr grab_result;
+        if (this->grab3D(grab_result) && grab_result.IsValid())
+        {
+            const auto range_list = grab_result->GetDataComponent(Pylon::ComponentType_Range);
+            if (!range_list.empty())
+            {
+                img_cols_ = static_cast<size_t>(range_list[0].GetWidth());
+                img_rows_ = static_cast<size_t>(range_list[0].GetHeight());
+                img_size_byte_ = img_cols_ * img_rows_ * imagePixelDepth();
+                is_ready_ = true;
+            }
+            else
+            {
+                RCLCPP_ERROR(LOGGER_STEREO_MINI, "Initial grab returned no Range component");
+            }
+        }
+        else
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_MINI, "PylonROS2StereoMiniCamera not ready because the result of the initial grab is invalid");
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception occurred while starting image grabbing:" << e.GetDescription());
+        return false;
+    }
+
+    return true;
+}
+
+bool PylonROS2StereoMiniCamera::grab3D(Pylon::CGrabResultPtr& grab_result)
+{
+    if (!stereo_mini_cam_->IsGrabbing())
+    {
+        return false;
+    }
+
+    // With the IMU enabled the pump thread owns RetrieveResult and dispatches
+    // IMU events; take the latest frame it buffered instead of calling
+    // RetrieveResult, which two threads must not do on the same camera.
+    if (imu_enabled_)
+    {
+        if (!frame_buffer_.waitAndTake(grab_result, static_cast<unsigned int>(grab_timeout_)))
+        {
+            if (stereo_mini_cam_->IsCameraDeviceRemoved())
+            {
+                RCLCPP_ERROR(LOGGER_STEREO_MINI, "Lost connection to the camera...");
+            }
+            return false;
+        }
+
+        if (!grab_result.IsValid() || !grab_result->GrabSucceeded())
+        {
+            if (grab_result.IsValid())
+            {
+                RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "Error: " << grab_result->GetErrorCode() << " " << grab_result->GetErrorDescription());
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    try
+    {
+        stereo_mini_cam_->RetrieveResult(grab_timeout_, grab_result, Pylon::TimeoutHandling_ThrowException);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        if (stereo_mini_cam_->IsCameraDeviceRemoved())
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_MINI, "Lost connection to the camera...");
+        }
+        else
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An image grabbing exception in pylon camera occurred: " << e.GetDescription());
+        }
+        return false;
+    }
+    catch (...)
+    {
+        RCLCPP_ERROR(LOGGER_STEREO_MINI, "An unspecified image grabbing exception occurred");
+        return false;
+    }
+
+    if (!grab_result->GrabSucceeded())
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "Error: " << grab_result->GetErrorCode() << " " << grab_result->GetErrorDescription());
+        return false;
+    }
+
+    return true;
+}
+
+void PylonROS2StereoMiniCamera::setupImu(int frame_rate)
+{
+    // GrabCameraEvents is normally set before Open(); set it again best-effort
+    // in case it was not writable then. Some firmware reports it not writable
+    // here, which does not prevent the events from arriving.
+    try
+    {
+        stereo_mini_cam_->GrabCameraEvents.SetValue(true);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "GrabCameraEvents not set: " << e.GetDescription());
+    }
+
+    if (frame_rate > 0)
+    {
+        try
+        {
+            GenApi::CIntegerPtr imu_rate(stereo_mini_cam_->GetNodeMap().GetNode("BslImuFrameRate"));
+            if (imu_rate.IsValid() && GenApi::IsWritable(imu_rate))
+            {
+                int64_t target = frame_rate;
+                if (target < imu_rate->GetMin())
+                    target = imu_rate->GetMin();
+                else if (target > imu_rate->GetMax())
+                    target = imu_rate->GetMax();
+                imu_rate->SetValue(target);
+                RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "IMU frame rate set to " << target << " Hz");
+            }
+            else
+            {
+                RCLCPP_WARN(LOGGER_STEREO_MINI, "BslImuFrameRate is not writable on this camera; keeping the IMU default rate");
+            }
+        }
+        catch (const GenICam::GenericException& e)
+        {
+            RCLCPP_WARN_STREAM(LOGGER_STEREO_MINI, "Could not set the IMU frame rate: " << e.GetDescription());
+        }
+    }
+
+    try
+    {
+        frame_buffer_.clear();
+
+        stereo_mini_cam_->EventSelector.FromString("ImuFrame");
+        stereo_mini_cam_->EventNotification.FromString("On");
+        stereo_mini_cam_->RegisterCameraEventHandler(
+            &imu_handler_,
+            "BslEventImuGyroTimestamp",
+            s_imu_event_id,
+            Pylon::RegistrationMode_Append,
+            Pylon::Cleanup_None);
+
+        imu_enabled_ = true;
+        RCLCPP_INFO(LOGGER_STEREO_MINI, "IMU enabled; publishing samples on the imu topic");
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        imu_enabled_ = false;
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "Failed to enable the IMU: " << e.GetDescription());
+    }
+}
+
+void PylonROS2StereoMiniCamera::teardownImu()
+{
+    if (!imu_enabled_)
+    {
+        return;
+    }
+
+    // Stop the pump thread first so nothing calls RetrieveResult while we turn the
+    // events off and deregister the handler before the camera is closed.
+    imu_pump_running_.store(false);
+    if (imu_pump_thread_.joinable())
+    {
+        imu_pump_thread_.join();
+    }
+
+    try
+    {
+        if (stereo_mini_cam_->IsGrabbing())
+        {
+            stereo_mini_cam_->StopGrabbing();
+        }
+
+        stereo_mini_cam_->EventSelector.FromString("ImuFrame");
+        stereo_mini_cam_->EventNotification.FromString("Off");
+        stereo_mini_cam_->DeregisterCameraEventHandler(&imu_handler_, "BslEventImuGyroTimestamp");
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "IMU teardown: " << e.GetDescription());
+    }
+
+    frame_buffer_.clear();
+    imu_enabled_ = false;
+}
+
+void PylonROS2StereoMiniCamera::imuPumpLoop()
+{
+    // Poll RetrieveResult in a tight loop. Each call dispatches the IMU camera
+    // events that arrived since the last call (that is how the IMU keeps its full
+    // rate), and returns the next stereo frame when one is ready. The short
+    // timeout paces the loop without a busy wait.
+    while (imu_pump_running_.load())
+    {
+        if (!stereo_mini_cam_->IsGrabbing())
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+            continue;
+        }
+
+        Pylon::CGrabResultPtr grab_result;
+        try
+        {
+            stereo_mini_cam_->RetrieveResult(5, grab_result, Pylon::TimeoutHandling_Return);
+        }
+        catch (const GenICam::GenericException&)
+        {
+            // The camera may have been stopped or removed between the checks above
+            // and this call; the next iteration re-checks IsGrabbing().
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+            continue;
+        }
+
+        if (grab_result.IsValid() && grab_result->GrabSucceeded())
+        {
+            frame_buffer_.store(grab_result);
+        }
+    }
+}
+
+bool PylonROS2StereoMiniCamera::grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
+
+                                       sensor_msgs::msg::Image& intensity_map_msg,
+                                       sensor_msgs::msg::Image& depth_map_msg,
+                                       sensor_msgs::msg::Image& depth_map_color_msg,
+                                       sensor_msgs::msg::Image& confidence_map_msg)
+{
+    Pylon::CGrabResultPtr ptr_grab_result;
+    if (!this->grab3D(ptr_grab_result))
+    {
+        RCLCPP_ERROR(LOGGER_STEREO_MINI, "Grabbing with Stereo mini failed");
+        return false;
+    }
+
+    // Locate the components (all delivered in a single grab result).
+    const auto range_list = ptr_grab_result->GetDataComponent(Pylon::ComponentType_Range);
+    const auto intensity_list = ptr_grab_result->GetDataComponent(Pylon::ComponentType_Intensity);
+    const auto confidence_list = ptr_grab_result->GetDataComponent(Pylon::ComponentType_Confidence);
+
+    if (range_list.empty())
+    {
+        RCLCPP_ERROR(LOGGER_STEREO_MINI, "Grab result contains no Range component");
+        return false;
+    }
+
+    const auto range_component = range_list[0];
+    const bool has_intensity = !intensity_list.empty();
+    const bool has_confidence = !confidence_list.empty();
+
+    const int width = range_component.GetWidth();
+    const int height = range_component.GetHeight();
+
+    // Point cloud (colored from the intensity component when available).
+    this->buildPointCloud(range_component, has_intensity ? &intensity_list[0] : nullptr, cloud_msg);
+
+    // Depth maps: the Z coordinate is already in millimeters (coordinate scale 1.0).
+    int min_depth = 0, max_depth = 0;
+    this->readDepthRange(stereo_mini_cam_->GetNodeMap(), s_stm_fallback_depth_min, s_stm_fallback_depth_max, min_depth, max_depth);
+
+    std::vector<uint16_t> depth_buffer(static_cast<size_t>(width) * height);
+    this->calculateDepthMap(range_component, 1.0, min_depth, max_depth, depth_buffer.data());
+    {
+        cv_bridge::CvImage depth_cv_img;
+        depth_cv_img.encoding = sensor_msgs::image_encodings::TYPE_16UC1;
+        depth_cv_img.image = cv::Mat(height, width, CV_16UC1, depth_buffer.data());
+        const auto msg = depth_cv_img.toImageMsg();
+        depth_map_msg.header = msg->header;
+        depth_map_msg.height = msg->height;
+        depth_map_msg.width = msg->width;
+        depth_map_msg.encoding = msg->encoding;
+        depth_map_msg.is_bigendian = msg->is_bigendian;
+        depth_map_msg.step = msg->step;
+        depth_map_msg.data = msg->data;
+    }
+
+    std::vector<BGR> depth_color_buffer(static_cast<size_t>(width) * height);
+    this->calculateDepthMapColor(range_component, min_depth, max_depth, depth_color_buffer.data());
+    {
+        cv_bridge::CvImage depth_color_cv_img;
+        depth_color_cv_img.encoding = sensor_msgs::image_encodings::BGR8;
+        depth_color_cv_img.image = cv::Mat(height, width, CV_8UC3, depth_color_buffer.data());
+        const auto msg = depth_color_cv_img.toImageMsg();
+        depth_map_color_msg.header = msg->header;
+        depth_map_color_msg.height = msg->height;
+        depth_map_color_msg.width = msg->width;
+        depth_map_color_msg.encoding = msg->encoding;
+        depth_map_color_msg.is_bigendian = msg->is_bigendian;
+        depth_map_color_msg.step = msg->step;
+        depth_map_color_msg.data = msg->data;
+    }
+
+    // Intensity and confidence images.
+    // intensity_list may contain up to 3 components (Source3 color, Source1 IR
+    // left, Source2 IR right). Identify each by its sourceId.
+    if (has_intensity)
+    {
+        for (const auto& comp : intensity_list)
+        {
+            const uint64_t sid = static_cast<uint64_t>(comp.GetSourceId());
+            if (sid == src_id_color_)
+            {
+                this->buildIntensityImage(comp, intensity_map_msg);
+            }
+            else if (sid == src_id_left_)
+            {
+                this->buildIntensityImage(comp, intensity_ir_left_msg_);
+            }
+            else if (sid == src_id_right_)
+            {
+                this->buildIntensityImage(comp, intensity_ir_right_msg_);
+            }
+        }
+    }
+    if (has_confidence)
+    {
+        this->buildConfidenceImage(confidence_list[0], confidence_map_msg);
+    }
+
+    return true;
+}
+
+int PylonROS2StereoMiniCamera::imagePixelDepth() const
+{
+    // The published color intensity image is RGBa8 (4 bytes per pixel).
+    return 4;
+}
+
+bool PylonROS2StereoMiniCamera::setExposure(const float& target_exposure, float& reached_exposure)
+{
+    // Changes ExposureTime on the currently selected source. Select the source with the
+    // set_source_selector service beforehand (color is Source3); this call no longer
+    // switches the source itself.
+    try
+    {
+        stereo_mini_cam_->ExposureAuto.TrySetValue(
+            StmParams::ExposureAutoEnums::ExposureAuto_Off);
+
+        float exposure_to_set = target_exposure;
+        const float min_exp = static_cast<float>(stereo_mini_cam_->ExposureTime.GetMin());
+        const float max_exp = static_cast<float>(stereo_mini_cam_->ExposureTime.GetMax());
+
+        if (exposure_to_set < min_exp)
+        {
+            RCLCPP_WARN_STREAM(LOGGER_STEREO_MINI, "Desired exposure (" << exposure_to_set
+                << ") unreachable! Setting to lower limit: " << min_exp);
+            exposure_to_set = min_exp;
+        }
+        else if (exposure_to_set > max_exp)
+        {
+            RCLCPP_WARN_STREAM(LOGGER_STEREO_MINI, "Desired exposure (" << exposure_to_set
+                << ") unreachable! Setting to upper limit: " << max_exp);
+            exposure_to_set = max_exp;
+        }
+
+        stereo_mini_cam_->ExposureTime.SetValue(exposure_to_set);
+        reached_exposure = static_cast<float>(stereo_mini_cam_->ExposureTime.GetValue());
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting target exposure to "
+            << target_exposure << " occurred: " << e.GetDescription());
+        reached_exposure = target_exposure;
+        return false;
+    }
+    return true;
+}
+
+std::string PylonROS2StereoMiniCamera::setAcquisitionFrameRate(const float& framerate)
+{
+    try
+    {
+        if (stereo_mini_cam_->AcquisitionFrameRateEnable.GetValue())
+        {
+            stereo_mini_cam_->AcquisitionFrameRate.SetValue(framerate);
+            RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Acquisition frame rate set to " << framerate);
+        }
+        else
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "To change acquisition frame rate, it must first be enabled");
+            return "To change acquisition frame rate, it must first be enabled";
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while changing the acquisition frame rate occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::enableAcquisitionFrameRate(const bool& enable)
+{
+    try
+    {
+        stereo_mini_cam_->AcquisitionFrameRateEnable.SetValue(enable);
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Acquisition frame rate " << (enable ? "enabled" : "disabled"));
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while enabling/disabling acquisition frame rate occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setTriggerSelector(const int& mode)
+{
+    try
+    {
+        if (GenApi::IsAvailable(stereo_mini_cam_->TriggerSelector))
+        {
+            switch (mode)
+            {
+                case 0:
+                    stereo_mini_cam_->TriggerSelector.SetValue(
+                        StmParams::TriggerSelectorEnums::TriggerSelector_FrameStart);
+                    RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Trigger selector: Frame Start");
+                    break;
+                case 1:
+                    stereo_mini_cam_->TriggerSelector.SetValue(
+                        StmParams::TriggerSelectorEnums::TriggerSelector_AcquisitionStart);
+                    RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Trigger selector: Acquisition Start");
+                    break;
+                default:
+                    return "Error: unknown trigger selector value (0=FrameStart, 1=AcquisitionStart)";
+            }
+        }
+        else
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "TriggerSelector not available on this camera");
+            return "Feature not available for this camera type";
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting trigger selector occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setTriggerSource(const int& source)
+{
+    try
+    {
+        if (GenApi::IsAvailable(stereo_mini_cam_->TriggerSource))
+        {
+            switch (source)
+            {
+                case 0:
+                    stereo_mini_cam_->TriggerSource.SetValue(
+                        StmParams::TriggerSourceEnums::TriggerSource_Software);
+                    RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Trigger source: Software");
+                    break;
+                case 1:
+                    stereo_mini_cam_->TriggerSource.SetValue(
+                        StmParams::TriggerSourceEnums::TriggerSource_Line1);
+                    RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Trigger source: Line1");
+                    break;
+                case 2:
+                    stereo_mini_cam_->TriggerSource.SetValue(
+                        StmParams::TriggerSourceEnums::TriggerSource_Primary);
+                    RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Trigger source: Primary");
+                    break;
+                case 3:
+                    stereo_mini_cam_->TriggerSource.SetValue(
+                        StmParams::TriggerSourceEnums::TriggerSource_Secondary_synced);
+                    RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Trigger source: Secondary synced");
+                    break;
+                default:
+                    return "Error: unknown trigger source (0=Software, 1=Line1, 2=Primary, 3=Secondary_synced)";
+            }
+        }
+        else
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "TriggerSource not available on this camera");
+            return "Feature not available for this camera type";
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting trigger source occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setTriggerMode(const bool& value)
+{
+    try
+    {
+        if (GenApi::IsAvailable(stereo_mini_cam_->TriggerMode))
+        {
+            stereo_mini_cam_->TriggerMode.SetValue(
+                value ? StmParams::TriggerModeEnums::TriggerMode_On
+                      : StmParams::TriggerModeEnums::TriggerMode_Off);
+            RCLCPP_INFO_STREAM(LOGGER_STEREO_MINI, "Trigger mode: " << (value ? "On" : "Off"));
+        }
+        else
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "TriggerMode not available on this camera");
+            return "Feature not available for this camera type";
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting trigger mode occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::executeSoftwareTrigger()
+{
+    try
+    {
+        if (!stereo_mini_cam_->CanWaitForFrameTriggerReady())
+        {
+            stereo_mini_cam_->ExecuteSoftwareTrigger();
+        }
+        else if (stereo_mini_cam_->WaitForFrameTriggerReady(grab_timeout_, Pylon::TimeoutHandling_Return))
+        {
+            stereo_mini_cam_->ExecuteSoftwareTrigger();
+        }
+        else
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_MINI, "WaitForFrameTriggerReady timed out, cannot execute software trigger");
+            return "Camera not ready to accept software trigger";
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while executing software trigger occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setDepthMin(const double& depth_min)
+{
+    try
+    {
+        // The stereo mini DepthMin node is an integer in mm; round the requested value.
+        stereo_mini_cam_->DepthMin.SetValue(static_cast<int64_t>(std::llround(depth_min)));
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Depth min set to " << depth_min);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting depth min occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setDepthMax(const double& depth_max)
+{
+    try
+    {
+        // The stereo mini DepthMax node is an integer in mm; round the requested value.
+        stereo_mini_cam_->DepthMax.SetValue(static_cast<int64_t>(std::llround(depth_max)));
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Depth max set to " << depth_max);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting depth max occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setOperatingMode(const int& mode)
+{
+    // The stereo mini exposes depth tuning through the BslDepthPreset enum. The set of
+    // presets depends on model/firmware, so enumerate the available entries at runtime and
+    // select by index rather than relying on a fixed enum mapping. BslDepthPreset is locked
+    // while grabbing, so stop/start around the write.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslDepthPreset))
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_MINI, "BslDepthPreset is not available on this camera");
+            return "BslDepthPreset is not available on this camera";
+        }
+
+        GenApi::NodeList_t entries;
+        stereo_mini_cam_->BslDepthPreset.GetEntries(entries);
+        std::vector<std::string> available;
+        for (GenApi::NodeList_t::iterator it = entries.begin(); it != entries.end(); ++it)
+        {
+            if (!GenApi::IsAvailable(*it))
+                continue;
+            GenApi::CEnumEntryPtr entry(*it);
+            if (entry.IsValid())
+                available.push_back(std::string(entry->GetSymbolic().c_str()));
+        }
+
+        if (available.empty())
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_MINI, "No BslDepthPreset entries are available on this camera");
+            return "No BslDepthPreset entries are available on this camera";
+        }
+
+        if (mode < 0 || mode >= static_cast<int>(available.size()))
+        {
+            std::ostringstream ss;
+            ss << "Depth preset index " << mode << " is out of range. Available presets (" << available.size() << "): ";
+            for (size_t i = 0; i < available.size(); ++i)
+                ss << i << "=" << available[i] << (i + 1 < available.size() ? ", " : "");
+            RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, ss.str());
+            return ss.str();
+        }
+
+        this->grabbingStopping();
+        stereo_mini_cam_->BslDepthPreset.FromString(available[mode].c_str());
+        this->grabbingStarting();
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Depth preset set to " << available[mode]);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the depth preset occurred: " << e.GetDescription());
+        this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::enableProjector(const bool& enable)
+{
+    // The stereo mini pattern projector is controlled by BslLaserEnable, which the camera
+    // reports as writable while grabbing, so no stop/start is needed.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslLaserEnable))
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_MINI, "BslLaserEnable is not available on this camera");
+            return "BslLaserEnable is not available on this camera";
+        }
+
+        stereo_mini_cam_->BslLaserEnable.SetValue(enable);
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Projector " << (enable ? "enabled" : "disabled"));
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while enabling the projector occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setProjectorLevel(const int& level)
+{
+    // The projector power is set through BslLaserLevel, which the camera reports as writable
+    // while grabbing. Clamp the request to the range the camera reports at runtime.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslLaserLevel))
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_MINI, "BslLaserLevel is not available on this camera");
+            return "BslLaserLevel is not available on this camera";
+        }
+
+        const int64_t min_level = stereo_mini_cam_->BslLaserLevel.GetMin();
+        const int64_t max_level = stereo_mini_cam_->BslLaserLevel.GetMax();
+        int64_t target = static_cast<int64_t>(level);
+        if (target < min_level)
+            target = min_level;
+        else if (target > max_level)
+            target = max_level;
+
+        stereo_mini_cam_->BslLaserLevel.SetValue(target);
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Projector level set to " << target);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the projector level occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+int PylonROS2StereoMiniCamera::getProjectorEnable()
+{
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslLaserEnable))
+            return -1;
+        return stereo_mini_cam_->BslLaserEnable.GetValue() ? 1 : 0;
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while reading the projector state occurred: " << e.GetDescription());
+        return -1;
+    }
+}
+
+int PylonROS2StereoMiniCamera::getProjectorLevel()
+{
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslLaserLevel))
+            return -1;
+        return static_cast<int>(stereo_mini_cam_->BslLaserLevel.GetValue());
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while reading the projector level occurred: " << e.GetDescription());
+        return -1;
+    }
+}
+
+int PylonROS2StereoMiniCamera::getDepthPreset()
+{
+    // Mirror setOperatingMode's runtime enumeration so the returned index matches the setter.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslDepthPreset))
+            return -1;
+
+        GenApi::NodeList_t entries;
+        stereo_mini_cam_->BslDepthPreset.GetEntries(entries);
+        const std::string current(stereo_mini_cam_->BslDepthPreset.ToString().c_str());
+        int index = 0;
+        for (GenApi::NodeList_t::iterator it = entries.begin(); it != entries.end(); ++it)
+        {
+            if (!GenApi::IsAvailable(*it))
+                continue;
+            GenApi::CEnumEntryPtr entry(*it);
+            if (entry.IsValid())
+            {
+                if (std::string(entry->GetSymbolic().c_str()) == current)
+                    return index;
+                ++index;
+            }
+        }
+        return -1;
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while reading the depth preset occurred: " << e.GetDescription());
+        return -1;
+    }
+}
+
+std::string PylonROS2StereoMiniCamera::enableHDRMode(const bool& enable)
+{
+    // HDR is controlled by BslHDREnable, reached through the generic node map by name. The
+    // node is only writable while an IR source (Source1/Source2) is selected; use the
+    // set_source_selector service to select one first. The node is locked while grabbing,
+    // so stop/start around the write.
+    try
+    {
+        GenApi::CBooleanPtr hdr_enable(stereo_mini_cam_->GetNodeMap().GetNode("BslHDREnable"));
+        if (!hdr_enable.IsValid())
+        {
+            RCLCPP_ERROR(LOGGER_STEREO_MINI, "BslHDREnable is not available on this camera");
+            return "BslHDREnable is not available on this camera";
+        }
+
+        this->grabbingStopping();
+        if (!GenApi::IsWritable(hdr_enable))
+        {
+            this->grabbingStarting();
+            return "BslHDREnable is not writable; set the source selector to an IR source (Source1 or Source2) first";
+        }
+        hdr_enable->SetValue(enable);
+        this->grabbingStarting();
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "HDR mode " << (enable ? "enabled" : "disabled"));
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the HDR mode occurred: " << e.GetDescription());
+        this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+int PylonROS2StereoMiniCamera::getHDRMode()
+{
+    // BslHDREnable is a per-source node set on the IR sources; read it under Source1 and restore the
+    // previously selected source. Reading is not locked while grabbing, so no stop/start is needed.
+    try
+    {
+        GenApi::CBooleanPtr hdr_enable(stereo_mini_cam_->GetNodeMap().GetNode("BslHDREnable"));
+        if (!hdr_enable.IsValid())
+            return -1;
+
+        const GenICam::gcstring previous_source = stereo_mini_cam_->SourceSelector.ToString();
+        stereo_mini_cam_->SourceSelector.FromString("Source1");
+        const bool value = hdr_enable->GetValue();
+        stereo_mini_cam_->SourceSelector.FromString(previous_source);
+        return value ? 1 : 0;
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while reading the HDR mode occurred: " << e.GetDescription());
+        try { stereo_mini_cam_->SourceSelector.FromString("Source3"); } catch (const GenICam::GenericException&) {}
+        return -1;
+    }
+}
+
+std::string PylonROS2StereoMiniCamera::setHDRSequenceIndex(const int& index)
+{
+    // Selects which HDR sequence (0 or 1) the exposure/gain/brightness/max-exposure
+    // controls apply to. The node may be locked while grabbing, so stop/start only when needed.
+    bool stopped = false;
+    try
+    {
+        if (index < 0 || index > 1)
+            return "HDR sequence index must be 0 or 1";
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslHDRSequenceIndex))
+            return "BslHDRSequenceIndex is not available on this camera";
+
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRSequenceIndex))
+        {
+            this->grabbingStopping();
+            stopped = true;
+        }
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRSequenceIndex))
+        {
+            if (stopped) this->grabbingStarting();
+            return "BslHDRSequenceIndex is not writable on this camera";
+        }
+        stereo_mini_cam_->BslHDRSequenceIndex.SetValue(index);
+        if (stopped) this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the HDR sequence index occurred: " << e.GetDescription());
+        if (stopped) this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setHDRSequencePreset(const int& preset)
+{
+    // Selects the HDR preset that load_hdr_preset then applies.
+    bool stopped = false;
+    try
+    {
+        const char* name = nullptr;
+        switch (preset)
+        {
+            case 0: name = "DepthFromHDR"; break;
+            case 1: name = "LaserOnOff"; break;
+            default:
+                return "HDR sequence preset must be 0 (DepthFromHDR) or 1 (LaserOnOff)";
+        }
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslHDRSequencePreset))
+            return "BslHDRSequencePreset is not available on this camera";
+
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRSequencePreset))
+        {
+            this->grabbingStopping();
+            stopped = true;
+        }
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRSequencePreset))
+        {
+            if (stopped) this->grabbingStarting();
+            return "BslHDRSequencePreset is not writable on this camera";
+        }
+        stereo_mini_cam_->BslHDRSequencePreset.FromString(name);
+        if (stopped) this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the HDR sequence preset occurred: " << e.GetDescription());
+        if (stopped) this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::loadHDRPreset()
+{
+    // Loads the preset selected by set_hdr_sequence_preset, initializing both sequences
+    // with the recommended default values.
+    bool stopped = false;
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslHDRLoadPreset))
+            return "BslHDRLoadPreset is not available on this camera";
+
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRLoadPreset))
+        {
+            this->grabbingStopping();
+            stopped = true;
+        }
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRLoadPreset))
+        {
+            if (stopped) this->grabbingStarting();
+            return "BslHDRLoadPreset is not writable on this camera";
+        }
+        stereo_mini_cam_->BslHDRLoadPreset.Execute();
+        if (stopped) this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while loading the HDR preset occurred: " << e.GetDescription());
+        if (stopped) this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setHDRMaxExposure(const double& max_exposure)
+{
+    // Writes the auto-exposure maximum (BslAEMaxExposure) for the selected HDR sequence and
+    // source. Only effective while ExposureAuto is Continuous. Writable while grabbing.
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslAEMaxExposure))
+            return "BslAEMaxExposure is not available on this camera";
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslAEMaxExposure))
+            return "BslAEMaxExposure is not writable; set ExposureAuto to Continuous first";
+        stereo_mini_cam_->BslAEMaxExposure.SetValue(max_exposure);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the HDR max exposure occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::enableHDRMerge(const bool& enable)
+{
+    // Enables or disables the HDR frame merging filter.
+    bool stopped = false;
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslHDRMergeEnable))
+            return "BslHDRMergeEnable is not available on this camera";
+
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRMergeEnable))
+        {
+            this->grabbingStopping();
+            stopped = true;
+        }
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRMergeEnable))
+        {
+            if (stopped) this->grabbingStarting();
+            return "BslHDRMergeEnable is not writable on this camera";
+        }
+        stereo_mini_cam_->BslHDRMergeEnable.SetValue(enable);
+        if (stopped) this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the HDR merge occurred: " << e.GetDescription());
+        if (stopped) this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::enableHDRMergeUseIR(const bool& enable)
+{
+    // Enables or disables using IR frames to improve HDR merge quality.
+    bool stopped = false;
+    try
+    {
+        if (!GenApi::IsAvailable(stereo_mini_cam_->BslHDRMergeUseIR))
+            return "BslHDRMergeUseIR is not available on this camera";
+
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRMergeUseIR))
+        {
+            this->grabbingStopping();
+            stopped = true;
+        }
+        if (!GenApi::IsWritable(stereo_mini_cam_->BslHDRMergeUseIR))
+        {
+            if (stopped) this->grabbingStarting();
+            return "BslHDRMergeUseIR is not writable on this camera";
+        }
+        stereo_mini_cam_->BslHDRMergeUseIR.SetValue(enable);
+        if (stopped) this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the HDR merge IR use occurred: " << e.GetDescription());
+        if (stopped) this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+bool PylonROS2StereoMiniCamera::setGain(const float& target_gain, float& reached_gain)
+{
+    // Gain acts on the currently selected source. Select the source beforehand with the
+    // set_source_selector service. target_gain is a fraction [0.0 - 1.0].
+    try
+    {
+        // The color source has no separate GainAuto; its auto-exposure function
+        // also owns Gain and keeps the Gain node read-only while active. Disable
+        // ExposureAuto before writing a manual gain (mirrors setExposure).
+        stereo_mini_cam_->ExposureAuto.TrySetValue(
+            StmParams::ExposureAutoEnums::ExposureAuto_Off);
+
+        float truncated_gain = target_gain;
+        if (truncated_gain < 0.0f)
+        {
+            RCLCPP_WARN_STREAM(LOGGER_STEREO_MINI, "Desired gain (" << target_gain
+                << ") out of range [0.0 - 1.0]! Setting to lower limit: 0.0");
+            truncated_gain = 0.0f;
+        }
+        else if (truncated_gain > 1.0f)
+        {
+            RCLCPP_WARN_STREAM(LOGGER_STEREO_MINI, "Desired gain (" << target_gain
+                << ") out of range [0.0 - 1.0]! Setting to upper limit: 1.0");
+            truncated_gain = 1.0f;
+        }
+
+        const float min_gain = static_cast<float>(stereo_mini_cam_->Gain.GetMin());
+        const float max_gain = static_cast<float>(stereo_mini_cam_->Gain.GetMax());
+        const float gain_to_set = min_gain + truncated_gain * (max_gain - min_gain);
+        stereo_mini_cam_->Gain.SetValue(gain_to_set);
+
+        const float reached_abs = static_cast<float>(stereo_mini_cam_->Gain.GetValue());
+        reached_gain = (max_gain > min_gain) ? (reached_abs - min_gain) / (max_gain - min_gain) : 0.0f;
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting target gain to "
+            << target_gain << " occurred: " << e.GetDescription());
+        return false;
+    }
+    return true;
+}
+
+bool PylonROS2StereoMiniCamera::setGamma(const float& target_gamma, float& reached_gamma)
+{
+    // Gamma acts on the currently selected source; select it beforehand with set_source_selector.
+    try
+    {
+        float gamma_to_set = target_gamma;
+        const float min_gamma = static_cast<float>(stereo_mini_cam_->Gamma.GetMin());
+        const float max_gamma = static_cast<float>(stereo_mini_cam_->Gamma.GetMax());
+        if (gamma_to_set < min_gamma)
+        {
+            RCLCPP_WARN_STREAM(LOGGER_STEREO_MINI, "Desired gamma (" << target_gamma
+                << ") unreachable! Setting to lower limit: " << min_gamma);
+            gamma_to_set = min_gamma;
+        }
+        else if (gamma_to_set > max_gamma)
+        {
+            RCLCPP_WARN_STREAM(LOGGER_STEREO_MINI, "Desired gamma (" << target_gamma
+                << ") unreachable! Setting to upper limit: " << max_gamma);
+            gamma_to_set = max_gamma;
+        }
+
+        stereo_mini_cam_->Gamma.SetValue(gamma_to_set);
+        reached_gamma = static_cast<float>(stereo_mini_cam_->Gamma.GetValue());
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting target gamma to "
+            << target_gamma << " occurred: " << e.GetDescription());
+        return false;
+    }
+    return true;
+}
+
+bool PylonROS2StereoMiniCamera::setBrightness(const int& target_brightness,
+                                              const float& current_brightness __attribute__((unused)),
+                                              const bool& exposure_auto,
+                                              const bool& gain_auto __attribute__((unused)))
+{
+    // The stereo mini has no auto-brightness search. It exposes a direct analog
+    // BslBrightness control on the currently selected source (select it beforehand with
+    // set_source_selector). target_brightness [1..255] is mapped linearly onto the
+    // BslBrightness range.
+    try
+    {
+        if (exposure_auto)
+        {
+            stereo_mini_cam_->ExposureAuto.TrySetValue(
+                StmParams::ExposureAutoEnums::ExposureAuto_Continuous);
+        }
+
+        const float clamped = static_cast<float>(std::min(255, std::max(1, target_brightness)));
+        const float min_b = static_cast<float>(stereo_mini_cam_->BslBrightness.GetMin());
+        const float max_b = static_cast<float>(stereo_mini_cam_->BslBrightness.GetMax());
+        const float value = min_b + (clamped - 1.0f) / 254.0f * (max_b - min_b);
+        stereo_mini_cam_->BslBrightness.SetValue(value);
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "BslBrightness set to " << value
+            << " (from target brightness " << target_brightness << ")");
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting brightness occurred: " << e.GetDescription());
+        return false;
+    }
+    return true;
+}
+
+std::string PylonROS2StereoMiniCamera::setWhiteBalance(const double& redValue, const double& greenValue, const double& blueValue)
+{
+    // BalanceRatio is applied per channel via the (runtime) BalanceRatioSelector
+    // node, which the typed StereoMiniCameraParams header does not expose; access
+    // it generically. Acts on the currently selected source (select the color source
+    // with set_source_selector beforehand).
+    try
+    {
+        GenApi::INodeMap& node_map = stereo_mini_cam_->GetNodeMap();
+        GenApi::CEnumerationPtr wb_auto(node_map.GetNode("BalanceWhiteAuto"));
+        if (wb_auto.IsValid() && GenApi::IsWritable(wb_auto))
+        {
+            wb_auto->FromString("Off");
+        }
+
+        GenApi::CEnumerationPtr selector(node_map.GetNode("BalanceRatioSelector"));
+        GenApi::CFloatPtr ratio(node_map.GetNode("BalanceRatio"));
+        if (!ratio.IsValid() || !GenApi::IsWritable(ratio))
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "BalanceRatio not writable on this camera");
+            return "Feature not available for this camera type";
+        }
+
+        if (selector.IsValid() && GenApi::IsWritable(selector))
+        {
+            selector->FromString("Red");
+            ratio->SetValue(redValue);
+            selector->FromString("Green");
+            ratio->SetValue(greenValue);
+            selector->FromString("Blue");
+            ratio->SetValue(blueValue);
+        }
+        else
+        {
+            // No per-channel selector: apply a single ratio (red channel value).
+            ratio->SetValue(redValue);
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the white balance occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setBalanceWhiteAuto(const int& mode)
+{
+    // The typed BalanceWhiteAuto enum only carries a placeholder value; use the
+    // runtime enumeration node so real Off/Once/Continuous entries can be set.
+    // Acts on the currently selected source (select it with set_source_selector).
+    try
+    {
+        GenApi::CEnumerationPtr wb_auto(stereo_mini_cam_->GetNodeMap().GetNode("BalanceWhiteAuto"));
+        if (!wb_auto.IsValid() || !GenApi::IsWritable(wb_auto))
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "BalanceWhiteAuto not writable on this camera");
+            return "Feature not available for this camera type";
+        }
+
+        switch (mode)
+        {
+            case 0: wb_auto->FromString("Off"); break;
+            case 1: wb_auto->FromString("Once"); break;
+            case 2: wb_auto->FromString("Continuous"); break;
+            default: return "Error: unknown value (0=Off, 1=Once, 2=Continuous)";
+        }
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Balance white auto set to mode " << mode);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while changing the balance white auto occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setSourceSelector(const int& source)
+{
+    // Selects the active source so per-source features (exposure, gain, gamma, brightness,
+    // white balance, HDR) act on the intended sensor. 1 = Source1 (IR left), 2 = Source2
+    // (IR right), 3 = Source3 (color). The node is locked while grabbing, so stop/start.
+    try
+    {
+        this->grabbingStopping();
+        switch (source)
+        {
+            case 1: stereo_mini_cam_->SourceSelector.FromString("Source1"); break;
+            case 2: stereo_mini_cam_->SourceSelector.FromString("Source2"); break;
+            case 3: stereo_mini_cam_->SourceSelector.FromString("Source3"); break;
+            default:
+                this->grabbingStarting();
+                return "Error: unknown value (1=Source1, 2=Source2, 3=Source3)";
+        }
+        this->grabbingStarting();
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Source selector set to Source" << source);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the source selector occurred: " << e.GetDescription());
+        this->grabbingStarting();
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setAcquisitionFrameCount(const int& frameCount)
+{
+    try
+    {
+        // AcquisitionFrameCount is locked while grabbing; stop and restart around the change.
+        this->grabbingStopping();
+        stereo_mini_cam_->AcquisitionFrameCount.SetValue(frameCount);
+        this->grabbingStarting();
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Acquisition frame count set to " << frameCount);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the acquisition frame count occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+// --- Stubs for features the stereo mini SDK does not expose -----------------
+
+std::string PylonROS2StereoMiniCamera::setTriggerActivation(const int& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setLineSelector(const int& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setLineMode(const int& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setLineSource(const int& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setLineInverter(const bool& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setLineDebouncerTime(const float& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setDeviceLinkThroughputLimitMode(const bool& /*turnOn*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setDeviceLinkThroughputLimit(const int& /*limit*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::gammaEnable(const bool& /*enable*/)
+{
+    return "Feature not available for this camera type";
+}
+
+// --- Overrides for features backed by stereo mini SDK nodes -----------------
+
+std::string PylonROS2StereoMiniCamera::setTriggerDelay(const float& delayValue)
+{
+    try
+    {
+        if (GenApi::IsWritable(stereo_mini_cam_->TriggerDelay))
+        {
+            stereo_mini_cam_->TriggerDelay.SetValue(delayValue);
+            RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Trigger delay set to " << delayValue << " us");
+        }
+        else
+        {
+            return "Error: TriggerDelay is not writable";
+        }
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the trigger delay occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::triggerDeviceReset()
+{
+    try
+    {
+        stereo_mini_cam_->DeviceReset.Execute();
+        RCLCPP_DEBUG_STREAM(LOGGER_STEREO_MINI, "Device reset triggered");
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while triggering the device reset occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+// --- Buffer / statistics services (retargeted to stereo_mini_cam_) ----------
+
+std::string PylonROS2StereoMiniCamera::setMaxNumBuffer(const int& size)
+{
+    if (!GenApi::IsAvailable(stereo_mini_cam_->MaxNumBuffer))
+    {
+        return "Feature not available for this camera type";
+    }
+    try
+    {
+        // MaxNumBuffer is locked while grabbing; stop and restart around the change.
+        this->grabbingStopping();
+        stereo_mini_cam_->MaxNumBuffer.SetValue(size);
+        this->grabbingStarting();
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the maximum number of buffers occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+std::string PylonROS2StereoMiniCamera::setOutputQueueSize(const int& size)
+{
+    try
+    {
+        const int max_num_buffer = static_cast<int>(stereo_mini_cam_->MaxNumBuffer.GetValue());
+        if (size < 0 || size > max_num_buffer)
+        {
+            return "requested output queue size is out side the limits of : 0-" + std::to_string(max_num_buffer);
+        }
+        stereo_mini_cam_->OutputQueueSize.SetValue(size);
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while setting the output queue size occurred: " << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
+}
+
+int PylonROS2StereoMiniCamera::getMaxNumBuffer()
+{
+    if (!GenApi::IsAvailable(stereo_mini_cam_->MaxNumBuffer))
+    {
+        return -1;  // Not supported
+    }
+    try
+    {
+        return static_cast<int>(stereo_mini_cam_->MaxNumBuffer.GetValue());
+    }
+    catch (const GenICam::GenericException& e)
+    {
+        RCLCPP_ERROR_STREAM(LOGGER_STEREO_MINI, "An exception while getting the maximum number of buffers occurred: " << e.GetDescription());
+        return -2;  // Error
+    }
+}
+
+// The stereo mini stream grabber exposes no Statistic_* counters, so all of
+// these report "not supported" rather than touching the never-opened cam_.
+int PylonROS2StereoMiniCamera::getStatisticTotalBufferCount()      { return -1; }
+int PylonROS2StereoMiniCamera::getStatisticFailedBufferCount()     { return -1; }
+int PylonROS2StereoMiniCamera::getStatisticBufferUnderrunCount()   { return -1; }
+int PylonROS2StereoMiniCamera::getStatisticFailedPacketCount()     { return -1; }
+int PylonROS2StereoMiniCamera::getStatisticResendRequestCount()    { return -1; }
+int PylonROS2StereoMiniCamera::getStatisticMissedFrameCount()      { return -1; }
+int PylonROS2StereoMiniCamera::getStatisticResynchronizationCount(){ return -1; }
+
+// --- Additional stubs for services with no matching stereo mini SDK node ----
+
+std::string PylonROS2StereoMiniCamera::setUserSetSelector(const int& /*set*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::saveUserSet()
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::loadUserSet()
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setUserSetDefaultSelector(const int& /*set*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::pair<std::string, std::string> PylonROS2StereoMiniCamera::getPfs()
+{
+    return {"Feature not available for this camera type", ""};
+}
+
+std::string PylonROS2StereoMiniCamera::savePfs(const std::string& /*fileName*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::loadPfs(const std::string& /*fileName*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setChunkModeActive(const bool& /*enable*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setChunkSelector(const int& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setChunkEnable(const bool& /*enable*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setChunkExposureTime(const float& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setTimerSelector(const int& /*selector*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setTimerTriggerSource(const int& /*source*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setTimerDuration(const float& /*duration*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setMaxTransferSize(const int& /*maxTransferSize*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setPTPPriority(const int& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setPTPProfile(const int& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setPTPNetworkMode(const int& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setPTPUCPortAddressIndex(const int& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setPTPUCPortAddress(const int& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::enablePTPManagementProtocol(const bool& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::enablePTPTwoStepOperation(const bool& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::enablePTP(const bool& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::getPTPStatus(int64_t& /*offset_from_master*/, std::string& /*status*/, std::string& /*servo_status*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setPeriodicSignalPeriod(const float& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setPeriodicSignalDelay(const float& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setSyncFreeRunTimerStartTimeLow(const int& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setSyncFreeRunTimerStartTimeHigh(const int& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setSyncFreeRunTimerTriggerRateAbs(const float& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::enableSyncFreeRunTimer(const bool& /*value*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::updateSyncFreeRunTimer()
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::setActionTriggerConfiguration(const int& /*action_device_key*/, const int& /*action_group_key*/, const unsigned int& /*action_group_mask*/,
+                                                                     const int& /*registration_mode*/, const int& /*cleanup*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::issueActionCommand(const int& /*device_key*/, const int& /*group_key*/, const unsigned int& /*group_mask*/, const std::string& /*broadcast_address*/)
+{
+    return "Feature not available for this camera type";
+}
+
+std::string PylonROS2StereoMiniCamera::issueScheduledActionCommand(const int& /*device_key*/, const int& /*group_key*/, const unsigned int& /*group_mask*/, const int64_t& /*action_time_ns_from_current_timestamp*/, const std::string& /*broadcast_address*/)
+{
+    return "Feature not available for this camera type";
+}
+
+bool PylonROS2StereoMiniCamera::setAutoflash(const std::map<int, bool> /*flash_on_lines*/)
+{
+    return false;
+}
+
+bool PylonROS2StereoMiniCamera::setUserOutput(const int& /*output_id*/, const bool& /*value*/)
+{
+    return false;
+}
+
+} // namespace pylon_ros2_camera

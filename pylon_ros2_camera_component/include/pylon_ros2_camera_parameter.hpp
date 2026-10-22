@@ -263,6 +263,19 @@ public:
     std::string startup_user_set_;
 
     /**
+     * Illumination mode for the Basler Stereo ace camera.
+     * Controls whether the IR projector runs during acquisition:
+     *   AlwaysActive (default)    - projector always on; recommended by Basler for
+     *                               depth quality, but IR pattern visible in intensity images.
+     *   AlternateActive           - alternates projector on/off each frame; intensity
+     *                               images are free of the IR dot pattern, at the cost of
+     *                               an extra exposure per result.
+     *   Off                       - projector disabled; passive stereo only.
+     * Ignored by blaze and Stereo mini.
+     */
+    std::string stereo_ace_illumination_mode_;
+
+    /**
      * the inter-packet delay in ticks to prevent frame loss, support the network bandwith priorisation
      * generally needs to modified if more than one cameras is involved or if hardware is not performing well
      * raise inter-packet delay (GevSCPD) for solving error: 'the buffer was incompletely grabbed'
@@ -313,6 +326,18 @@ public:
     * camera trigger timeout in ms
     */
     int trigger_timeout_;
+
+    /**
+    * Enable the IMU on cameras that have one (Stereo mini). When true, the
+    * driver registers for IMU events and publishes them on the ~/imu topic.
+    */
+    bool imu_enabled_;
+
+    /**
+    * IMU output data rate in Hz applied once at startup. 0 leaves the camera
+    * default. Only used when imu_enabled_ is true.
+    */
+    int imu_frame_rate_;
 
     /**
     * camera white balance auto 

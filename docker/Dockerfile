@@ -10,11 +10,22 @@
 #          ("pylon Camera Software Suite – Linux – Debian Installer")
 #          Place it next to this Dockerfile.
 #
+#          For the 3D cameras (Stereo ace, Stereo mini, blaze) also download the
+#          matching "pylon Supplementary Package for ..." .deb and place it next
+#          to this Dockerfile, then pass it via its build arg (see below). The
+#          base suite does not include the 3D camera SDKs.
+#
 # STEP 2 – Build examples:
 #
 #   # Kilted (default on this branch):
 #   docker build --build-arg PYLON_DEB=pylon_<version>_amd64.deb \
 #                -t pylon_ros2_camera:kilted .   # uses REPO_BRANCH=kilted by default
+#
+#   # Kilted with Stereo ace + Stereo mini support:
+#   docker build --build-arg PYLON_DEB=pylon_<version>_amd64.deb \
+#                --build-arg PYLON_STEREO_ACE_DEB=pylon-supplementary-package-for-stereo-ace_<version>_amd64.deb \
+#                --build-arg PYLON_STEREO_MINI_DEB=pylon-supplementary-package-for-stereo-mini-sdk_<version>_amd64.deb \
+#                -t pylon_ros2_camera:kilted .
 #
 #   # Jazzy:
 #   docker build --build-arg ROS_DISTRO=jazzy \
@@ -71,17 +82,36 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # -----------------------------------------------------------------------------
-# pylon Camera Software Suite
+# pylon Camera Software Suite + optional 3D supplementary packages
 #
-# Place the .deb downloaded from Basler's website in the same directory as
-# this Dockerfile, then pass its filename via --build-arg PYLON_DEB=<name>.
+# The base pylon.deb drives 2D cameras. The Stereo ace, Stereo mini and blaze
+# 3D cameras each need their own supplementary .deb, which the base suite does
+# not include (it provides the StereoAce/StereoMini/Blaze SDK headers the
+# driver needs to build those cameras). Place every .deb next to this
+# Dockerfile and pass its filename:
+#   PYLON_DEB              main suite (required)
+#   PYLON_STEREO_ACE_DEB   Stereo ace support (optional)
+#   PYLON_STEREO_MINI_DEB  Stereo mini support (optional)
+#   PYLON_BLAZE_DEB        blaze support (optional)
+# Omit a supplementary arg to skip a camera you do not use.
 # -----------------------------------------------------------------------------
 ARG PYLON_DEB
-COPY ${PYLON_DEB} /tmp/pylon.deb
-RUN dpkg -i /tmp/pylon.deb \
-    || (apt-get update && apt-get install -f -y --no-install-recommends) \
-    && rm -f /tmp/pylon.deb \
-    && rm -rf /var/lib/apt/lists/*
+ARG PYLON_STEREO_ACE_DEB=
+ARG PYLON_STEREO_MINI_DEB=
+ARG PYLON_BLAZE_DEB=
+
+# Copy every .deb from the build context (main suite plus any supplementary ones).
+COPY *.deb /tmp/debs/
+
+# Install the main suite first so the supplementary packages find their dependency.
+# Use apt-get (not plain dpkg -i) so apt pulls each package's dependencies,
+# including the Stereo ace pre-dependency on desktop-file-utils.
+RUN apt-get update && for pkg in "${PYLON_DEB}" "${PYLON_STEREO_ACE_DEB}" "${PYLON_STEREO_MINI_DEB}" "${PYLON_BLAZE_DEB}"; do \
+        [ -n "$pkg" ] || continue; \
+        echo "Installing $pkg"; \
+        apt-get install -y --no-install-recommends "/tmp/debs/$pkg"; \
+    done \
+    && rm -rf /tmp/debs /var/lib/apt/lists/*
 
 # Make pylon libraries visible to the dynamic linker
 RUN echo "/opt/pylon/lib" > /etc/ld.so.conf.d/pylon.conf && ldconfig

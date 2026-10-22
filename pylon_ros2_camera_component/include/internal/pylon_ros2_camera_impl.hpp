@@ -361,19 +361,19 @@ public:
 
 
 
-    // blaze related functions
+    // 3D camera related functions
 
-    virtual bool isBlaze() override;
+    virtual bool is3D() override;
 
-    virtual bool grabBlaze(sensor_msgs::msg::PointCloud2& cloud_msg,
+    virtual bool grab3D(sensor_msgs::msg::PointCloud2& cloud_msg,
                            sensor_msgs::msg::Image& intensity_map_msg, 
                            sensor_msgs::msg::Image& depth_map_msg, 
                            sensor_msgs::msg::Image& depth_map_color_msg, 
                            sensor_msgs::msg::Image& confidence_map_msg) override;
     
-    virtual std::string setDepthMin(const int& depth_min) override;
+    virtual std::string setDepthMin(const double& depth_min) override;
 
-    virtual std::string setDepthMax(const int& depth_max) override;
+    virtual std::string setDepthMax(const double& depth_max) override;
 
     virtual std::string setTemporalFilterStrength(const int& strength) override;
 
@@ -383,13 +383,29 @@ public:
 
     virtual std::string setAmbiguityFilterThreshold(const int& threshold) override;
 
-    virtual std::string setConfidenceThreshold(const int& threshold) override;
+    virtual std::string setConfidenceThreshold(const double& threshold) override;
 
     virtual std::string setIntensityCalculation(const int& calculation) override;
 
     virtual std::string setExposureTimeSelector(const int& selector) override;
 
     virtual std::string setOperatingMode(const int& mode) override;
+
+    virtual std::string setIlluminationMode(const int& mode) override;
+
+    virtual std::string setDepthQuality(const int& quality) override;
+
+    virtual std::string enableStaticScene(const bool& enable) override;
+
+    virtual std::string enableProjector(const bool& enable) override;
+
+    virtual std::string setProjectorLevel(const int& level) override;
+
+    virtual std::string enableDepthSmooth(const bool& enable) override;
+
+    virtual std::string setDepthFill(const int& value) override;
+
+    virtual std::string setDepthSeg(const int& value) override;
 
     virtual std::string setMultiCameraChannel(const int& channel) override;
 
@@ -412,6 +428,28 @@ public:
     virtual std::string enableAcquisitionFrameRate(const bool& enable) override;
 
     virtual std::string enableHDRMode(const bool& enable) override;
+
+    virtual std::string setHDRExposureTimeSelector(const int& selector) override;
+
+    virtual std::string setHDRExposureTime(const double& exposure_time) override;
+
+    virtual std::string setHDRSubExposures(const int& count) override;
+
+    virtual std::string setExposureAutoMode(const int& mode) override;
+
+    virtual std::string setHDRSequenceIndex(const int& index) override;
+
+    virtual std::string setHDRSequencePreset(const int& preset) override;
+
+    virtual std::string loadHDRPreset() override;
+
+    virtual std::string enableHDRMerge(const bool& enable) override;
+
+    virtual std::string enableHDRMergeUseIR(const bool& enable) override;
+
+    virtual std::string setHDRMaxExposure(const double& max_exposure) override;
+
+    virtual std::string setSourceSelector(const int& source) override;
 
     virtual std::string enableFastMode(const bool& enable) override;
 
@@ -466,12 +504,6 @@ protected:
     virtual bool setExtendedBrightness(const int& target_brightness,
                                        const float& current_brightness) override;
 
-    // Converts a target brightness (0-255) into the value expected by the camera's
-    // auto brightness node at runtime: the AutoTargetValue node (GigE ace 1) takes the
-    // absolute pixel intensity (0-255), while the AutoTargetBrightness node (USB, GigE ace 2)
-    // takes a normalized brightness (0.0-1.0).
-    double convertBrightness(const int& value);
-
     virtual bool grab(Pylon::CBaslerUniversalGrabResultPtr& grab_result);
 
     virtual bool setupSequencer(const std::vector<float>& exposure_times,
@@ -487,4 +519,10 @@ protected:
 #include "internal/impl/pylon_ros2_camera_gige_ace2.hpp"
 #ifdef HAVE_PYLON_BLAZE
 #include "internal/impl/pylon_ros2_camera_blaze.hpp"
+#endif
+#ifdef HAVE_PYLON_STEREO_MINI
+#include "internal/impl/pylon_ros2_camera_stereo_mini.hpp"
+#endif
+#ifdef HAVE_PYLON_STEREO_ACE
+#include "internal/impl/pylon_ros2_camera_stereo_ace.hpp"
 #endif

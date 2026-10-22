@@ -4,7 +4,7 @@
 
   <name>pylon_ros2_camera_wrapper</name>
   
-  <version>3.3.10</version>
+  <version>4.0.2</version>
   
   <description>
     Wrapper loading pylon_ros2_camera component in a single process
@@ -29,6 +29,7 @@
   <test_depend>cv_bridge</test_depend>
   <test_depend>image_geometry</test_depend>
 
+  <test_depend>ament_cmake_pytest</test_depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 

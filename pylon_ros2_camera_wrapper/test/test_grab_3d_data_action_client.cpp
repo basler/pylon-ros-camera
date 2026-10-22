@@ -36,18 +36,18 @@
 
 namespace pylon_ros2_camera
 {
-  class TestGrabBlazeDataActionClient : public rclcpp::Node
+  class TestGrab3DDataActionClient : public rclcpp::Node
   {
     public:
-      using GrabBlazeDataAction              = pylon_ros2_camera_interfaces::action::GrabBlazeData;
-      using GrabBlazeDataGoalHandle          = rclcpp_action::ClientGoalHandle<GrabBlazeDataAction>;
+      using Grab3DDataAction              = pylon_ros2_camera_interfaces::action::Grab3DData;
+      using Grab3DDataGoalHandle          = rclcpp_action::ClientGoalHandle<Grab3DDataAction>;
 
-      explicit TestGrabBlazeDataActionClient(const rclcpp::NodeOptions & options) : Node("test_grab_blaze_data_action_client", options)
+      explicit TestGrab3DDataActionClient(const rclcpp::NodeOptions & options) : Node("test_grab_3d_data_action_client", options)
       {
         // to be adapted if needed
-        this->client_ptr_ = rclcpp_action::create_client<GrabBlazeDataAction>(this, "/my_camera/pylon_ros2_camera_node/grab_blaze_data");
+        this->client_ptr_ = rclcpp_action::create_client<Grab3DDataAction>(this, "/my_camera/pylon_ros2_camera_node/grab_3d_data");
 
-        this->timer_ = this->create_wall_timer(std::chrono::milliseconds(500), std::bind(&TestGrabBlazeDataActionClient::send_goal, this));
+        this->timer_ = this->create_wall_timer(std::chrono::milliseconds(500), std::bind(&TestGrab3DDataActionClient::send_goal, this));
       }
 
       void send_goal()
@@ -62,7 +62,7 @@ namespace pylon_ros2_camera
           rclcpp::shutdown();
         }
 
-        auto goal_msg = GrabBlazeDataAction::Goal();
+        auto goal_msg = Grab3DDataAction::Goal();
 
         // to be adapted if needed
         goal_msg.exposure_given = true;
@@ -73,20 +73,20 @@ namespace pylon_ros2_camera
 
         RCLCPP_INFO(this->get_logger(), "Sending goal...");
 
-        auto send_goal_options = rclcpp_action::Client<GrabBlazeDataAction>::SendGoalOptions();
-        send_goal_options.goal_response_callback = std::bind(&TestGrabBlazeDataActionClient::goal_response_callback, this, _1);
-        send_goal_options.feedback_callback = std::bind(&TestGrabBlazeDataActionClient::feedback_callback, this, _1, _2);
-        send_goal_options.result_callback = std::bind(&TestGrabBlazeDataActionClient::result_callback, this, _1);
+        auto send_goal_options = rclcpp_action::Client<Grab3DDataAction>::SendGoalOptions();
+        send_goal_options.goal_response_callback = std::bind(&TestGrab3DDataActionClient::goal_response_callback, this, _1);
+        send_goal_options.feedback_callback = std::bind(&TestGrab3DDataActionClient::feedback_callback, this, _1, _2);
+        send_goal_options.result_callback = std::bind(&TestGrab3DDataActionClient::result_callback, this, _1);
         this->client_ptr_->async_send_goal(goal_msg, send_goal_options);
 
         RCLCPP_INFO(this->get_logger(), "Goal sent!");
       }
 
     private:
-      rclcpp_action::Client<GrabBlazeDataAction>::SharedPtr client_ptr_;
+      rclcpp_action::Client<Grab3DDataAction>::SharedPtr client_ptr_;
       rclcpp::TimerBase::SharedPtr timer_;
 
-      void goal_response_callback(const GrabBlazeDataGoalHandle::SharedPtr & goal_handle)
+      void goal_response_callback(const Grab3DDataGoalHandle::SharedPtr & goal_handle)
       {
         if (!goal_handle)
         {
@@ -98,12 +98,12 @@ namespace pylon_ros2_camera
         }
       }
 
-      void feedback_callback(GrabBlazeDataGoalHandle::SharedPtr, const std::shared_ptr<const GrabBlazeDataAction::Feedback> feedback)
+      void feedback_callback(Grab3DDataGoalHandle::SharedPtr, const std::shared_ptr<const Grab3DDataAction::Feedback> feedback)
       {
         RCLCPP_INFO_STREAM(this->get_logger(), "Number of data set already acquired: " << feedback->curr_nr_data_acquired);
       }
 
-      void result_callback(const GrabBlazeDataGoalHandle::WrappedResult & result)
+      void result_callback(const Grab3DDataGoalHandle::WrappedResult & result)
       {
         switch (result.code)
         {
@@ -131,7 +131,7 @@ namespace pylon_ros2_camera
           sensor_msgs::msg::Image& depth_color_map = result.result->depth_color_maps[i];
           sensor_msgs::msg::Image& confidence_map = result.result->confidence_maps[i];
 
-          RCLCPP_INFO_STREAM(this->get_logger(), "Blaze data #" << i+1 << "\n\t"
+          RCLCPP_INFO_STREAM(this->get_logger(), "3D data #" << i+1 << "\n\t"
                 << "Intensity map" << "\n\t\t"
                     << "Encoding:  " << intensity_map.encoding << "\n\t\t"
                     << "Width:     " << intensity_map.width << "\n\t\t"
@@ -181,8 +181,8 @@ namespace pylon_ros2_camera
         rclcpp::shutdown();
       }
   
-  }; // class TestGrabBlazeDataActionClient
+  }; // class TestGrab3DDataActionClient
 
 } // namespace pylon_ros2_camera
 
-RCLCPP_COMPONENTS_REGISTER_NODE(pylon_ros2_camera::TestGrabBlazeDataActionClient)
+RCLCPP_COMPONENTS_REGISTER_NODE(pylon_ros2_camera::TestGrab3DDataActionClient)
