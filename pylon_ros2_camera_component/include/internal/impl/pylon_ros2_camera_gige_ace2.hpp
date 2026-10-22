@@ -165,12 +165,21 @@ bool PylonROS2GigEAce2Camera::applyCamSpecificStartupSettings(const PylonROS2Cam
                     << cam_->Gamma.GetMax() << "].");
             }
 
-            // The gain auto function and the exposure auto function can be used at the
-            // same time. In this case, however, you must also set the Auto Function Profile feature.
-            RCLCPP_INFO_STREAM(LOGGER_GIGE_ACE2, "Cam has pylon auto brightness range: ["
-                << cam_->AutoTargetValue.GetMin() << " - "
-                << cam_->AutoTargetValue.GetMax()
-                << "] which is the average pixel intensity.");
+            // Check if auto brightness is available, print range
+            if (GenApi::IsAvailable(cam_->AutoTargetValue))
+            {
+                RCLCPP_INFO_STREAM(LOGGER_GIGE_ACE2, "Cam has pylon auto brightness range: ["
+                    << cam_->AutoTargetValue.GetMin() << " - "
+                    << cam_->AutoTargetValue.GetMax()
+                    << "] which is the average pixel intensity.");
+            }
+            else if (GenApi::IsAvailable(cam_->AutoTargetBrightness))
+            {
+                RCLCPP_INFO_STREAM(LOGGER_GIGE_ACE2, "Cam has pylon auto brightness range: ["
+                    << cam_->AutoTargetBrightness.GetMin() << " - "
+                    << cam_->AutoTargetBrightness.GetMax()
+                    << "] which is the average pixel intensity.");
+            }
 
             if ( GenApi::IsAvailable(cam_->BinningHorizontal) &&
                     GenApi::IsAvailable(cam_->BinningVertical) )
@@ -1218,8 +1227,24 @@ std::string PylonROS2GigEAce2Camera::issueScheduledActionCommand(const int& devi
 
         // Get the current timestamp of the first camera
         // NOTE: All cameras must be synchronized via Precision Time Protocol
-        cam_->GevTimestampControlLatch.Execute();
-        int64_t current_timestamp = cam_->GevTimestampValue.GetValue();
+        // ace 2 and other SFNC 2.x cameras name these nodes TimestampLatch/TimestampLatchValue;
+        // older GigE cameras use GevTimestampControlLatch/GevTimestampValue.
+        int64_t current_timestamp = 0;
+        if (GenApi::IsAvailable(cam_->TimestampLatch))
+        {
+            cam_->TimestampLatch.Execute();
+            current_timestamp = cam_->TimestampLatchValue.GetValue();
+        }
+        else if (GenApi::IsAvailable(cam_->GevTimestampControlLatch))
+        {
+            cam_->GevTimestampControlLatch.Execute();
+            current_timestamp = cam_->GevTimestampValue.GetValue();
+        }
+        else
+        {
+            RCLCPP_ERROR_STREAM(LOGGER_GIGE_ACE2, "The connected camera provides no timestamp latch feature");
+            return "The connected camera provides no timestamp latch feature";
+        }
         // Specify that the command will be executed roughly 30 seconds
         // (30 000 000 000 ticks) after the current timestamp.
         int64_t action_time = current_timestamp + action_time_ns_from_current_timestamp;

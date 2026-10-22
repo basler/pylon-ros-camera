@@ -39,6 +39,19 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(pylon_ros2_camera_component REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(image_geometry REQUIRED)
+
+# The wrapper executable includes pylon_ros2_camera_node.hpp, which picks the
+# cv_bridge/image_geometry headers from these defines. They must be set here, not
+# only under BUILD_TESTING, otherwise the build fails when BUILD_TESTING is off.
+if(cv_bridge_VERSION VERSION_GREATER_EQUAL 3.3.0)
+    add_compile_definitions(cv_bridge_HPP)
+endif()
+
+if(image_geometry_VERSION VERSION_GREATER_EQUAL 3.3.0)
+    add_compile_definitions(image_geometry_HPP)
+endif()
 
 set(CAMERA_WRAPPER_DEPENDENCIES
 	rclcpp
@@ -51,8 +64,12 @@ add_executable(${PROJECT_NAME}
 	${CMAKE_CURRENT_SOURCE_DIR}/src/${PROJECT_NAME}.cpp
 )
 
-ament_target_dependencies(${PROJECT_NAME}
-	${CAMERA_WRAPPER_DEPENDENCIES}
+target_link_libraries(${PROJECT_NAME} PUBLIC
+	${pylon_ros2_camera_component_TARGETS}
+	rclcpp::rclcpp
+	rclcpp_components::component
+	rclcpp_components::component_manager
+	rcutils::rcutils
 )
 
 ### installation
@@ -75,17 +92,6 @@ install(DIRECTORY launch
 
 if(BUILD_TESTING)
 
-  find_package(cv_bridge REQUIRED)
-  find_package(image_geometry REQUIRED)
-
-  if(cv_bridge_VERSION VERSION_GREATER_EQUAL 3.3.0)
-    add_compile_definitions(cv_bridge_HPP)
-  endif()
-
-  if(image_geometry_VERSION VERSION_GREATER_EQUAL 3.3.0)
-    add_compile_definitions(image_geometry_HPP)
-  endif()
-
   set(CAMERA_TEST_DEPENDENCIES
     ${CAMERA_WRAPPER_DEPENDENCIES}
     cv_bridge
@@ -101,8 +107,14 @@ if(BUILD_TESTING)
   target_compile_definitions(action_client_test_grab_images
     PRIVATE "TEST_GRAB_IMAGES_ACTION_CLIENT_BUILDING_DLL")
 
-  ament_target_dependencies(action_client_test_grab_images
-    ${CAMERA_TEST_DEPENDENCIES}
+  target_link_libraries(action_client_test_grab_images PUBLIC
+    ${pylon_ros2_camera_component_TARGETS}
+    cv_bridge::cv_bridge
+    image_geometry::image_geometry
+    rclcpp::rclcpp
+    rclcpp_components::component
+    rclcpp_components::component_manager
+    rcutils::rcutils
   )
 
   rclcpp_components_register_node(action_client_test_grab_images
@@ -110,20 +122,26 @@ if(BUILD_TESTING)
     EXECUTABLE test_grab_images_action_client
   )
 
-  add_library(action_client_test_grab_blaze_data SHARED
-    ${CMAKE_CURRENT_SOURCE_DIR}/test/test_grab_blaze_data_action_client.cpp
+  add_library(action_client_test_grab_3d_data SHARED
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/test_grab_3d_data_action_client.cpp
   )
 
-  target_compile_definitions(action_client_test_grab_blaze_data
-    PRIVATE "TEST_GRAB_BLAZE_DATA_ACTION_CLIENT_BUILDING_DLL")
+  target_compile_definitions(action_client_test_grab_3d_data
+    PRIVATE "TEST_GRAB_3D_DATA_ACTION_CLIENT_BUILDING_DLL")
 
-  ament_target_dependencies(action_client_test_grab_blaze_data
-    ${CAMERA_TEST_DEPENDENCIES}
+  target_link_libraries(action_client_test_grab_3d_data PUBLIC
+    ${pylon_ros2_camera_component_TARGETS}
+    cv_bridge::cv_bridge
+    image_geometry::image_geometry
+    rclcpp::rclcpp
+    rclcpp_components::component
+    rclcpp_components::component_manager
+    rcutils::rcutils
   )
 
-  rclcpp_components_register_node(action_client_test_grab_blaze_data
-    PLUGIN "pylon_ros2_camera::TestGrabBlazeDataActionClient"
-    EXECUTABLE test_grab_blaze_data_action_client
+  rclcpp_components_register_node(action_client_test_grab_3d_data
+    PLUGIN "pylon_ros2_camera::TestGrab3DDataActionClient"
+    EXECUTABLE test_grab_3d_data_action_client
   )
 
   add_library(action_client_test_grab_image SHARED
@@ -133,8 +151,14 @@ if(BUILD_TESTING)
   target_compile_definitions(action_client_test_grab_image
     PRIVATE "TEST_GRAB_IMAGE_ACTION_CLIENT_BUILDING_DLL")
 
-  ament_target_dependencies(action_client_test_grab_image
-    ${CAMERA_TEST_DEPENDENCIES}
+  target_link_libraries(action_client_test_grab_image PUBLIC
+    ${pylon_ros2_camera_component_TARGETS}
+    cv_bridge::cv_bridge
+    image_geometry::image_geometry
+    rclcpp::rclcpp
+    rclcpp_components::component
+    rclcpp_components::component_manager
+    rcutils::rcutils
   )
 
   rclcpp_components_register_node(action_client_test_grab_image
@@ -145,10 +169,15 @@ if(BUILD_TESTING)
   install(TARGETS
         action_client_test_grab_images
         action_client_test_grab_image
-        action_client_test_grab_blaze_data
+        action_client_test_grab_3d_data
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION lib/${PROJECT_NAME}
+  )
+
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(test_launch_profiles
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/test_launch_profiles.py
   )
 
   find_package(ament_lint_auto REQUIRED)

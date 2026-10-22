@@ -37,6 +37,24 @@ Copy the downloaded `.deb` file into this `docker/` directory and rename it
 `pylon.deb`, **or** update `PYLON_DEB` in `docker-compose.yaml` to match your
 filename.
 
+### 3. pylon supplementary packages (3D cameras only)
+
+The **Stereo ace**, **Stereo mini** and **blaze** 3D cameras are **not** part of
+the base pylon suite. Each needs its own *pylon Supplementary Package* (Linux
+Debian Installer), downloaded from the same Basler downloads page. These provide
+the SDK headers the driver uses to build the 3D camera support.
+
+For every 3D camera you use, place the `.deb` in this `docker/` directory and
+set the matching variable at build time:
+
+| Camera      | Build variable          | Package (Basler download)                        |
+|-------------|-------------------------|--------------------------------------------------|
+| Stereo ace  | `PYLON_STEREO_ACE_DEB`  | pylon Supplementary Package for Stereo ace       |
+| Stereo mini | `PYLON_STEREO_MINI_DEB` | pylon Supplementary Package for Stereo mini (SDK)|
+| blaze       | `PYLON_BLAZE_DEB`       | pylon Supplementary Package for blaze            |
+
+2D-only users can skip this step.
+
 ---
 
 ## Build
@@ -52,11 +70,11 @@ Create it once and all subsequent `docker compose` commands use it automatically
 ```bash
 cd docker/
 
-# Kilted (default — .env file not required):
+# Jazzy (default — .env file not required):
 docker compose build
 
-# Jazzy — create a .env file first:
-echo -e "PYLON_ROS_DISTRO=jazzy\nPYLON_REPO_BRANCH=jazzy" > .env
+# Kilted — create a .env file first:
+echo -e "PYLON_ROS_DISTRO=kilted\nPYLON_REPO_BRANCH=kilted" > .env
 docker compose build
 
 # Humble — create a .env file first:
@@ -64,9 +82,17 @@ echo -e "PYLON_ROS_DISTRO=humble\nPYLON_REPO_BRANCH=humble" > .env
 docker compose build
 ```
 
-To go back to the default (kilted), delete the `.env` file:
+To go back to the default (jazzy), delete the `.env` file:
 ```bash
 rm docker/.env
+```
+
+To include 3D camera support, set the supplementary package variables (the
+matching `.deb` files must be in the `docker/` directory):
+```bash
+PYLON_STEREO_ACE_DEB=pylon-supplementary-package-for-stereo-ace_<ver>_amd64.deb \
+PYLON_STEREO_MINI_DEB=pylon-supplementary-package-for-stereo-mini-sdk_<ver>_amd64.deb \
+    docker compose build
 ```
 
 > **Note:** `PYLON_ROS_DISTRO` is used instead of `ROS_DISTRO` in the `.env`
@@ -83,19 +109,31 @@ cd docker/
 
 docker build \
     --build-arg PYLON_DEB=pylon.deb \
-    -t pylon_ros2_camera:kilted .
+    -t pylon_ros2_camera:jazzy .
 
 docker build \
-    --build-arg ROS_DISTRO=jazzy \
-    --build-arg REPO_BRANCH=jazzy \
+    --build-arg ROS_DISTRO=kilted \
+    --build-arg REPO_BRANCH=kilted \
     --build-arg PYLON_DEB=pylon.deb \
-    -t pylon_ros2_camera:jazzy .
+    -t pylon_ros2_camera:kilted .
 
 docker build \
     --build-arg ROS_DISTRO=humble \
     --build-arg REPO_BRANCH=humble \
     --build-arg PYLON_DEB=pylon.deb \
     -t pylon_ros2_camera:humble .
+```
+
+To build with 3D camera support, add the supplementary package build args (the
+`.deb` files must be in the `docker/` directory):
+```bash
+docker build \
+    --build-arg ROS_DISTRO=jazzy \
+    --build-arg REPO_BRANCH=jazzy \
+    --build-arg PYLON_DEB=pylon.deb \
+    --build-arg PYLON_STEREO_ACE_DEB=pylon-supplementary-package-for-stereo-ace_<ver>_amd64.deb \
+    --build-arg PYLON_STEREO_MINI_DEB=pylon-supplementary-package-for-stereo-mini-sdk_<ver>_amd64.deb \
+    -t pylon_ros2_camera:jazzy .
 ```
 
 The build clones the driver from GitHub and compiles it with `colcon`.  
@@ -122,7 +160,7 @@ docker run --rm \               # remove the container automatically when it sto
     --cap-add=NET_RAW \         # raw socket access for the pylon GigE transport layer
     --cap-add=NET_ADMIN \       # network admin operations (e.g. adjusting MTU from inside the container)
     -e ROS_DOMAIN_ID=0 \        # ROS 2 domain ID — must match any external ROS 2 nodes you want to talk to
-    pylon_ros2_camera:kilted    # image tag — replace with :jazzy or :humble as needed
+    pylon_ros2_camera:jazzy     # image tag — replace with :kilted or :humble as needed
 ```
 
 ### Why `--network=host` is mandatory for GigE cameras
@@ -140,36 +178,36 @@ Pass extra arguments after the image name:
 
 ```bash
 # Connect to a specific camera by its DeviceUserID
-docker run --rm --network=host pylon_ros2_camera:kilted \
+docker run --rm --network=host pylon_ros2_camera:jazzy \
     ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py \
         device_user_id:=my_camera
 
 # Enable jumbo frames (requires host NIC and switch to support 9000-byte MTU)
-docker run --rm --network=host pylon_ros2_camera:kilted \
+docker run --rm --network=host pylon_ros2_camera:jazzy \
     ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py \
         mtu_size:=9000
 
 # Load factory defaults on startup
-docker run --rm --network=host pylon_ros2_camera:kilted \
+docker run --rm --network=host pylon_ros2_camera:jazzy \
     ros2 launch pylon_ros2_camera_wrapper pylon_ros2_camera.launch.py \
         startup_user_set:=Default
 ```
 
-> Replace `:kilted` with `:jazzy` or `:humble` to match the image you built.
+> Replace `:jazzy` with `:kilted` or `:humble` to match the image you built.
 
 ### Custom configuration file
 
-Mount your own `default.yaml` to override camera parameters without rebuilding:
+Mount your own `default_2d.yaml` to override camera parameters without rebuilding:
 
 ```bash
 docker run --rm --network=host \
-    -v /path/to/my_camera.yaml:/ros2_ws/install/pylon_ros2_camera_wrapper/share/pylon_ros2_camera_wrapper/config/default.yaml:ro \
-    pylon_ros2_camera:kilted
+    -v /path/to/my_camera.yaml:/ros2_ws/install/pylon_ros2_camera_wrapper/share/pylon_ros2_camera_wrapper/config/default_2d.yaml:ro \
+    pylon_ros2_camera:jazzy
 ```
 
 Or uncomment the `volumes` section in `docker-compose.yaml`.
 
-> Replace `:kilted` with `:jazzy` or `:humble` to match the image you built.
+> Replace `:jazzy` with `:kilted` or `:humble` to match the image you built.
 
 ### Opening a shell in the running container
 
@@ -180,7 +218,7 @@ docker compose exec pylon_ros2_camera bash
 
 With plain docker (from any directory):
 ```bash
-sudo docker exec -it $(sudo docker ps -qf "ancestor=pylon_ros2_camera:kilted") bash
+sudo docker exec -it $(sudo docker ps -qf "ancestor=pylon_ros2_camera:jazzy") bash
 ```
 
 Once inside, source the ROS environment before running any `ros2` commands:
@@ -272,10 +310,45 @@ docker run --rm \
     --device=/dev/bus/usb:/dev/bus/usb \
     --group-add plugdev \
     -e ROS_DOMAIN_ID=0 \
-    pylon_ros2_camera:kilted
+    pylon_ros2_camera:jazzy
 ```
 
-> Replace `:kilted` with `:jazzy` or `:humble` to match the image you built.
+> Replace `:jazzy` with `:kilted` or `:humble` to match the image you built.
+
+---
+
+## Stereo ace compute resources
+
+Stereo ace disparity and depth processing uses compute resources on the host,
+whether the ROS driver runs directly or in a container. The achievable frame
+rate depends on the selected depth resolution and the available CPU or GPU
+resources.
+
+If you set a container CPU quota, check sustained acquisition at your intended
+resolution and frame rate — too tight a quota causes acquisition timeouts. With
+Compose you can raise or remove the limit in `docker-compose.yaml`:
+
+```yaml
+services:
+  pylon_ros2_camera:
+    cpus: "4.0"
+```
+
+Or with `docker run`, add `--cpus=4.0`.
+
+On NVIDIA Jetson systems with the NVIDIA Container Runtime configured,
+`runtime: nvidia` and `NVIDIA_VISIBLE_DEVICES=all` can expose the GPU to the
+container:
+
+```yaml
+services:
+  pylon_ros2_camera:
+    runtime: nvidia
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+```
+
+GPU access alone does not confirm that the Stereo ace GenTL producer uses CUDA.
 
 ---
 
@@ -288,6 +361,8 @@ docker run --rm \
 | `ros2 topic list` shows nothing | `ROS_DOMAIN_ID` mismatch | Set the same `ROS_DOMAIN_ID` on host and container |
 | Low frame rate | Standard MTU (1500 bytes) | Enable jumbo frames: `mtu_size:=9000` (requires NIC/switch support) |
 | `pylon.deb: not found` build error | `.deb` not placed in `docker/` or wrong filename | Place the file in `docker/` and set `PYLON_DEB` accordingly |
+| Stereo ace / Stereo mini / blaze camera not built | Supplementary package not installed in the image | Place the matching supplementary `.deb` in `docker/` and set `PYLON_STEREO_ACE_DEB` / `PYLON_STEREO_MINI_DEB` / `PYLON_BLAZE_DEB`, then rebuild |
+| Low 3D output rate on Stereo ace | Container compute quota too tight | Raise the CPU limit (`cpus:` in compose or `--cpus=`) — see [Stereo ace compute resources](#stereo-ace-compute-resources) |
 | Wrong ROS distro used (e.g. jazzy when kilted expected) | Host `ROS_DISTRO` env var (set by sourcing ROS) leaks into Compose | Use `PYLON_ROS_DISTRO` instead of `ROS_DISTRO` in `.env` and on the command line |
 | `permission denied` connecting to Docker socket | Current user is not in the `docker` group | Run with `sudo`, or add your user permanently: `sudo usermod -aG docker $USER` then `newgrp docker` |
 | `ros2: command not found` inside `exec` shell | ROS environment not sourced in `exec` sessions | Run `source /opt/ros/${ROS_DISTRO}/setup.bash && source /ros2_ws/install/setup.bash`, or prefix commands with `/entrypoint.sh` |

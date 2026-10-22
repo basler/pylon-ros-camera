@@ -2,6 +2,21 @@
 Changelog for package pylon_ros2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.2 (2026-10-22)
+-------------------
+* Fix stereo ace ``camera_info_3d`` (disparity grid size correction).
+* Fix ``pylon_ros2_camera_wrapper`` build with ``BUILD_TESTING=OFF`` (cv_bridge/image_geometry headers).
+* Installation in Docker of the Stereo ace, Stereo mini and blaze supplementary packages via build args.
+* Documentation in Docker of the Stereo ace compute resources.
+
+4.0.1 (2026-09-29)
+-------------------
+* Documentation adjustments.
+
+4.0.0 (2026-09-09)
+-------------------
+* Integration of Basler's stereo ace and the stereo mini within the ROS2 pylon driver.
+
 3.3.8 (2026-10-01)
 -------------------
 * Automate SBOM generation for each new release from jazzy.

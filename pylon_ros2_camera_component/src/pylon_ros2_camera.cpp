@@ -37,6 +37,28 @@ namespace pylon_ros2_camera
 namespace
 {
     static const rclcpp::Logger LOGGER = rclcpp::get_logger("basler.pylon.ros2.pylon_ros2_camera");
+
+    // Read a device's live DeviceUserID by opening it. Some cameras (e.g. the
+    // Stereo mini over GenTL) report a blank name at enumeration time and only
+    // expose DeviceUserID once open. Returns an empty string if it cannot be read.
+    std::string readLiveDeviceUserId(Pylon::CTlFactory& tl_factory, const Pylon::CDeviceInfo& device_info)
+    {
+        try
+        {
+            Pylon::CInstantCamera probe(tl_factory.CreateDevice(device_info));
+            probe.Open();
+            GenApi::CStringPtr user_id_node(probe.GetNodeMap().GetNode("DeviceUserID"));
+            std::string live_id;
+            if (user_id_node.IsValid() && GenApi::IsReadable(user_id_node))
+                live_id = std::string(user_id_node->GetValue().c_str());
+            probe.Close();
+            return live_id;
+        }
+        catch (const GenICam::GenericException&)
+        {
+            return std::string();
+        }
+    }
 }
 
 enum PYLON_CAM_TYPE
@@ -46,6 +68,8 @@ enum PYLON_CAM_TYPE
     DART = 3,
     GIGE2 = 4,
     BLAZE = 5,
+    STEREO_MINI = 6,
+    STEREO_ACE = 7,
     UNKNOWN = -1,
 };
 
@@ -131,19 +155,25 @@ PYLON_CAM_TYPE detectPylonCamType(const Pylon::CDeviceInfo& device_info)
 #ifdef HAVE_PYLON_BLAZE
         else if (device_class == "BaslerGTC/Basler/GenTL_Producer_for_Basler_blaze_101_cameras")
         {
-            if (device_info.IsModelNameAvailable())
-            {
-                std::string model_name(device_info.GetModelName());
-                //RCLCPP_INFO_STREAM(LOGGER, "blaze model name: " << model_name);
-            }
-
             return BLAZE;
+        }
+#endif
+#ifdef HAVE_PYLON_STEREO_MINI
+        else if (device_class == "BaslerGTC/Basler/Stereo_mini")
+        {
+            return STEREO_MINI;
+        }
+#endif
+#ifdef HAVE_PYLON_STEREO_ACE
+        else if (device_class == "BaslerGTC/Basler/basler_xw")
+        {
+            return STEREO_ACE;
         }
 #endif
         else
         {
             RCLCPP_ERROR_STREAM(LOGGER, "The detected camera type is: " << device_class << ". "
-                << "Only 'BaslerUsb' and 'BaslerGigE' types are supported by this driver for now!");
+                << "This camera type is not supported by this driver.");
 
             return UNKNOWN;
         }
@@ -175,6 +205,14 @@ std::unique_ptr<PylonROS2Camera> createFromDevice(PYLON_CAM_TYPE cam_type, Pylon
         case BLAZE:
             return std::make_unique<PylonROS2BlazeCamera>(device);
 #endif
+#ifdef HAVE_PYLON_STEREO_MINI
+        case STEREO_MINI:
+            return std::make_unique<PylonROS2StereoMiniCamera>(device);
+#endif
+#ifdef HAVE_PYLON_STEREO_ACE
+        case STEREO_ACE:
+            return std::make_unique<PylonROS2StereoAceCamera>(device);
+#endif
         case UNKNOWN:
         default:
             return nullptr;
@@ -205,16 +243,22 @@ std::unique_ptr<PylonROS2Camera> PylonROS2Camera::create(const std::string& devi
             {
                 for (it = device_list.begin(); it != device_list.end(); ++it)
                 {
+                    // The enumeration-time name is blank on some cameras (e.g. the
+                    // Stereo mini), which only report their DeviceUserID once open;
+                    // read the live value so the log and the stored id are correct.
+                    std::string user_id(it->GetUserDefinedName().c_str());
+                    if (user_id.empty())
+                        user_id = readLiveDeviceUserId(tl_factory, *it);
+
                     RCLCPP_INFO_STREAM(LOGGER, "Found camera device!"
                                             << " Device Model: " << it->GetModelName()
-                                            << " with Device User Id: " << it->GetUserDefinedName());
-                    
+                                            << " with Device User Id: " << user_id);
+
                     PYLON_CAM_TYPE cam_type = detectPylonCamType(*it);
                     if (cam_type != UNKNOWN)
                     {
-                        //RCLCPP_ERROR_STREAM(LOGGER, "CAM TYPE: " << cam_type);
                         std::unique_ptr<PylonROS2Camera> new_cam_ptr = createFromDevice(cam_type, tl_factory.CreateDevice(*it));
-                        new_cam_ptr->device_user_id_ = it->GetUserDefinedName();
+                        new_cam_ptr->device_user_id_ = user_id;
                         
                         return new_cam_ptr;
                     }
@@ -226,21 +270,59 @@ std::unique_ptr<PylonROS2Camera> PylonROS2Camera::create(const std::string& devi
                 return nullptr;
             }
 
+            // Match the requested id against a candidate user id: exact, or the
+            // requested id being the tail of the candidate.
+            auto id_matches = [&device_user_id_to_open](const std::string& candidate) -> bool
+            {
+                return (0 == device_user_id_to_open.compare(candidate)) ||
+                       (device_user_id_to_open.length() < candidate.length() &&
+                        0 == candidate.compare(candidate.length() - device_user_id_to_open.length(),
+                                               device_user_id_to_open.length(),
+                                               device_user_id_to_open));
+            };
+
             bool found_desired_device = false;
             for ( it = device_list.begin(); it != device_list.end(); ++it )
             {
-                std::string device_user_id_found(it->GetUserDefinedName());
-                if ( (0 == device_user_id_to_open.compare(device_user_id_found)) ||
-                     (device_user_id_to_open.length() < device_user_id_found.length() &&
-                     (0 == device_user_id_found.compare(device_user_id_found.length() -
-                                                         device_user_id_to_open.length(),
-                                                         device_user_id_to_open.length(),
-                                                         device_user_id_to_open) )
-                     )
-                   )
+                if (id_matches(std::string(it->GetUserDefinedName())))
                 {
                     found_desired_device = true;
                     break;
+                }
+            }
+
+            // Some device classes (e.g. Basler Stereo mini over GenTL) leave the
+            // enumeration-time user id blank and only report DeviceUserID once the
+            // device is open. Open those and match on the live value.
+            if (!found_desired_device)
+            {
+                for ( it = device_list.begin(); it != device_list.end(); ++it )
+                {
+                    if (!std::string(it->GetUserDefinedName()).empty())
+                        continue;
+
+                    std::string live_user_id;
+                    try
+                    {
+                        Pylon::CInstantCamera probe(tl_factory.CreateDevice(*it));
+                        probe.Open();
+                        GenApi::CStringPtr user_id_node(probe.GetNodeMap().GetNode("DeviceUserID"));
+                        if (user_id_node.IsValid() && GenApi::IsReadable(user_id_node))
+                            live_user_id = std::string(user_id_node->GetValue().c_str());
+                        probe.Close();
+                    }
+                    catch (const GenICam::GenericException& e)
+                    {
+                        RCLCPP_DEBUG_STREAM(LOGGER, "Could not read DeviceUserID from device "
+                            << it->GetModelName() << ": " << e.GetDescription());
+                        continue;
+                    }
+
+                    if (id_matches(live_user_id))
+                    {
+                        found_desired_device = true;
+                        break;
+                    }
                 }
             }
 

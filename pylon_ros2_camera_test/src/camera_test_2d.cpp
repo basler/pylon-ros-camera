@@ -47,8 +47,8 @@ namespace pylon_ros2_camera_test
 CameraTest2D::CameraTest2D(const rclcpp::NodeOptions & options)
 : CameraTestGeneric("camera_test_2d", options)
 {
-  blaze_detect_client_ = rclcpp_action::create_client<GrabBlazeDataAction>(
-    this, camera_ns_ + "/grab_blaze_data");
+  detect_3d_client_ = rclcpp_action::create_client<Grab3DDataAction>(
+    this, camera_ns_ + "/grab_3d_data");
 
   grab_images_client_ = rclcpp_action::create_client<GrabImagesAction>(
     this, camera_ns_ + "/grab_images_raw");
@@ -112,14 +112,13 @@ bool CameraTest2D::detect_camera()
   if (!rclcpp::ok()) return false;
 
   // Step 3: Discriminate 2D vs 3D camera. Now that the camera is connected, only
-  // a Blaze (3D) camera streams point-cloud data on blaze_cloud; a 2D camera
-  // never does. The blaze_* publishers exist on every camera, so their presence
-  // is not enough - the data flow is the reliable signal (more robust than the
-  // grab_blaze_data action, whose discovery can lag just after connection).
+  // a 3D camera streams point-cloud data on cloud_3d; a 2D camera never does.
+  // Data flow is the reliable signal (more robust than the grab_3d_data action,
+  // whose discovery can lag just after connection).
   {
     std::atomic<bool> got_cloud{false};
-    auto blaze_sub = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-      camera_ns_ + "/blaze_cloud", rclcpp::QoS(rclcpp::KeepLast(1)),
+    auto cloud_sub = this->create_subscription<sensor_msgs::msg::PointCloud2>(
+      camera_ns_ + "/cloud_3d", rclcpp::QoS(rclcpp::KeepLast(1)),
       [&got_cloud](const sensor_msgs::msg::PointCloud2::SharedPtr) { got_cloud = true; });
     auto disc_deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
     while (rclcpp::ok() && !got_cloud && std::chrono::steady_clock::now() < disc_deadline)
@@ -129,7 +128,7 @@ bool CameraTest2D::detect_camera()
     if (got_cloud)
     {
       RCLCPP_INFO(get_logger(),
-        "3D camera detected (blaze_cloud is streaming). Skipping 2D tests.");
+        "3D camera detected (cloud_3d is streaming). Skipping 2D tests.");
       is_wrong_camera_type_ = true;
       return false;
     }
@@ -210,8 +209,8 @@ bool CameraTest2D::test_grab_images_raw()
 }
 
 // Set 2×2 binning, verify the reached values, then restore 1×1.
-// If the camera does not support binning the driver silently keeps the
-// current value (reached stays 1); the test skips gracefully so the suite
+// If the camera does not support binning the driver keeps the
+// current value (reached stays 1); the test skips so the suite
 // remains usable on cameras without hardware binning support.
 bool CameraTest2D::test_set_binning()
 {
@@ -253,6 +252,18 @@ bool CameraTest2D::test_set_binning()
 // then restore the full sensor area.
 bool CameraTest2D::test_set_roi()
 {
+  // ── [0] Start from full sensor ────────────────────────────────────────────
+  // The camera may boot with a cropped ROI from a saved user set, so command a
+  // full-sensor ROI first (the driver clips large values to the sensor max).
+  // This makes the full-resolution check below independent of the boot state.
+  auto req_reset = std::make_shared<SetROI::Request>();
+  req_reset->target_roi.x_offset  = 0;
+  req_reset->target_roi.y_offset  = 0;
+  req_reset->target_roi.width     = 65535;
+  req_reset->target_roi.height    = 65535;
+  req_reset->target_roi.do_rectify = false;
+  call_service<SetROI>(set_roi_client_, req_reset);
+
   // ── [1] camera_info.roi must be all-zeros at full resolution ──────────────
   auto roi_initial = get_camera_info_roi();
   bool ok = assert_true(
@@ -381,7 +392,7 @@ std::string CameraTest2D::grab_current_encoding()
 }
 
 // Switch encoding to "mono8", grab a frame and verify the image header
-// encoding matches.  Then try "bayer_rggb8" (skip gracefully if the camera
+// encoding matches.  Then try "bayer_rggb8" (skip if the camera
 // is monochrome), grab and verify, then restore "mono8" and verify again.
 // The restore+grab is the key regression check for the bit_shift_active_
 // caching optimisation: a stale cached flag would produce an image whose

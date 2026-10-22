@@ -51,6 +51,24 @@ else()
     message(STATUS "Pylon blaze support: DISABLED (pylon/BlazeInstantCamera.h not found)")
 endif()
 
+# Check for Stereo mini camera support (requires pylon Supplementary Package for Stereo mini)
+find_file(PYLON_STEREO_MINI_HEADER "pylon/StereoMiniInstantCamera.h" PATHS ${Pylon_INCLUDE_DIRS} NO_DEFAULT_PATH)
+if(PYLON_STEREO_MINI_HEADER)
+    message(STATUS "Pylon Stereo mini support: ENABLED")
+    add_compile_definitions(HAVE_PYLON_STEREO_MINI)
+else()
+    message(STATUS "Pylon Stereo mini support: DISABLED (pylon/StereoMiniInstantCamera.h not found)")
+endif()
+
+# Check for Stereo ace camera support (requires pylon Supplementary Package for Stereo ace)
+find_file(PYLON_STEREO_ACE_HEADER "pylon/StereoAceInstantCamera.h" PATHS ${Pylon_INCLUDE_DIRS} NO_DEFAULT_PATH)
+if(PYLON_STEREO_ACE_HEADER)
+    message(STATUS "Pylon Stereo ace support: ENABLED")
+    add_compile_definitions(HAVE_PYLON_STEREO_ACE)
+else()
+    message(STATUS "Pylon Stereo ace support: DISABLED (pylon/StereoAceInstantCamera.h not found)")
+endif()
+
 find_package(ament_cmake REQUIRED)
 find_package(pylon_ros2_camera_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -119,11 +137,23 @@ target_compile_definitions(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-	${PYLON_ROS2_CAMERA_LIBRARIES}
-)
-
-ament_target_dependencies(${PROJECT_NAME}
-	${PYLON_ROS2_CAMERA_DEPENDENCIES}
+	PRIVATE
+		${PYLON_ROS2_CAMERA_LIBRARIES}
+	PUBLIC
+		${pylon_ros2_camera_interfaces_TARGETS}
+		${sensor_msgs_TARGETS}
+		camera_info_manager::camera_info_manager
+		cv_bridge::cv_bridge
+		diagnostic_updater::diagnostic_updater
+		image_geometry::image_geometry
+		image_transport::image_transport
+		pcl_ros::pcl_ros_tf
+		rclcpp::rclcpp
+		rclcpp_action::rclcpp_action
+		rclcpp_components::component
+		rclcpp_components::component_manager
+		rcutils::rcutils
+		sensor_msgs::sensor_msgs_library
 )
 
 rclcpp_components_register_node(${PROJECT_NAME}
@@ -161,15 +191,50 @@ target_link_libraries(set_device_user_id
 	PRIVATE ${PYLON_ROS2_CAMERA_LIBRARIES}
 )
 
+# stereo ace probe (read-only node diagnostic)
+add_executable(stereo_ace_probe
+	${CMAKE_CURRENT_SOURCE_DIR}/src/tools/stereo_ace_probe.cpp
+)
+
+target_include_directories(stereo_ace_probe SYSTEM
+	PRIVATE
+		$<BUILD_INTERFACE:${Pylon_INCLUDE_DIRS}>
+)
+
+target_link_libraries(stereo_ace_probe
+	PRIVATE ${PYLON_ROS2_CAMERA_LIBRARIES}
+)
+
+# stereo mini probe (read-only node diagnostic)
+add_executable(stereo_mini_probe
+	${CMAKE_CURRENT_SOURCE_DIR}/src/tools/stereo_mini_probe.cpp
+)
+
+target_include_directories(stereo_mini_probe SYSTEM
+	PRIVATE
+		$<BUILD_INTERFACE:${Pylon_INCLUDE_DIRS}>
+)
+
+target_link_libraries(stereo_mini_probe
+	PRIVATE ${PYLON_ROS2_CAMERA_LIBRARIES}
+)
+
 ### installation
 
 install(
-  TARGETS
-    ${PROJECT_NAME}
-    ip_auto_config
-    set_device_user_id
+  TARGETS ${PROJECT_NAME}
+  EXPORT export_${PROJECT_NAME}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  TARGETS
+    ip_auto_config
+    set_device_user_id
+    stereo_ace_probe
+    stereo_mini_probe
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -192,8 +257,8 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_include_directories(include)
-ament_export_libraries(${PROJECT_NAME})
 ament_export_dependencies(${PYLON_ROS2_CAMERA_DEPENDENCIES})
 
 ament_package()

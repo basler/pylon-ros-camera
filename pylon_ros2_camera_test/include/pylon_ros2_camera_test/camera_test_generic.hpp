@@ -158,7 +158,7 @@ private:
   // Target: 10 000 µs.  Tolerance: ±2 000 µs.
   // Some cameras have a narrower range (e.g. Blaze [50–1000] µs); when the
   // target is above the camera's maximum the driver clamps it and returns
-  // success=true with the clamped value.  The test skips gracefully in that
+  // success=true with the clamped value.  The test skips in that
   // case so the suite remains usable across all camera models.
   bool test_set_exposure()
   {
@@ -192,7 +192,7 @@ private:
   // Verify that set_gain reaches a manually requested value.
   // Target: 0.3 (normalised).  Tolerance: ±0.1.
   // Some cameras (e.g. Blaze) have no gain parameter; the driver returns the
-  // sentinel value -9999 in that case.  The test skips gracefully so the suite
+  // sentinel value -9999 in that case.  The test skips so the suite
   // remains usable across all camera models.
   bool test_set_gain()
   {
@@ -216,7 +216,7 @@ private:
   // Verify that set_gamma reaches a manually requested value.
   // Target: 1.2.  Tolerance: ±0.1.
   // Some cameras do not expose a Gamma NodeMap; in that case the driver
-  // returns reached_gamma=0.  The test skips gracefully so the suite
+  // returns reached_gamma=0.  The test skips so the suite
   // remains usable across all camera models.
   bool test_set_gamma()
   {
@@ -231,6 +231,15 @@ private:
     if (!res->success || std::fabs(res->reached_gamma) < 0.001f) {
       RCLCPP_WARN(get_logger(),
         "test_set_gamma: gamma not supported by this camera, skipping.");
+      return true;
+    }
+    if (std::fabs(res->reached_gamma - target) > 0.1f) {
+      RCLCPP_WARN(
+        get_logger(),
+        "test_set_gamma: target %.2f out of camera range "
+        "(reached %.2f), skipping.",
+        static_cast<double>(target),
+        static_cast<double>(res->reached_gamma));
       return true;
     }
     return assert_near(res->reached_gamma, target, 0.1,

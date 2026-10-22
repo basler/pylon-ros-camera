@@ -41,6 +41,7 @@
 
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
+#include <sensor_msgs/msg/imu.hpp>
 
 // services
 #include "pylon_ros2_camera_interfaces/srv/get_integer_value.hpp"
@@ -67,7 +68,7 @@
 
 // actions
 #include "pylon_ros2_camera_interfaces/action/grab_images.hpp"
-#include "pylon_ros2_camera_interfaces/action/grab_blaze_data.hpp"
+#include "pylon_ros2_camera_interfaces/action/grab3_d_data.hpp"
 
 // camera
 #include "pylon_ros2_camera.hpp"
@@ -129,8 +130,8 @@ using TriggerSrv                    = std_srvs::srv::Trigger;
 
 using GrabImagesAction              = pylon_ros2_camera_interfaces::action::GrabImages;
 using GrabImagesGoalHandle          = rclcpp_action::ServerGoalHandle<GrabImagesAction>;
-using GrabBlazeDataAction           = pylon_ros2_camera_interfaces::action::GrabBlazeData;
-using GrabBlazeDataGoalHandle       = rclcpp_action::ServerGoalHandle<GrabBlazeDataAction>;
+using Grab3DDataAction              = pylon_ros2_camera_interfaces::action::Grab3DData;
+using Grab3DDataGoalHandle          = rclcpp_action::ServerGoalHandle<Grab3DDataAction>;
 
 
 class PylonROS2CameraNode : public rclcpp::Node
@@ -201,6 +202,15 @@ protected:
    * @brief Spinning grabbing thread
    */
   virtual void spin();
+
+  /**
+   * @brief Drains queued IMU samples and publishes them at the IMU rate.
+   *
+   * Runs in its own thread so the samples go out smoothly at the hardware
+   * IMU rate instead of in bursts once per (slower) image spin. Publishing
+   * in bursts overflows a normal subscriber's queue and drops samples.
+   */
+  void imuPublishLoop();
 
   /**
    * @brief Grabs an image and stores the image in img_raw_msg_
@@ -536,7 +546,7 @@ protected:
   uint32_t getNumSubscribersRectImagePub() const;
 
   /**
-   * @brief Service callback for getting the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and blaze.
+   * @brief Service callback for getting the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and 3D cameras.
    * @param req request
    * @param res response
    */
@@ -544,7 +554,7 @@ protected:
                                std::shared_ptr<GetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for getting the GigE cameras: Number of frames received Other cameras: Number of buffers processed - Applies to: BCON, GigE, USB and blaze.
+   * @brief Service callback for getting the GigE cameras: Number of frames received Other cameras: Number of buffers processed - Applies to: BCON, GigE, USB and 3D cameras.
    * @param req request
    * @param res response
    */
@@ -560,7 +570,7 @@ protected:
                                              std::shared_ptr<GetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for getting the Number of frames lost because there were no buffers in the queue - Applies to: GigE and blaze.
+   * @brief Service callback for getting the Number of frames lost because there were no buffers in the queue - Applies to: GigE and 3D cameras.
    * @param req request
    * @param res response
    */
@@ -576,7 +586,7 @@ protected:
                                              std::shared_ptr<GetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for getting the Number of emitted packet resend commands sent - Applies to: GigE and blaze.
+   * @brief Service callback for getting the Number of emitted packet resend commands sent - Applies to: GigE and 3D cameras.
    * @param req request
    * @param res response
    */
@@ -872,6 +882,14 @@ protected:
                                   std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
+   * @brief Service callback for setting the active source selector (stereo mini)
+   * @param req request
+   * @param res response
+   */
+  void setSourceSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request,
+                                 std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
    * @brief Service callback for setting the camera user set default selector
    * @param req request
    * @param res response
@@ -936,7 +954,7 @@ protected:
                                   std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for setting the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and blaze.
+   * @brief Service callback for setting the maximum number of buffers that can be used simultaneously for grabbing images - Applies to: BCON, GigE, USB and 3D cameras.
    * @param req request
    * @param res response
    */
@@ -1028,14 +1046,14 @@ protected:
    * @param req request
    * @param res response
    */
-  void setDepthMinCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+  void setDepthMinCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response);
 
   /**
    * @brief Service callback for setting depth max - Applies to: blaze.
    * @param req request
    * @param res response
    */
-  void setDepthMaxCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+  void setDepthMaxCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response);
 
   /**
    * @brief Service callback for setting temporal filter strength - Applies to: blaze.
@@ -1066,11 +1084,11 @@ protected:
   void setAmbiguityFilterThresholdCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
 
   /**
-   * @brief Service callback for setting confidence threshold - Applies to: blaze.
+   * @brief Service callback for setting confidence threshold - Applies to: blaze, Stereo ace.
    * @param req request
    * @param res response
    */
-  void setConfidenceThresholdCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+  void setConfidenceThresholdCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response);
 
   /**
    * @brief Service callback for setting intensity calculation - Applies to: blaze.
@@ -1383,6 +1401,112 @@ protected:
   void enableHDRModeCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
 
   /**
+   * @brief Service callback for setting illumination mode - Applies to: Stereo ace.
+   * @param req request
+   * @param res response
+   */
+  void setIlluminationModeCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting depth quality - Applies to: Stereo ace.
+   * @param req request
+   * @param res response
+   */
+  void setDepthQualityCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling static scene mode - Applies to: Stereo ace.
+   * @param req request
+   * @param res response
+   */
+  void enableStaticSceneCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling the pattern projector - Applies to: Stereo mini.
+   * @param req request
+   * @param res response
+   */
+  void enableProjectorCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for selecting the HDR sub-exposure to configure - Applies to: Stereo ace.
+   */
+  void setHDRExposureTimeSelectorCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the selected HDR sub-exposure time - Applies to: Stereo ace.
+   */
+  void setHDRExposureTimeCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the number of HDR sub-exposures - Applies to: Stereo ace.
+   */
+  void setHDRSubExposuresCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the auto exposure mode - Applies to: Stereo ace.
+   */
+  void setExposureAutoModeCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for selecting the HDR sequence to configure - Applies to: Stereo mini.
+   */
+  void setHDRSequenceIndexCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for selecting the HDR sequence preset - Applies to: Stereo mini.
+   */
+  void setHDRSequencePresetCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the HDR sequence maximum exposure time - Applies to: Stereo mini.
+   */
+  void setHDRMaxExposureCallback(const std::shared_ptr<SetFloatSrv::Request> request, std::shared_ptr<SetFloatSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling HDR frame merging - Applies to: Stereo mini.
+   */
+  void enableHDRMergeCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling IR use during HDR merging - Applies to: Stereo mini.
+   */
+  void enableHDRMergeUseIRCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for loading the selected HDR sequence preset - Applies to: Stereo mini.
+   */
+  void loadHDRPresetCallback(const std::shared_ptr<TriggerSrv::Request> request, std::shared_ptr<TriggerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the pattern projector power level - Applies to: Stereo mini.
+   * @param req request
+   * @param res response
+   */
+  void setProjectorLevelCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for enabling/disabling depth smoothing - Applies to: Stereo ace.
+   * @param req request
+   * @param res response
+   */
+  void enableDepthSmoothCallback(const std::shared_ptr<SetBoolSrv::Request> request, std::shared_ptr<SetBoolSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the depth fill level - Applies to: Stereo ace.
+   * @param req request
+   * @param res response
+   */
+  void setDepthFillCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
+   * @brief Service callback for setting the depth segmentation threshold - Applies to: Stereo ace.
+   * @param req request
+   * @param res response
+   */
+  void setDepthSegCallback(const std::shared_ptr<SetIntegerSrv::Request> request, std::shared_ptr<SetIntegerSrv::Response> response);
+
+  /**
    * @brief Service callback for enabling/disabling fast mode - Applies to: blaze.
    * @param req request
    * @param res response
@@ -1520,29 +1644,29 @@ protected:
   void executeGrabRectImagesAction(const std::shared_ptr<GrabImagesGoalHandle> goal_handle);
 
   /**
-   * @brief Handle action goal relatively to blaze data grabbing
+   * @brief Handle action goal relatively to 3D data grabbing
    * @return goal response
    */
-  rclcpp_action::GoalResponse handleGrabBlazeDataActionGoal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const GrabBlazeDataAction::Goal> goal);
+  rclcpp_action::GoalResponse handleGrab3DDataActionGoal(const rclcpp_action::GoalUUID & uuid, std::shared_ptr<const Grab3DDataAction::Goal> goal);
 
   /**
-   * @brief Handle action cancellation relatively to blaze data grabbing
+   * @brief Handle action cancellation relatively to 3D data grabbing
    * @param goal_handle Goal handle
    * @return Response of the action is cancelled 
    */
-  rclcpp_action::CancelResponse handleGrabBlazeDataActionGoalCancel(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
+  rclcpp_action::CancelResponse handleGrab3DDataActionGoalCancel(const std::shared_ptr<Grab3DDataGoalHandle> goal_handle);
 
   /**
-   * @brief Handle action if goal is accepted relatively to blaze data grabbing
+   * @brief Handle action if goal is accepted relatively to 3D data grabbing
    * @param goal_handle handle 
    */
-  void handleGrabBlazeDataActionGoalAccepted(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
+  void handleGrab3DDataActionGoalAccepted(const std::shared_ptr<Grab3DDataGoalHandle> goal_handle);
 
   /**
-   * @brief Grab blaze data through action
+   * @brief Grab 3D data through action
    * @param goal_handle 
    */
-  void executeGrabBlazeDataAction(const std::shared_ptr<GrabBlazeDataGoalHandle> goal_handle);
+  void executeGrab3DDataAction(const std::shared_ptr<Grab3DDataGoalHandle> goal_handle);
 
   /**
    * @brief Create diagnostics
@@ -1657,9 +1781,9 @@ protected:
 
   cv_bridge::CvImage* cv_bridge_img_rect_;
 
-  sensor_msgs::msg::PointCloud2 blaze_cloud_msg_;
+  sensor_msgs::msg::PointCloud2 cloud_3d_msg_;
   sensor_msgs::msg::Image intensity_map_msg_, depth_map_msg_, depth_map_color_msg_, confidence_map_msg_;
-  sensor_msgs::msg::CameraInfo blaze_cam_info_msg_;
+  sensor_msgs::msg::CameraInfo cam_info_3d_msg_;
 
   // topics
   rclcpp::Publisher<pylon_ros2_camera_interfaces::msg::CurrentParams>::SharedPtr current_params_pub_;
@@ -1669,18 +1793,24 @@ protected:
   // image transport publishers
   image_transport::CameraPublisher img_raw_pub_;
   image_transport::Publisher* img_rect_pub_;
-  // blaze related topics
-  std::string blaze_cloud_topic_name_;
-  std::string blaze_intensity_topic_name_;
-  std::string blaze_depth_map_topic_name_;
-  std::string blaze_depth_map_color_topic_name_;
-  std::string blaze_confidence_topic_name_;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr blaze_cloud_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr blaze_intensity_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr blaze_depth_map_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr blaze_depth_map_color_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr blaze_confidence_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr blaze_cam_info_pub_;
+  // 3D related topics
+  std::string cloud_3d_topic_name_;
+  std::string intensity_3d_topic_name_;
+  std::string depth_map_3d_topic_name_;
+  std::string depth_map_color_3d_topic_name_;
+  std::string confidence_3d_topic_name_;
+  std::string intensity_left_3d_topic_name_;
+  std::string intensity_right_3d_topic_name_;
+  std::string imu_topic_name_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr intensity_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr depth_map_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr depth_map_color_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr confidence_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr cam_info_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr intensity_left_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr intensity_right_3d_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
 
   // services
   rclcpp::Service<GetIntegerSrv>::SharedPtr get_max_num_buffer_srv_;
@@ -1732,6 +1862,7 @@ protected:
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_line_mode_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_line_source_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_user_set_selector_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_source_selector_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_user_set_default_selector_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_device_link_throughput_limit_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_max_transfer_size_srv_;
@@ -1751,18 +1882,23 @@ protected:
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_ptp_uc_port_address_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_sync_free_run_timer_start_time_low_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_sync_free_run_timer_start_time_high_srv_;
-  // blaze related services
-  rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_min_srv_;
-  rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_max_srv_;
+  // 3D camera specific services
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_depth_min_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_depth_max_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_temporal_filter_strength_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_outlier_removal_threshold_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_outlier_removal_tolerance_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_ambiguity_filter_threshold_srv_;
-  rclcpp::Service<SetIntegerSrv>::SharedPtr set_confidence_threshold_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_confidence_threshold_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_intensity_calculation_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_exposure_time_selector_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_operating_mode_srv_;
   rclcpp::Service<SetIntegerSrv>::SharedPtr set_multi_camera_channel_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_illumination_mode_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_quality_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_projector_level_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_fill_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_depth_seg_srv_;
 
   rclcpp::Service<SetFloatSrv>::SharedPtr set_noise_reduction_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_sharpness_enhancement_srv_;
@@ -1773,7 +1909,7 @@ protected:
   rclcpp::Service<SetFloatSrv>::SharedPtr set_periodic_signal_period_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_periodic_signal_delay_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_sync_free_run_timer_trigger_rate_abs_srv_;
-  // blaze related services
+  // 3D camera specific services
   rclcpp::Service<SetFloatSrv>::SharedPtr set_acquisition_frame_rate_srv_;
   rclcpp::Service<SetFloatSrv>::SharedPtr set_scan_3d_calibration_offset_srv_;
 
@@ -1794,7 +1930,7 @@ protected:
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_two_step_operation_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_ptp_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_sync_free_run_timer_srv_;
-  // blaze related services
+  // 3D camera specific services
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_spatial_filter_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_temporal_filter_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_outlier_removal_srv_;
@@ -1804,6 +1940,21 @@ protected:
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_acquisition_frame_rate_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_hdr_mode_srv_;
   rclcpp::Service<SetBoolSrv>::SharedPtr enable_fast_mode_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_static_scene_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_projector_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_depth_smooth_srv_;
+
+  // HDR parameter services (Stereo ace / Stereo mini)
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_hdr_exposure_time_selector_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_hdr_exposure_time_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_hdr_sub_exposures_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_exposure_auto_mode_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_hdr_sequence_index_srv_;
+  rclcpp::Service<SetIntegerSrv>::SharedPtr set_hdr_sequence_preset_srv_;
+  rclcpp::Service<SetFloatSrv>::SharedPtr set_hdr_max_exposure_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_hdr_merge_srv_;
+  rclcpp::Service<SetBoolSrv>::SharedPtr enable_hdr_merge_use_ir_srv_;
+  rclcpp::Service<TriggerSrv>::SharedPtr load_hdr_preset_srv_;
  
   rclcpp::Service<TriggerSrv>::SharedPtr execute_software_trigger_srv_;
   rclcpp::Service<TriggerSrv>::SharedPtr save_user_set_srv_;
@@ -1818,12 +1969,14 @@ protected:
   // actions
   rclcpp_action::Server<GrabImagesAction>::SharedPtr grab_imgs_raw_as_;
   rclcpp_action::Server<GrabImagesAction>::SharedPtr grab_imgs_rect_as_;
-  // blaze related action
-  rclcpp_action::Server<GrabBlazeDataAction>::SharedPtr grab_blaze_data_as_;
+  // 3D related action
+  rclcpp_action::Server<Grab3DDataAction>::SharedPtr grab_3d_data_as_;
 
   // spinning thread
   std::thread spin_thread_;
   std::atomic<bool> stop_spinning_;
+  // IMU publishing thread (only used for cameras with an enabled IMU)
+  std::thread imu_publish_thread_;
   // mutex
   std::recursive_mutex grab_mutex_;
 

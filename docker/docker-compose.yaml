@@ -1,7 +1,7 @@
 # =============================================================================
 # docker-compose.yaml – pylon_ros2_camera driver
 #
-# Default distro: kilted (this file lives on the kilted branch).
+# Default distro: jazzy (this file lives on the jazzy branch).
 # Override the distro by setting environment variables before the command:
 #
 #   PYLON_ROS_DISTRO=jazzy PYLON_REPO_BRANCH=jazzy docker compose build
@@ -34,14 +34,21 @@ services:
         # Download from: https://www2.baslerweb.com/en/downloads/software-downloads/
         # Override with: PYLON_DEB=my_pylon.deb docker compose build
         PYLON_DEB: ${PYLON_DEB:-pylon.deb}
+        # Optional 3D supplementary packages. The base suite does not include
+        # the Stereo ace / Stereo mini / blaze SDKs. Place the matching .deb in
+        # this docker/ directory and set the variable, e.g.:
+        #   PYLON_STEREO_ACE_DEB=pylon-supplementary-package-for-stereo-ace_<ver>_amd64.deb docker compose build
+        PYLON_STEREO_ACE_DEB: ${PYLON_STEREO_ACE_DEB:-}
+        PYLON_STEREO_MINI_DEB: ${PYLON_STEREO_MINI_DEB:-}
+        PYLON_BLAZE_DEB: ${PYLON_BLAZE_DEB:-}
         # ROS 2 distro and matching repository branch.
         # Defaults are set in the Dockerfile; override via environment variables
         # or a .env file (use PYLON_ROS_DISTRO, not ROS_DISTRO, to avoid
         # conflicts with a sourced ROS installation on the host):
         #   PYLON_ROS_DISTRO=jazzy PYLON_REPO_BRANCH=jazzy docker compose build
-        ROS_DISTRO: ${PYLON_ROS_DISTRO:-kilted}
-        REPO_BRANCH: ${PYLON_REPO_BRANCH:-kilted}
-    image: pylon_ros2_camera:${PYLON_ROS_DISTRO:-kilted}
+        ROS_DISTRO: ${PYLON_ROS_DISTRO:-jazzy}
+        REPO_BRANCH: ${PYLON_REPO_BRANCH:-jazzy}
+    image: pylon_ros2_camera:${PYLON_ROS_DISTRO:-jazzy}
 
     # -------------------------------------------------------------------------
     # CRITICAL for GigE cameras: host networking
@@ -75,7 +82,7 @@ services:
     # Uncomment and adjust the path to load your own config file.
     # -------------------------------------------------------------------------
     # volumes:
-    #   - ./my_camera.yaml:/ros2_ws/install/pylon_ros2_camera_wrapper/share/pylon_ros2_camera_wrapper/config/default.yaml:ro
+    #   - ./my_camera.yaml:/ros2_ws/install/pylon_ros2_camera_wrapper/share/pylon_ros2_camera_wrapper/config/default_2d.yaml:ro
 
     # Default command – can be overridden here or on the CLI.
     # Useful launch arguments:

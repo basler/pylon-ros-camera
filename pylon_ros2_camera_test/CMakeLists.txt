@@ -67,8 +67,15 @@ add_library(camera_test_2d_component SHARED
 target_compile_definitions(camera_test_2d_component
   PRIVATE "CAMERA_TEST_2D_BUILDING_DLL")
 
-ament_target_dependencies(camera_test_2d_component
-  ${CAMERA_TEST_DEPENDENCIES}
+target_link_libraries(camera_test_2d_component PUBLIC
+  ${pylon_ros2_camera_interfaces_TARGETS}
+  ${sensor_msgs_TARGETS}
+  ${std_srvs_TARGETS}
+  rclcpp::rclcpp
+  rclcpp_action::rclcpp_action
+  rclcpp_components::component
+  rclcpp_components::component_manager
+  rcutils::rcutils
 )
 
 rclcpp_components_register_node(camera_test_2d_component
@@ -90,8 +97,15 @@ add_library(camera_test_3d_component SHARED
 target_compile_definitions(camera_test_3d_component
   PRIVATE "CAMERA_TEST_3D_BUILDING_DLL")
 
-ament_target_dependencies(camera_test_3d_component
-  ${CAMERA_TEST_DEPENDENCIES}
+target_link_libraries(camera_test_3d_component PUBLIC
+  ${pylon_ros2_camera_interfaces_TARGETS}
+  ${sensor_msgs_TARGETS}
+  ${std_srvs_TARGETS}
+  rclcpp::rclcpp
+  rclcpp_action::rclcpp_action
+  rclcpp_components::component
+  rclcpp_components::component_manager
+  rcutils::rcutils
 )
 
 rclcpp_components_register_node(camera_test_3d_component
